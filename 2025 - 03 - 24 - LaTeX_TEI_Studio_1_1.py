@@ -1,3 +1,15 @@
+# ==============================================================================
+# TEILaTeXStudio
+# Un outil d'encodage TEI et LaTeX des variantes dans le théâtre classique
+#
+# Auteur : Tony Gheeraert
+# Affiliation :Chaire d'Excellence en Éditions Numériques, Université de Rouen
+#              Centre de recherche Editer-Interpréter (CEREdI, UR 3229)
+#              Presses universitaires de Rouen et du Havre
+# Date de création : mars 2025
+# Licence : MIT
+# ==============================================================================
+
 import tkinter as tk
 import tkinter.filedialog as fd
 from tkinter import messagebox, scrolledtext, ttk
