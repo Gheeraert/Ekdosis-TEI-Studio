@@ -1,0 +1,286 @@
+%
+% Template LaTeX (ekdosis) pour l'édition du théâtre classique
+% Par Federico Siragusa et Tony Gheeraert
+% 2025
+%
+%
+
+\documentclass{book}
+
+% Paquets utiles
+\usepackage[main=french, spanish, latin]{babel}
+\usepackage[T1]{fontenc}
+\usepackage{fontspec}
+\usepackage{csquotes}
+\usepackage[teiexport, divs=ekdosis]{ekdosis}
+\usepackage{setspace}
+\usepackage{lettrine}
+\usepackage{hyperref}
+\usepackage{zref-user,zref-abspage}
+
+% Informations de mise en page
+%
+% Police: pour une mise en page "classique"
+% charger les polices Junicode et Garamond, et décommenter ces lignes
+%
+%\setmainfont{Junicode}[
+%Scale = 1.2,
+%Ligatures = {Rare},
+%Language = French,
+%Style = {Historic},
+%Contextuals = {Alternate},
+%StylisticSet = 8
+%]
+
+\singlespacing
+
+% Police spécifique et style pour l'apparat critique
+% \newfontfamily\apparatfont{Garamond}
+
+%
+% Page de garde et front(<text><front></front><body></body></text>) 
+% Avec mapping automatique
+
+\newenvironment{front}
+{\begin{content}} % début de l'environnement
+	{\end{content}}   % fin de l'environnement
+\EnvtoTEI{front}{front}
+
+\newcommand{\titre}[1]{{\centering\Huge\uppercase{#1}\par}}
+\TeXtoTEI{titre}{docTitle}
+
+\newcommand{\autor}[1]{{\centering #1\par}}
+\TeXtoTEI{autor}{docAuthor}
+
+\newcommand{\byline}[1]{{\centering #1\par}}
+\TeXtoTEI{byline}{byline}
+
+\newcommand{\imprint}[1]{{\centering\Large\uppercase{#1}\par}}
+\TeXtoTEI{imprint}{docImprint}
+
+\newcommand{\docdate}[1]{{\centering\Large\uppercase{#1}\par}}
+\TeXtoTEI{docdate}{docDate}
+
+%
+% Dramatis personae
+%
+
+% Liste des personnages (cast). Se contente de créer le balisage TEI
+\newenvironment{cast}
+{\begin{content}}
+	{\end{content}}
+\EnvtoTEI{cast}{castList}
+
+% Personnages (castitem, role, roledesc)
+%
+% A utiliser ainsi:
+%
+% \roleitem{phedre}{Phèdre}{femme de Thésée}
+% \roleitem{hippolyte}{Hippolyte}{fils de Thésée}
+
+\newcommand{\castitem}[1]{#1\par\vspace{0.5ex}}
+\TeXtoTEI{castitem}{castItem}
+
+\NewDocumentCommand{\role}{m m}{#2}
+\TeXtoTEIPat{\role{#1}{#2}}{<role xml:id="#1">#2</role>}
+
+\newcommand{\roledesc}[1]{#1}
+\TeXtoTEI{roledesc}{roleDesc}
+
+\newcommand{\roleitem}[3]{%
+	\castitem{%
+		\role{#1}{#2}, \roledesc{#3}%
+	}%
+}
+
+%
+% Lieu de l'action
+% usage: \set{L'action est à Rome}
+%
+\newcommand{\set}[1]{#1}
+\TeXtoTEI{set}{set}
+
+%
+% Didascalies explicites (comprend la liste des personnages en début de scène)
+% Usage: \stage{\pn{#antiochus}{Antiochus} entre par la gauche.}
+% (pn = abréviation pour persName)
+%
+% Noms des persos en tête de scène
+\newcommand{\stage}[1]{%
+	\par\vspace{1em}
+	\begin{center}
+		\Large\textsc{#1}
+	\end{center}
+	\vspace{1em}
+}
+\TeXtoTEI{stage}{stage}
+%
+%
+% Didascalies
+\newcommand{\didas}[1]{%
+	\par\vspace{0.5em}%
+	\begin{center}%
+		\textit{#1}%
+	\end{center}%
+	\vspace{0.5em}%
+}
+\TeXtoTEI{\didas}{stage}
+
+
+\newenvironment{head}
+{\par\medskip\noindent\textsc}
+{\par\medskip}
+\EnvtoTEI{head}{head}
+
+% Les noms de personnages
+\NewDocumentCommand{\persname}{m m}{%
+	#2 % on affiche juste le nom, ekdosis s'occupe du reste
+}
+\TeXtoTEIPat{\persname{#1}{#2}}{<persName corresp="#1">#2</persName>}
+
+% Raccourci "pn" pour "persName"
+\newcommand{\pn}[2]{\persname{#1}{#2}}
+\TeXtoTEIPat{\pn{#1}{#2}}{<persName corresp="#1">#2</persName>}
+
+% Les noms de lieux: "placeName"
+\NewDocumentCommand{\place}{m m}{#2}
+\TeXtoTEIPat{\place{#1}{#2}}{<placeName ref="#1">#2</placeName>}
+
+
+% Encodage des actes. On utilise une commande opérationnelle + un environnement fantôme seulement pour la structure, parce qu'ekdosis ne semble pas savoir gérer les variables des environnements (mais dans les commandes oui...)
+%
+% Usage :
+% \begin{act}	% pour commencer un acte
+	%	\numact{2}	% le numéro de l'acte
+	%	\acthead{Acte premier}	% le titre de l'acte tel qu'il apparaît dans le texte original
+	%	.....
+	% \closeact{}
+	% \end{act} % pour fermer l'acte
+%
+%
+\NewDocumentCommand{\numact}{m}{\relax}
+\TeXtoTEIPat{\numact{#1}}{<div type="act" n="#1">}
+
+%
+\NewDocumentCommand{\closeact}{m}{\relax}
+\TeXtoTEIPat{\closeact{#1}}{</div>}
+
+%
+\NewDocumentEnvironment{act}{}{}{}
+\EnvtoTEI{act}{}
+%
+\newcommand{\acthead}[1]{%
+	\par\vspace{1em}%
+	\begin{center}
+		\LARGE\MakeUppercase{#1}
+	\end{center}
+	\vspace{1em}
+}
+\TeXtoTEI{acthead}{head}
+%------------------------------------
+%
+% Encodage des scènes: même principe que pour les actes
+%
+%
+\NewDocumentCommand{\numscene}{m}{\relax}
+\TeXtoTEIPat{\numscene{#1}}{<div type="scene" n="#1">}
+
+\NewDocumentCommand{\closescene}{m}{\relax}
+\TeXtoTEIPat{\closescene{#1}}{</div>}
+
+\NewDocumentEnvironment{scene}{}{}{}
+\EnvtoTEI{scene}{}
+
+\newcommand{\scenehead}[1]{%
+	\par\medskip\begin{center}\LARGE\textsc{#1}\end{center}\medskip
+}
+\TeXtoTEI{scenehead}{head}
+%--------------------------------
+%
+%  Encodage des dialogues
+%
+%
+\newenvironment{speech}{\par}{\par}
+\newcommand{\speaker}[1]{\large\centering\textsc{#1}\par}
+\TeXtoTEI{speaker}{speaker}
+\EnvtoTEI{speech}{sp} 
+\SetTEIxmlExport{autopar=false}
+%%
+%
+% Numérotation des vers PDF
+%
+% Affichage automatique en LaTeX-ekdosis
+\SetLineation{
+	modulo,
+	vmodulo=5
+}
+%
+% Export TEI de la numérotation des vers
+\newcommand{\vnum}[2]{\linelabel{v#1}#2\par}
+\TeXtoTEIPat{\vnum{#1}{#2}}{<l n="#1">#2</l>}
+%
+%
+%
+%-------------------------------------------
+%
+%% éléments supplémentaires
+%
+% Structuration de la poésie
+% (les paquets natifs d'ekdosis causent des problèmes)
+%
+\NewDocumentEnvironment{vers}{}
+{\par\medskip\begin{list}{}{\leftmargin=2em\rightmargin=2em}\item[]\ignorespaces}
+	{\unskip\end{list}\par\medskip}
+\EnvtoTEI{vers}{}
+%
+% Les lettres
+%
+\newenvironment{letter}
+{\par{\begin{content}}}
+	{\end{content}}
+\EnvtoTEI{letter}{div}[type="letter"]
+%
+% Les chansons
+%
+\newenvironment{song}[1]
+{\par{\begin{content}}}
+	{\end{content}}
+\EnvtoTEI{song}{div}[type="song"]
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Déclaration de l'apparat et des versions
+%
+\DeclareApparatus{default}
+%\DeclareWitness{A}{ANNEE}{Description de A}
+%\DeclareWitness{B}{ANNEE}{Description de B}
+%\DeclareWitness{C}{ANNEE}{Description de C}
+%\DeclareWitness{D}{ANNEE}{Description de D}
+
+
+%
+% Début du corps du document
+%
+
+\begin{document}
+	\begin{ekdosis}
+		
+		%
+		% Cast/castitem: pour la prochaine version.
+		% Ne pas décommenter (bug connu)
+		%
+		%\begin{cast}
+		%	\castitem{\role{xmlid=antiochus}Antiochus, \roledesc{roi de Comagène}}
+		%	\castitem{\role{xmlid=arsace}Arsace, \roledesc{Confident d'Antiochus}}
+		%\end{cast}
+		%\set{La Scene est à Rome}
+		%\normalfont
+		
+		% Pièce
+		\begin{act}
+			%
+			% Copier ici les sorties de l'assistant d'encodage
+			%
+		\end{act}
+	\end{ekdosis}
+\end{document}
