@@ -7,17 +7,19 @@
 #              Centre de recherche Editer-Interpréter (CEREdI, UR 3229)
 #              Presses universitaires de Rouen et du Havre
 # Date de création : mars 2025
-# Licence : MIT
+# Licence : MIT (ou autre à préciser)
 # ==============================================================================
 
 import tkinter as tk
 import tkinter.filedialog as fd
 from tkinter import messagebox, scrolledtext, ttk
 from tkinter import font
+from tkinter import simpledialog
 import difflib
 from collections import defaultdict
 import re
 import unicodedata
+import os
 
 def afficher_nagscreen():
     nag = tk.Toplevel(fenetre)
@@ -181,6 +183,61 @@ def echapper_caracteres_latex(texte):
 def encoder_caracteres_tei(texte):
     """Encode les caractères spéciaux XML/TEI comme l’esperluette."""
     return texte.replace("&", "&amp;")
+
+def rechercher():
+    terme = simpledialog.askstring("Rechercher", "Mot ou expression à chercher :")
+    if terme:
+        zone_saisie.tag_remove("found", "1.0", tk.END)
+        start_pos = "1.0"
+        while True:
+            start_pos = zone_saisie.search(terme, start_pos, stopindex=tk.END)
+            if not start_pos:
+                break
+            end_pos = f"{start_pos}+{len(terme)}c"
+            zone_saisie.tag_add("found", start_pos, end_pos)
+            start_pos = end_pos
+        zone_saisie.tag_config("found", background="yellow")
+
+def remplacer_avance():
+    terme = simpledialog.askstring("Remplacer", "Mot à rechercher :")
+    if not terme:
+        return
+
+    remplacement = simpledialog.askstring("Remplacer", f"Remplacer « {terme} » par :")
+    if remplacement is None:
+        return
+
+    sensible_casse = messagebox.askyesno("Casse", "Faire la recherche en respectant la casse (majuscules/minuscules) ?")
+
+    contenu = zone_saisie.get("1.0", tk.END)
+    count = 0
+    index = "1.0"
+
+    while True:
+        index = zone_saisie.search(terme, index, nocase=not sensible_casse, stopindex=tk.END)
+        if not index:
+            break
+
+        fin_index = f"{index}+{len(terme)}c"
+        zone_saisie.tag_add("remplacer", index, fin_index)
+        zone_saisie.tag_config("remplacer", background="yellow")
+
+        zone_saisie.see(index)
+        zone_saisie.focus()
+
+        confirmer = messagebox.askyesno("Remplacer ?", f"Remplacer cette occurrence de « {terme} » par « {remplacement} » ?")
+        zone_saisie.tag_delete("remplacer")
+
+        if confirmer:
+            zone_saisie.delete(index, fin_index)
+            zone_saisie.insert(index, remplacement)
+            count += 1
+            index = f"{index}+{len(remplacement)}c"
+        else:
+            index = fin_index
+
+    messagebox.showinfo("Remplacements terminés", f"{count} remplacement(s) effectué(s).")
+
 
 def appliquer_style_light(fenetre):
     fond = "#f4f4f4"
@@ -623,6 +680,8 @@ fenetre.title("Comparateur avec scènes, personnages et locuteurs")
 fenetre.update_idletasks()
 fenetre.minsize(1000, fenetre.winfo_reqheight())
 fenetre.bind_all("<Control-s>", lambda event: enregistrer_saisie())
+fenetre.bind("<Control-f>", lambda e: rechercher())
+fenetre.bind("<Control-h>", lambda e: remplacer_avance())
 
 afficher_nagscreen()
 
@@ -634,6 +693,17 @@ label_texte.pack()
 
 zone_saisie = scrolledtext.ScrolledText(frame_saisie, height=15, undo=True, maxundo=-1)
 zone_saisie.pack(fill=tk.BOTH, expand=True)
+
+if os.path.exists("autosave.txt"):
+    with open("autosave.txt", "r", encoding="utf-8") as f:
+        zone_saisie.insert("1.0", f.read())
+
+def autosave(event=None):
+    contenu = zone_saisie.get("1.0", tk.END)
+    with open("autosave.txt", "w", encoding="utf-8") as f:
+        f.write(contenu)
+
+zone_saisie.bind("<KeyRelease>", autosave)
 zone_saisie.bind("<KeyRelease>", mettre_a_jour_menu)
 
 frame_params = tk.LabelFrame(fenetre, text="Paramètres", padx=10, pady=5, bg="#f4f4f4")
@@ -695,6 +765,9 @@ btn_export_latex.pack(side=tk.LEFT, padx=10)
 
 btn_sauver_saisie = tk.Button(frame_bas, text="💾 Enregistrer la saisie", command=enregistrer_saisie)
 btn_sauver_saisie.pack(side=tk.LEFT, padx=10)
+
+btn_remplacer = tk.Button(frame_bas, text="Remplacer avancé (Ctrl+H)", command=remplacer_avance)
+btn_remplacer.pack(side=tk.LEFT, padx=10)
 
 btn_quitter = tk.Button(frame_bas, text="Quitter", command=confirmer_quitter)
 ajouter_bouton_validation(frame_bas)
