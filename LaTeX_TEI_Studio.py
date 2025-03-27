@@ -62,10 +62,10 @@ def afficher_nagscreen():
         nag,
         text=(
             "Un outil d'encodage TEI et LaTeX des variantes dans le théâtre classique.\n\n"
-            "- [[[[n]]]] pour un acte\n"
-            "- [[[n]]] pour une scène\n"
-            "- [[Nom]] pour les personnages présents\n"
-            "- [Nom] pour indiquer un locuteur\n"
+            "- ####n#### pour un acte\n"
+            "- ###n### pour une scène\n"
+            "- ##Nom## pour les personnages présents\n"
+            "- #Nom# pour indiquer un locuteur\n"
         ),
         font=("Georgia", 10), bg="#f5f0e6", justify="center"
     )
@@ -91,19 +91,19 @@ def valider_structure_amelioree():
         ligne_actuelle = i + 1
         ligne = ligne.strip()
 
-        # Crochets non fermés ou suspects
-        if ligne.count("[") != ligne.count("]"):
+        # Dièses non fermés ou suspects
+        if ligne.count("#") != ligne.count("#"):
             erreurs.append(f"Ligne {ligne_actuelle} : crochets non appariés.")
 
         # Acte
-        if re.match(r"\[\[\[\[\d+\]\]\]\]", ligne):
+        if re.match(r"\#\#\#\#\d+\#\#\#\#", ligne):
             a_acte = True
             a_scene = False  # on attend une scène ensuite
             locuteur_attendu = False
             continue
 
         # Scène
-        if re.match(r"\[\[\[\d+\]\]\]", ligne):
+        if re.match(r"\#\#\#\d+\#\#\#", ligne):
             if not a_acte:
                 erreurs.append(f"Ligne {ligne_actuelle} : scène définie avant tout acte.")
             a_scene = True
@@ -111,13 +111,13 @@ def valider_structure_amelioree():
             continue
 
         # Personnages présents
-        if re.match(r"\[\[[^\[\]]+\]\]", ligne):
+        if re.match(r"\#\#[^\[\]]+\#\#", ligne):
             if not a_scene:
                 erreurs.append(f"Ligne {ligne_actuelle} : personnages présents en dehors d'une scène.")
             continue
 
         # Locuteur
-        if ligne.startswith("[") and ligne.endswith("]") and not ligne.startswith("[["):
+        if ligne.startswith("#") and ligne.endswith("#") and not ligne.startswith("##"):
             if not a_scene:
                 erreurs.append(f"Ligne {ligne_actuelle} : locuteur défini hors scène.")
             if locuteur_en_cours:
@@ -136,16 +136,16 @@ def valider_structure_amelioree():
             continue
 
         # Lignes ambiguës ?
-        if "[" in ligne or "]" in ligne:
-            if not (re.fullmatch(r"\[\[\[?\w[\w\s,-]*\]?\]\]?\]?", ligne)):
+        if "#" in ligne or "#" in ligne:
+            if not (re.fullmatch(r"\#\#\#?\w[\w\s,-]*\#?\#\#?\#?", ligne)):
                 erreurs.append(f"Ligne {ligne_actuelle} : crochets suspects ou mal fermés.")
 
-    if not any(re.match(r"\[\[\[\[\d+\]\]\]\]", l.strip()) for l in lignes):
-        erreurs.append("Aucun acte ([[[[n]]]]) n’est défini.")
-    if not any(re.match(r"\[\[\[\d+\]\]\]", l.strip()) for l in lignes):
-        erreurs.append("Aucune scène ([[[n]]]) n’est définie.")
-    if not any(l.strip().startswith("[") and l.strip().endswith("]") and not l.startswith("[[") for l in lignes):
-        erreurs.append("Aucun locuteur ([Nom]) n’est défini.")
+    if not any(re.match(r"\#\#\#\#\d+\#\#\#\#", l.strip()) for l in lignes):
+        erreurs.append("Aucun acte (####n####) n’est défini.")
+    if not any(re.match(r"\#\#\#\d+\#\#\#", l.strip()) for l in lignes):
+        erreurs.append("Aucune scène (###n###) n’est définie.")
+    if not any(l.strip().startswith("#") and l.strip().endswith("#") and not l.startswith("##") for l in lignes):
+        erreurs.append("Aucun locuteur (#Nom#) n’est défini.")
 
     if erreurs:
         messagebox.showerror("Erreurs détectées", "\n".join(erreurs))
@@ -394,7 +394,7 @@ def comparer_etats():
     for ligne in lignes:
         ligne = ligne.strip()
 
-        if re.match(r"\[\[\[\[\d+\]\]\]\]", ligne):  # Acte
+        if re.match(r"\#\#\#\#\d+\#\#\#\#", ligne):  # Acte
             if current_bloc and current_speaker:
                 dialogues.append((current_acte, current_scene, current_personnages, current_speaker, "\n".join(current_bloc)))
                 current_bloc = []
@@ -402,18 +402,18 @@ def comparer_etats():
             current_scene = None
             current_personnages = []
 
-        elif re.match(r"\[\[\[\d+\]\]\]", ligne):  # Scène
+        elif re.match(r"\#\#\#\d+\#\#\#", ligne):  # Scène
             if current_bloc and current_speaker:
                 dialogues.append((current_acte, current_scene, current_personnages, current_speaker, "\n".join(current_bloc)))
                 current_bloc = []
             current_scene = re.findall(r"\d+", ligne)[0]
             current_personnages = []
 
-        elif re.match(r"\[\[[^\[\]]+\]\]", ligne):  # Personnages
-            personnages = re.findall(r"\[\[([^\[\]]+)\]\]", ligne)
+        elif re.match(r"(\#\#[^#]+\#\#)+", ligne):  # Personnages
+            personnages = re.findall(r"\#\#([^\#\#]+)\#\#", ligne)
             current_personnages.extend(personnages)
 
-        elif ligne.startswith("[") and ligne.endswith("]"):  # Locuteur
+        elif ligne.startswith("#") and ligne.endswith("#"):  # Locuteur
             if current_bloc and current_speaker:
                 dialogues.append((current_acte, current_scene, current_personnages, current_speaker, "\n".join(current_bloc)))
             current_speaker = ligne[1:-1].strip()
@@ -476,7 +476,7 @@ def comparer_etats():
             lignes = [l.strip() for l in sous_bloc.strip().splitlines() if l.strip()]
 
             # Si c'est une didascalie seule
-            if len(lignes) == 1 and lignes[0].startswith("<<") and lignes[0].endswith(">>"):
+            if len(lignes) == 1 and lignes[0].startswith("**") and lignes[0].endswith("**"):
                 didascalie = lignes[0][2:-2].strip()
                 resultat_tei.append(f'      <stage>{didascalie}</stage>')
                 resultat_latex.append(f'        \\didas{{{didascalie}}}')
@@ -488,7 +488,7 @@ def comparer_etats():
 
             temoins = [chr(65 + i) for i in range(len(lignes))]
             # Si c'est une didascalie isolée
-            if len(lignes) == 1 and lignes[0].startswith("<<") and lignes[0].endswith(">>"):
+            if len(lignes) == 1 and lignes[0].startswith("**") and lignes[0].endswith("**"):
                 didascalie = lignes[0][2:-2].strip()
                 resultat_tei.append(f'      <stage>{encoder_caracteres_tei(didascalie)}</stage>')
                 resultat_latex.append(f'        \\didas{{{echapper_caracteres_latex(didascalie)}}}')
@@ -640,26 +640,27 @@ def afficher_aide():
     exemple = r"""
 Structure attendue :
 
-[[[[1]]]]             → Acte I
-[[[1]]]              → Scène 1
-[[Titus]] [[Bérénice]] → Personnages présents
-[Titus]             → Locuteur (début de tirade)
+####1####             → Acte I
+###1###            → Scène 1
+##Titus## ##Bérénice## → Personnages présents
+#Titus#            → Locuteur (début de tirade)
 Texte du vers 1
 Texte du vers 2
 
-[Bérénice]
+#Bérénice#
 Texte du vers 1
 Texte du vers 2
 
 Les états (témoins A, B, C…) doivent être saisis ligne à ligne à chaque vers.
 Laissez une ligne vide pour séparer les variantes d’un nouveau vers.
+Laissez une ligne vide avant et après les **didascalies**
 
 Exemple:
 
-[[[[1]]]]
-[[[1]]]
-[[Antiochus]] [[Arsace]]
-[Antiochus]
+####1####
+###1###
+##Antiochus## ##Arsace##
+#Antiochus#
 Arrestons un moment. La pompe de ces lieux
 Arrestons un moment. La pompe de ces lieux
 Arrestons un moment. La pompe de ces lieux
@@ -688,7 +689,7 @@ afficher_nagscreen()
 frame_saisie = tk.LabelFrame(fenetre, text="Saisie des variantes", padx=10, pady=5, bg="#f4f4f4")
 frame_saisie.pack(fill=tk.BOTH, padx=10, pady=10)
 
-label_texte = tk.Label(frame_saisie, text="Utilisez [[[[a]]]] pour un acte, [[[n]]] pour une scène, [[Nom]] pour les personnages, et [Nom] pour le locuteur :", bg="#f4f4f4")
+label_texte = tk.Label(frame_saisie, text="Utilisez ####a#### pour un acte, ###n### pour une scène, ##Nom## pour les personnages, et #Nom# pour le locuteur :", bg="#f4f4f4")
 label_texte.pack()
 
 zone_saisie = scrolledtext.ScrolledText(frame_saisie, height=15, undo=True, maxundo=-1)
