@@ -1,9 +1,11 @@
-[[[[1]]]]
-[[[2]]]
+####1####
+###2###
+##Antiochus## ##Arsace##
 
-[[Antiochus]] [[Arsace]]
-[Antiochus]
-<<Antiochus entre>>
+#Antiochus#
+
+**Antiochus entre**
+
 Arrestons un moment. La pompe de ces lieux,
 Arrestons un moment. La pompe de ces lieux,
 Arrestons un moment. La pompe de ces lieux,
@@ -54,7 +56,7 @@ J'ose luy demander un entretien secret.
 J'ose luy demander un entretien secret.
 J'ose luy demander un entretien secret.
 
-[Arsace.]
+#Arsace#
 Vous, Seigneur, importun Vous cet Amy fidelle
 Vous, Seigneur, importun~? Vous cet Amy fidelle
 Vous, Seigneur, importun~? Vous cet Ami fidelle
@@ -85,7 +87,7 @@ Ce rang entre elle et vous met-il tant de distance.
 Ce rang entre elle et vous met-il tant de distance~?
 Ce rang entre elle et vous met-il tant de distance~? 
 
-[Antiochus]
+#Antiochus#
 Va, dis-je, et sans vouloir te charger d'autres soins,
 Va, dis-je, et sans vouloir te charger d'autres soins;
 Va, dis-je, et sans vouloir te charger d'autres soins?
@@ -95,8 +97,8 @@ Voy si je puis bientost luy parler sans témoins.
 Voi si je puis bientost lui parler sans témoins.
 Voi si je puis bientost luy parler sans témoins.
 
-[[[2]]]
-[[Antiochus]]
+###2###
+##Antiochus##
 HE bien, Antiochus, es-tu toûjours le mesme ?
 HE bien, Antiochus, es-tu toûjours le mesme ?
 HE bien, Antiochus, es-tu toûjours le mesme ?
