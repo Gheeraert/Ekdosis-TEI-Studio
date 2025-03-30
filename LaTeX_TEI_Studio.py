@@ -1,13 +1,17 @@
 # ==============================================================================
 # TEILaTeXStudio
-# Un outil d'encodage TEI et LaTeX des variantes dans le théâtre classique
+#
+# Un outil d'encodage inspiré du markdown
+# pour encoder des variantes dans le théâtre classique
+# avec sorties TEI et LaTeX avec le paquet Ekdosis de Robert Alessi
+#
 #
 # Auteur : Tony Gheeraert
 # Affiliation :Chaire d'Excellence en Éditions Numériques, Université de Rouen
 #              Centre de recherche Editer-Interpréter (CEREdI, UR 3229)
 #              Presses universitaires de Rouen et du Havre
 # Date de création : mars 2025
-# Licence : MIT (ou autre à préciser)
+# Licence : MIT
 # ==============================================================================
 
 import tkinter as tk
@@ -20,14 +24,25 @@ from collections import defaultdict
 import re
 import unicodedata
 import os
+import math
+import lxml.etree as ET
+import tempfile
+import webbrowser
 
 def afficher_nagscreen():
     nag = tk.Toplevel(fenetre)
     nag.title("Bienvenue dans TEILaTeXStudio")
-    nag.configure(bg="#f5f0e6")
 
-    largeur_nag = 500
-    hauteur_nag = 400
+    # Thème parchemin
+    COULEUR_FOND = "#fdf6e3"
+    COULEUR_ENCADRE = "#f5ebc4"
+    COULEUR_TEXTE = "#4a3c1a"
+    POLICE_SERIF = "Georgia"
+
+    nag.configure(bg=COULEUR_FOND)
+
+    largeur_nag = 540
+    hauteur_nag = 360
     fenetre.update_idletasks()
     x_main = fenetre.winfo_rootx()
     y_main = fenetre.winfo_rooty()
@@ -38,113 +53,169 @@ def afficher_nagscreen():
     nag.geometry(f"{largeur_nag}x{hauteur_nag}+{x}+{y}")
     nag.grab_set()
 
-    # Titre
-    titre = tk.Label(nag, text="TEILaTeXStudio", font=("Georgia", 18, "bold"), bg="#f5f0e6")
-    titre.pack(pady=10)
+    # 💡 Utiliser une vraie instance de police
+    police_titre = font.Font(family=POLICE_SERIF, size=32, weight="bold")
+
+    titre = tk.Label(
+        nag,
+        text="LaTeX–TEI Studio",
+        font=police_titre,
+        bg=COULEUR_ENCADRE,
+        fg=COULEUR_TEXTE,
+        pady=20
+    )
+    titre.pack(fill=tk.X)
 
     # Logo
     try:
         logo = tk.PhotoImage(file="favicon.png")
-        nag.logo_img = logo  # éviter garbage collector
-        logo_label = tk.Label(nag, image=logo, bg="#f5f0e6")
-        logo_label.pack(pady=(0, 10))
-    except Exception as e:
-        print("⚠️ Fichier favicon.png non trouvé, le logo ne sera pas affiché.")
-        logo_label = tk.Label(nag, text="🧾", font=("Helvetica", 32), bg="#f5f0e6")
-        logo_label.pack(pady=(0, 10))
+        nag.logo_img = logo
+        logo_label = tk.Label(nag, image=logo, bg=COULEUR_FOND)
+        logo_label.pack(pady=(10, 10))
+    except Exception:
+        logo_label = tk.Label(nag, text="🧾", font=("Helvetica", 38), bg=COULEUR_FOND)
+        logo_label.pack(pady=(10, 10))
 
-    # Auteur
-    auteur = tk.Label(nag, text="Développé par la Chaire d'Excellence en Editions numériques", font=("Georgia", 10), bg="#f5f0e6")
-    auteur.pack(pady=5)
-
-    # Texte explicatif
-    intro = tk.Label(
+    # Mention
+    chaire = tk.Label(
         nag,
-        text=(
-            "Un outil d'encodage TEI et LaTeX des variantes dans le théâtre classique.\n\n"
-            "- ####n#### pour un acte\n"
-            "- ###n### pour une scène\n"
-            "- ##Nom## pour les personnages présents\n"
-            "- #Nom# pour indiquer un locuteur\n"
-        ),
-        font=("Georgia", 10), bg="#f5f0e6", justify="center"
+        text="Logiciel développé par la Chaire d'Excellence en Édition Numérique\nUniversité de Rouen Normandie",
+        font=("Georgia", 10),
+        bg=COULEUR_FOND,
+        fg=COULEUR_TEXTE,
+        justify="center"
     )
-    intro.pack(pady=15)
+    chaire.pack(pady=(0, 10))
 
-    bouton = tk.Button(nag, text="Commencer", font=("Georgia", 11, "bold"), width=15,
-                       command=nag.destroy)
+    # Bouton
+    def commencer():
+        nag.destroy()
+        initialiser_projet()
+
+    bouton = tk.Button(
+        nag, text="Commencer",
+        font=("Georgia", 12, "bold"),
+        bg=COULEUR_ENCADRE,
+        fg=COULEUR_TEXTE,
+        activebackground=COULEUR_TEXTE,
+        activeforeground="white",
+        width=20,
+        relief="raised",
+        bd=2,
+        command=commencer
+    )
     bouton.pack(pady=10)
+
+def demander_infos_initiales():
+    global titre_piece, numero_acte, numero_scene, nombre_scenes
+
+    titre_piece = simpledialog.askstring("Titre de la pièce", "Entrez le titre de la pièce :")
+    numero_acte = simpledialog.askstring("Numéro de l'acte", "Entrez le numéro de l'acte (ex: 1) :")
+    numero_scene = simpledialog.askstring("Numéro de la scène", "Entrez le numéro de la scène (ex: 1) :")
+    nombre_scenes = simpledialog.askstring("Nombre total de scènes dans l'acte", "Entrez le nombre total de scènes :")
+
+    if not all([titre_piece, numero_acte, numero_scene, nombre_scenes]):
+        messagebox.showerror("Erreur", "Toutes les informations sont obligatoires.")
+        fenetre.destroy()
+
+def nom_fichier(base, extension):
+    try:
+        titre_nettoye = nettoyer_identifiant(titre_piece)
+        return f"{titre_nettoye}_A{numero_acte}_S{numero_scene}_of{nombre_scenes}_{base}.{extension}"
+    except NameError:
+        # Variables non encore définies : nom provisoire
+        return f"temp_{base}.{extension}"
+
+def normaliser_bloc(bloc):
+    return "\n".join([l for l in bloc.strip().splitlines() if l.strip()])
 
 def valider_structure_amelioree():
     texte = zone_saisie.get("1.0", tk.END).strip()
     lignes = texte.splitlines()
 
     erreurs = []
-    ligne_actuelle = 0
-
-    a_scene = False
     a_acte = False
-    locuteur_attendu = False
+    a_scene = False
     locuteur_en_cours = None
 
-    for i, ligne in enumerate(lignes):
-        ligne_actuelle = i + 1
-        ligne = ligne.strip()
+    i = 0
+    while i < len(lignes):
+        ligne = lignes[i].strip()
+        ligne_num = i + 1
 
-        # Dièses non fermés ou suspects
-        if ligne.count("#") != ligne.count("#"):
-            erreurs.append(f"Ligne {ligne_actuelle} : crochets non appariés.")
+        # === Lignes de didascalies ===
+        if ligne.startswith("**") and ligne.endswith("**"):
+            if i == 0 or lignes[i - 1].strip():
+                erreurs.append(f"Ligne {ligne_num} : une ligne vide est requise avant une didascalie.")
+            if i == len(lignes) - 1 or lignes[i + 1].strip():
+                erreurs.append(f"Ligne {ligne_num} : une ligne vide est requise après une didascalie.")
 
-        # Acte
-        if re.match(r"\#\#\#\#\d+\#\#\#\#", ligne):
+        # === Dièses mal appariés ===
+        if ligne.count("#") % 2 != 0:
+            erreurs.append(f"Ligne {ligne_num} : nombre impair de dièses.")
+
+        # === Acte ===
+        if re.fullmatch(r"####\d+####", ligne):
             a_acte = True
-            a_scene = False  # on attend une scène ensuite
-            locuteur_attendu = False
+            a_scene = False
+            i += 1
             continue
 
-        # Scène
-        if re.match(r"\#\#\#\d+\#\#\#", ligne):
+        # === Scène ===
+        if re.fullmatch(r"###\d+###", ligne):
             if not a_acte:
-                erreurs.append(f"Ligne {ligne_actuelle} : scène définie avant tout acte.")
+                erreurs.append(f"Ligne {ligne_num} : scène définie avant tout acte.")
             a_scene = True
-            locuteur_attendu = False
+            i += 1
             continue
 
-        # Personnages présents
-        if re.match(r"\#\#[^\[\]]+\#\#", ligne):
+        # === Bloc de personnages ===
+        if re.fullmatch(r"(##[^\#]+##\s*)+", ligne):
             if not a_scene:
-                erreurs.append(f"Ligne {ligne_actuelle} : personnages présents en dehors d'une scène.")
+                erreurs.append(f"Ligne {ligne_num} : personnages présents hors d'une scène.")
+
+            # Vérifier qu’un locuteur suive avant nouvelle scène/acte
+            j = i + 1
+            locuteur_trouvé = False
+            while j < len(lignes):
+                ligne_suiv = lignes[j].strip()
+                if re.fullmatch(r"####\d+####", ligne_suiv) or re.fullmatch(r"###\d+###", ligne_suiv):
+                    break
+                if re.fullmatch(r"#[^#]+#", ligne_suiv):
+                    locuteur_trouvé = True
+                    break
+                j += 1
+            if not locuteur_trouvé:
+                erreurs.append(f"Ligne {ligne_num} : aucun locuteur (#Nom#) trouvé après les personnages.")
+            i += 1
             continue
 
-        # Locuteur
-        if ligne.startswith("#") and ligne.endswith("#") and not ligne.startswith("##"):
+        # === Locuteur ===
+        if re.fullmatch(r"#[^#]+#", ligne):
             if not a_scene:
-                erreurs.append(f"Ligne {ligne_actuelle} : locuteur défini hors scène.")
+                erreurs.append(f"Ligne {ligne_num} : locuteur défini hors d'une scène.")
             if locuteur_en_cours:
-                erreurs.append(f"Ligne {ligne_actuelle} : locuteur '{locuteur_en_cours}' sans contenu avant nouveau locuteur.")
+                erreurs.append(f"Ligne {ligne_num} : locuteur '{locuteur_en_cours}' sans contenu.")
             locuteur_en_cours = ligne[1:-1].strip()
-            locuteur_attendu = True
+            i += 1
             continue
 
-        # Contenu d'une tirade
-        if ligne and locuteur_attendu:
-            locuteur_attendu = False
-            locuteur_en_cours = None
-
-        # Ligne vide
-        if not ligne:
+        # === Vers normaux ou partagés ===
+        if ligne or ligne.startswith("***") or ligne.endswith("***"):
+            if locuteur_en_cours:
+                locuteur_en_cours = None
+            i += 1
             continue
 
-        # Lignes ambiguës ?
-        if "#" in ligne or "#" in ligne:
-            if not (re.fullmatch(r"\#\#\#?\w[\w\s,-]*\#?\#\#?\#?", ligne)):
-                erreurs.append(f"Ligne {ligne_actuelle} : crochets suspects ou mal fermés.")
+        # === Ligne vide ===
+        i += 1
 
-    if not any(re.match(r"\#\#\#\#\d+\#\#\#\#", l.strip()) for l in lignes):
+    # Rappels finaux
+    if not any(re.fullmatch(r"####\d+####", l.strip()) for l in lignes):
         erreurs.append("Aucun acte (####n####) n’est défini.")
-    if not any(re.match(r"\#\#\#\d+\#\#\#", l.strip()) for l in lignes):
+    if not any(re.fullmatch(r"###\d+###", l.strip()) for l in lignes):
         erreurs.append("Aucune scène (###n###) n’est définie.")
-    if not any(l.strip().startswith("#") and l.strip().endswith("#") and not l.startswith("##") for l in lignes):
+    if not any(re.fullmatch(r"#[^#]+#", l.strip()) for l in lignes):
         erreurs.append("Aucun locuteur (#Nom#) n’est défini.")
 
     if erreurs:
@@ -264,9 +335,9 @@ def appliquer_style_light(fenetre):
 
 def appliquer_style_parchemin(fenetre):
     # Couleurs
-    COULEUR_FOND = "#fdf6e3"         # Ivoire / parchemin
-    COULEUR_ENCADRE = "#f5ebc4"      # Jaune parchemin pâle
-    COULEUR_TEXTE = "#4a3c1a"        # Brun profond
+    COULEUR_FOND = "#fdf6e3"
+    COULEUR_ENCADRE = "#f5ebc4"
+    COULEUR_TEXTE = "#4a3c1a"
     POLICE_SERIF = "Georgia"
 
     # Appliquer à la fenêtre principale
@@ -274,36 +345,59 @@ def appliquer_style_parchemin(fenetre):
 
     # Polices
     police_label = font.Font(family=POLICE_SERIF, size=11, weight="bold")
-    police_zone = font.Font(family="Courier New", size=11)  # pour l'alignement des zones de texte
+    police_zone = font.Font(family="Courier New", size=11)
     police_bouton = font.Font(family=POLICE_SERIF, size=12, weight="bold")
 
-    # Zones spécifiques à configurer si elles existent
-    for widget in fenetre.winfo_children():
-        if isinstance(widget, (tk.Label, tk.LabelFrame)):
-            widget.configure(font=police_label, bg=COULEUR_ENCADRE, fg=COULEUR_TEXTE)
-        elif isinstance(widget, tk.Frame):
-            widget.configure(bg=COULEUR_FOND)
+    # Style ttk pour les Combobox
+    style = ttk.Style()
+    style.theme_use('default')
+    style.configure(
+        "Parchemin.TCombobox",
+        fieldbackground=COULEUR_FOND,
+        background=COULEUR_ENCADRE,
+        foreground=COULEUR_TEXTE,
+        font=(POLICE_SERIF, 11)
+    )
 
+    def styliser_recursivement(widget):
+        for child in widget.winfo_children():
+            # Label et LabelFrame
+            if isinstance(child, (tk.Label, tk.LabelFrame)):
+                child.configure(font=police_label, bg=COULEUR_ENCADRE, fg=COULEUR_TEXTE)
+            # Frame
+            elif isinstance(child, tk.Frame):
+                child.configure(bg=COULEUR_FOND)
+            # Entry
+            elif isinstance(child, tk.Entry):
+                try:
+                    child.configure(bg="white", fg=COULEUR_TEXTE, font=police_zone, insertbackground=COULEUR_TEXTE)
+                except tk.TclError:
+                    pass  # certains widgets ttk.Entry n'acceptent pas ces options
+            # Button
+            elif isinstance(child, tk.Button):
+                child.configure(
+                    font=police_bouton,
+                    bg=COULEUR_ENCADRE,
+                    fg=COULEUR_TEXTE,
+                    activebackground=COULEUR_TEXTE,
+                    activeforeground="white",
+                    relief="raised",
+                    bd=2
+                )
+            # Combobox
+            elif isinstance(child, ttk.Combobox):
+                child.configure(style="Parchemin.TCombobox")
+
+            # Récursion
+            styliser_recursivement(child)
+
+    styliser_recursivement(fenetre)
+
+    # Zones de texte
     try:
         zone_saisie.configure(bg="white", font=police_zone)
         zone_resultat_tei.configure(bg="white", font=police_zone)
         zone_resultat_latex.configure(bg="white", font=police_zone)
-    except:
-        pass
-
-    try:
-        for frame in [frame_bas]:
-            for bouton in frame.winfo_children():
-                if isinstance(bouton, tk.Button):
-                    bouton.configure(
-                        font=police_bouton,
-                        bg=COULEUR_ENCADRE,
-                        fg=COULEUR_TEXTE,
-                        activebackground=COULEUR_TEXTE,
-                        activeforeground="white",
-                        relief="raised",
-                        bd=2
-                    )
     except:
         pass
 
@@ -319,6 +413,7 @@ def exporter_tei():
     fichier = fd.asksaveasfilename(
         defaultextension=".xml",
         filetypes=[("Fichiers TEI XML", "*.xml")],
+        initialfile=nom_fichier("tei", "xml"),
         title="Enregistrer le fichier TEI"
     )
     if fichier:
@@ -334,6 +429,7 @@ def exporter_latex():
     fichier = fd.asksaveasfilename(
         defaultextension=".tex",
         filetypes=[("Fichiers LaTeX", "*.tex")],
+        initialfile=nom_fichier("latex", "tex"),
         title="Enregistrer le fichier LaTeX"
     )
     if fichier:
@@ -349,13 +445,13 @@ def enregistrer_saisie():
     fichier = fd.asksaveasfilename(
         defaultextension=".txt",
         filetypes=[("Fichiers texte", "*.txt")],
+        initialfile=nom_fichier("saisie", "txt"),
         title="Enregistrer la saisie"
     )
     if fichier:
         with open(fichier, "w", encoding="utf-8") as f:
             f.write(contenu)
         messagebox.showinfo("Succès", f"Saisie enregistrée :\n{fichier}")
-
 
 def formatter_persname_tei(noms):
     return ", ".join(
@@ -383,6 +479,7 @@ def activer_undo_redo(widget):
 def comparer_etats():
     texte = zone_saisie.get("1.0", tk.END).strip()
     lignes = texte.splitlines()
+    sous_blocs_ignorés = set()
 
     dialogues = []
     current_acte = None
@@ -435,33 +532,50 @@ def comparer_etats():
         return
 
     resultat_tei = []
+    resultat_tei.append('<?xml version="1.0" encoding="UTF-8"?>')
+    resultat_tei.append('<TEI xmlns="http://www.tei-c.org/ns/1.0">')
+    resultat_tei.append('<text><body>')
+
     resultat_latex = []
 
     vers_courant = numero_depart
     current_acte_out = None
     current_scene_out = None
+    dernier_locuteur = None
 
     for acte, scene, personnages, speaker, bloc in dialogues:
         if acte != current_acte_out:
             if current_acte_out is not None:
                 resultat_tei.append("  </div>")
                 resultat_tei.append("</div>")
-                resultat_latex.append("  \\closescene{}\n\\end{scene}")
-                resultat_latex.append("\\closeact{}\n\\end{act}")
+                resultat_latex.append("% Fin de la scène")
+                resultat_latex.append("% Fin de l'acte")
+
             current_acte_out = acte
             num, titre = extraire_numero_et_titre(acte)
+
+            # TEI
             resultat_tei.append(f'<div type="act" n="{num}">')
-            resultat_latex.append(f'\\begin{{act}}\n  \\numact{{{num}}}\n  \\acthead{{Acte {titre}}}')
+
+            # LaTeX ekdosis-compatible
+            resultat_latex.append(f'\\ekddiv{{head=ACTE {titre.upper()}, type=act, n={num}, depth=2}}\n')
 
             current_scene_out = None
 
         if scene != current_scene_out:
             if current_scene_out is not None:
+                resultat_tei.append("  </sp>")
                 resultat_tei.append("  </div>")
-                resultat_latex.append("  \\closescene{}\n\\end{scene}")
+                resultat_latex.append("% Fin de la scène")
+
             current_scene_out = scene
+
+            # TEI
             resultat_tei.append(f'  <div type="scene" n="{scene}">\n    <head>Scène {scene}</head>')
-            resultat_latex.append(f'  \\begin{{scene}}\n    \\numscene{{{scene}}}\n    \\scenehead{{Scène {scene}}}')
+
+            # LaTeX ekdosis-compatible
+            resultat_latex.append(f'\\ekddiv{{head=Scène {scene}, type=scene, n={scene}, depth=3}}\n')
+
             if personnages:
                 pers_tei = formatter_persname_tei(personnages)
                 pers_latex = formatter_persname_latex(personnages)
@@ -469,30 +583,234 @@ def comparer_etats():
                 resultat_latex.append(f'    \\stage{{{pers_latex}}}')
 
         sous_blocs = bloc.split("\n\n")
-        resultat_tei.append(f'    <sp>\n      <speaker>{speaker}</speaker>')
-        resultat_latex.append("    \\begin{speech}\n      \\speaker{" + speaker + "}\n      \\begin{vers}")
+        if speaker != dernier_locuteur:
+            if dernier_locuteur is not None:
+                resultat_tei.append("    </sp>")
+                resultat_latex.append("      \\end{vers}\n    \\end{speech}")
+            resultat_tei.append(f'    <sp>\n      <speaker>{speaker}</speaker>')
+            resultat_latex.append("    \\begin{speech}\n      \\speaker{" + speaker + "}\n      \\begin{vers}")
+            dernier_locuteur = speaker
 
         for sous_bloc in sous_blocs:
+            sous_bloc_texte = normaliser_bloc(sous_bloc)
+            if sous_bloc_texte in sous_blocs_ignorés:
+                speaker = speaker_suivant
+                continue
+
             lignes = [l.strip() for l in sous_bloc.strip().splitlines() if l.strip()]
 
-            # Si c'est une didascalie seule
+            # Didascalie seule
             if len(lignes) == 1 and lignes[0].startswith("**") and lignes[0].endswith("**"):
                 didascalie = lignes[0][2:-2].strip()
                 resultat_tei.append(f'      <stage>{didascalie}</stage>')
                 resultat_latex.append(f'        \\didas{{{didascalie}}}')
                 continue
 
-            # Sinon, ignorer les lignes uniques non didascaliques
+            # Cas du vers partagé : *** à la fin (bloc A) et *** au début (bloc B)
+            if all(l.endswith('***') for l in lignes) and len(lignes) >= 2:
+                numero_vers_base = vers_courant  # e.g., 12
+                vers_num_1 = f"{numero_vers_base}.1"
+                vers_num_2 = f"{numero_vers_base}.2"
+
+                # Nettoyage du bloc 1 (première moitié)
+                partie_1 = [l.rstrip('*').strip() for l in lignes]
+                tokens_1 = [l.split() for l in partie_1]
+                base_1 = tokens_1[liste_ref.current()]
+                temoins = [chr(65 + i) for i in range(len(partie_1))]
+
+                # Différences pour partie 1
+                differences = defaultdict(lambda: defaultdict(list))
+                for i, ligne in enumerate(tokens_1):
+                    if i == liste_ref.current():
+                        continue
+                    sm = difflib.SequenceMatcher(None, base_1, ligne)
+                    for tag, i1, i2, j1, j2 in sm.get_opcodes():
+                        if tag != "equal":
+                            position = (i1, i2)
+                            variante = " ".join(ligne[j1:j2])
+                            differences[position][variante].append(temoins[i])
+
+                ligne_tei = []
+                ligne_latex = []
+                segment_buffer = []
+                i = 0
+                while i < len(base_1):
+                    matching_apps = [key for key in differences.keys() if key[0] == i]
+                    if matching_apps:
+                        if segment_buffer:
+                            segment_texte = " ".join(segment_buffer)
+                            ligne_tei.append("      " + encoder_caracteres_tei(segment_texte) + "\n")
+                            ligne_latex.append("      " + echapper_caracteres_latex(segment_texte))
+                            segment_buffer = []
+
+                        start, end = max(matching_apps, key=lambda x: x[1])
+                        lem = " ".join(base_1[start:end])
+                        rdgs = differences[(start, end)]
+                        wit_lem = [temoins[j] for j, ligne in enumerate(tokens_1) if " ".join(ligne[start:end]) == lem]
+
+                        tei_app = [
+                            f'      <app>\n',
+                            f'        <lem wit="{" ".join(f"#{t}" for t in wit_lem)}">{encoder_caracteres_tei(lem)}</lem>\n'
+                        ]
+                        for texte_rdg, liste_temoins in rdgs.items():
+                            if texte_rdg != lem:
+                                wits = " ".join(f"#{t}" for t in liste_temoins)
+                                tei_app.append(f'        <rdg wit="{wits}">{encoder_caracteres_tei(texte_rdg)}</rdg>\n')
+                        tei_app.append(f'      </app>\n')
+                        ligne_tei.extend(tei_app)
+
+                        rdg_blocks = [
+                            f'        \\rdg[wit={{{", ".join(liste_temoins)}}}]{{{echapper_caracteres_latex(texte_rdg)}}}'
+                            for texte_rdg, liste_temoins in rdgs.items() if texte_rdg != lem
+                        ]
+                        latex_block = [f'      \\app{{',
+                                       f'        \\lem[wit={{{", ".join(wit_lem)}}}]{{{echapper_caracteres_latex(lem)}}}']
+                        latex_block.extend(rdg_blocks)
+                        latex_block.append('      }')
+                        ligne_latex.append("\n".join(latex_block))
+
+                        i = end
+                    else:
+                        segment_buffer.append(base_1[i])
+                        i += 1
+
+                if segment_buffer:
+                    segment_texte = " ".join(segment_buffer)
+                    ligne_tei.append("      " + encoder_caracteres_tei(segment_texte) + "\n")
+                    ligne_latex.append("      " + echapper_caracteres_latex(segment_texte))
+
+                resultat_tei.append(f'<l n="{vers_num_1}">\n' + "".join(ligne_tei) + '</l>')
+                vers_formate_1 = "\n".join(ligne_latex)
+                resultat_latex.append("      \\end{vers}\n    \\end{speech}")
+                resultat_latex.append(f'    \\begin{{speech}}\n      \\speaker{{{speaker}}}\n      \\begin{{vers}}')
+                resultat_latex.append(f'        \\vnum{{{vers_num_1}}}' + '{\n' + vers_formate_1 + '\n        }')
+
+                # Seconde moitié — locuteur suivant
+                lignes_suivantes = []
+                trouver_debut = False
+                trouver_texte = False
+                bloc_b_complet = None
+
+                for acte2, scene2, persos2, speaker_suivant, bloc2 in dialogues:
+                    if trouver_debut:
+                        lignes_brutes = bloc2.strip().splitlines()
+                        lignes_b_nettoyees = []  # Pour bloc complet à ignorer
+                        for ligne in lignes_brutes:
+                            ligne_strip = ligne.strip()
+                            if ligne_strip.startswith("***"):
+                                lignes_suivantes.append(ligne_strip[3:].strip())
+                                lignes_b_nettoyees.append(ligne_strip)
+                                trouver_texte = True
+                            elif ligne_strip and trouver_texte:
+                                lignes_suivantes.append(ligne_strip)
+                                lignes_b_nettoyees.append(ligne_strip)
+                            elif ligne_strip == "" and trouver_texte:
+                                break
+
+                        # 🛑 Stop net si on atteint ou dépasse le bon nombre
+                        if len(lignes_suivantes) >= len(lignes):
+                            bloc_b_complet = "\n".join(lignes_b_nettoyees)
+                            break
+                    if bloc2.strip() == bloc.strip():
+                        trouver_debut = True
+                # ✅ Ajouter le bloc B à ignorer (version nettoyée)
+                if bloc_b_complet:
+                    sous_blocs_ignorés.add(normaliser_bloc(bloc_b_complet))
+
+                if lignes_suivantes:
+                    tokens_2 = [l.split() for l in lignes_suivantes]
+                    base_2 = tokens_2[liste_ref.current()]
+                    temoins_2 = [chr(65 + i) for i in range(len(tokens_2))]
+
+                    differences = defaultdict(lambda: defaultdict(list))
+                    for i, ligne in enumerate(tokens_2):
+                        if i == liste_ref.current():
+                            continue
+                        sm = difflib.SequenceMatcher(None, base_2, ligne)
+                        for tag, i1, i2, j1, j2 in sm.get_opcodes():
+                            if tag != "equal":
+                                position = (i1, i2)
+                                variante = " ".join(ligne[j1:j2])
+                                differences[position][variante].append(temoins_2[i])
+
+                    ligne_tei = []
+                    ligne_latex = []
+                    segment_buffer = []
+                    i = 0
+                    while i < len(base_2):
+                        matching_apps = [key for key in differences.keys() if key[0] == i]
+                        if matching_apps:
+                            if segment_buffer:
+                                segment_texte = " ".join(segment_buffer)
+                                ligne_tei.append("      " + encoder_caracteres_tei(segment_texte) + "\n")
+                                ligne_latex.append("      " + echapper_caracteres_latex(segment_texte))
+                                segment_buffer = []
+
+                            start, end = max(matching_apps, key=lambda x: x[1])
+                            lem = " ".join(base_2[start:end])
+                            rdgs = differences[(start, end)]
+                            wit_lem = [temoins_2[j] for j, ligne in enumerate(tokens_2) if
+                                       " ".join(ligne[start:end]) == lem]
+
+                            tei_app = [f'      <app>\n']
+                            tei_app.append(
+                                f'        <lem wit="{" ".join(f"#{t}" for t in wit_lem)}">{encoder_caracteres_tei(lem)}</lem>\n')
+                            for texte_rdg, liste_temoins in rdgs.items():
+                                if texte_rdg != lem:
+                                    wits = " ".join(f"#{t}" for t in liste_temoins)
+                                    tei_app.append(
+                                        f'        <rdg wit="{wits}">{encoder_caracteres_tei(texte_rdg)}</rdg>\n')
+                            tei_app.append(f'      </app>\n')
+                            ligne_tei.extend(tei_app)
+
+                            rdg_blocks = [
+                                f'        \\rdg[wit={{{", ".join(liste_temoins)}}}]{{{echapper_caracteres_latex(texte_rdg)}}}'
+                                for texte_rdg, liste_temoins in rdgs.items() if texte_rdg != lem
+                            ]
+                            latex_block = [f'      \\app{{',
+                                           f'        \\lem[wit={{{", ".join(wit_lem)}}}]{{{echapper_caracteres_latex(lem)}}}']
+                            latex_block.extend(rdg_blocks)
+                            latex_block.append('      }')
+                            ligne_latex.append("\n".join(latex_block))
+
+                            i = end
+                        else:
+                            segment_buffer.append(base_2[i])
+                            i += 1
+
+                    if segment_buffer:
+                        segment_texte = " ".join(segment_buffer)
+                        ligne_tei.append("      " + encoder_caracteres_tei(segment_texte) + "\n")
+                        ligne_latex.append("      " + echapper_caracteres_latex(segment_texte))
+
+                    # Gérer le changement de locuteur uniquement si nécessaire
+                    if speaker_suivant != dernier_locuteur:
+                        resultat_tei.append("    </sp>\n    <sp>\n      <speaker>{}</speaker>".format(speaker_suivant))
+                        resultat_latex.append("      \\end{vers}\n    \\end{speech}")
+                        resultat_latex.append(
+                            f'    \\begin{{speech}}\n      \\speaker{{{speaker_suivant}}}\n      \\begin{{vers}}')
+                        dernier_locuteur = speaker_suivant  # 🔄 mise à jour
+
+                    # Ajout du vers 2
+                    resultat_tei.append(f'<l n="{vers_num_2}">\n' + "".join(ligne_tei) + '</l>')
+
+                    vers_formate_2 = "\n".join(ligne_latex)
+                    resultat_latex.append(f'        \\vnum{{{vers_num_2}}}' + '{\n' + vers_formate_2 + '\n        }')
+
+                    # 🔁 mise à jour pour la suite du traitement
+                    speaker = speaker_suivant
+
+                # 🔚 Ignorer bloc A aussi
+                sous_bloc_texte = "\n".join(lignes)
+                sous_blocs_ignorés.add(sous_bloc_texte)
+                vers_courant = math.ceil(numero_vers_base) + 1
+                continue
+
+            # Si ligne unique non didascalique, on ignore
             if len(lignes) < 2:
                 continue
 
             temoins = [chr(65 + i) for i in range(len(lignes))]
-            # Si c'est une didascalie isolée
-            if len(lignes) == 1 and lignes[0].startswith("**") and lignes[0].endswith("**"):
-                didascalie = lignes[0][2:-2].strip()
-                resultat_tei.append(f'      <stage>{encoder_caracteres_tei(didascalie)}</stage>')
-                resultat_latex.append(f'        \\didas{{{echapper_caracteres_latex(didascalie)}}}')
-                continue  # ne pas traiter comme vers
             tokens = [l.split() for l in lignes]
             ref_index = liste_ref.current()
             base = tokens[ref_index]
@@ -565,23 +883,42 @@ def comparer_etats():
             resultat_tei.append(f'<l n="{vers_courant}">\n' + "".join(ligne_tei) + '</l>\n')
             vers_formate = "\n".join(ligne_latex)
             resultat_latex.append(f"        \\vnum{{{vers_courant}}}{{\n{vers_formate}\n        }}")
-            vers_courant += 1
+            if vers_courant == int(vers_courant):
+                vers_courant += 1
+            else:
+                vers_courant = math.ceil(vers_courant)
 
-        resultat_tei.append("    </sp>")
-        resultat_latex.append("      \\end{vers}\n    \\end{speech}")
+        if dernier_locuteur != speaker:
+            resultat_tei.append("    </sp>")
+            resultat_latex.append("      \\end{vers}\n    \\end{speech}")
 
     if current_scene_out:
-        resultat_tei.append("  </div>")
-        resultat_latex.append("  \\closescene{}\n\\end{scene}")
-    if current_acte_out:
+        resultat_tei.append("    </sp>")
+        resultat_tei.append("    </div>")
+        resultat_latex.append("      \\end{vers}\n    \\end{speech}   % Fin de la scène")
+
+    if current_acte_out is not None:
         resultat_tei.append("</div>")
-        resultat_latex.append("\\closeact{}\n\\end{act}")
+        resultat_latex.append("% Fin de l'acte")
 
     zone_resultat_tei.delete("1.0", tk.END)
+
+    resultat_tei.append('</body></text>')
+    resultat_tei.append('</TEI>')
     zone_resultat_tei.insert(tk.END, "\n".join(resultat_tei) + "\n")
 
     zone_resultat_latex.delete("1.0", tk.END)
     zone_resultat_latex.insert(tk.END, "\n".join(resultat_latex) + "\n")
+
+    # Mise à jour automatique de la prévisualisation HTML
+    if 'zone_resultat_html' in globals():
+        try:
+            html = convertir_tei_en_html_beau_ameliore(zone_resultat_tei.get("1.0", tk.END))
+            zone_resultat_html.delete("1.0", tk.END)
+            zone_resultat_html.insert(tk.END, html)
+        except Exception as e:
+            print(f"[Prévisualisation HTML] Erreur : {e}")
+
 
 def mettre_a_jour_menu(*args):
     texte = zone_saisie.get("1.0", tk.END).strip()
@@ -590,92 +927,213 @@ def mettre_a_jour_menu(*args):
     if lignes:
         liste_ref.current(0)
 
-def convertir_tei_en_html(tei_text):
+def previsualiser_html():
+    tei = zone_resultat_tei.get("1.0", tk.END).strip()
+    if not tei:
+        messagebox.showwarning("Avertissement", "Aucun contenu TEI à prévisualiser.")
+        return
+    html = convertir_tei_en_html_beau_ameliore(zone_resultat_tei.get("1.0", tk.END))
+    zone_resultat_html.delete("1.0", tk.END)
+    zone_resultat_html.insert(tk.END, html)
+    notebook.select(onglet_html)
+
+def convertir_tei_en_html_beau_ameliore(tei_text):
     html = []
-    for ligne in tei_text.splitlines():
-        ligne = ligne.strip()
+    dans_tirade = False
+    current_speaker = ""
+    vers_buffer = []
+
+    lignes = tei_text.splitlines()
+    i = 0
+    while i < len(lignes):
+        ligne = lignes[i].strip()
 
         # Acte
         match_acte = re.match(r'<div type="act" n="(\d+)">', ligne)
         if match_acte:
-            html.append(f'<h2>Acte {match_acte.group(1)}</h2>')
+            html.append(f'<h2 class="acte">ACTE {match_acte.group(1)}</h2>')
+            i += 1
             continue
 
         # Scène
         match_scene = re.match(r'<div type="scene" n="(\d+)">', ligne)
         if match_scene:
-            html.append(f'<h3>Scène {match_scene.group(1)}</h3>')
+            html.append(f'<h3 class="scene">Scène {match_scene.group(1)}</h3>')
+            i += 1
             continue
 
         # Titre de scène
         if ligne.startswith("<head>"):
-            html.append(f"<h4>{re.sub(r'</?head>', '', ligne).strip()}</h4>")
+            titre = re.sub(r'</?head>', '', ligne).strip()
+            html.append(f"<h4 class=\"scene-titre\">{titre}</h4>")
+            i += 1
             continue
 
         # Didascalie
         if "<stage>" in ligne:
             texte = re.sub(r'</?stage>', '', ligne).strip()
-            html.append(f"<p><em>{texte}</em></p>")
+            html.append(f"<p class=\"didascalie\"><em>{texte}</em></p>")
+            i += 1
+            continue
+
+        # Début tirade
+        if "<sp>" in ligne:
+            dans_tirade = True
+            vers_buffer = []
+            i += 1
             continue
 
         # Locuteur
-        if "<speaker>" in ligne:
-            locuteur = re.sub(r'</?speaker>', '', ligne).strip()
-            html.append(f"<p><strong>{locuteur} :</strong>")
+        elif "<speaker>" in ligne:
+            current_speaker = re.sub(r'</?speaker>', '', ligne).strip()
+            i += 1
             continue
 
         # Vers
-        match_vers = re.match(r'<l n="(\d+)">(.+?)</l>', ligne)
-        if match_vers:
-            vers = re.sub(r'<[^>]+>', '', match_vers.group(2)).strip()
-            html.append(f"{vers}<br>")
+        elif ligne.startswith("<l "):
+            vers_lignes = []
+
+            # Numéro du vers
+            match_vers = re.match(r'<l n="([^"]+)">', ligne)
+            vers_num = match_vers.group(1) if match_vers else ""
+
+            # Regroupe jusqu'à la fin du </l>
+            while not lignes[i].strip().endswith("</l>"):
+                vers_lignes.append(lignes[i].strip())
+                i += 1
+            vers_lignes.append(lignes[i].strip())  # Ajouter la ligne contenant </l>
+            i += 1
+
+            bloc = "\n".join(vers_lignes)
+
+            # Extraction du <lem> uniquement
+            def extraire_lem(texte):
+                texte = re.sub(r'<app>.*?<lem[^>]*>(.*?)</lem>.*?</app>', r'\1', texte, flags=re.DOTALL)
+                texte = re.sub(r'<[^>]+>', '', texte)
+                return texte.strip()
+
+            vers_propre = extraire_lem(bloc)
+            vers_buffer.append(f'<p class="vers"><span class="vers-num">{vers_num}</span> {vers_propre}</p>')
             continue
 
-        # Par défaut : on ignore les autres balises
-    html.append("</p>")  # fermer la dernière tirade
+        # Fin tirade
+        elif "</sp>" in ligne:
+            if current_speaker:
+                html.append('<div class="tirade">')
+                html.append(f'  <p class="locuteur">{current_speaker} :</p>')
+                html.extend(vers_buffer)
+                html.append('</div>')
+            current_speaker = ""
+            dans_tirade = False
+            vers_buffer = []
+            i += 1
+            continue
+
+        else:
+            i += 1
+
     return "\n".join(html)
 
+import webbrowser
+import tempfile
+from lxml import etree as ET
+
+def previsualiser_html_xslt():
+    tei = zone_resultat_tei.get("1.0", tk.END).strip()
+    if not tei:
+        messagebox.showwarning("Avertissement", "Aucun contenu TEI à prévisualiser.")
+        return
+
+    try:
+        # Parser le contenu TEI
+        tei_xml = ET.fromstring(tei.encode("utf-8"))
+
+        # Charger la feuille XSLT
+        with open("tei-vers-html.xsl", "rb") as f:
+            xslt_root = ET.XML(f.read())
+        transform = ET.XSLT(xslt_root)
+
+        # Appliquer la transformation
+        html_result = transform(tei_xml)
+        print("debug", html_result)
+        # Écrire un fichier temporaire HTML
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".html", mode="w", encoding="utf-8") as f:
+            f.write(str(html_result))
+            nom_fichier_html = f.name
+
+        # Ouvrir dans le navigateur
+        webbrowser.open(f"file://{nom_fichier_html}")
+
+    except Exception as e:
+        messagebox.showerror("Erreur", f"Erreur pendant la transformation XSLT :\n{e}")
+
+def transformer_tei_avec_xsl():
+    tei_text = zone_resultat_tei.get("1.0", tk.END).strip()
+    if not tei_text:
+        messagebox.showwarning("Avertissement", "Aucun contenu TEI à transformer.")
+        return
+
+    try:
+        # Charger TEI et XSL
+        tei_doc = ET.fromstring(tei_text.encode('utf-8'))
+        xsl_path = "tei-vers-html.xsl"  # Ce fichier doit être dans le même dossier que ton script
+        xsl_doc = ET.parse(xsl_path)
+        transform = ET.XSLT(xsl_doc)
+
+        # Transformation
+        resultat_html = transform(tei_doc)
+
+        # Écriture dans un fichier temporaire
+        with tempfile.NamedTemporaryFile("w", delete=False, suffix=".html", encoding="utf-8") as f:
+            f.write(str(resultat_html))
+            temp_html_path = f.name
+
+        # Ouvrir dans navigateur
+        webbrowser.open(f"file://{temp_html_path}")
+
+    except Exception as e:
+        messagebox.showerror("Erreur XSLT", f"Erreur lors de la transformation : {e}")
 
 def afficher_aide():
     exemple = r"""
-Structure attendue :
+Mémo
 
 ####1####             → Acte I
 ###1###            → Scène 1
 ##Titus## ##Bérénice## → Personnages présents
 #Titus#            → Locuteur (début de tirade)
-Texte du vers 1
-Texte du vers 2
+Témoin A Vers 1
+Témoin B Vers 1
+
+Témoin A vers 2
+Témoin B vers 2
+
+Vers partagés:
+#Titus#
+Rome, l'Empire***
 
 #Bérénice#
-Texte du vers 1
-Texte du vers 2
+Eh bien?
 
 Les états (témoins A, B, C…) doivent être saisis ligne à ligne à chaque vers.
 Laissez une ligne vide pour séparer les variantes d’un nouveau vers.
 Laissez une ligne vide avant et après les **didascalies**
-
-Exemple:
-
-####1####
-###1###
-##Antiochus## ##Arsace##
-#Antiochus#
-Arrestons un moment. La pompe de ces lieux
-Arrestons un moment. La pompe de ces lieux
-Arrestons un moment. La pompe de ces lieux
-Arrestons un moment. La pompe de ces lieux
-
-Je le voy bien, Arsace, est nouvelle à tes yeux
-Je le voy bien, Arsace, est nouvelle à tes yeux
-Je le vois bien, Arsace, est nouvelle à tes yeux
-Je le vois bien, Arsace, est nouvelle à tes yeux
 
 """
     messagebox.showinfo("Aide à la transcription", exemple)
 
 # Interface tkinter
 fenetre = tk.Tk()
+
+
+# Style parchemin pour les onglets TTK
+style = ttk.Style()
+style.theme_use('default')
+
+style.configure("TNotebook", background="#fdf6e3", borderwidth=0)
+style.configure("TNotebook.Tab", background="#f5ebc4", foreground="#4a3c1a", padding=[10, 4], font=("Georgia", 10, "bold"))
+style.map("TNotebook.Tab", background=[("selected", "#e8dbab")])
+
 #fenetre.iconbitmap("favicon.ico")
 fenetre.title("Comparateur avec scènes, personnages et locuteurs")
 fenetre.update_idletasks()
@@ -695,20 +1153,132 @@ label_texte.pack()
 zone_saisie = scrolledtext.ScrolledText(frame_saisie, height=15, undo=True, maxundo=-1)
 zone_saisie.pack(fill=tk.BOTH, expand=True)
 
-if os.path.exists("autosave.txt"):
-    with open("autosave.txt", "r", encoding="utf-8") as f:
-        zone_saisie.insert("1.0", f.read())
+try:
+    nom_auto = nom_fichier("autosave", "txt")
+    if os.path.exists(nom_auto):
+        with open(nom_auto, "r", encoding="utf-8") as f:
+            zone_saisie.insert("1.0", f.read())
+except Exception as e:
+    print(f"[autosave] Impossible de charger le fichier : {e}")
+
+def boite_initialisation_parchemin():
+    champs_def = [
+        ("Titre de la pièce", ""),
+        ("Numéro de l'acte", ""),
+        ("Numéro de la scène", ""),
+        ("Nombre de scènes dans l'acte", ""),
+        ("Noms des personnages (séparés par virgule)", ""),
+    ]
+
+    dialog = tk.Toplevel()
+    dialog.title("Initialisation du projet")
+    dialog.configure(bg="#fdf6e3")
+    dialog.geometry("540x320")
+    dialog.grab_set()
+
+    police_label = ("Georgia", 11)
+    police_entree = ("Georgia", 11)
+
+    champs_vars = {}
+
+    for label_text, default in champs_def:
+        var = tk.StringVar(value=default)
+        champs_vars[label_text] = var
+
+        frame = tk.Frame(dialog, bg="#fdf6e3")
+        frame.pack(padx=20, pady=5, fill=tk.X)
+
+        label = tk.Label(frame, text=label_text, bg="#fdf6e3", fg="#4a3c1a", font=police_label)
+        label.pack(side=tk.LEFT)
+
+        # Large zone de saisie pour la ligne des personnages
+        if "personnages" in label_text.lower():
+            entry = tk.Entry(frame, textvariable=var, font=police_entree, width=45)
+        else:
+            entry = tk.Entry(frame, textvariable=var, font=police_entree, width=30)
+
+        entry.pack(side=tk.RIGHT)
+
+    result = {}
+
+    def valider():
+        for key, var in champs_vars.items():
+            result[key] = var.get()
+        dialog.destroy()
+
+    bouton = tk.Button(dialog, text="Valider", font=("Georgia", 11, "bold"),
+                       bg="#f5ebc4", fg="#4a3c1a", command=valider)
+    bouton.pack(pady=20)
+
+    dialog.bind("<Return>", lambda e: valider())
+    dialog.wait_window()
+    return result
+
+
+
+def initialiser_projet():
+    infos = boite_initialisation_parchemin()
+    global titre_piece, numero_acte, numero_scene, nombre_scenes
+    titre_piece = infos["Titre de la pièce"]
+    numero_acte = infos["Numéro de l'acte"]
+    numero_scene = infos["Numéro de la scène"]
+    nombre_scenes = infos["Nombre de scènes dans l'acte"]
+    noms_persos = infos["Noms des personnages (séparés par virgule)"]
+
+    titre_nettoye = nettoyer_identifiant(titre_piece)
+    nom_court = f"{titre_nettoye}_A{numero_acte}_S{numero_scene}of{nombre_scenes}"
+    fenetre.title(f"TEILaTeXStudio – {nom_court}")
+
+    ligne_personnages = " ".join(f"##{nom.strip()}##" for nom in noms_persos.split(",") if nom.strip())
+
+    zone_saisie.insert("1.0",
+                       f"####{numero_acte}####\n\n"
+                       f"###{numero_scene}###\n\n"
+                       f"{ligne_personnages}\n\n"
+                       )
+
 
 def autosave(event=None):
-    contenu = zone_saisie.get("1.0", tk.END)
-    with open("autosave.txt", "w", encoding="utf-8") as f:
-        f.write(contenu)
+    try:
+        contenu = zone_saisie.get("1.0", tk.END)
+        nom_auto = nom_fichier("autosave", "txt")
+        with open(nom_auto, "w", encoding="utf-8") as f:
+            f.write(contenu)
+    except Exception as e:
+        print(f"[autosave] Erreur d'enregistrement : {e}")
 
 zone_saisie.bind("<KeyRelease>", autosave)
 zone_saisie.bind("<KeyRelease>", mettre_a_jour_menu)
 
 frame_params = tk.LabelFrame(fenetre, text="Paramètres", padx=10, pady=5, bg="#f4f4f4")
 frame_params.pack(fill=tk.X, padx=10, pady=10)
+
+frame_bas = tk.Frame(fenetre)
+frame_bas.pack(pady=10)
+
+btn_comparer = tk.Button(frame_bas, text="générer code", command=comparer_etats)
+btn_comparer.pack(side=tk.LEFT, padx=10)
+
+btn_export_tei = tk.Button(frame_bas, text="💾 Exporter TEI", command=exporter_tei)
+btn_export_tei.pack(side=tk.LEFT, padx=10)
+
+btn_export_latex = tk.Button(frame_bas, text="💾 Exporter LaTeX", command=exporter_latex)
+btn_export_latex.pack(side=tk.LEFT, padx=10)
+
+btn_sauver_saisie = tk.Button(frame_bas, text="💾 Export saisie brute", command=enregistrer_saisie)
+btn_sauver_saisie.pack(side=tk.LEFT, padx=10)
+
+btn_remplacer = tk.Button(frame_bas, text="Remplacer (Ctrl+H)", command=remplacer_avance)
+btn_remplacer.pack(side=tk.LEFT, padx=10)
+
+btn_previsualiser = tk.Button(frame_bas, text="🌐 Preview", command=previsualiser_html_xslt)
+btn_previsualiser.pack(side=tk.LEFT, padx=10)
+
+btn_quitter = tk.Button(frame_bas, text="Exit", command=confirmer_quitter)
+ajouter_bouton_validation(frame_bas)
+btn_aide = tk.Button(frame_bas, text="❔ Aide", command=afficher_aide)
+btn_aide.pack(side=tk.LEFT, padx=10)
+btn_quitter.pack(side=tk.RIGHT, padx=10)
 
 frame_ref = tk.Frame(frame_params, bg="#f4f4f4")
 frame_ref.pack(side=tk.LEFT, padx=10)
@@ -746,35 +1316,11 @@ zone_resultat_latex.pack(fill=tk.BOTH, expand=True)
 notebook.add(onglet_latex, text="📘 LaTeX")
 
 # HTML
-#onglet_html = tk.Frame(notebook, bg="white")
-#zone_resultat_html = scrolledtext.ScrolledText(onglet_html, height=15, undo=True, maxundo=-1)
-#zone_resultat_html.pack(fill=tk.BOTH, expand=True)
-#notebook.add(onglet_html, text="🌐 HTML")
+onglet_html = tk.Frame(notebook, bg="white")
+zone_resultat_html = scrolledtext.ScrolledText(onglet_html, height=15, undo=True, maxundo=-1, bg="white", fg="#4a3c1a", font=("Georgia", 11))
+zone_resultat_html.pack(fill=tk.BOTH, expand=True)
+notebook.add(onglet_html, text="🌐 html")
 
-
-frame_bas = tk.Frame(fenetre)
-frame_bas.pack(pady=10)
-
-btn_comparer = tk.Button(frame_bas, text="Comparer et générer", command=comparer_etats)
-btn_comparer.pack(side=tk.LEFT, padx=10)
-
-btn_export_tei = tk.Button(frame_bas, text="💾 Exporter TEI", command=exporter_tei)
-btn_export_tei.pack(side=tk.LEFT, padx=10)
-
-btn_export_latex = tk.Button(frame_bas, text="💾 Exporter LaTeX", command=exporter_latex)
-btn_export_latex.pack(side=tk.LEFT, padx=10)
-
-btn_sauver_saisie = tk.Button(frame_bas, text="💾 Enregistrer la saisie", command=enregistrer_saisie)
-btn_sauver_saisie.pack(side=tk.LEFT, padx=10)
-
-btn_remplacer = tk.Button(frame_bas, text="Remplacer avancé (Ctrl+H)", command=remplacer_avance)
-btn_remplacer.pack(side=tk.LEFT, padx=10)
-
-btn_quitter = tk.Button(frame_bas, text="Quitter", command=confirmer_quitter)
-ajouter_bouton_validation(frame_bas)
-btn_aide = tk.Button(frame_bas, text="❔ Aide", command=afficher_aide)
-btn_aide.pack(side=tk.LEFT, padx=10)
-btn_quitter.pack(side=tk.RIGHT, padx=10)
 
 #appliquer_style_light(fenetre)
 appliquer_style_parchemin(fenetre)
