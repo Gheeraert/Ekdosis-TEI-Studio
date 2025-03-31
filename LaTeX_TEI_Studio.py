@@ -15,6 +15,7 @@
 # ==============================================================================
 
 import tkinter as tk
+from tkinter import filedialog
 from tkinter import filedialog as fd, messagebox, scrolledtext, ttk, font, simpledialog
 import difflib
 from collections import defaultdict
