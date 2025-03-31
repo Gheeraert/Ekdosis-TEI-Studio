@@ -15,13 +15,13 @@
 - 🔀 Comparaison automatique de variantes ligne à ligne (difflib)
 - 🔎 Génération parallèle des résultats en :
   - **TEI XML** avec balises `<app>`, `<lem>`, `<rdg>`, `<stage>`, etc.
-  - **LaTeX** compatible avec le package `ekdosis`
+  - **LaTeX** compatible avec le package `ekdosis` et template adapté fourni (template par T. Gheeraert et F. Siraguso)
 - 🎭 Gestion des didascalies : format `**texte**` reconnu et encodé en `<stage>` / `\didas{}`
 - 🔤 Échappement automatique des caractères spéciaux (`&`, etc.)
 - 🧑‍🎓 Interface conviviale en Tkinter avec onglets TEI / LaTeX
 - 🧪 Validation de structure intégrée (actes, scènes, locuteurs)
 - 🎨 Style visuel "parchemin" pour une expérience élégante
-- Prévisualisation en html
+- 🌐 Prévisualisation en html
 
 ---
 
@@ -50,7 +50,7 @@ Je le voy bien, Arsace, est nouvelle à tes yeux
 
 ## 🚀 Lancer l'application
 
-Assurez-vous d'avoir Python 3.9+ installé. Un exécutable est également disponible
+Assurez-vous d'avoir Python 3.9+ installé. Un exécutable est également disponible (Ubuntu et Windows)
 
 ```bash
 python TEILaTeXStudio.py
@@ -62,6 +62,7 @@ python TEILaTeXStudio.py
 
 - Python standard (`tkinter`, `difflib`, `re`, etc.)
 - template LaTeX préconfiguré avec ekdosis pour l'affichage direct du code LaTeX généré
+- feuille de transformation XSL à adapter pour la sortie TEI
 ---
 
 ## 🧪 En projet
@@ -69,6 +70,7 @@ python TEILaTeXStudio.py
 - Prise en compte des variantes de didascalies
 - Encodage de scènes muettes
 - Résolution des cas particuliers
+- portage en ligne via serveur Flask
 
 ---
 
@@ -90,6 +92,9 @@ Ce projet est distribué sous la licence **MIT**. Voir `LICENSE` pour plus de d�
 Développé par Tony Gheeraert dans le cadre de la **Chaire d’Excellence en Éditions Numériques**  
 Université de Rouen – Centre d'étude et de recherche Editer-Interpréter (UR 3229)
 Presses de l'Université de Rouen et du Havre
+
+Remerciements à Federico Siraguso et Roch Delannay pour leur contribution au template LaTeX
+
 
 ---
 
