@@ -28,6 +28,7 @@ import math
 import lxml.etree as ET
 import tempfile
 import webbrowser
+from tkinter import messagebox
 
 def afficher_nagscreen():
     nag = tk.Toplevel(fenetre)
@@ -860,9 +861,6 @@ Laissez une ligne vide avant et après les **didascalies**
 """
     messagebox.showinfo("Aide à la transcription", exemple)
 
-fenetre = tk.Tk()
-
-# Interface tkinter
 def comparer_etats():
     texte = zone_saisie.get("1.0", tk.END).strip()
     lignes = texte.splitlines()
@@ -1317,6 +1315,51 @@ def comparer_etats():
         except Exception as e:
             print(f"[Prévisualisation HTML] Erreur : {e}")
 
+# Interface Tkinter
+fenetre = tk.Tk()
+# --- Menu principal ---
+menu_bar = tk.Menu(fenetre)
+fenetre.config(menu=menu_bar)
+
+# --- Menu Fichier ---
+menu_fichier = tk.Menu(menu_bar, tearoff=0)
+menu_bar.add_cascade(label="Fichier", menu=menu_fichier)
+
+menu_fichier.add_command(label="Exporter TEI", command=exporter_tei)
+menu_fichier.add_command(label="Exporter LaTeX", command=exporter_latex)
+menu_fichier.add_command(label="Exporter HTML", command=previsualiser_html)
+menu_fichier.add_separator()
+menu_fichier.add_command(label="Quitter", command=fenetre.quit)
+
+# --- Menu Édition ---
+menu_edit = tk.Menu(menu_bar, tearoff=0)
+menu_bar.add_cascade(label="Édition", menu=menu_edit)
+
+menu_edit.add_command(label="Couper", accelerator="Ctrl+X", command=lambda: fenetre.focus_get().event_generate('<<Cut>>'))
+menu_edit.add_command(label="Copier", accelerator="Ctrl+C", command=lambda: fenetre.focus_get().event_generate('<<Copy>>'))
+menu_edit.add_command(label="Coller", accelerator="Ctrl+V", command=lambda: fenetre.focus_get().event_generate('<<Paste>>'))
+menu_edit.add_command(label="Tout sélectionner", accelerator="Ctrl+A", command=lambda: fenetre.focus_get().event_generate('<<SelectAll>>'))
+
+# --- Menu Outils ---
+menu_outils = tk.Menu(menu_bar, tearoff=0)
+menu_bar.add_cascade(label="Outils", menu=menu_outils)
+
+menu_outils.add_command(label="Valider la structure", command=valider_structure)
+menu_outils.add_command(label="Comparer les états", command=comparer_etats)
+
+# Menu Affichage
+menu_affichage = tk.Menu(menu_bar, tearoff=0)
+menu_bar.add_cascade(label="Affichage", menu=menu_affichage)
+menu_affichage.add_command(label="Prévisualisation HTML", command=previsualiser_html)
+
+# Menu Aide
+menu_aide = tk.Menu(menu_bar, tearoff=0)
+menu_bar.add_cascade(label="Aide", menu=menu_aide)
+menu_aide.add_command(label="Afficher l'aide", command=lambda: messagebox.showinfo("Aide", "Bienvenue dans TEILaTeXStudio.\n\n- Utilisez 'Fichier > Comparer' pour générer le code TEI et LaTeX.\n- Prévisualisez en HTML dans 'Affichage'.\n- Saisissez le texte au format markdown théâtral.\n\nPour plus d'aide, consultez le fichier README."))
+
+###
+
+
 
 # Style parchemin pour les onglets TTK
 style = ttk.Style()
@@ -1516,4 +1559,12 @@ notebook.add(onglet_html, text="🌐 html")
 
 #appliquer_style_light(fenetre)
 appliquer_style_parchemin(fenetre)
+
+# --- Raccourcis clavier globaux ---
+fenetre.bind_all("<Control-a>", lambda event: fenetre.focus_get().event_generate('<<SelectAll>>'))
+fenetre.bind_all("<Control-x>", lambda event: fenetre.focus_get().event_generate('<<Cut>>'))
+fenetre.bind_all("<Control-c>", lambda event: fenetre.focus_get().event_generate('<<Copy>>'))
+fenetre.bind_all("<Control-v>", lambda event: fenetre.focus_get().event_generate('<<Paste>>'))
+
+
 fenetre.mainloop()
