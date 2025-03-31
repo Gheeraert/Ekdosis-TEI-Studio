@@ -80,6 +80,9 @@
           .texte-vers {
             display: inline;
           }
+          .vers-decale {
+            margin-left: 14em; /* ou plus selon le décalage désiré */
+          }
         </style>
       </head>
       <body>
@@ -114,7 +117,14 @@
 
   <!-- Vers -->
 <xsl:template match="tei:l">
-  <div class="vers-container">
+  <div>
+    <xsl:attribute name="class">
+      <xsl:text>vers-container</xsl:text>
+      <xsl:if test="contains(@n, '.2')">
+        <xsl:text> vers-decale</xsl:text>
+      </xsl:if>
+    </xsl:attribute>
+
     <xsl:choose>
       <xsl:when test="number(@n) mod 5 = 0">
         <span class="num-vers"><xsl:value-of select="@n"/></span>
@@ -123,11 +133,13 @@
         <span class="num-vers"></span>
       </xsl:otherwise>
     </xsl:choose>
+
     <span class="texte-vers">
       <xsl:apply-templates/>
     </span>
   </div>
 </xsl:template>
+
 
 
   <!-- Variantes : infobulle au survol -->
