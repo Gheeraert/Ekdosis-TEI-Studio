@@ -42,7 +42,7 @@ def afficher_nagscreen():
     nag.configure(bg=COULEUR_FOND)
 
     largeur_nag = 540
-    hauteur_nag = 360
+    hauteur_nag = 500
     fenetre.update_idletasks()
     x_main = fenetre.winfo_rootx()
     y_main = fenetre.winfo_rooty()
@@ -59,12 +59,13 @@ def afficher_nagscreen():
     titre = tk.Label(
         nag,
         text="LaTeX–TEI Studio",
-        font=police_titre,
+        font=("Georgia", 32, "bold"),
         bg=COULEUR_ENCADRE,
         fg=COULEUR_TEXTE,
         pady=20
     )
-    titre.pack(fill=tk.X)
+    print(police_titre.actual())
+    titre.pack(padx=20, pady=40)
 
     # Logo
     try:
@@ -79,8 +80,8 @@ def afficher_nagscreen():
     # Mention
     chaire = tk.Label(
         nag,
-        text="Logiciel développé par la Chaire d'Excellence en Édition Numérique\nUniversité de Rouen Normandie",
-        font=("Georgia", 10),
+        text="Assistant pour l'encodage des variantes de textes théâtraux\n\npar T. Gheeraert\n Presses de l'Université de Rouen et du Havre\n Chaire d'excellence en éditions numériques\n CEREdI (UR 3229)",
+        font=("Georgia", 12),
         bg=COULEUR_FOND,
         fg=COULEUR_TEXTE,
         justify="center"
@@ -358,6 +359,9 @@ def appliquer_style_parchemin(fenetre):
     )
 
     def styliser_recursivement(widget):
+        if isinstance(widget, tk.Toplevel) and widget.title() == "Bienvenue dans TEILaTeXStudio":
+            return
+
         for child in widget.winfo_children():
             # Label et LabelFrame
             if isinstance(child, (tk.Label, tk.LabelFrame)):
@@ -1301,7 +1305,7 @@ Vers partagés:
 Rome, l'Empire***
 
 #Bérénice#
-Eh bien?
+***Eh bien?
 
 Les états (témoins A, B, C…) doivent être saisis ligne à ligne à chaque vers.
 Laissez une ligne vide pour séparer les variantes d’un nouveau vers.
