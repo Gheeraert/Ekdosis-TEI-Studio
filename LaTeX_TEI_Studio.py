@@ -30,6 +30,289 @@ import lxml.etree as ET
 import tempfile
 import webbrowser
 from tkinter import messagebox
+from tkinter import filedialog
+
+def exporter_template_latex():
+    template_contenu = r"""
+%
+% Template LaTeX (ekdosis) pour l'édition du théâtre classique
+% Par Federico Siragusa, Roch Delannay et Tony Gheeraert
+%
+% Basé sur le paquet ekdosis de Robert Alessi
+%
+% Développé dans le cadre de la chaire d'excellence
+% "Editions numériques" (Université de Rouen)
+%
+% 2025
+%
+%
+
+\documentclass{book}
+
+% Paquets utiles
+\usepackage[main=french, spanish, latin]{babel}
+\usepackage[T1]{fontenc}
+\usepackage{fontspec}
+\usepackage{csquotes}
+\usepackage[teiexport, divs=ekdosis, poetry=verse]{ekdosis}
+\usepackage{setspace}
+\usepackage{lettrine}
+\usepackage{hyperref}
+\usepackage{zref-user,zref-abspage}
+
+% Informations de mise en page
+%
+% Police: pour une mise en page "classique"
+% charger les polices Junicode et Garamond, 
+% et décommenter les lignes ci-dessous
+%
+%\setmainfont{Junicode}[
+%Scale = 1.2,
+%Ligatures = {Rare},
+%Language = French,
+%Style = {Historic},
+%Contextuals = {Alternate},
+%StylisticSet = 8
+%]
+
+\singlespacing
+
+% Police spécifique et style pour l'apparat critique
+%
+% \newfontfamily\apparatfont{Garamond}
+% --------------------------------------------------
+%
+%
+% Page de garde et front(<text><front></front><body></body></text>) 
+% Avec mapping automatique
+
+\newenvironment{front}
+{\begin{content}} % début de l'environnement
+	{\end{content}}   % fin de l'environnement
+\EnvtoTEI{front}{front}
+
+\newcommand{\titre}[1]{{\centering\Huge\uppercase{#1}\par}}
+\TeXtoTEI{titre}{docTitle}
+
+\newcommand{\autor}[1]{{\centering #1\par}}
+\TeXtoTEI{autor}{docAuthor}
+
+\newcommand{\byline}[1]{{\centering #1\par}}
+\TeXtoTEI{byline}{byline}
+
+\newcommand{\imprint}[1]{{\centering\Large\uppercase{#1}\par}}
+\TeXtoTEI{imprint}{docImprint}
+
+\newcommand{\docdate}[1]{{\centering\Large\uppercase{#1}\par}}
+\TeXtoTEI{docdate}{docDate}
+
+%
+% Dramatis personae
+%
+
+% Liste des personnages (cast). Se contente de créer le balisage TEI
+\newenvironment{cast}
+{\begin{content}}
+	{\end{content}}
+\EnvtoTEI{cast}{castList}
+
+% Personnages (castitem, role, roledesc)
+%
+% A utiliser ainsi:
+%
+% \roleitem{phedre}{Phèdre}{femme de Thésée}
+% \roleitem{hippolyte}{Hippolyte}{fils de Thésée}
+
+\newcommand{\castitem}[1]{#1\par\vspace{0.5ex}}
+\TeXtoTEI{castitem}{castItem}
+
+\NewDocumentCommand{\role}{m m}{#2}
+\TeXtoTEIPat{\role{#1}{#2}}{<role xml:id="#1">#2</role>}
+
+\newcommand{\roledesc}[1]{#1}
+\TeXtoTEI{roledesc}{roleDesc}
+
+\newcommand{\roleitem}[3]{%
+	\castitem{%
+		\role{#1}{#2}, \roledesc{#3}%
+	}%
+}
+
+%
+% Lieu de l'action
+% usage: \set{L'action est à Rome}
+%
+\newcommand{\set}[1]{#1}
+\TeXtoTEI{set}{set}
+
+%
+% Didascalies explicites (comprend la liste des personnages en début de scène)
+% Usage: \stage{\pn{#antiochus}{Antiochus} entre par la gauche.}
+% (pn = abréviation pour persName)
+%
+% Noms des persos en tête de scène
+\newcommand{\stage}[1]{%
+	\par\vspace{1em}
+	\begin{center}
+		\Large\textsc{#1}
+	\end{center}
+	\vspace{1em}
+}
+\TeXtoTEI{stage}{stage}
+%
+%
+% Didascalies
+\newcommand{\didas}[1]{%
+	\par\vspace{0.5em}%
+	\begin{center}%
+		\textit{#1}%
+	\end{center}%
+	\vspace{0.5em}%
+}
+\TeXtoTEI{\didas}{stage}
+
+
+\newenvironment{head}
+{\par\medskip\noindent\textsc}
+{\par\medskip}
+\EnvtoTEI{head}{head}
+
+% Les noms de personnages
+\NewDocumentCommand{\persname}{m m}{%
+	#2\unskip % on affiche juste le nom, ekdosis s'occupe du reste
+}
+\TeXtoTEIPat{\persname{#1}{#2}}{<persName corresp="#1">#2</persName>}
+
+% Raccourci "pn" pour "persName"
+\newcommand{\pn}[2]{\persname{#1}{#2}}
+\TeXtoTEIPat{\pn{#1}{#2}}{<persName corresp="#1">#2</persName>}
+
+% Les noms de lieux: "placeName"
+\NewDocumentCommand{\place}{m m}{#2}
+\TeXtoTEIPat{\place{#1}{#2}}{<placeName ref="#1">#2</placeName>}
+
+
+% Encodage des actes et des scènes
+% (méthode native ekdosis)
+%
+% Usage;
+% \ekddiv{head=Acte premier, type=act, n=1, depth=2}
+% \ekddiv{head=Acte premier, type=scene, n=2, depth=3}
+%
+% depth = 2 pour les actes, depth = 3 pour les scènes
+%
+\FormatDiv{1}{\begin{center}\Huge}{\end{center}}
+\FormatDiv{2}{\begin{center}\LARGE}{\end{center}\vspace*{-1em}}
+\FormatDiv{3}{\begin{center}\LARGE\textsc}{\end{center}\vspace*{-1em}}
+
+%  Encodage des dialogues
+%
+%
+\newenvironment{speech}{\par}{\par}
+\newcommand{\speaker}[1]{\vspace{1em}\large\centering\textsc{#1}\par}
+\TeXtoTEI{speaker}{speaker}
+\EnvtoTEI{speech}{sp} 
+\SetTEIxmlExport{autopar=false}
+%%
+%
+% Numérotation des vers PDF
+%
+% Affichage automatique en LaTeX-ekdosis
+% (La config ci-dessous prévient l'affichage du 
+% numéro de paragraphe à gauche)
+%
+\SetLineation{
+%	modulo,
+	vmodulo=5
+}
+\SetLineation{lineation=none}
+%
+% Export TEI de la numérotation des vers
+\newcommand{\vnum}[2]{\linelabel{v#1}#2\par}
+\TeXtoTEIPat{\vnum{#1}{#2}}{<l n="#1">#2</l>}
+%
+%
+%
+%-------------------------------------------
+%
+%% éléments supplémentaires
+%
+% Structuration de la poésie:
+% simplement terminer les vers par \\
+%
+%----------
+% Les lettres
+%
+\newenvironment{letter}
+{\par{\begin{content}}}
+	{\end{content}}
+\EnvtoTEI{letter}{div}[type="letter"]
+%------------
+% Les chansons
+%
+\newenvironment{song}[1]
+{\par{\begin{content}}}
+	{\end{content}}
+\EnvtoTEI{song}{div}[type="song"]
+%-------------------------------------------
+%-------------------------------------------
+%
+% Déclaration de l'apparat et des versions. Ici pour l'exemple
+%
+\DeclareApparatus{default}
+\DeclareWitness{A}{1670}{Description de A}
+\DeclareWitness{B}{1671}{Description de B}
+\DeclareWitness{C}{1672}{Description de C}
+\DeclareWitness{D}{1673}{Description de D}
+
+
+%
+% Début du corps du document
+%
+
+\begin{document}
+	\begin{ekdosis}
+		
+		%
+		% Cast/castitem: pour la prochaine version.
+		% Ne pas décommenter (bug connu)
+		%
+		%\begin{cast}
+		%	\castitem{\role{xmlid=antiochus}Antiochus, \roledesc{roi de Comagène}}
+		%	\castitem{\role{xmlid=arsace}Arsace, \roledesc{Confident d'Antiochus}}
+		%\end{cast}
+		%\set{La Scene est à Rome}
+		%\normalfont
+		
+		% Pièce
+		%%%%%%%%%
+		%%%%%%%%%
+		% INSERER LE TEXTE GENERE PAR
+		% LATEX-TEI Studio ICI
+		
+		%%%%%%%%%
+		%%%%%%%%%
+	\end{ekdosis}
+\end{document}
+"""
+    chemin = filedialog.asksaveasfilename(
+        defaultextension=".tex",
+        filetypes=[("Fichier LaTeX", "*.tex")],
+        title="Enregistrer le template LaTeX"
+    )
+    if chemin:
+        with open(chemin, "w", encoding="utf-8") as f:
+            f.write(template_contenu)
+
+def exporter_xslt():
+    chemin = filedialog.asksaveasfilename(
+    defaultextension=".xsl",
+    filetypes=[("Feuille de style XSLT", "*.xsl")],
+    title="Enregistrer la feuille XSLT"
+    )
+    if chemin:
+        with open(chemin, "w", encoding="utf-8") as f:
+            f.write(xslt_str)
 
 def chemin_relatif(nom_fichier):
     """Retourne le chemin correct vers un fichier de ressource, compatible PyInstaller."""
@@ -1201,7 +1484,7 @@ def comparer_etats():
                     resultat_tei.append(f'<l n="{vers_num_2}">\n' + "".join(ligne_tei) + '</l>')
 
                     vers_formate_2 = "\n".join(ligne_latex)
-                    resultat_latex.append(f'        \\vnum{{{vers_num_2}}}' + '{\n' + vers_formate_2 + '\\\\    \n         }')
+                    resultat_latex.append(f'        \\vnum{{{vers_num_2}}}' + '{\n' + '\\hspace*{10em}' + vers_formate_2 + '\\\\    \n         }')
 
                     # 🔁 mise à jour pour la suite du traitement
                     speaker = speaker_suivant
@@ -1336,7 +1619,11 @@ menu_fichier = tk.Menu(menu_bar, tearoff=0)
 menu_bar.add_cascade(label="Fichier", menu=menu_fichier)
 
 menu_fichier.add_command(label="Exporter TEI", command=exporter_tei)
+menu_fichier.add_command(label="Exporter la feuille XSLT", command=exporter_xslt)
+menu_fichier.add_separator()
 menu_fichier.add_command(label="Exporter LaTeX", command=exporter_latex)
+menu_fichier.add_command(label="Exporter le template LaTeX", command=exporter_template_latex)
+menu_fichier.add_separator()
 menu_fichier.add_command(label="Exporter HTML", command=previsualiser_html)
 menu_fichier.add_separator()
 menu_fichier.add_command(label="Quitter", command=fenetre.quit)
