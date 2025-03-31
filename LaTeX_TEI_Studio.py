@@ -970,7 +970,7 @@ def comparer_etats():
             if current_scene_out is not None:
                 resultat_tei.append("  </sp>")
                 resultat_tei.append("  </div>")
-                resultat_latex.append("      \\end{vers}\n    \\end{speech}   % Fin de la scène")
+                resultat_latex.append("      \\end{ekdverse}\n    \\end{speech}   % Fin de la scène")
 
             current_scene_out = scene
             dernier_locuteur = None  # ← 🎯 AJOUT ICI
@@ -991,9 +991,9 @@ def comparer_etats():
         if speaker != dernier_locuteur:
             if dernier_locuteur is not None:
                 resultat_tei.append("    </sp>")
-                resultat_latex.append("      \\end{vers}\n    \\end{speech}")
+                resultat_latex.append("      \\end{ekdverse}\n    \\end{speech}")
             resultat_tei.append(f'    <sp>\n      <speaker>{speaker}</speaker>')
-            resultat_latex.append("    \\begin{speech}\n      \\speaker{" + speaker + "}\n      \\begin{vers}")
+            resultat_latex.append("    \\begin{speech}\n      \\speaker{" + speaker + "}\n      \\begin{ekdverse}")
             dernier_locuteur = speaker
 
         for sous_bloc in sous_blocs:
@@ -1087,9 +1087,9 @@ def comparer_etats():
                 resultat_tei.append(f'<l n="{vers_num_1}">\n' + "".join(ligne_tei) + '</l>')
                 vers_formate_1 = "\n".join(ligne_latex)
                 # à supprimer
-                #resultat_latex.append("      \\end{vers}\n    \\end{speech}")
-                #resultat_latex.append(f'    \\begin{{speech}}\n      \\speaker{{{speaker}}}\n      \\begin{{vers}}')
-                resultat_latex.append(f'        \\vnum{{{vers_num_1}}}' + '{\n' + vers_formate_1 + '\n        }')
+                #resultat_latex.append("      \\end{ekdverse}\n    \\end{speech}")
+                #resultat_latex.append(f'    \\begin{{speech}}\n      \\speaker{{{speaker}}}\n      \\begin{{ekdverse}}')
+                resultat_latex.append(f'        \\vnum{{{vers_num_1}}}' + '{\n' + vers_formate_1 + '\\\\    \n         }')
 
                 # Seconde moitié — locuteur suivant
                 lignes_suivantes = []
@@ -1192,16 +1192,16 @@ def comparer_etats():
                     # Gérer le changement de locuteur uniquement si nécessaire
                     if speaker_suivant != dernier_locuteur:
                         resultat_tei.append("    </sp>\n    <sp>\n      <speaker>{}</speaker>".format(speaker_suivant))
-                        resultat_latex.append("      \\end{vers}\n    \\end{speech}")
+                        resultat_latex.append("      \\end{ekdverse}\n    \\end{speech}")
                         resultat_latex.append(
-                            f'    \\begin{{speech}}\n      \\speaker{{{speaker_suivant}}}\n      \\begin{{vers}}')
+                            f'    \\begin{{speech}}\n      \\speaker{{{speaker_suivant}}}\n      \\begin{{ekdverse}}')
                         dernier_locuteur = speaker_suivant  # 🔄 mise à jour
 
                     # Ajout du vers 2
                     resultat_tei.append(f'<l n="{vers_num_2}">\n' + "".join(ligne_tei) + '</l>')
 
                     vers_formate_2 = "\n".join(ligne_latex)
-                    resultat_latex.append(f'        \\vnum{{{vers_num_2}}}' + '{\n' + vers_formate_2 + '\n        }')
+                    resultat_latex.append(f'        \\vnum{{{vers_num_2}}}' + '{\n' + vers_formate_2 + '\\\\    \n         }')
 
                     # 🔁 mise à jour pour la suite du traitement
                     speaker = speaker_suivant
@@ -1288,7 +1288,7 @@ def comparer_etats():
 
             resultat_tei.append(f'<l n="{vers_courant}">\n' + "".join(ligne_tei) + '</l>\n')
             vers_formate = "\n".join(ligne_latex)
-            resultat_latex.append(f"        \\vnum{{{vers_courant}}}{{\n{vers_formate}\n        }}")
+            resultat_latex.append(f"        \\vnum{{{vers_courant}}}{{\n{vers_formate}  \\\\    \n        }}")
             if vers_courant == int(vers_courant):
                 vers_courant += 1
             else:
@@ -1296,12 +1296,12 @@ def comparer_etats():
 
         if dernier_locuteur != speaker:
             resultat_tei.append("    </sp>")
-            resultat_latex.append("      \\end{vers}\n    \\end{speech}")
+            resultat_latex.append("      \\end{ekdverse}\n    \\end{speech}")
 
     if current_scene_out:
         resultat_tei.append("    </sp>")
         resultat_tei.append("    </div>")
-        resultat_latex.append("      \\end{vers}\n    \\end{speech}   % Fin de la scène")
+        resultat_latex.append("      \\end{ekdverse}\n    \\end{speech}   % Fin de la scène")
 
     if current_acte_out is not None:
         resultat_tei.append("</div>")
@@ -1571,10 +1571,11 @@ notebook.add(onglet_html, text="🌐 html")
 appliquer_style_parchemin(fenetre)
 
 # --- Raccourcis clavier globaux ---
+# Sans doute à effacer tous
 fenetre.bind_all("<Control-a>", lambda event: fenetre.focus_get().event_generate('<<SelectAll>>'))
 fenetre.bind_all("<Control-x>", lambda event: fenetre.focus_get().event_generate('<<Cut>>'))
 fenetre.bind_all("<Control-c>", lambda event: fenetre.focus_get().event_generate('<<Copy>>'))
-fenetre.bind_all("<Control-v>", lambda event: fenetre.focus_get().event_generate('<<Paste>>'))
+# fenetre.bind_all("<Control-v>", lambda event: fenetre.focus_get().event_generate('<<Paste>>'))
 
 
 fenetre.mainloop()
