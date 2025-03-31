@@ -1063,14 +1063,16 @@ def previsualiser_html_xslt():
 
         # Appliquer la transformation
         html_result = transform(tei_xml)
-        print("debug", html_result)
-        # Écrire un fichier temporaire HTML
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".html", mode="w", encoding="utf-8") as f:
+        # Écrire un fichier HTML local dans le dossier du script
+        chemin_script = os.path.dirname(os.path.abspath(__file__))
+        chemin_temp_html = os.path.join(chemin_script, "preview_temp.html")
+
+        with open(chemin_temp_html, "w", encoding="utf-8") as f:
             f.write(str(html_result))
-            nom_fichier_html = f.name
 
         # Ouvrir dans le navigateur
-        webbrowser.open(f"file://{nom_fichier_html}")
+        webbrowser.open(f"file://{chemin_temp_html}")
+
 
     except Exception as e:
         messagebox.showerror("Erreur", f"Erreur pendant la transformation XSLT :\n{e}")
