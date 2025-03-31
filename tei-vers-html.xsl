@@ -27,18 +27,18 @@
             font-weight: bold;
             margin-top: 1.5em;
             margin-bottom: 0.5em;
-            margin-left: 9em;
+            margin-left: 11em;
           }
           .scene-titre {
             font-style: italic;
             margin-bottom: 0.5em;
-            margin-left: 9em;
+            margin-left: 11em;
           }
           .locuteur {
             font-variant: small-caps;
             margin-top: 1em;
             margin-bottom: 0.2em;
-            margin-left: 9em;
+            margin-left: 11em;
           }
           .tirade {
             margin-left: 1em;
@@ -50,12 +50,35 @@
           .didascalie {
             font-style: italic;
             color: #555;
-            margin-left: 7em;
+            margin-left: 9em;
             margin-bottom: 0.5em;
           }
           .variation {
             border-bottom: 1px dotted #8b5e3c;
             cursor: help;
+            }
+            p.vers {
+            display: flex;
+            gap: 1em;
+            margin: 0.2em 0;
+          }
+          .vers-container {
+            position: relative;
+            margin-left: 5em;
+            margin-bottom: 0.4em;
+            line-height: 1;
+          }
+          .num-vers {
+            position: absolute;
+            left: -4.5em;
+            width: 4em;
+            text-align: right;
+            font-size: 0.85em;
+            color: #5a5245;
+            font-style: italic;
+          }
+          .texte-vers {
+            display: inline;
           }
         </style>
       </head>
@@ -90,9 +113,22 @@
   </xsl:template>
 
   <!-- Vers -->
-  <xsl:template match="tei:l">
-    <div class="vers"><xsl:apply-templates/></div>
-  </xsl:template>
+<xsl:template match="tei:l">
+  <div class="vers-container">
+    <xsl:choose>
+      <xsl:when test="number(@n) mod 5 = 0">
+        <span class="num-vers"><xsl:value-of select="@n"/></span>
+      </xsl:when>
+      <xsl:otherwise>
+        <span class="num-vers"></span>
+      </xsl:otherwise>
+    </xsl:choose>
+    <span class="texte-vers">
+      <xsl:apply-templates/>
+    </span>
+  </div>
+</xsl:template>
+
 
   <!-- Variantes : infobulle au survol -->
   <xsl:template match="tei:app">
