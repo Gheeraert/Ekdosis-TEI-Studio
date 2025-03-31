@@ -440,6 +440,7 @@ def exporter_latex():
         messagebox.showinfo("Succès", f"Fichier LaTeX enregistré :\n{fichier}")
 
 def enregistrer_saisie():
+    valider_structure()
     contenu = zone_saisie.get("1.0", tk.END).strip()
     if not contenu:
         messagebox.showwarning("Avertissement", "Aucune saisie à enregistrer.")
