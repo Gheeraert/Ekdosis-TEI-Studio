@@ -1,5 +1,5 @@
 ####1####
-###2###
+###1###
 ##Antiochus## ##Arsace##
 
 #Antiochus#
@@ -16,11 +16,18 @@ Je le voy bien, Arsace, est nouvelle à tes yeux
 Je le vois bien, Arsace, est nouvelle à tes yeux
 Je le vos bien, Arsace, est nouvelle à tes yeux
 
-Souvent ce Cabinet superbe & solitaire,
-Souvent ce Cabinet superbe & solitaire,
-Souvent ce Cabinet superbe & solitaire,
-Souvent ce Cabinet superbe & solitaire,
+Souvent ce Cabinet***
+Souvent ce Cabinet***
+Souvent ce Cabinet***
+Souvent ce Cabinet***
 
+#Arsace#
+***superbe & solitaire,
+***superbe & solitaire,
+***superbe & solitaire,
+***superbe & solitaire,
+
+#Antiochus#
 Des secrets de Titus est le dépositaire.
 Des secrets de Titus est le dépositaire.
 Des secrets de Titus est le dépositaire.
@@ -99,27 +106,41 @@ Voi si je puis bientost luy parler sans témoins.
 
 ###2###
 ##Antiochus##
+#Antiochus#
 HE bien, Antiochus, es-tu toûjours le mesme ?
 HE bien, Antiochus, es-tu toûjours le mesme ?
 HE bien, Antiochus, es-tu toûjours le mesme ?
 HE bien, Antiochus, es-tu toûjours le mesme ?
+
+Voy si je puis bientost luy parler sans témoins.
+Voy si je puis bientost luy parler sans témoins.
+Voi si je puis bientost lui parler sans témoins.
+Voi si je puis bientost luy parler sans témoins.
 
 ###3###
-##Antiochus## ##Bérénice##
-
+##Antiochus##, ##Titus##, ##Bérénice##
 #Bérénice#
-lorem ipsum lorem***
-lorem ipsum lorem***
-lorem ipsum lorem***
-lorem ipsum lorem***
+Dans un mois, dans un an comment souffrirons-nous
+Dans un mois, dans un an, comment souffrirons-nous
+Dans un mois dans un an comment souffrirons-nous
+Dans un mois, dans un an comment souffrirez-vous
 
-#Antiochus#
-***Non sit amet non sit amet
-***Non sit amet non sit amet
-***Non sit amet non sit amet
-***Non sit amet non sit amet
+Seigneur que tant de mers me séparent de vous
+Seigneur que tant de mers me séparent de nous
+Seigneur, que tant de mers me séparent de vous
+Seigneur que tant de mers me séparent de vous
 
-lorem ipsum lorem ipsum lorem ipsum
-lorem ipsum lorem ipsum lorem ipsum
-lorem ipsum lorem ipsum lorem ipsum
-lorem ipsum lorem ipsum lorem ipsum
+Que le jour recommance et que le jours finisse
+Que le jour recommence et que le jours finisse
+Que le jour recommence et que le jours finisse
+Que le jour recommence et que le jours finisse
+
+Sans que jamais Titus puisse voir Bérénice
+Sans que jamais Titus puisse voir Bérénice
+Sans que jamais Titus puisse voir Bérénice
+Sans que jamais Titus puisse voir Bérénice
+
+Sans que de tour le jour je puisse voir Titus.
+Sans que de tour le jour je puisse voir Titus.
+Sans que de tour le jour je puisse voir Titus.
+Sans que de tour le jour, je puisse voir Titus!
