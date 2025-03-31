@@ -1,6 +1,12 @@
 %
 % Template LaTeX (ekdosis) pour l'édition du théâtre classique
 % Par Federico Siragusa, Roch Delannay et Tony Gheeraert
+%
+% Basé sur le paquet ekdosis de Robert Alessi
+%
+% Développé dans le cadre de la chaire d'excellence
+% "Editions numériques" (Université de Rouen)
+%
 % 2025
 %
 %
@@ -12,7 +18,7 @@
 \usepackage[T1]{fontenc}
 \usepackage{fontspec}
 \usepackage{csquotes}
-\usepackage[teiexport, divs=ekdosis]{ekdosis}
+\usepackage[teiexport, divs=ekdosis, poetry=verse]{ekdosis}
 \usepackage{setspace}
 \usepackage{lettrine}
 \usepackage{hyperref}
@@ -38,7 +44,7 @@
 % Police spécifique et style pour l'apparat critique
 %
 % \newfontfamily\apparatfont{Garamond}
-%
+% --------------------------------------------------
 %
 %
 % Page de garde et front(<text><front></front><body></body></text>) 
@@ -71,7 +77,7 @@
 % Liste des personnages (cast). Se contente de créer le balisage TEI
 \newenvironment{cast}
 {\begin{content}}
-{\end{content}}
+	{\end{content}}
 \EnvtoTEI{cast}{castList}
 
 % Personnages (castitem, role, roledesc)
@@ -137,7 +143,7 @@
 
 % Les noms de personnages
 \NewDocumentCommand{\persname}{m m}{%
-	#2 % on affiche juste le nom, ekdosis s'occupe du reste
+	#2\unskip % on affiche juste le nom, ekdosis s'occupe du reste
 }
 \TeXtoTEIPat{\persname{#1}{#2}}{<persName corresp="#1">#2</persName>}
 
@@ -151,6 +157,7 @@
 
 
 % Encodage des actes et des scènes
+% (méthode native ekdosis)
 %
 % Usage;
 % \ekddiv{head=Acte premier, type=act, n=1, depth=2}
@@ -159,14 +166,14 @@
 % depth = 2 pour les actes, depth = 3 pour les scènes
 %
 \FormatDiv{1}{\begin{center}\Huge}{\end{center}}
-\FormatDiv{2}{\begin{center}\LARGE}{\end{center}}
-\FormatDiv{3}{\begin{center}\LARGE\textsc}{\end{center}}
+\FormatDiv{2}{\begin{center}\LARGE}{\end{center}\vspace*{-1em}}
+\FormatDiv{3}{\begin{center}\LARGE\textsc}{\end{center}\vspace*{-1em}}
 
 %  Encodage des dialogues
 %
 %
 \newenvironment{speech}{\par}{\par}
-\newcommand{\speaker}[1]{\large\centering\textsc{#1}\par}
+\newcommand{\speaker}[1]{\vspace{1em}\large\centering\textsc{#1}\par}
 \TeXtoTEI{speaker}{speaker}
 \EnvtoTEI{speech}{sp} 
 \SetTEIxmlExport{autopar=false}
@@ -175,10 +182,14 @@
 % Numérotation des vers PDF
 %
 % Affichage automatique en LaTeX-ekdosis
+% (La config ci-dessous prévient l'affichage du 
+% numéro de paragraphe à gauche)
+%
 \SetLineation{
-	modulo,
+%	modulo,
 	vmodulo=5
 }
+\SetLineation{lineation=none}
 %
 % Export TEI de la numérotation des vers
 \newcommand{\vnum}[2]{\linelabel{v#1}#2\par}
@@ -190,31 +201,27 @@
 %
 %% éléments supplémentaires
 %
-% Structuration de la poésie
-% (les paquets natifs d'ekdosis causent des problèmes)
+% Structuration de la poésie:
+% simplement terminer les vers par \\
 %
-\NewDocumentEnvironment{vers}{}
-{\par\medskip\begin{list}{}{\leftmargin=2em\rightmargin=2em}\item[]\ignorespaces}
-	{\unskip\end{list}\par\medskip}
-\EnvtoTEI{vers}{}
-%
+%----------
 % Les lettres
 %
 \newenvironment{letter}
 {\par{\begin{content}}}
 	{\end{content}}
 \EnvtoTEI{letter}{div}[type="letter"]
-%
+%------------
 % Les chansons
 %
 \newenvironment{song}[1]
 {\par{\begin{content}}}
 	{\end{content}}
 \EnvtoTEI{song}{div}[type="song"]
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%-------------------------------------------
+%-------------------------------------------
 %
-% Déclaration de l'apparat et des versions
+% Déclaration de l'apparat et des versions. Ici pour l'exemple
 %
 \DeclareApparatus{default}
 \DeclareWitness{A}{1670}{Description de A}
@@ -242,10 +249,12 @@
 		%\normalfont
 		
 		% Pièce
-			%%%%%%%%%
-			%%%%%%%%%
-		% INSERER ICI LE CODE GENERE PAR LATEX-TEI Studio
-			%%%%%%%%%
-			%%%%%%%%%
+		%%%%%%%%%
+		%%%%%%%%%
+		% INSERER LE TEXTE GENERE PAR
+		% LATEX-TEI Studio ICI
+		
+		%%%%%%%%%
+		%%%%%%%%%
 	\end{ekdosis}
 \end{document}
