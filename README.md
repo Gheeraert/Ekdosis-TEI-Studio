@@ -1,6 +1,6 @@
 # 🧾 TEILaTeXStudio
 
-**TEILaTeXStudio** est un outil d'encodage **TEI XML** et **LaTeX ekdosis** des variantes dans le théâtre classique, avec gestion des actes, scènes, personnages, locuteurs, vers et variantes textuelles ligne à ligne. Développé avec Python et Tkinter, il s'adresse aux chercheurs et éditeurs critiques travaillant sur les textes dramatiques anciens.
+**TEILaTeXStudio** est un outil d'encodage **TEI XML** et **LaTeX ekdosis** des variantes dans le théâtre classique, avec gestion des actes, scènes, personnages, locuteurs, vers et variantes textuelles ligne à ligne. Développé avec Python et Tkinter, il s'adresse aux chercheurs et éditeurs critiques travaillant sur les textes dramatiques anciens. L'interface est inspirée du **markdown**
 
 ![Python](https://img.shields.io/badge/Python-3.9%2B-blue)
 ![TEI](https://img.shields.io/badge/Format-TEI%20XML-ffcc00)
@@ -11,28 +11,29 @@
 
 ## ✨ Fonctionnalités principales
 
-- 🏛 Saisie encodée structurée : actes, scènes, personnages, locuteurs, tirades
+- 🏛 Saisie encodée structurée en style markdown : actes, scènes, personnages, locuteurs, tirades, didascalies
 - 🔀 Comparaison automatique de variantes ligne à ligne (difflib)
 - 🔎 Génération parallèle des résultats en :
   - **TEI XML** avec balises `<app>`, `<lem>`, `<rdg>`, `<stage>`, etc.
   - **LaTeX** compatible avec le package `ekdosis`
-- 🎭 Gestion des didascalies : format `<<texte>>` reconnu et encodé en `<stage>` / `\didas{}`
+- 🎭 Gestion des didascalies : format `**texte**` reconnu et encodé en `<stage>` / `\didas{}`
 - 🔤 Échappement automatique des caractères spéciaux (`&`, etc.)
 - 🧑‍🎓 Interface conviviale en Tkinter avec onglets TEI / LaTeX
 - 🧪 Validation de structure intégrée (actes, scènes, locuteurs)
 - 🎨 Style visuel "parchemin" pour une expérience élégante
+- Prévisualisation en html
 
 ---
 
 ## 🖋️ Exemple de saisie
 
 ```
-[[[[1]]]]
-[[[1]]]
-[[Antiochus]] [[Arsace]]
-[Antiochus]
+####1####
+###1###
+##Antiochus## ##Arsace##
+#Antiochus#
 
-<<Antiochus entre.>>
+**Antiochus entre.**
 
 Arrestons un moment. La pompe de ces lieux
 Arrestons un moment. La pompe de ces lieux
@@ -49,7 +50,7 @@ Je le voy bien, Arsace, est nouvelle à tes yeux
 
 ## 🚀 Lancer l'application
 
-Assurez-vous d'avoir Python 3.9+ installé.
+Assurez-vous d'avoir Python 3.9+ installé. Un exécutable est également disponible
 
 ```bash
 python TEILaTeXStudio.py
@@ -60,16 +61,14 @@ python TEILaTeXStudio.py
 ## 📦 Dépendances
 
 - Python standard (`tkinter`, `difflib`, `re`, etc.)
-- Aucune installation externe nécessaire
-
+- template LaTeX préconfiguré avec ekdosis pour l'affichage direct du code LaTeX généré
 ---
 
 ## 🧪 En projet
 
-- Export HTML simple
 - Prise en compte des variantes de didascalies
 - Encodage de scènes muettes
-- Génération directe en PDF via XeLaTeX (optionnel)
+- Résolution des cas particuliers
 
 ---
 
