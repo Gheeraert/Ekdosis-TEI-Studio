@@ -15,10 +15,7 @@
 # ==============================================================================
 
 import tkinter as tk
-import tkinter.filedialog as fd
-from tkinter import messagebox, scrolledtext, ttk
-from tkinter import font
-from tkinter import simpledialog
+from tkinter import filedialog as fd, messagebox, scrolledtext, ttk, font, simpledialog
 import difflib
 from collections import defaultdict
 import re
@@ -29,8 +26,159 @@ import math
 import lxml.etree as ET
 import tempfile
 import webbrowser
-from tkinter import messagebox
-from tkinter import filedialog
+
+def importer_echantillon():
+    exemple = """####1####
+###1###
+##Antiochus## ##Arsace##
+
+#Antiochus#
+
+**Antiochus entre**
+
+Arrestons un moment. La pompe de ces lieux,
+Arrestons un moment. La pompe de ces lieux,
+Arrestons un moment. La pompe de ces lieux,
+Arrestons un moment. La pompe de ces lieux,
+
+Je le voy bien, Arsace, est nouvelle à tes yeux
+Je le voy bien, Arsace, est nouvelle à tes yeux
+Je le vois bien, Arsace, est nouvelle à tes yeux
+Je le vos bien, Arsace, est nouvelle à tes yeux
+
+Souvent ce Cabinet***
+Souvent ce Cabinet***
+Souvent ce Cabinet***
+Souvent ce Cabinet***
+
+#Arsace#
+***superbe & solitaire,
+***superbe & solitaire,
+***superbe & solitaire,
+***superbe & solitaire,
+
+#Antiochus#
+Des secrets de Titus est le dépositaire.
+Des secrets de Titus est le dépositaire.
+Des secrets de Titus est le dépositaire.
+Des secrets de Titus est le dépositaire.
+
+C'est icy quelquefois qu'il se cache à sa Cour,
+C'est icy quelquefois qu'il se cache à sa Cour,
+C'est ici quelquefois qu'il se cache à sa Cour,
+C'est ici quelquefois qu'il se cache à sa Cour,    
+
+Lors qu'il vient à la Reyne expliquer son amour
+Lors qu'il vient à la Reine expliquer son amour.
+Lors qu'il vient à la Reine expliquer son amour.
+Lors qu'il vient à la Reine expliquer son amour.
+
+De son Apartement cette porte est prochaine
+De son Apartement cette porte est prochaine
+De son Apartement cette porte est prochaine
+De son Appartement cette porte est prochaine
+
+Et cette autre conduit dans celuy de la Reyne.
+Et cette autre conduit dans celuy de la Reyne.
+Et cette autre conduit dans celui de la Reine.
+Et cette autre conduit dans celuy de la Reine.
+
+Va chez elle. Dy-luy qu'importun à regret,
+Va chez elle. Dy-luy qu'importun à regret,
+Va chés elle. Di-lui qu'importun à regret,
+Va chez elle. Di-Luy qu'importun à regret,
+
+J'ose luy demander un entretien secret.
+J'ose luy demander un entretien secret.
+J'ose luy demander un entretien secret.
+J'ose luy demander un entretien secret.
+
+#Arsace#
+Vous, Seigneur, importun Vous cet Amy fidelle
+Vous, Seigneur, importun~? Vous cet Amy fidelle
+Vous, Seigneur, importun~? Vous cet Ami fidelle
+Vous, Seigneur, importun~? Vous cet Ami fidelle
+
+Qu'un soin si gerereux interesse pour elle?
+Qu'un soin si gerereux interesse pour elle?
+Qu'un soin si gerereux interesse pour elle?
+Qu'un soin si gerereux interesse pour elle?
+
+Vous, cet Antiochus, son Amant autrefois;
+Vous, cet Antiochus, son Amant autrefois;
+Vous, cet Antiochus, son Amant autrefois;
+Vous, cet Antiochus, son Amant autrefois;
+
+Vous, que l'Orient conte entre ses plus grands Rois?
+Vous, que l'Orient conte entre ses plus grands Rois?
+Vous, que l'Orient conte entre ses plus grands Rois?
+Vous, que l'Orient conte entre ses plus grands Rois:
+
+Quoy déja de Titus l'Epouse en espérance
+Quoi~! déja de Titus l'Epouse en espérance
+Quoy~! déja de Titus l'Epouse en espérance
+Quoy~! déja de Titus Epouse en espérance
+
+Ce rang entre elle et vous met-il tant de distance~?
+Ce rang entre elle et vous met-il tant de distance.
+Ce rang entre elle et vous met-il tant de distance~?
+Ce rang entre elle et vous met-il tant de distance~? 
+
+#Antiochus#
+Va, dis-je, et sans vouloir te charger d'autres soins,
+Va, dis-je, et sans vouloir te charger d'autres soins;
+Va, dis-je, et sans vouloir te charger d'autres soins?
+Va, dis-je, et sans savoir te charger d'autres soins?
+
+Voy si je puis bientost luy parler sans témoins.
+Voy si je puis bientost luy parler sans témoins.
+Voi si je puis bientost lui parler sans témoins.
+Voi si je puis bientost luy parler sans témoins.
+
+###2###
+##Antiochus##
+#Antiochus#
+HE bien, Antiochus, es-tu toûjours le mesme ?
+HE bien, Antiochus, es-tu toûjours le mesme ?
+HE bien, Antiochus, es-tu toûjours le mesme ?
+HE bien, Antiochus, es-tu toûjours le mesme ?
+
+Voy si je puis bientost luy parler sans témoins.
+Voy si je puis bientost luy parler sans témoins.
+Voi si je puis bientost lui parler sans témoins.
+Voi si je puis bientost luy parler sans témoins.
+
+###3###
+##Antiochus##, ##Titus##, ##Bérénice##
+#Bérénice#
+Dans un mois, dans un an comment souffrirons-nous
+Dans un mois, dans un an, comment souffrirons-nous
+Dans un mois dans un an comment souffrirons-nous
+Dans un mois, dans un an comment souffrirez-vous
+
+Seigneur que tant de mers me séparent de vous
+Seigneur que tant de mers me séparent de nous
+Seigneur, que tant de mers me séparent de vous
+Seigneur que tant de mers me séparent de vous
+
+Que le jour recommance et que le jours finisse
+Que le jour recommence et que le jours finisse
+Que le jour recommence et que le jours finisse
+Que le jour recommence et que le jours finisse
+
+Sans que jamais Titus puisse voir Bérénice
+Sans que jamais Titus puisse voir Bérénice
+Sans que jamais Titus puisse voir Bérénice
+Sans que jamais Titus puisse voir Bérénice
+
+Sans que de tour le jour je puisse voir Titus.
+Sans que de tour le jour je puisse voir Titus.
+Sans que de tour le jour je puisse voir Titus.
+Sans que de tour le jour, je puisse voir Titus!"""
+
+    zone_saisie.delete("1.0", tk.END)
+    zone_saisie.insert("1.0", exemple)
+    messagebox.showinfo("Échantillon chargé", "Extrait de *Bérénice* inséré.")
 
 def exporter_template_latex():
     template_contenu = r"""
@@ -799,7 +947,7 @@ def previsualiser_html():
     <html lang="fr">
       <head>
         <meta charset="UTF-8"/>
-        <title>Ãdition TEI</title>
+        <title>Édition TEI</title>
         <xsl:text disable-output-escaping="yes">
           <![CDATA[<link href="https://fonts.googleapis.com/css2?family=IM+Fell+DW+Pica&display=swap" rel="stylesheet">]]>
         </xsl:text>
@@ -842,21 +990,49 @@ def previsualiser_html():
             margin-left: 9em;
             margin-bottom: 0.5em;
           }
+
           .variation {
+            position: relative;
             border-bottom: 1px dotted #8b5e3c;
             cursor: help;
-            }
-            p.vers {
+          }
+
+          .variation::after {
+            content: attr(title);
+            position: absolute;
+            top: 1.5em;
+            left: 0;
+            background: #fef3c7;
+            color: #111;
+            padding: 0.5em;
+            border: 1px solid #e0b973;
+            border-radius: 6px;
+            font-size: 0.8em;
+            white-space: pre-line;
+            display: none;
+            z-index: 1000;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
+            max-width: 400px;
+            overflow-wrap: break-word;
+          }
+
+          .variation:hover::after {
+            display: block;
+          }
+
+          p.vers {
             display: flex;
             gap: 1em;
             margin: 0.2em 0;
           }
+
           .vers-container {
             position: relative;
             margin-left: 5em;
             margin-bottom: 0.4em;
             line-height: 1;
           }
+
           .num-vers {
             position: absolute;
             left: -4.5em;
@@ -866,11 +1042,13 @@ def previsualiser_html():
             color: #5a5245;
             font-style: italic;
           }
+
           .texte-vers {
             display: inline;
           }
+
           .vers-decale {
-            margin-left: 14em; /* ou plus selon le dÃ©calage dÃ©sirÃ© */
+            margin-left: 14em;
           }
         </style>
       </head>
@@ -886,7 +1064,7 @@ def previsualiser_html():
     <xsl:apply-templates/>
   </xsl:template>
 
-  <!-- Titre de scÃ¨ne -->
+  <!-- Titre de scène -->
   <xsl:template match="tei:head">
     <div class="scene-titre"><xsl:apply-templates/></div>
   </xsl:template>
@@ -905,31 +1083,29 @@ def previsualiser_html():
   </xsl:template>
 
   <!-- Vers -->
-<xsl:template match="tei:l">
-  <div>
-    <xsl:attribute name="class">
-      <xsl:text>vers-container</xsl:text>
-      <xsl:if test="contains(@n, '.2')">
-        <xsl:text> vers-decale</xsl:text>
-      </xsl:if>
-    </xsl:attribute>
+  <xsl:template match="tei:l">
+    <div>
+      <xsl:attribute name="class">
+        <xsl:text>vers-container</xsl:text>
+        <xsl:if test="contains(@n, '.2')">
+          <xsl:text> vers-decale</xsl:text>
+        </xsl:if>
+      </xsl:attribute>
 
-    <xsl:choose>
-      <xsl:when test="number(@n) mod 5 = 0">
-        <span class="num-vers"><xsl:value-of select="@n"/></span>
-      </xsl:when>
-      <xsl:otherwise>
-        <span class="num-vers"></span>
-      </xsl:otherwise>
-    </xsl:choose>
+      <xsl:choose>
+        <xsl:when test="number(@n) mod 5 = 0">
+          <span class="num-vers"><xsl:value-of select="@n"/></span>
+        </xsl:when>
+        <xsl:otherwise>
+          <span class="num-vers"></span>
+        </xsl:otherwise>
+      </xsl:choose>
 
-    <span class="texte-vers">
-      <xsl:apply-templates/>
-    </span>
-  </div>
-</xsl:template>
-
-
+      <span class="texte-vers">
+        <xsl:apply-templates/>
+      </span>
+    </div>
+  </xsl:template>
 
   <!-- Variantes : infobulle au survol -->
   <xsl:template match="tei:app">
@@ -1618,6 +1794,8 @@ fenetre.config(menu=menu_bar)
 menu_fichier = tk.Menu(menu_bar, tearoff=0)
 menu_bar.add_cascade(label="Fichier", menu=menu_fichier)
 
+menu_fichier.add_command(label="Charger un échantillon de test", command=importer_echantillon)
+menu_fichier.add_separator()
 menu_fichier.add_command(label="Exporter TEI", command=exporter_tei)
 menu_fichier.add_command(label="Exporter la feuille XSLT", command=exporter_xslt)
 menu_fichier.add_separator()
