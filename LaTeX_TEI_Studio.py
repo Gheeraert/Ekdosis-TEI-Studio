@@ -24,11 +24,18 @@ from collections import defaultdict
 import re
 import unicodedata
 import os
+import sys
 import math
 import lxml.etree as ET
 import tempfile
 import webbrowser
 from tkinter import messagebox
+
+def chemin_relatif(nom_fichier):
+    """Retourne le chemin correct vers un fichier de ressource, compatible PyInstaller."""
+    if hasattr(sys, '_MEIPASS'):
+        return os.path.join(sys._MEIPASS, nom_fichier)
+    return os.path.abspath(nom_fichier)
 
 def afficher_nagscreen():
     nag = tk.Toplevel(fenetre)
@@ -69,8 +76,9 @@ def afficher_nagscreen():
 
     # Logo
     try:
-        logo = tk.PhotoImage(file="favicon.png")
-        nag.logo_img = logo
+        logo_path = chemin_relatif("favicon.png")
+        logo = tk.PhotoImage(file=logo_path)
+        nag.logo_img = logo  # éviter le garbage collection
         logo_label = tk.Label(nag, image=logo, bg=COULEUR_FOND)
         logo_label.pack(pady=(10, 10))
     except Exception:
@@ -402,6 +410,7 @@ def appliquer_style_parchemin(fenetre):
         zone_resultat_latex.configure(bg="white", font=police_zone)
     except:
         pass
+
 
 def confirmer_quitter():
     if messagebox.askokcancel("Quitter", "Voulez-vous vraiment quitter ?\nLes modifications non sauvegardées seront perdues."):
