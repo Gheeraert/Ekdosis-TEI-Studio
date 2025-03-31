@@ -6,7 +6,7 @@
 
   <xsl:output method="html" encoding="UTF-8" indent="yes"/>
 
-  <xsl:template match="/tei:TEI">
+ <xsl:template match="/tei:TEI">
     <html lang="fr">
       <head>
         <meta charset="UTF-8"/>
@@ -53,21 +53,49 @@
             margin-left: 9em;
             margin-bottom: 0.5em;
           }
+
           .variation {
+            position: relative;
             border-bottom: 1px dotted #8b5e3c;
             cursor: help;
-            }
-            p.vers {
+          }
+
+          .variation::after {
+            content: attr(title);
+            position: absolute;
+            top: 1.5em;
+            left: 0;
+            background: #fef3c7;
+            color: #111;
+            padding: 0.5em;
+            border: 1px solid #e0b973;
+            border-radius: 6px;
+            font-size: 0.8em;
+            white-space: pre-line;
+            display: none;
+            z-index: 1000;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
+            max-width: 400px;
+            overflow-wrap: break-word;
+          }
+
+          .variation:hover::after {
+            display: block;
+          }
+
+          p.vers {
             display: flex;
             gap: 1em;
             margin: 0.2em 0;
           }
+
           .vers-container {
             position: relative;
             margin-left: 5em;
             margin-bottom: 0.4em;
             line-height: 1;
           }
+
           .num-vers {
             position: absolute;
             left: -4.5em;
@@ -77,11 +105,13 @@
             color: #5a5245;
             font-style: italic;
           }
+
           .texte-vers {
             display: inline;
           }
+
           .vers-decale {
-            margin-left: 14em; /* ou plus selon le décalage désiré */
+            margin-left: 14em;
           }
         </style>
       </head>
@@ -116,31 +146,29 @@
   </xsl:template>
 
   <!-- Vers -->
-<xsl:template match="tei:l">
-  <div>
-    <xsl:attribute name="class">
-      <xsl:text>vers-container</xsl:text>
-      <xsl:if test="contains(@n, '.2')">
-        <xsl:text> vers-decale</xsl:text>
-      </xsl:if>
-    </xsl:attribute>
+  <xsl:template match="tei:l">
+    <div>
+      <xsl:attribute name="class">
+        <xsl:text>vers-container</xsl:text>
+        <xsl:if test="contains(@n, '.2')">
+          <xsl:text> vers-decale</xsl:text>
+        </xsl:if>
+      </xsl:attribute>
 
-    <xsl:choose>
-      <xsl:when test="number(@n) mod 5 = 0">
-        <span class="num-vers"><xsl:value-of select="@n"/></span>
-      </xsl:when>
-      <xsl:otherwise>
-        <span class="num-vers"></span>
-      </xsl:otherwise>
-    </xsl:choose>
+      <xsl:choose>
+        <xsl:when test="number(@n) mod 5 = 0">
+          <span class="num-vers"><xsl:value-of select="@n"/></span>
+        </xsl:when>
+        <xsl:otherwise>
+          <span class="num-vers"></span>
+        </xsl:otherwise>
+      </xsl:choose>
 
-    <span class="texte-vers">
-      <xsl:apply-templates/>
-    </span>
-  </div>
-</xsl:template>
-
-
+      <span class="texte-vers">
+        <xsl:apply-templates/>
+      </span>
+    </div>
+  </xsl:template>
 
   <!-- Variantes : infobulle au survol -->
   <xsl:template match="tei:app">
