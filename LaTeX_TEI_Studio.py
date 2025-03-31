@@ -245,8 +245,6 @@ def nettoyer_identifiant(nom):
     nom = re.sub(r"[^\w]", "", nom)
     return nom
 
-nettoyer_identifiant("Bérénice (Reine)")
-
 def echapper_caracteres_latex(texte):
     """Échappe les caractères spéciaux LaTeX comme l’esperluette."""
     return texte.replace("&", r"\&")
@@ -531,10 +529,19 @@ def comparer_etats():
         messagebox.showwarning("Erreur", "Le numéro de vers de départ doit être un entier.")
         return
 
-    resultat_tei = []
-    resultat_tei.append('<?xml version="1.0" encoding="UTF-8"?>')
-    resultat_tei.append('<TEI xmlns="http://www.tei-c.org/ns/1.0">')
-    resultat_tei.append('<text><body>')
+    resultat_tei = [
+        '<?xml version="1.0" encoding="UTF-8"?>',
+        '<TEI xmlns="http://www.tei-c.org/ns/1.0">',
+        '  <teiHeader>',
+        '    <fileDesc>',
+        f'      <titleStmt><title></title></titleStmt>',
+        '      <publicationStmt><p>Non publié</p></publicationStmt>',
+        '      <sourceDesc><p>Généré par TEILaTeXStudio</p></sourceDesc>',
+        '    </fileDesc>',
+        '  </teiHeader>',
+        '  <text>',
+        '    <body>'
+    ]
 
     resultat_latex = []
 
@@ -569,6 +576,7 @@ def comparer_etats():
                 resultat_latex.append("% Fin de la scène")
 
             current_scene_out = scene
+            dernier_locuteur = None  # ← 🎯 AJOUT ICI
 
             # TEI
             resultat_tei.append(f'  <div type="scene" n="{scene}">\n    <head>Scène {scene}</head>')
