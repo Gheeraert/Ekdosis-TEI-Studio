@@ -1,6 +1,6 @@
 %
 % Template LaTeX (ekdosis) pour l'édition du théâtre classique
-% Par Federico Siragusa et Tony Gheeraert
+% Par Federico Siragusa, Roch Delannay et Tony Gheeraert
 % 2025
 %
 %
@@ -21,7 +21,8 @@
 % Informations de mise en page
 %
 % Police: pour une mise en page "classique"
-% charger les polices Junicode et Garamond, et décommenter ces lignes
+% charger les polices Junicode et Garamond, 
+% et décommenter les lignes ci-dessous
 %
 %\setmainfont{Junicode}[
 %Scale = 1.2,
@@ -35,8 +36,10 @@
 \singlespacing
 
 % Police spécifique et style pour l'apparat critique
+%
 % \newfontfamily\apparatfont{Garamond}
-
+%
+%
 %
 % Page de garde et front(<text><front></front><body></body></text>) 
 % Avec mapping automatique
@@ -68,7 +71,7 @@
 % Liste des personnages (cast). Se contente de créer le balisage TEI
 \newenvironment{cast}
 {\begin{content}}
-	{\end{content}}
+{\end{content}}
 \EnvtoTEI{cast}{castList}
 
 % Personnages (castitem, role, roledesc)
@@ -147,56 +150,18 @@
 \TeXtoTEIPat{\place{#1}{#2}}{<placeName ref="#1">#2</placeName>}
 
 
-% Encodage des actes. On utilise une commande opérationnelle + un environnement fantôme seulement pour la structure, parce qu'ekdosis ne semble pas savoir gérer les variables des environnements (mais dans les commandes oui...)
+% Encodage des actes et des scènes
 %
-% Usage :
-% \begin{act}	% pour commencer un acte
-	%	\numact{2}	% le numéro de l'acte
-	%	\acthead{Acte premier}	% le titre de l'acte tel qu'il apparaît dans le texte original
-	%	.....
-	% \closeact{}
-	% \end{act} % pour fermer l'acte
+% Usage;
+% \ekddiv{head=Acte premier, type=act, n=1, depth=2}
+% \ekddiv{head=Acte premier, type=scene, n=2, depth=3}
 %
+% depth = 2 pour les actes, depth = 3 pour les scènes
 %
-\NewDocumentCommand{\numact}{m}{\relax}
-\TeXtoTEIPat{\numact{#1}}{<div type="act" n="#1">}
+\FormatDiv{1}{\begin{center}\Huge}{\end{center}}
+\FormatDiv{2}{\begin{center}\LARGE}{\end{center}}
+\FormatDiv{3}{\begin{center}\LARGE\textsc}{\end{center}}
 
-%
-\NewDocumentCommand{\closeact}{m}{\relax}
-\TeXtoTEIPat{\closeact{#1}}{</div>}
-
-%
-\NewDocumentEnvironment{act}{}{}{}
-\EnvtoTEI{act}{}
-%
-\newcommand{\acthead}[1]{%
-	\par\vspace{1em}%
-	\begin{center}
-		\LARGE\MakeUppercase{#1}
-	\end{center}
-	\vspace{1em}
-}
-\TeXtoTEI{acthead}{head}
-%------------------------------------
-%
-% Encodage des scènes: même principe que pour les actes
-%
-%
-\NewDocumentCommand{\numscene}{m}{\relax}
-\TeXtoTEIPat{\numscene{#1}}{<div type="scene" n="#1">}
-
-\NewDocumentCommand{\closescene}{m}{\relax}
-\TeXtoTEIPat{\closescene{#1}}{</div>}
-
-\NewDocumentEnvironment{scene}{}{}{}
-\EnvtoTEI{scene}{}
-
-\newcommand{\scenehead}[1]{%
-	\par\medskip\begin{center}\LARGE\textsc{#1}\end{center}\medskip
-}
-\TeXtoTEI{scenehead}{head}
-%--------------------------------
-%
 %  Encodage des dialogues
 %
 %
@@ -252,10 +217,10 @@
 % Déclaration de l'apparat et des versions
 %
 \DeclareApparatus{default}
-%\DeclareWitness{A}{ANNEE}{Description de A}
-%\DeclareWitness{B}{ANNEE}{Description de B}
-%\DeclareWitness{C}{ANNEE}{Description de C}
-%\DeclareWitness{D}{ANNEE}{Description de D}
+\DeclareWitness{A}{1670}{Description de A}
+\DeclareWitness{B}{1671}{Description de B}
+\DeclareWitness{C}{1672}{Description de C}
+\DeclareWitness{D}{1673}{Description de D}
 
 
 %
@@ -277,9 +242,10 @@
 		%\normalfont
 		
 		% Pièce
-		%
-		% INSERER LE CODE GENERE ICI
-		%
-		%
+			%%%%%%%%%
+			%%%%%%%%%
+		% INSERER ICI LE CODE GENERE PAR LATEX-TEI Studio
+			%%%%%%%%%
+			%%%%%%%%%
 	\end{ekdosis}
 \end{document}
