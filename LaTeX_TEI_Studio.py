@@ -1,5 +1,5 @@
 # ==============================================================================
-# TEILaTeXStudio
+#Ekdosis-TEI Studio
 #
 # Un outil d'encodage inspiré du markdown
 # pour encoder des variantes dans le théâtre classique
@@ -25,8 +25,14 @@ import os
 import sys
 import math
 import lxml.etree as ET
+import lxml.etree as LET
 import tempfile
 import webbrowser
+import tkinter as tk
+from tkinter import messagebox, simpledialog
+import lxml.etree as LET
+import os, webbrowser
+
 
 def importer_echantillon():
     exemple = """####1####
@@ -181,287 +187,289 @@ Sans que de tour le jour, je puisse voir Titus!"""
     zone_saisie.insert("1.0", exemple)
     messagebox.showinfo("Échantillon chargé", "Extrait de *Bérénice* inséré.")
 
-def exporter_template_latex():
-    template_contenu = r"""
-%
-% Template LaTeX (ekdosis) pour l'édition du théâtre classique
-% Par Federico Siragusa, Roch Delannay et Tony Gheeraert
-%
-% Basé sur le paquet ekdosis de Robert Alessi
-%
-% Développé dans le cadre de la chaire d'excellence
-% "Editions numériques" (Université de Rouen)
-%
-% 2025
-%
-%
+template_ekdosis_preamble = r"""
+    %
+    % Template ekdosis (ekdosis) pour l'édition du théâtre classique
+    % Par Federico Siragusa, Roch Delannay et Tony Gheeraert
+    %
+    % Basé sur le paquet ekdosis de Robert Alessi
+    %
+    % Développé dans le cadre de la chaire d'excellence
+    % "Editions numériques" (Université de Rouen)
+    %
+    % 2025
+    %
+    %
+    
+    \documentclass{book}
+    
+    % Paquets utiles
+    \usepackage[main=french, spanish, latin]{babel}
+    \usepackage[T1]{fontenc}
+    \usepackage{fontspec}
+    \usepackage{csquotes}
+    \usepackage[teiexport, divs=ekdosis, poetry=verse]{ekdosis}
+    \usepackage{setspace}
+    \usepackage{lettrine}
+    \usepackage{hyperref}
+    \usepackage{zref-user,zref-abspage}
+    
+    % Informations de mise en page
+    %
+    % Police: pour une mise en page "classique"
+    % charger les polices Junicode et Garamond, 
+    % et décommenter les lignes ci-dessous
+    %
+    %\setmainfont{Junicode}[
+    %Scale = 1.2,
+    %Ligatures = {Rare},
+    %Language = French,
+    %Style = {Historic},
+    %Contextuals = {Alternate},
+    %StylisticSet = 8
+    %]
+    
+    \singlespacing
+    
+    % Police spécifique et style pour l'apparat critique
+    %
+    % \newfontfamily\apparatfont{Garamond}
+    % --------------------------------------------------
+    %
+    %
+    % Page de garde et front(<text><front></front><body></body></text>) 
+    % Avec mapping automatique
+    
+    \newenvironment{front}
+    {\begin{content}} % début de l'environnement
+        {\end{content}}   % fin de l'environnement
+    \EnvtoTEI{front}{front}
+    
+    \newcommand{\titre}[1]{{\centering\Huge\uppercase{#1}\par}}
+    \TeXtoTEI{titre}{docTitle}
+    
+    \newcommand{\autor}[1]{{\centering #1\par}}
+    \TeXtoTEI{autor}{docAuthor}
+    
+    \newcommand{\byline}[1]{{\centering #1\par}}
+    \TeXtoTEI{byline}{byline}
+    
+    \newcommand{\imprint}[1]{{\centering\Large\uppercase{#1}\par}}
+    \TeXtoTEI{imprint}{docImprint}
+    
+    \newcommand{\docdate}[1]{{\centering\Large\uppercase{#1}\par}}
+    \TeXtoTEI{docdate}{docDate}
+    
+    %
+    % Dramatis personae
+    %
+    
+    % Liste des personnages (cast). Se contente de créer le balisage TEI
+    \newenvironment{cast}
+    {\begin{content}}
+        {\end{content}}
+    \EnvtoTEI{cast}{castList}
+    
+    % Personnages (castitem, role, roledesc)
+    %
+    % A utiliser ainsi:
+    %
+    % \roleitem{phedre}{Phèdre}{femme de Thésée}
+    % \roleitem{hippolyte}{Hippolyte}{fils de Thésée}
+    
+    \newcommand{\castitem}[1]{#1\par\vspace{0.5ex}}
+    \TeXtoTEI{castitem}{castItem}
+    
+    \NewDocumentCommand{\role}{m m}{#2}
+    \TeXtoTEIPat{\role{#1}{#2}}{<role xml:id="#1">#2</role>}
+    
+    \newcommand{\roledesc}[1]{#1}
+    \TeXtoTEI{roledesc}{roleDesc}
+    
+    \newcommand{\roleitem}[3]{%
+        \castitem{%
+            \role{#1}{#2}, \roledesc{#3}%
+        }%
+    }
+    
+    %
+    % Lieu de l'action
+    % usage: \set{L'action est à Rome}
+    %
+    \newcommand{\set}[1]{#1}
+    \TeXtoTEI{set}{set}
+    
+    %
+    % Didascalies explicites (comprend la liste des personnages en début de scène)
+    % Usage: \stage{\pn{#antiochus}{Antiochus} entre par la gauche.}
+    % (pn = abréviation pour persName)
+    %
+    % Noms des persos en tête de scène
+    \newcommand{\stage}[1]{%
+        \par\vspace{1em}
+        \begin{center}
+            \Large\textsc{#1}
+        \end{center}
+        \vspace{1em}
+    }
+    \TeXtoTEI{stage}{stage}
+    %
+    %
+    % Didascalies
+    \newcommand{\didas}[1]{%
+        \par\vspace{0.5em}%
+        \begin{center}%
+            \textit{#1}%
+        \end{center}%
+        \vspace{0.5em}%
+    }
+    \TeXtoTEI{\didas}{stage}
+    
+    
+    \newenvironment{head}
+    {\par\medskip\noindent\textsc}
+    {\par\medskip}
+    \EnvtoTEI{head}{head}
+    
+    % Les noms de personnages
+    \NewDocumentCommand{\persname}{m m}{%
+        #2\unskip % on affiche juste le nom, ekdosis s'occupe du reste
+    }
+    \TeXtoTEIPat{\persname{#1}{#2}}{<persName corresp="#1">#2</persName>}
+    
+    % Raccourci "pn" pour "persName"
+    \newcommand{\pn}[2]{\persname{#1}{#2}}
+    \TeXtoTEIPat{\pn{#1}{#2}}{<persName corresp="#1">#2</persName>}
+    
+    % Les noms de lieux: "placeName"
+    \NewDocumentCommand{\place}{m m}{#2}
+    \TeXtoTEIPat{\place{#1}{#2}}{<placeName ref="#1">#2</placeName>}
+    
+    
+    % Encodage des actes et des scènes
+    % (méthode native ekdosis)
+    %
+    % Usage;
+    % \ekddiv{head=Acte premier, type=act, n=1, depth=2}
+    % \ekddiv{head=Acte premier, type=scene, n=2, depth=3}
+    %
+    % depth = 2 pour les actes, depth = 3 pour les scènes
+    %
+    \FormatDiv{1}{\begin{center}\Huge}{\end{center}}
+    \FormatDiv{2}{\begin{center}\LARGE}{\end{center}\vspace*{-1em}}
+    \FormatDiv{3}{\begin{center}\LARGE\textsc}{\end{center}\vspace*{-1em}}
+    
+    %  Encodage des dialogues
+    %
+    %
+    \newenvironment{speech}{\par}{\par}
+    \newcommand{\speaker}[1]{\vspace{1em}\large\centering\textsc{#1}\par}
+    \TeXtoTEI{speaker}{speaker}
+    \EnvtoTEI{speech}{sp} 
+    \SetTEIxmlExport{autopar=false}
+    %%
+    %
+    % Numérotation des vers PDF
+    %
+    % Affichage automatique en ekdosis-ekdosis
+    % (La config ci-dessous prévient l'affichage du 
+    % numéro de paragraphe à gauche)
+    %
+    \SetLineation{
+    %	modulo,
+        vmodulo=5
+    }
+    \SetLineation{lineation=none}
+    %
+    % Export TEI de la numérotation des vers
+    \newcommand{\vnum}[2]{\linelabel{v#1}#2\par}
+    \TeXtoTEIPat{\vnum{#1}{#2}}{<l n="#1">#2</l>}
+    %
+    %
+    %
+    %-------------------------------------------
+    %
+    %% éléments supplémentaires
+    %
+    % Structuration de la poésie:
+    % simplement terminer les vers par \\
+    %
+    %----------
+    % Les lettres
+    %
+    \newenvironment{letter}
+    {\par{\begin{content}}}
+        {\end{content}}
+    \EnvtoTEI{letter}{div}[type="letter"]
+    %------------
+    % Les chansons
+    %
+    \newenvironment{song}[1]
+    {\par{\begin{content}}}
+        {\end{content}}
+    \EnvtoTEI{song}{div}[type="song"]
+    %-------------------------------------------
+    %-------------------------------------------
+    %
+    % Déclaration de l'apparat et des versions. Ici pour l'exemple
+    %
+    \DeclareApparatus{default}
+    """
 
-\documentclass{book}
-
-% Paquets utiles
-\usepackage[main=french, spanish, latin]{babel}
-\usepackage[T1]{fontenc}
-\usepackage{fontspec}
-\usepackage{csquotes}
-\usepackage[teiexport, divs=ekdosis, poetry=verse]{ekdosis}
-\usepackage{setspace}
-\usepackage{lettrine}
-\usepackage{hyperref}
-\usepackage{zref-user,zref-abspage}
-
-% Informations de mise en page
-%
-% Police: pour une mise en page "classique"
-% charger les polices Junicode et Garamond, 
-% et décommenter les lignes ci-dessous
-%
-%\setmainfont{Junicode}[
-%Scale = 1.2,
-%Ligatures = {Rare},
-%Language = French,
-%Style = {Historic},
-%Contextuals = {Alternate},
-%StylisticSet = 8
-%]
-
-\singlespacing
-
-% Police spécifique et style pour l'apparat critique
-%
-% \newfontfamily\apparatfont{Garamond}
-% --------------------------------------------------
-%
-%
-% Page de garde et front(<text><front></front><body></body></text>) 
-% Avec mapping automatique
-
-\newenvironment{front}
-{\begin{content}} % début de l'environnement
-	{\end{content}}   % fin de l'environnement
-\EnvtoTEI{front}{front}
-
-\newcommand{\titre}[1]{{\centering\Huge\uppercase{#1}\par}}
-\TeXtoTEI{titre}{docTitle}
-
-\newcommand{\autor}[1]{{\centering #1\par}}
-\TeXtoTEI{autor}{docAuthor}
-
-\newcommand{\byline}[1]{{\centering #1\par}}
-\TeXtoTEI{byline}{byline}
-
-\newcommand{\imprint}[1]{{\centering\Large\uppercase{#1}\par}}
-\TeXtoTEI{imprint}{docImprint}
-
-\newcommand{\docdate}[1]{{\centering\Large\uppercase{#1}\par}}
-\TeXtoTEI{docdate}{docDate}
-
-%
-% Dramatis personae
-%
-
-% Liste des personnages (cast). Se contente de créer le balisage TEI
-\newenvironment{cast}
-{\begin{content}}
-	{\end{content}}
-\EnvtoTEI{cast}{castList}
-
-% Personnages (castitem, role, roledesc)
-%
-% A utiliser ainsi:
-%
-% \roleitem{phedre}{Phèdre}{femme de Thésée}
-% \roleitem{hippolyte}{Hippolyte}{fils de Thésée}
-
-\newcommand{\castitem}[1]{#1\par\vspace{0.5ex}}
-\TeXtoTEI{castitem}{castItem}
-
-\NewDocumentCommand{\role}{m m}{#2}
-\TeXtoTEIPat{\role{#1}{#2}}{<role xml:id="#1">#2</role>}
-
-\newcommand{\roledesc}[1]{#1}
-\TeXtoTEI{roledesc}{roleDesc}
-
-\newcommand{\roleitem}[3]{%
-	\castitem{%
-		\role{#1}{#2}, \roledesc{#3}%
-	}%
-}
-
-%
-% Lieu de l'action
-% usage: \set{L'action est à Rome}
-%
-\newcommand{\set}[1]{#1}
-\TeXtoTEI{set}{set}
-
-%
-% Didascalies explicites (comprend la liste des personnages en début de scène)
-% Usage: \stage{\pn{#antiochus}{Antiochus} entre par la gauche.}
-% (pn = abréviation pour persName)
-%
-% Noms des persos en tête de scène
-\newcommand{\stage}[1]{%
-	\par\vspace{1em}
-	\begin{center}
-		\Large\textsc{#1}
-	\end{center}
-	\vspace{1em}
-}
-\TeXtoTEI{stage}{stage}
-%
-%
-% Didascalies
-\newcommand{\didas}[1]{%
-	\par\vspace{0.5em}%
-	\begin{center}%
-		\textit{#1}%
-	\end{center}%
-	\vspace{0.5em}%
-}
-\TeXtoTEI{\didas}{stage}
-
-
-\newenvironment{head}
-{\par\medskip\noindent\textsc}
-{\par\medskip}
-\EnvtoTEI{head}{head}
-
-% Les noms de personnages
-\NewDocumentCommand{\persname}{m m}{%
-	#2\unskip % on affiche juste le nom, ekdosis s'occupe du reste
-}
-\TeXtoTEIPat{\persname{#1}{#2}}{<persName corresp="#1">#2</persName>}
-
-% Raccourci "pn" pour "persName"
-\newcommand{\pn}[2]{\persname{#1}{#2}}
-\TeXtoTEIPat{\pn{#1}{#2}}{<persName corresp="#1">#2</persName>}
-
-% Les noms de lieux: "placeName"
-\NewDocumentCommand{\place}{m m}{#2}
-\TeXtoTEIPat{\place{#1}{#2}}{<placeName ref="#1">#2</placeName>}
-
-
-% Encodage des actes et des scènes
-% (méthode native ekdosis)
-%
-% Usage;
-% \ekddiv{head=Acte premier, type=act, n=1, depth=2}
-% \ekddiv{head=Acte premier, type=scene, n=2, depth=3}
-%
-% depth = 2 pour les actes, depth = 3 pour les scènes
-%
-\FormatDiv{1}{\begin{center}\Huge}{\end{center}}
-\FormatDiv{2}{\begin{center}\LARGE}{\end{center}\vspace*{-1em}}
-\FormatDiv{3}{\begin{center}\LARGE\textsc}{\end{center}\vspace*{-1em}}
-
-%  Encodage des dialogues
-%
-%
-\newenvironment{speech}{\par}{\par}
-\newcommand{\speaker}[1]{\vspace{1em}\large\centering\textsc{#1}\par}
-\TeXtoTEI{speaker}{speaker}
-\EnvtoTEI{speech}{sp} 
-\SetTEIxmlExport{autopar=false}
-%%
-%
-% Numérotation des vers PDF
-%
-% Affichage automatique en LaTeX-ekdosis
-% (La config ci-dessous prévient l'affichage du 
-% numéro de paragraphe à gauche)
-%
-\SetLineation{
-%	modulo,
-	vmodulo=5
-}
-\SetLineation{lineation=none}
-%
-% Export TEI de la numérotation des vers
-\newcommand{\vnum}[2]{\linelabel{v#1}#2\par}
-\TeXtoTEIPat{\vnum{#1}{#2}}{<l n="#1">#2</l>}
-%
-%
-%
-%-------------------------------------------
-%
-%% éléments supplémentaires
-%
-% Structuration de la poésie:
-% simplement terminer les vers par \\
-%
-%----------
-% Les lettres
-%
-\newenvironment{letter}
-{\par{\begin{content}}}
-	{\end{content}}
-\EnvtoTEI{letter}{div}[type="letter"]
-%------------
-% Les chansons
-%
-\newenvironment{song}[1]
-{\par{\begin{content}}}
-	{\end{content}}
-\EnvtoTEI{song}{div}[type="song"]
-%-------------------------------------------
-%-------------------------------------------
-%
-% Déclaration de l'apparat et des versions. Ici pour l'exemple
-%
-\DeclareApparatus{default}
-\DeclareWitness{A}{1670}{Description de A}
-\DeclareWitness{B}{1671}{Description de B}
-\DeclareWitness{C}{1672}{Description de C}
-\DeclareWitness{D}{1673}{Description de D}
-
-
+template_ekdosis_debut_doc = r"""     
 %
 % Début du corps du document
 %
 
 \begin{document}
-	\begin{ekdosis}
-		
-		%
-		% Cast/castitem: pour la prochaine version.
-		% Ne pas décommenter (bug connu)
-		%
-		%\begin{cast}
-		%	\castitem{\role{xmlid=antiochus}Antiochus, \roledesc{roi de Comagène}}
-		%	\castitem{\role{xmlid=arsace}Arsace, \roledesc{Confident d'Antiochus}}
-		%\end{cast}
-		%\set{La Scene est à Rome}
-		%\normalfont
-		
-		% Pièce
-		%%%%%%%%%
-		%%%%%%%%%
-		% INSERER LE TEXTE GENERE PAR
-		% LATEX-TEI Studio ICI
-		
-		%%%%%%%%%
-		%%%%%%%%%
-	\end{ekdosis}
-\end{document}
-"""
+    \begin{ekdosis}
+
+        %
+        % Cast/castitem: pour la prochaine version.
+        % Ne pas décommenter (bug connu)
+        %
+        %\begin{cast}
+        %	\castitem{\role{xmlid=antiochus}Antiochus, \roledesc{roi de Comagène}}
+        %	\castitem{\role{xmlid=arsace}Arsace, \roledesc{Confident d'Antiochus}}
+        %\end{cast}
+        %\set{La Scene est à Rome}
+        %\normalfont
+
+        % INJECTION DU CODE GENERE:
+        """
+template_ekdosis_fin_doc = r"""
+    %%%%%%%%%
+        \end{ekdosis}
+    \end{document}
+    """
+
+def exporter_template_ekdosis():
+    template_ekdosis_exemple_apparat = r"""
+        \DeclareWitness{A}{1670}{Description de A}
+        \DeclareWitness{B}{1671}{Description de B}
+        \DeclareWitness{C}{1672}{Description de C}
+        \DeclareWitness{D}{1673}{Description de D}
+        """
     chemin = filedialog.asksaveasfilename(
         defaultextension=".tex",
-        filetypes=[("Fichier LaTeX", "*.tex")],
-        title="Enregistrer le template LaTeX"
+        filetypes=[("Fichier ekdosis", "*.tex")],
+        title="Enregistrer le template ekdosis"
     )
     if chemin:
         with open(chemin, "w", encoding="utf-8") as f:
-            f.write(template_contenu)
+            f.write(template_ekdosis_preamble + template_ekdosis_exemple_apparat + template_ekdosis_debut_doc + template_ekdosis_fin_doc)
+
 
 def exporter_xslt():
     chemin = filedialog.asksaveasfilename(
-    defaultextension=".xsl",
-    filetypes=[("Feuille de style XSLT", "*.xsl")],
-    title="Enregistrer la feuille XSLT"
+        defaultextension=".xsl",
+        filetypes=[("Feuille de style XSLT", "*.xsl")],
+        title="Enregistrer la feuille XSLT"
     )
     if chemin:
         with open(chemin, "w", encoding="utf-8") as f:
             f.write(xslt_str)
+
 
 def chemin_relatif(nom_fichier):
     """Retourne le chemin correct vers un fichier de ressource, compatible PyInstaller."""
@@ -469,9 +477,10 @@ def chemin_relatif(nom_fichier):
         return os.path.join(sys._MEIPASS, nom_fichier)
     return os.path.abspath(nom_fichier)
 
+
 def afficher_nagscreen():
     nag = tk.Toplevel(fenetre)
-    nag.title("Bienvenue dans TEILaTeXStudio")
+    nag.title("Bienvenue dans Ekdosis-TEI-Studio")
 
     # Thème parchemin
     COULEUR_FOND = "#fdf6e3"
@@ -498,7 +507,7 @@ def afficher_nagscreen():
 
     titre = tk.Label(
         nag,
-        text="LaTeX–TEI Studio",
+        text="Ekdosis–TEI Studio",
         font=("Georgia", 32, "bold"),
         bg=COULEUR_ENCADRE,
         fg=COULEUR_TEXTE,
@@ -547,17 +556,103 @@ def afficher_nagscreen():
     )
     bouton.pack(pady=10)
 
-def demander_infos_initiales():
-    global titre_piece, numero_acte, numero_scene, nombre_scenes
+# A SUPPRIMER
+#def demander_infos_initiales():
+#    global titre_piece, numero_acte, numero_scene, nombre_scenes
+#
+#    titre_piece = simpledialog.askstring("Titre de la pièce", "Entrez le titre de la pièce :")
+#    numero_acte = simpledialog.askstring("Numéro de l'acte", "Entrez le numéro de l'acte (ex: 1) :")
+#    numero_scene = simpledialog.askstring("Numéro de la scène", "Entrez le numéro de la scène (ex: 1) :")
+#    nombre_scenes = simpledialog.askstring("Nombre total de scènes dans l'acte","Entrez le nombre total de scènes dans l'acte :")
+#
+#    if not all([titre_piece, numero_acte, numero_scene, nombre_scenes]):
+#        messagebox.showerror(
+#            "Erreur",
+#            "Toutes les informations sont obligatoires."
+#            )
+#        fenetre.destroy()
 
-    titre_piece = simpledialog.askstring("Titre de la pièce", "Entrez le titre de la pièce :")
-    numero_acte = simpledialog.askstring("Numéro de l'acte", "Entrez le numéro de l'acte (ex: 1) :")
-    numero_scene = simpledialog.askstring("Numéro de la scène", "Entrez le numéro de la scène (ex: 1) :")
-    nombre_scenes = simpledialog.askstring("Nombre total de scènes dans l'acte", "Entrez le nombre total de scènes :")
 
-    if not all([titre_piece, numero_acte, numero_scene, nombre_scenes]):
-        messagebox.showerror("Erreur", "Toutes les informations sont obligatoires.")
-        fenetre.destroy()
+def collecter_temoins(nb_temoins):
+    temoins = []
+    for i in range(nb_temoins):
+        donnees = demander_un_temoin_parchemin(i)
+        if not donnees:
+            return [] # pour ignorer
+        temoins.append(donnees)
+    return temoins
+
+
+def demander_un_temoin_parchemin(numero):
+    fenetre = tk.Toplevel()
+    fenetre.title(f"Témoin {numero + 1}")
+    fenetre.configure(bg="#f5f0dc")
+
+    style = ttk.Style()
+    style.configure("TLabel", background="#f5f0dc", font=("Garamond", 12))
+    style.configure("TEntry", font=("Garamond", 12))
+    style.configure("TButton", font=("Garamond", 12, "bold"))
+
+    # Centrage
+    fenetre.update_idletasks()
+    largeur_fenetre = fenetre.winfo_width()
+    hauteur_fenetre = fenetre.winfo_height()
+    largeur_ecran = fenetre.winfo_screenwidth()
+    hauteur_ecran = fenetre.winfo_screenheight()
+    position_x = (largeur_ecran // 2) - (largeur_fenetre // 2)
+    position_y = (hauteur_ecran // 2) - (hauteur_fenetre // 2)
+    fenetre.geometry(f"+{position_x}+{position_y}")
+
+    # Texte explicatif
+    explication = tk.Label(fenetre, text=f"Définition de l'apparat pour export.\n"
+                                         f"Donnez les caractéristiques du témoin numéro {numero + 1}",
+                           justify="center", font=("Garamond", 11), padx=10, pady=10)
+    explication.pack()
+    ###
+    tk.Label(fenetre, text="Abréviation :", bg="#f5f0dc", font=("Garamond", 12)).pack(padx=10, pady=(10, 0))
+    entry_abbr = ttk.Entry(fenetre, width=40)
+    entry_abbr.pack(padx=10, pady=5)
+
+    tk.Label(fenetre, text="Année :", bg="#f5f0dc", font=("Garamond", 12)).pack(padx=10, pady=(10, 0))
+    entry_year = ttk.Entry(fenetre, width=40)
+    entry_year.pack(padx=10, pady=5)
+
+    tk.Label(fenetre, text="Description :", bg="#f5f0dc", font=("Garamond", 12)).pack(padx=10, pady=(10, 0))
+    entry_desc = ttk.Entry(fenetre, width=40)
+    entry_desc.pack(padx=10, pady=5)
+
+    result = {}
+
+    def valider():
+        abbr = entry_abbr.get().strip()
+        year = entry_year.get().strip()
+        desc = entry_desc.get().strip()
+        if abbr and year and desc:
+            result["abbr"] = abbr
+            result["year"] = year
+            result["desc"] = desc
+            fenetre.destroy()
+
+    fenetre.bind('<Return>', lambda event: valider())
+
+    bouton = ttk.Button(fenetre, text="Valider", command=valider)
+    bouton.pack(pady=15)
+
+    fenetre.grab_set()
+    fenetre.wait_window()
+
+    return result if result else None
+
+
+def collecter_temoins(nb_temoins):
+    temoins = []
+    for i in range(nb_temoins):
+        donnees = demander_un_temoin_parchemin(i)
+        if not donnees:
+            return None  # ou [] si tu veux juste ignorer
+        temoins.append(donnees)
+    return temoins
+
 
 def nom_fichier(base, extension):
     try:
@@ -567,8 +662,10 @@ def nom_fichier(base, extension):
         # Variables non encore définies : nom provisoire
         return f"temp_{base}.{extension}"
 
+
 def normaliser_bloc(bloc):
     return "\n".join([l for l in bloc.strip().splitlines() if l.strip()])
+
 
 def valider_structure_amelioree():
     texte = zone_saisie.get("1.0", tk.END).strip()
@@ -664,14 +761,18 @@ def valider_structure_amelioree():
     else:
         messagebox.showinfo("Validation réussie", "Structure valide.")
 
+
 valider_structure = valider_structure_amelioree  # on remplace la fonction existante
+
 
 # Ajouter ce bouton à l’interface existante
 def ajouter_bouton_validation(frame):
     btn_valider = tk.Button(frame, text="Valider la structure", command=valider_structure)
     btn_valider.pack(side=tk.LEFT, padx=10)
 
+
 ajouter_bouton_validation = ajouter_bouton_validation  # pour usage externe si besoin
+
 
 # Fonction de normalisation plus robuste pour les identifiants TEI
 def nettoyer_identifiant(nom):
@@ -686,13 +787,16 @@ def nettoyer_identifiant(nom):
     nom = re.sub(r"[^\w]", "", nom)
     return nom
 
-def echapper_caracteres_latex(texte):
-    """Échappe les caractères spéciaux LaTeX comme l’esperluette."""
+
+def echapper_caracteres_ekdosis(texte):
+    """Échappe les caractères spéciaux ekdosis comme l’esperluette."""
     return texte.replace("&", r"\&")
+
 
 def encoder_caracteres_tei(texte):
     """Encode les caractères spéciaux XML/TEI comme l’esperluette."""
     return texte.replace("&", "&amp;")
+
 
 def rechercher():
     terme = simpledialog.askstring("Rechercher", "Mot ou expression à chercher :")
@@ -707,6 +811,7 @@ def rechercher():
             zone_saisie.tag_add("found", start_pos, end_pos)
             start_pos = end_pos
         zone_saisie.tag_config("found", background="yellow")
+
 
 def remplacer_avance():
     terme = simpledialog.askstring("Remplacer", "Mot à rechercher :")
@@ -735,7 +840,8 @@ def remplacer_avance():
         zone_saisie.see(index)
         zone_saisie.focus()
 
-        confirmer = messagebox.askyesno("Remplacer ?", f"Remplacer cette occurrence de « {terme} » par « {remplacement} » ?")
+        confirmer = messagebox.askyesno("Remplacer ?",
+                                        f"Remplacer cette occurrence de « {terme} » par « {remplacement} » ?")
         zone_saisie.tag_delete("remplacer")
 
         if confirmer:
@@ -760,7 +866,7 @@ def appliquer_style_light(fenetre):
 
     zone_saisie.configure(font=police_zone)
     zone_resultat_tei.configure(font=police_zone)
-    zone_resultat_latex.configure(font=police_zone)
+    zone_resultat_ekdosis.configure(font=police_zone)
 
     for widget in fenetre.winfo_children():
         if isinstance(widget, tk.Label):
@@ -771,6 +877,7 @@ def appliquer_style_light(fenetre):
     for widget in frame_bas.winfo_children():
         if isinstance(widget, tk.Button):
             widget.configure(font=police_bouton)
+
 
 def appliquer_style_parchemin(fenetre):
     # Couleurs
@@ -799,7 +906,7 @@ def appliquer_style_parchemin(fenetre):
     )
 
     def styliser_recursivement(widget):
-        if isinstance(widget, tk.Toplevel) and widget.title() == "Bienvenue dans TEILaTeXStudio":
+        if isinstance(widget, tk.Toplevel) and widget.title() == "Bienvenue dans Ekdosis-TEI Studio":
             return
 
         for child in widget.winfo_children():
@@ -839,14 +946,16 @@ def appliquer_style_parchemin(fenetre):
     try:
         zone_saisie.configure(bg="white", font=police_zone)
         zone_resultat_tei.configure(bg="white", font=police_zone)
-        zone_resultat_latex.configure(bg="white", font=police_zone)
+        zone_resultat_ekdosis.configure(bg="white", font=police_zone)
     except:
         pass
 
 
 def confirmer_quitter():
-    if messagebox.askokcancel("Quitter", "Voulez-vous vraiment quitter ?\nLes modifications non sauvegardées seront perdues."):
+    if messagebox.askokcancel("Quitter",
+                              "Voulez-vous vraiment quitter ?\nLes modifications non sauvegardées seront perdues."):
         fenetre.destroy()
+
 
 def exporter_tei():
     contenu = zone_resultat_tei.get("1.0", tk.END).strip()
@@ -864,21 +973,56 @@ def exporter_tei():
             f.write(contenu)
         messagebox.showinfo("Succès", f"Fichier TEI enregistré :\n{fichier}")
 
-def exporter_latex():
-    contenu = zone_resultat_latex.get("1.0", tk.END).strip()
+
+def exporter_ekdosis():
+    contenu = zone_resultat_ekdosis.get("1.0", tk.END).strip()
     if not contenu:
-        messagebox.showwarning("Avertissement", "Aucun contenu LaTeX à enregistrer.")
+        messagebox.showwarning("Avertissement", "Aucun contenu ekdosis à enregistrer.")
         return
+
+    try:
+        nb_temoins = int(nombre_temoins_predefini)
+    except Exception:
+        messagebox.showwarning("Erreur", "Le nombre de témoins est introuvable ou invalide.")
+        return
+
+    temoins = collecter_temoins(nb_temoins)
+    if not temoins:
+        messagebox.showwarning("Annulé",
+                               "La collecte des témoins a été annulée.\n"
+                                         "Vous pouvez exporter toutefois le LaTeX sans le template\n"
+                                         "en copiant-collant le code généré ci-dessous"
+                               )
+        return
+
+    declarations_temoins = "\n".join([
+        f"\\DeclareWitness{{{t['abbr']}}}{{{t['year']}}}{{{t['desc']}}}"
+        for t in temoins
+    ])
+
+    contenu_complet = (
+        template_ekdosis_preamble +
+        declarations_temoins +
+        template_ekdosis_debut_doc +
+        "\n" +
+        contenu +
+        "\n" +
+        template_ekdosis_fin_doc
+    )
+
     fichier = fd.asksaveasfilename(
         defaultextension=".tex",
-        filetypes=[("Fichiers LaTeX", "*.tex")],
-        initialfile=nom_fichier("latex", "tex"),
-        title="Enregistrer le fichier LaTeX"
+        filetypes=[("Fichiers ekdosis", "*.tex")],
+        initialfile=nom_fichier("ekdosis", "tex"),
+        title="Enregistrer le fichier ekdosis"
     )
+
     if fichier:
         with open(fichier, "w", encoding="utf-8") as f:
-            f.write(contenu)
-        messagebox.showinfo("Succès", f"Fichier LaTeX enregistré :\n{fichier}")
+            f.write(contenu_complet)
+        messagebox.showinfo("Succès", f"Fichier ekdosis enregistré :\n{fichier}")
+
+
 
 def enregistrer_saisie():
     valider_structure()
@@ -897,16 +1041,20 @@ def enregistrer_saisie():
             f.write(contenu)
         messagebox.showinfo("Succès", f"Saisie enregistrée :\n{fichier}")
 
+
 def formatter_persname_tei(noms):
     return ", ".join(
         f'<persName ref="#{nettoyer_identifiant(n)}">{n}</persName>'
         for n in noms
     )
-def formatter_persname_latex(noms):
+
+
+def formatter_persname_ekdosis(noms):
     return ", ".join(
         f'\\pn{{#{nettoyer_identifiant(n)}}}{{{n}}}'
         for n in noms
     )
+
 
 def extraire_numero_et_titre(s):
     numero = int(s)
@@ -915,10 +1063,12 @@ def extraire_numero_et_titre(s):
     titre = titres[numero] if numero < len(titres) else f"{numero}e"
     return numero, titre
 
+
 def activer_undo_redo(widget):
     widget.config(undo=True, maxundo=-1)
     widget.bind("<Control-z>", lambda e: widget.edit_undo())
     widget.bind("<Control-y>", lambda e: widget.edit_redo())
+
 
 def mettre_a_jour_menu(*args):
     texte = zone_saisie.get("1.0", tk.END).strip()
@@ -927,24 +1077,46 @@ def mettre_a_jour_menu(*args):
     if lignes:
         liste_ref.current(0)
 
-
 def previsualiser_html():
     tei = zone_resultat_tei.get("1.0", tk.END).strip()
     if not tei:
         messagebox.showwarning("Avertissement", "Aucun contenu TEI à prévisualiser.")
         return
 
-    try:
-        tei_xml = ET.fromstring(tei.encode("utf-8"))
+    reponse = messagebox.askyesno("Apparat critique", "Souhaitez-vous préciser les métadonnées des témoins pour l'apparat critique ?")
+    temoins_dict = {}
 
-        # Feuille XSLT intégrée
+    if reponse:
+        try:
+            temoins = collecter_temoins(int(nombre_temoins_predefini))
+            temoins_dict = {t["abbr"]: t["year"] for t in temoins}
+        except Exception as e:
+            messagebox.showerror("Erreur", f"Erreur lors de la collecte des témoins :\n{e}")
+            return
+
+    try:
+        parser = LET.XMLParser(remove_blank_text=True)
+        tei_xml = LET.fromstring(tei.encode("utf-8"), parser)
+
+        # Remplacer tous les @wit dans <rdg> et <lem>
+        ns = {"tei": "http://www.tei-c.org/ns/1.0"}
+        for node in tei_xml.xpath(".//tei:rdg | .//tei:lem", namespaces=ns):
+            wit_attr = node.get("wit")
+            if wit_attr:
+                abbrs = [abbr.lstrip("#") for abbr in wit_attr.strip().split()]
+                new_wits = [temoins_dict.get(abbr, abbr) for abbr in abbrs]
+                node.set("wit", ", ".join(new_wits))  # <-- ici le patch élégant
+
+        # XSLT complet avec belle mise en page ET infobulles avec années
         xslt_str = '''<?xml version="1.0" encoding="UTF-8"?>
 <xsl:stylesheet version="2.0"
-    xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
-    xmlns:tei="http://www.tei-c.org/ns/1.0"
-    exclude-result-prefixes="tei">
+  xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+  xmlns:tei="http://www.tei-c.org/ns/1.0"
+  exclude-result-prefixes="tei">
+
   <xsl:output method="html" encoding="UTF-8" indent="yes"/>
-    <xsl:template match="/tei:TEI">
+
+  <xsl:template match="/tei:TEI">
     <html lang="fr">
       <head>
         <meta charset="UTF-8"/>
@@ -991,15 +1163,13 @@ def previsualiser_html():
             margin-left: 9em;
             margin-bottom: 0.5em;
           }
-
           .variation {
             position: relative;
             border-bottom: 1px dotted #8b5e3c;
             cursor: help;
           }
-
           .variation::after {
-            content: attr(title);
+            content: attr(data-tooltip);
             position: absolute;
             top: 1.5em;
             left: 0;
@@ -1012,28 +1182,23 @@ def previsualiser_html():
             white-space: pre-line;
             display: none;
             z-index: 1000;
-            box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
             max-width: 400px;
             overflow-wrap: break-word;
           }
-
           .variation:hover::after {
             display: block;
           }
-
           p.vers {
             display: flex;
             gap: 1em;
             margin: 0.2em 0;
           }
-
           .vers-container {
             position: relative;
             margin-left: 5em;
             margin-bottom: 0.4em;
             line-height: 1;
           }
-
           .num-vers {
             position: absolute;
             left: -4.5em;
@@ -1043,11 +1208,9 @@ def previsualiser_html():
             color: #5a5245;
             font-style: italic;
           }
-
           .texte-vers {
             display: inline;
           }
-
           .vers-decale {
             margin-left: 14em;
           }
@@ -1092,7 +1255,6 @@ def previsualiser_html():
           <xsl:text> vers-decale</xsl:text>
         </xsl:if>
       </xsl:attribute>
-
       <xsl:choose>
         <xsl:when test="number(@n) mod 5 = 0">
           <span class="num-vers"><xsl:value-of select="@n"/></span>
@@ -1101,40 +1263,37 @@ def previsualiser_html():
           <span class="num-vers"></span>
         </xsl:otherwise>
       </xsl:choose>
-
       <span class="texte-vers">
         <xsl:apply-templates/>
       </span>
     </div>
   </xsl:template>
 
-  <!-- Variantes : infobulle au survol -->
+  <!-- Apparatus -->
   <xsl:template match="tei:app">
     <xsl:variable name="tooltip">
       <xsl:for-each select="tei:rdg">
+        <xsl:variable name="t" select="normalize-space(.)"/>
         <xsl:value-of select="@wit"/>
         <xsl:text>: </xsl:text>
-        <xsl:value-of select="normalize-space(.)"/>
-        <xsl:if test="position() != last()">
-          <xsl:text>&#10;</xsl:text>
-        </xsl:if>
+        <xsl:value-of select="$t"/>
+        <xsl:text>&#10;&#10;</xsl:text>
       </xsl:for-each>
     </xsl:variable>
-
     <span class="variation">
-      <xsl:attribute name="title">
+      <xsl:attribute name="data-tooltip">
         <xsl:value-of select="$tooltip"/>
       </xsl:attribute>
       <xsl:apply-templates select="tei:lem"/>
     </span>
   </xsl:template>
 
-  <!-- On ignore les rdg dans le texte courant -->
+  <!-- Ignorer les rdg dans le texte principal -->
   <xsl:template match="tei:rdg"/>
 </xsl:stylesheet>
 '''
-        xslt_root = ET.XML(xslt_str.encode('utf-8'))
-        transform = ET.XSLT(xslt_root)
+        xslt_root = LET.XML(xslt_str.encode('utf-8'))
+        transform = LET.XSLT(xslt_root)
         html_result = transform(tei_xml)
 
         chemin_script = os.path.dirname(os.path.abspath(__file__))
@@ -1147,7 +1306,10 @@ def previsualiser_html():
     except Exception as e:
         messagebox.showerror("Erreur", f"Erreur pendant la transformation XSLT :\n{e}")
 
-def convertir_tei_en_html_beau_ameliore(tei_text):
+
+
+
+def convertir_tei_en_html(tei_text):
     html = []
     dans_tirade = False
     current_speaker = ""
@@ -1276,6 +1438,7 @@ def previsualiser_html_xslt():
     except Exception as e:
         messagebox.showerror("Erreur", f"Erreur pendant la transformation XSLT :\n{e}")
 
+
 def transformer_tei_avec_xsl():
     tei_text = zone_resultat_tei.get("1.0", tk.END).strip()
     if not tei_text:
@@ -1302,6 +1465,7 @@ def transformer_tei_avec_xsl():
 
     except Exception as e:
         messagebox.showerror("Erreur XSLT", f"Erreur lors de la transformation : {e}")
+
 
 def afficher_aide():
     exemple = r"""
@@ -1331,6 +1495,7 @@ Laissez une ligne vide avant et après les **didascalies**
 """
     messagebox.showinfo("Aide à la transcription", exemple)
 
+
 def comparer_etats():
     texte = zone_saisie.get("1.0", tk.END).strip()
     lignes = texte.splitlines()
@@ -1348,7 +1513,8 @@ def comparer_etats():
 
         if re.match(r"\#\#\#\#\d+\#\#\#\#", ligne):  # Acte
             if current_bloc and current_speaker:
-                dialogues.append((current_acte, current_scene, current_personnages, current_speaker, "\n".join(current_bloc)))
+                dialogues.append(
+                    (current_acte, current_scene, current_personnages, current_speaker, "\n".join(current_bloc)))
                 current_bloc = []
             current_acte = re.findall(r"\d+", ligne)[0]
             current_scene = None
@@ -1356,7 +1522,8 @@ def comparer_etats():
 
         elif re.match(r"\#\#\#\d+\#\#\#", ligne):  # Scène
             if current_bloc and current_speaker:
-                dialogues.append((current_acte, current_scene, current_personnages, current_speaker, "\n".join(current_bloc)))
+                dialogues.append(
+                    (current_acte, current_scene, current_personnages, current_speaker, "\n".join(current_bloc)))
                 current_bloc = []
             current_scene = re.findall(r"\d+", ligne)[0]
             current_personnages = []
@@ -1367,7 +1534,8 @@ def comparer_etats():
 
         elif ligne.startswith("#") and ligne.endswith("#"):  # Locuteur
             if current_bloc and current_speaker:
-                dialogues.append((current_acte, current_scene, current_personnages, current_speaker, "\n".join(current_bloc)))
+                dialogues.append(
+                    (current_acte, current_scene, current_personnages, current_speaker, "\n".join(current_bloc)))
             current_speaker = ligne[1:-1].strip()
             current_bloc = []
 
@@ -1393,14 +1561,14 @@ def comparer_etats():
         '    <fileDesc>',
         f'      <titleStmt><title></title></titleStmt>',
         '      <publicationStmt><p></p></publicationStmt>',
-        '      <sourceDesc><p>Généré par TEILaTeXStudio</p></sourceDesc>',
+        '      <sourceDesc><p>Généré par Ekdosis-TEI Studio (Université de Rouen, chaire Editions numériques)</p></sourceDesc>',
         '    </fileDesc>',
         '  </teiHeader>',
         '  <text>',
         '    <body>'
     ]
 
-    resultat_latex = []
+    resultat_ekdosis = []
 
     vers_courant = numero_depart
     current_acte_out = None
@@ -1412,8 +1580,8 @@ def comparer_etats():
             if current_acte_out is not None:
                 resultat_tei.append("  </div>")
                 resultat_tei.append("</div>")
-                resultat_latex.append("% Fin de la scène")
-                resultat_latex.append("% Fin de l'acte")
+                resultat_ekdosis.append("% Fin de la scène")
+                resultat_ekdosis.append("% Fin de l'acte")
 
             current_acte_out = acte
             num, titre = extraire_numero_et_titre(acte)
@@ -1421,8 +1589,8 @@ def comparer_etats():
             # TEI
             resultat_tei.append(f'<div type="act" n="{num}">')
 
-            # LaTeX ekdosis-compatible
-            resultat_latex.append(f'\\ekddiv{{head=ACTE {titre.upper()}, type=act, n={num}, depth=2}}\n')
+            # ekdosis ekdosis-compatible
+            resultat_ekdosis.append(f'\\ekddiv{{head=ACTE {titre.upper()}, type=act, n={num}, depth=2}}\n')
 
             current_scene_out = None
 
@@ -1430,7 +1598,7 @@ def comparer_etats():
             if current_scene_out is not None:
                 resultat_tei.append("  </sp>")
                 resultat_tei.append("  </div>")
-                resultat_latex.append("      \\end{ekdverse}\n    \\end{speech}   % Fin de la scène")
+                resultat_ekdosis.append("      \\end{ekdverse}\n    \\end{speech}   % Fin de la scène")
 
             current_scene_out = scene
             dernier_locuteur = None  # ← 🎯 AJOUT ICI
@@ -1438,22 +1606,22 @@ def comparer_etats():
             # TEI
             resultat_tei.append(f'  <div type="scene" n="{scene}">\n    <head>Scène {scene}</head>')
 
-            # LaTeX ekdosis-compatible
-            resultat_latex.append(f'\\ekddiv{{head=Scène {scene}, type=scene, n={scene}, depth=3}}\n')
+            # ekdosis ekdosis-compatible
+            resultat_ekdosis.append(f'\\ekddiv{{head=Scène {scene}, type=scene, n={scene}, depth=3}}\n')
 
             if personnages:
                 pers_tei = formatter_persname_tei(personnages)
-                pers_latex = formatter_persname_latex(personnages)
+                pers_ekdosis = formatter_persname_ekdosis(personnages)
                 resultat_tei.append(f'    <stage>{pers_tei}.</stage>')
-                resultat_latex.append(f'    \\stage{{{pers_latex}}}')
+                resultat_ekdosis.append(f'    \\stage{{{pers_ekdosis}}}')
 
         sous_blocs = bloc.split("\n\n")
         if speaker != dernier_locuteur:
             if dernier_locuteur is not None:
                 resultat_tei.append("    </sp>")
-                resultat_latex.append("      \\end{ekdverse}\n    \\end{speech}")
+                resultat_ekdosis.append("      \\end{ekdverse}\n    \\end{speech}")
             resultat_tei.append(f'    <sp>\n      <speaker>{speaker}</speaker>')
-            resultat_latex.append("    \\begin{speech}\n      \\speaker{" + speaker + "}\n      \\begin{ekdverse}")
+            resultat_ekdosis.append("    \\begin{speech}\n      \\speaker{" + speaker + "}\n      \\begin{ekdverse}")
             dernier_locuteur = speaker
 
         for sous_bloc in sous_blocs:
@@ -1468,7 +1636,7 @@ def comparer_etats():
             if len(lignes) == 1 and lignes[0].startswith("**") and lignes[0].endswith("**"):
                 didascalie = lignes[0][2:-2].strip()
                 resultat_tei.append(f'      <stage>{didascalie}</stage>')
-                resultat_latex.append(f'        \\didas{{{didascalie}}}')
+                resultat_ekdosis.append(f'        \\didas{{{didascalie}}}')
                 continue
 
             # Cas du vers partagé : *** à la fin (bloc A) et *** au début (bloc B)
@@ -1496,7 +1664,7 @@ def comparer_etats():
                             differences[position][variante].append(temoins[i])
 
                 ligne_tei = []
-                ligne_latex = []
+                ligne_ekdosis = []
                 segment_buffer = []
                 i = 0
                 while i < len(base_1):
@@ -1505,7 +1673,7 @@ def comparer_etats():
                         if segment_buffer:
                             segment_texte = " ".join(segment_buffer)
                             ligne_tei.append("      " + encoder_caracteres_tei(segment_texte) + "\n")
-                            ligne_latex.append("      " + echapper_caracteres_latex(segment_texte))
+                            ligne_ekdosis.append("      " + echapper_caracteres_ekdosis(segment_texte))
                             segment_buffer = []
 
                         start, end = max(matching_apps, key=lambda x: x[1])
@@ -1525,14 +1693,14 @@ def comparer_etats():
                         ligne_tei.extend(tei_app)
 
                         rdg_blocks = [
-                            f'        \\rdg[wit={{{", ".join(liste_temoins)}}}]{{{echapper_caracteres_latex(texte_rdg)}}}'
+                            f'        \\rdg[wit={{{", ".join(liste_temoins)}}}]{{{echapper_caracteres_ekdosis(texte_rdg)}}}'
                             for texte_rdg, liste_temoins in rdgs.items() if texte_rdg != lem
                         ]
-                        latex_block = [f'      \\app{{',
-                                       f'        \\lem[wit={{{", ".join(wit_lem)}}}]{{{echapper_caracteres_latex(lem)}}}']
-                        latex_block.extend(rdg_blocks)
-                        latex_block.append('      }')
-                        ligne_latex.append("\n".join(latex_block))
+                        ekdosis_block = [f'      \\app{{',
+                                       f'        \\lem[wit={{{", ".join(wit_lem)}}}]{{{echapper_caracteres_ekdosis(lem)}}}']
+                        ekdosis_block.extend(rdg_blocks)
+                        ekdosis_block.append('      }')
+                        ligne_ekdosis.append("\n".join(ekdosis_block))
 
                         i = end
                     else:
@@ -1542,14 +1710,15 @@ def comparer_etats():
                 if segment_buffer:
                     segment_texte = " ".join(segment_buffer)
                     ligne_tei.append("      " + encoder_caracteres_tei(segment_texte) + "\n")
-                    ligne_latex.append("      " + echapper_caracteres_latex(segment_texte))
+                    ligne_ekdosis.append("      " + echapper_caracteres_ekdosis(segment_texte))
 
                 resultat_tei.append(f'<l n="{vers_num_1}">\n' + "".join(ligne_tei) + '</l>')
-                vers_formate_1 = "\n".join(ligne_latex)
+                vers_formate_1 = "\n".join(ligne_ekdosis)
                 # à supprimer
-                #resultat_latex.append("      \\end{ekdverse}\n    \\end{speech}")
-                #resultat_latex.append(f'    \\begin{{speech}}\n      \\speaker{{{speaker}}}\n      \\begin{{ekdverse}}')
-                resultat_latex.append(f'        \\vnum{{{vers_num_1}}}' + '{\n' + vers_formate_1 + '\\\\    \n         }')
+                # resultat_ekdosis.append("      \\end{ekdverse}\n    \\end{speech}")
+                # resultat_ekdosis.append(f'    \\begin{{speech}}\n      \\speaker{{{speaker}}}\n      \\begin{{ekdverse}}')
+                resultat_ekdosis.append(
+                    f'        \\vnum{{{vers_num_1}}}' + '{\n' + vers_formate_1 + '\\\\    \n         }')
 
                 # Seconde moitié — locuteur suivant
                 lignes_suivantes = []
@@ -1600,7 +1769,7 @@ def comparer_etats():
                                 differences[position][variante].append(temoins_2[i])
 
                     ligne_tei = []
-                    ligne_latex = []
+                    ligne_ekdosis = []
                     segment_buffer = []
                     i = 0
                     while i < len(base_2):
@@ -1609,7 +1778,7 @@ def comparer_etats():
                             if segment_buffer:
                                 segment_texte = " ".join(segment_buffer)
                                 ligne_tei.append("      " + encoder_caracteres_tei(segment_texte) + "\n")
-                                ligne_latex.append("      " + echapper_caracteres_latex(segment_texte))
+                                ligne_ekdosis.append("      " + echapper_caracteres_ekdosis(segment_texte))
                                 segment_buffer = []
 
                             start, end = max(matching_apps, key=lambda x: x[1])
@@ -1630,14 +1799,14 @@ def comparer_etats():
                             ligne_tei.extend(tei_app)
 
                             rdg_blocks = [
-                                f'        \\rdg[wit={{{", ".join(liste_temoins)}}}]{{{echapper_caracteres_latex(texte_rdg)}}}'
+                                f'        \\rdg[wit={{{", ".join(liste_temoins)}}}]{{{echapper_caracteres_ekdosis(texte_rdg)}}}'
                                 for texte_rdg, liste_temoins in rdgs.items() if texte_rdg != lem
                             ]
-                            latex_block = [f'      \\app{{',
-                                           f'        \\lem[wit={{{", ".join(wit_lem)}}}]{{{echapper_caracteres_latex(lem)}}}']
-                            latex_block.extend(rdg_blocks)
-                            latex_block.append('      }')
-                            ligne_latex.append("\n".join(latex_block))
+                            ekdosis_block = [f'      \\app{{',
+                                           f'        \\lem[wit={{{", ".join(wit_lem)}}}]{{{echapper_caracteres_ekdosis(lem)}}}']
+                            ekdosis_block.extend(rdg_blocks)
+                            ekdosis_block.append('      }')
+                            ligne_ekdosis.append("\n".join(ekdosis_block))
 
                             i = end
                         else:
@@ -1647,21 +1816,22 @@ def comparer_etats():
                     if segment_buffer:
                         segment_texte = " ".join(segment_buffer)
                         ligne_tei.append("      " + encoder_caracteres_tei(segment_texte) + "\n")
-                        ligne_latex.append("      " + echapper_caracteres_latex(segment_texte))
+                        ligne_ekdosis.append("      " + echapper_caracteres_ekdosis(segment_texte))
 
                     # Gérer le changement de locuteur uniquement si nécessaire
                     if speaker_suivant != dernier_locuteur:
                         resultat_tei.append("    </sp>\n    <sp>\n      <speaker>{}</speaker>".format(speaker_suivant))
-                        resultat_latex.append("      \\end{ekdverse}\n    \\end{speech}")
-                        resultat_latex.append(
+                        resultat_ekdosis.append("      \\end{ekdverse}\n    \\end{speech}")
+                        resultat_ekdosis.append(
                             f'    \\begin{{speech}}\n      \\speaker{{{speaker_suivant}}}\n      \\begin{{ekdverse}}')
                         dernier_locuteur = speaker_suivant  # 🔄 mise à jour
 
                     # Ajout du vers 2
                     resultat_tei.append(f'<l n="{vers_num_2}">\n' + "".join(ligne_tei) + '</l>')
 
-                    vers_formate_2 = "\n".join(ligne_latex)
-                    resultat_latex.append(f'        \\vnum{{{vers_num_2}}}' + '{\n' + '\\hspace*{10em}' + vers_formate_2 + '\\\\    \n         }')
+                    vers_formate_2 = "\n".join(ligne_ekdosis)
+                    resultat_ekdosis.append(
+                        f'        \\vnum{{{vers_num_2}}}' + '{\n' + '\\hspace*{10em}' + vers_formate_2 + '\\\\    \n         }')
 
                     # 🔁 mise à jour pour la suite du traitement
                     speaker = speaker_suivant
@@ -1694,7 +1864,7 @@ def comparer_etats():
                         differences[position][variante].append(temoins[i])
 
             ligne_tei = []
-            ligne_latex = []
+            ligne_ekdosis = []
             segment_buffer = []
 
             i = 0
@@ -1704,7 +1874,7 @@ def comparer_etats():
                     if segment_buffer:
                         segment_texte = " ".join(segment_buffer)
                         ligne_tei.append("      " + encoder_caracteres_tei(segment_texte) + "\n")
-                        ligne_latex.append("      " + echapper_caracteres_latex(segment_texte))
+                        ligne_ekdosis.append("      " + echapper_caracteres_ekdosis(segment_texte))
                         segment_buffer = []
 
                     start, end = max(matching_apps, key=lambda x: x[1])
@@ -1718,7 +1888,8 @@ def comparer_etats():
                             wit_lem.append(temoins[j])
 
                     tei_app = [f'      <app>\n']
-                    tei_app.append(f'        <lem wit="{" ".join(f"#{t}" for t in wit_lem)}">{encoder_caracteres_tei(lem)}</lem>\n')
+                    tei_app.append(
+                        f'        <lem wit="{" ".join(f"#{t}" for t in wit_lem)}">{encoder_caracteres_tei(lem)}</lem>\n')
                     for texte_rdg, liste_temoins in rdgs.items():
                         if texte_rdg != lem:
                             wits = " ".join(f"#{t}" for t in liste_temoins)
@@ -1729,12 +1900,13 @@ def comparer_etats():
                     rdg_blocks = []
                     for texte_rdg, liste_temoins in rdgs.items():
                         if texte_rdg != lem:
-                            rdg_blocks.append(f'        \\rdg[wit={{{", ".join(liste_temoins)}}}]{{{echapper_caracteres_latex(texte_rdg)}}}')
-                    latex_block = [f'      \\app{{',
-                                   f'        \\lem[wit={{{", ".join(wit_lem)}}}]{{{echapper_caracteres_latex(lem)}}}']
-                    latex_block.extend(rdg_blocks)
-                    latex_block.append('      }')
-                    ligne_latex.append("\n".join(latex_block))
+                            rdg_blocks.append(
+                                f'        \\rdg[wit={{{", ".join(liste_temoins)}}}]{{{echapper_caracteres_ekdosis(texte_rdg)}}}')
+                    ekdosis_block = [f'      \\app{{',
+                                   f'        \\lem[wit={{{", ".join(wit_lem)}}}]{{{echapper_caracteres_ekdosis(lem)}}}']
+                    ekdosis_block.extend(rdg_blocks)
+                    ekdosis_block.append('      }')
+                    ligne_ekdosis.append("\n".join(ekdosis_block))
 
                     i = end
                 else:
@@ -1744,11 +1916,11 @@ def comparer_etats():
             if segment_buffer:
                 segment_texte = " ".join(segment_buffer)
                 ligne_tei.append("      " + encoder_caracteres_tei(segment_texte) + "\n")
-                ligne_latex.append("      " + echapper_caracteres_latex(segment_texte))
+                ligne_ekdosis.append("      " + echapper_caracteres_ekdosis(segment_texte))
 
             resultat_tei.append(f'<l n="{vers_courant}">\n' + "".join(ligne_tei) + '</l>\n')
-            vers_formate = "\n".join(ligne_latex)
-            resultat_latex.append(f"        \\vnum{{{vers_courant}}}{{\n{vers_formate}  \\\\    \n        }}")
+            vers_formate = "\n".join(ligne_ekdosis)
+            resultat_ekdosis.append(f"        \\vnum{{{vers_courant}}}{{\n{vers_formate}  \\\\    \n        }}")
             if vers_courant == int(vers_courant):
                 vers_courant += 1
             else:
@@ -1756,16 +1928,16 @@ def comparer_etats():
 
         if dernier_locuteur != speaker:
             resultat_tei.append("    </sp>")
-            resultat_latex.append("      \\end{ekdverse}\n    \\end{speech}")
+            resultat_ekdosis.append("      \\end{ekdverse}\n    \\end{speech}")
 
     if current_scene_out:
         resultat_tei.append("    </sp>")
         resultat_tei.append("    </div>")
-        resultat_latex.append("      \\end{ekdverse}\n    \\end{speech}   % Fin de la scène")
+        resultat_ekdosis.append("      \\end{ekdverse}\n    \\end{speech}   % Fin de la scène")
 
     if current_acte_out is not None:
         resultat_tei.append("</div>")
-        resultat_latex.append("% Fin de l'acte")
+        resultat_ekdosis.append("% Fin de l'acte")
 
     zone_resultat_tei.delete("1.0", tk.END)
 
@@ -1773,17 +1945,18 @@ def comparer_etats():
     resultat_tei.append('</TEI>')
     zone_resultat_tei.insert(tk.END, "\n".join(resultat_tei) + "\n")
 
-    zone_resultat_latex.delete("1.0", tk.END)
-    zone_resultat_latex.insert(tk.END, "\n".join(resultat_latex) + "\n")
+    zone_resultat_ekdosis.delete("1.0", tk.END)
+    zone_resultat_ekdosis.insert(tk.END, "\n".join(resultat_ekdosis) + "\n")
 
     # Mise à jour automatique de la prévisualisation HTML
     if 'zone_resultat_html' in globals():
         try:
-            html = convertir_tei_en_html_beau_ameliore(zone_resultat_tei.get("1.0", tk.END))
+            html = convertir_tei_en_html(zone_resultat_tei.get("1.0", tk.END))
             zone_resultat_html.delete("1.0", tk.END)
             zone_resultat_html.insert(tk.END, html)
         except Exception as e:
             print(f"[Prévisualisation HTML] Erreur : {e}")
+
 
 # Interface Tkinter
 fenetre = tk.Tk()
@@ -1800,8 +1973,8 @@ menu_fichier.add_separator()
 menu_fichier.add_command(label="Exporter TEI", command=exporter_tei)
 menu_fichier.add_command(label="Exporter la feuille XSLT", command=exporter_xslt)
 menu_fichier.add_separator()
-menu_fichier.add_command(label="Exporter LaTeX", command=exporter_latex)
-menu_fichier.add_command(label="Exporter le template LaTeX", command=exporter_template_latex)
+menu_fichier.add_command(label="Exporter ekdosis", command=exporter_ekdosis)
+menu_fichier.add_command(label="Exporter le template ekdosis", command=exporter_template_ekdosis)
 menu_fichier.add_separator()
 menu_fichier.add_command(label="Exporter HTML", command=previsualiser_html)
 menu_fichier.add_separator()
@@ -1811,10 +1984,14 @@ menu_fichier.add_command(label="Quitter", command=fenetre.quit)
 menu_edit = tk.Menu(menu_bar, tearoff=0)
 menu_bar.add_cascade(label="Édition", menu=menu_edit)
 
-menu_edit.add_command(label="Couper", accelerator="Ctrl+X", command=lambda: fenetre.focus_get().event_generate('<<Cut>>'))
-menu_edit.add_command(label="Copier", accelerator="Ctrl+C", command=lambda: fenetre.focus_get().event_generate('<<Copy>>'))
-menu_edit.add_command(label="Coller", accelerator="Ctrl+V", command=lambda: fenetre.focus_get().event_generate('<<Paste>>'))
-menu_edit.add_command(label="Tout sélectionner", accelerator="Ctrl+A", command=lambda: fenetre.focus_get().event_generate('<<SelectAll>>'))
+menu_edit.add_command(label="Couper", accelerator="Ctrl+X",
+                      command=lambda: fenetre.focus_get().event_generate('<<Cut>>'))
+menu_edit.add_command(label="Copier", accelerator="Ctrl+C",
+                      command=lambda: fenetre.focus_get().event_generate('<<Copy>>'))
+menu_edit.add_command(label="Coller", accelerator="Ctrl+V",
+                      command=lambda: fenetre.focus_get().event_generate('<<Paste>>'))
+menu_edit.add_command(label="Tout sélectionner", accelerator="Ctrl+A",
+                      command=lambda: fenetre.focus_get().event_generate('<<SelectAll>>'))
 
 # --- Menu Outils ---
 menu_outils = tk.Menu(menu_bar, tearoff=0)
@@ -1831,21 +2008,23 @@ menu_affichage.add_command(label="Prévisualisation HTML", command=previsualiser
 # Menu Aide
 menu_aide = tk.Menu(menu_bar, tearoff=0)
 menu_bar.add_cascade(label="Aide", menu=menu_aide)
-menu_aide.add_command(label="Afficher l'aide", command=lambda: messagebox.showinfo("Aide", "Bienvenue dans TEILaTeXStudio.\n\n- Utilisez 'Fichier > Comparer' pour générer le code TEI et LaTeX.\n- Prévisualisez en HTML dans 'Affichage'.\n- Saisissez le texte au format markdown théâtral.\n\nPour plus d'aide, consultez le fichier README."))
+menu_aide.add_command(
+    label="Afficher l'aide",
+    command=afficher_aide
+)
 
 ###
-
-
 
 # Style parchemin pour les onglets TTK
 style = ttk.Style()
 style.theme_use('default')
 
 style.configure("TNotebook", background="#fdf6e3", borderwidth=0)
-style.configure("TNotebook.Tab", background="#f5ebc4", foreground="#4a3c1a", padding=[10, 4], font=("Georgia", 10, "bold"))
+style.configure("TNotebook.Tab", background="#f5ebc4", foreground="#4a3c1a", padding=[10, 4],
+                font=("Georgia", 10, "bold"))
 style.map("TNotebook.Tab", background=[("selected", "#e8dbab")])
 
-#fenetre.iconbitmap("favicon.ico")
+# fenetre.iconbitmap("favicon.ico")
 fenetre.title("Comparateur avec scènes, personnages et locuteurs")
 fenetre.update_idletasks()
 fenetre.minsize(1000, fenetre.winfo_reqheight())
@@ -1858,7 +2037,9 @@ afficher_nagscreen()
 frame_saisie = tk.LabelFrame(fenetre, text="Saisie des variantes", padx=10, pady=5, bg="#f4f4f4")
 frame_saisie.pack(fill=tk.BOTH, padx=10, pady=10)
 
-label_texte = tk.Label(frame_saisie, text="Utilisez ####a#### pour un acte, ###n### pour une scène, ##Nom## pour les personnages, et #Nom# pour le locuteur :", bg="#f4f4f4")
+label_texte = tk.Label(frame_saisie,
+                       text="Utilisez ####a#### pour un acte, ###n### pour une scène, ##Nom## pour les personnages, et #Nom# pour le locuteur :",
+                       bg="#f4f4f4")
 label_texte.pack()
 
 zone_saisie = scrolledtext.ScrolledText(frame_saisie, height=15, undo=True, maxundo=-1)
@@ -1872,6 +2053,7 @@ try:
 except Exception as e:
     print(f"[autosave] Impossible de charger le fichier : {e}")
 
+
 def boite_initialisation_parchemin():
     champs_def = [
         ("Titre de la pièce", ""),
@@ -1879,6 +2061,7 @@ def boite_initialisation_parchemin():
         ("Numéro de la scène", ""),
         ("Nombre de scènes dans l'acte", ""),
         ("Noms des personnages (séparés par virgule)", ""),
+        ("Nombre de témoins", ""),
     ]
 
     dialog = tk.Toplevel()
@@ -1925,20 +2108,20 @@ def boite_initialisation_parchemin():
     dialog.wait_window()
     return result
 
-
-
 def initialiser_projet():
     infos = boite_initialisation_parchemin()
-    global titre_piece, numero_acte, numero_scene, nombre_scenes
+    global titre_piece, numero_acte, numero_scene, nombre_scenes, nombre_temoins, nombre_temoins_predefini
     titre_piece = infos["Titre de la pièce"]
     numero_acte = infos["Numéro de l'acte"]
     numero_scene = infos["Numéro de la scène"]
     nombre_scenes = infos["Nombre de scènes dans l'acte"]
     noms_persos = infos["Noms des personnages (séparés par virgule)"]
+    nombre_temoins = infos["Nombre de témoins"]
+    nombre_temoins_predefini = nombre_temoins
 
     titre_nettoye = nettoyer_identifiant(titre_piece)
     nom_court = f"{titre_nettoye}_A{numero_acte}_S{numero_scene}of{nombre_scenes}"
-    fenetre.title(f"TEILaTeXStudio – {nom_court}")
+    fenetre.title(f"Ekdosis-TEI Studio – {nom_court}")
 
     ligne_personnages = " ".join(f"##{nom.strip()}##" for nom in noms_persos.split(",") if nom.strip())
 
@@ -1948,7 +2131,6 @@ def initialiser_projet():
                        f"{ligne_personnages}\n\n"
                        )
 
-
 def autosave(event=None):
     try:
         contenu = zone_saisie.get("1.0", tk.END)
@@ -1957,6 +2139,7 @@ def autosave(event=None):
             f.write(contenu)
     except Exception as e:
         print(f"[autosave] Erreur d'enregistrement : {e}")
+
 
 zone_saisie.bind("<KeyRelease>", autosave)
 zone_saisie.bind("<KeyRelease>", mettre_a_jour_menu)
@@ -1973,8 +2156,8 @@ btn_comparer.pack(side=tk.LEFT, padx=10)
 btn_export_tei = tk.Button(frame_bas, text="💾 Exporter TEI", command=exporter_tei)
 btn_export_tei.pack(side=tk.LEFT, padx=10)
 
-btn_export_latex = tk.Button(frame_bas, text="💾 Exporter LaTeX", command=exporter_latex)
-btn_export_latex.pack(side=tk.LEFT, padx=10)
+btn_export_ekdosis = tk.Button(frame_bas, text="💾 Exporter ekdosis", command=exporter_ekdosis)
+btn_export_ekdosis.pack(side=tk.LEFT, padx=10)
 
 btn_sauver_saisie = tk.Button(frame_bas, text="💾 Export saisie brute", command=enregistrer_saisie)
 btn_sauver_saisie.pack(side=tk.LEFT, padx=10)
@@ -2020,20 +2203,20 @@ zone_resultat_tei = scrolledtext.ScrolledText(onglet_tei, height=15, undo=True, 
 zone_resultat_tei.pack(fill=tk.BOTH, expand=True)
 notebook.add(onglet_tei, text="🧾 TEI")
 
-# LaTeX
-onglet_latex = tk.Frame(notebook, bg="white")
-zone_resultat_latex = scrolledtext.ScrolledText(onglet_latex, height=15, undo=True, maxundo=-1)
-zone_resultat_latex.pack(fill=tk.BOTH, expand=True)
-notebook.add(onglet_latex, text="📘 LaTeX")
+# ekdosis
+onglet_ekdosis = tk.Frame(notebook, bg="white")
+zone_resultat_ekdosis = scrolledtext.ScrolledText(onglet_ekdosis, height=15, undo=True, maxundo=-1)
+zone_resultat_ekdosis.pack(fill=tk.BOTH, expand=True)
+notebook.add(onglet_ekdosis, text="📘 ekdosis")
 
 # HTML
 onglet_html = tk.Frame(notebook, bg="white")
-zone_resultat_html = scrolledtext.ScrolledText(onglet_html, height=15, undo=True, maxundo=-1, bg="white", fg="#4a3c1a", font=("Georgia", 11))
+zone_resultat_html = scrolledtext.ScrolledText(onglet_html, height=15, undo=True, maxundo=-1, bg="white", fg="#4a3c1a",
+                                               font=("Georgia", 11))
 zone_resultat_html.pack(fill=tk.BOTH, expand=True)
 notebook.add(onglet_html, text="🌐 html")
 
-
-#appliquer_style_light(fenetre)
+# appliquer_style_light(fenetre)
 appliquer_style_parchemin(fenetre)
 
 # --- Raccourcis clavier globaux ---
