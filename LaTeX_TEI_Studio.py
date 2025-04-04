@@ -1075,7 +1075,8 @@ def exporter_ekdosis():
         messagebox.showwarning("Annulé",
                                "La collecte des témoins a été annulée.\n"
                                "Vous pouvez exporter toutefois le LaTeX sans le template\n"
-                               "en copiant-collant le code généré ci-dessous"
+                               "en copiant-collant le code généré ci-dessous\n"
+                               "et en l'insérant dans le template fourni sur le dépôt"
                                )
         return
 
