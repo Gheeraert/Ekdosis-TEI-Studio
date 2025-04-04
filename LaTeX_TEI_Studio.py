@@ -1,5 +1,5 @@
 # ==============================================================================
-#Ekdosis-TEI Studio
+# Ekdosis-TEI Studio
 #
 # Un outil d'encodage inspiré du markdown
 # pour encoder des variantes dans le théâtre classique
@@ -189,6 +189,7 @@ Sans que de tour le jour, je puisse voir Titus!"""
     zone_saisie.insert("1.0", exemple)
     messagebox.showinfo("Échantillon chargé", "Extrait de *Bérénice* inséré.")
 
+
 template_ekdosis_preamble = r"""
     %
     % Template ekdosis (ekdosis) pour l'édition du théâtre classique
@@ -202,9 +203,9 @@ template_ekdosis_preamble = r"""
     % 2025
     %
     %
-    
+
     \documentclass{book}
-    
+
     % Paquets utiles
     \usepackage[main=french, spanish, latin]{babel}
     \usepackage[T1]{fontenc}
@@ -215,7 +216,7 @@ template_ekdosis_preamble = r"""
     \usepackage{lettrine}
     \usepackage{hyperref}
     \usepackage{zref-user,zref-abspage}
-    
+
     % Informations de mise en page
     %
     % Police: pour une mise en page "classique"
@@ -230,9 +231,9 @@ template_ekdosis_preamble = r"""
     %Contextuals = {Alternate},
     %StylisticSet = 8
     %]
-    
+
     \singlespacing
-    
+
     % Police spécifique et style pour l'apparat critique
     %
     % \newfontfamily\apparatfont{Garamond}
@@ -241,66 +242,66 @@ template_ekdosis_preamble = r"""
     %
     % Page de garde et front(<text><front></front><body></body></text>) 
     % Avec mapping automatique
-    
+
     \newenvironment{front}
     {\begin{content}} % début de l'environnement
         {\end{content}}   % fin de l'environnement
     \EnvtoTEI{front}{front}
-    
+
     \newcommand{\titre}[1]{{\centering\Huge\uppercase{#1}\par}}
     \TeXtoTEI{titre}{docTitle}
-    
+
     \newcommand{\autor}[1]{{\centering #1\par}}
     \TeXtoTEI{autor}{docAuthor}
-    
+
     \newcommand{\byline}[1]{{\centering #1\par}}
     \TeXtoTEI{byline}{byline}
-    
+
     \newcommand{\imprint}[1]{{\centering\Large\uppercase{#1}\par}}
     \TeXtoTEI{imprint}{docImprint}
-    
+
     \newcommand{\docdate}[1]{{\centering\Large\uppercase{#1}\par}}
     \TeXtoTEI{docdate}{docDate}
-    
+
     %
     % Dramatis personae
     %
-    
+
     % Liste des personnages (cast). Se contente de créer le balisage TEI
     \newenvironment{cast}
     {\begin{content}}
         {\end{content}}
     \EnvtoTEI{cast}{castList}
-    
+
     % Personnages (castitem, role, roledesc)
     %
     % A utiliser ainsi:
     %
     % \roleitem{phedre}{Phèdre}{femme de Thésée}
     % \roleitem{hippolyte}{Hippolyte}{fils de Thésée}
-    
+
     \newcommand{\castitem}[1]{#1\par\vspace{0.5ex}}
     \TeXtoTEI{castitem}{castItem}
-    
+
     \NewDocumentCommand{\role}{m m}{#2}
     \TeXtoTEIPat{\role{#1}{#2}}{<role xml:id="#1">#2</role>}
-    
+
     \newcommand{\roledesc}[1]{#1}
     \TeXtoTEI{roledesc}{roleDesc}
-    
+
     \newcommand{\roleitem}[3]{%
         \castitem{%
             \role{#1}{#2}, \roledesc{#3}%
         }%
     }
-    
+
     %
     % Lieu de l'action
     % usage: \set{L'action est à Rome}
     %
     \newcommand{\set}[1]{#1}
     \TeXtoTEI{set}{set}
-    
+
     %
     % Didascalies explicites (comprend la liste des personnages en début de scène)
     % Usage: \stage{\pn{#antiochus}{Antiochus} entre par la gauche.}
@@ -326,28 +327,28 @@ template_ekdosis_preamble = r"""
         \vspace{0.5em}%
     }
     \TeXtoTEI{\didas}{stage}
-    
-    
+
+
     \newenvironment{head}
     {\par\medskip\noindent\textsc}
     {\par\medskip}
     \EnvtoTEI{head}{head}
-    
+
     % Les noms de personnages
     \NewDocumentCommand{\persname}{m m}{%
         #2\unskip % on affiche juste le nom, ekdosis s'occupe du reste
     }
     \TeXtoTEIPat{\persname{#1}{#2}}{<persName corresp="#1">#2</persName>}
-    
+
     % Raccourci "pn" pour "persName"
     \newcommand{\pn}[2]{\persname{#1}{#2}}
     \TeXtoTEIPat{\pn{#1}{#2}}{<persName corresp="#1">#2</persName>}
-    
+
     % Les noms de lieux: "placeName"
     \NewDocumentCommand{\place}{m m}{#2}
     \TeXtoTEIPat{\place{#1}{#2}}{<placeName ref="#1">#2</placeName>}
-    
-    
+
+
     % Encodage des actes et des scènes
     % (méthode native ekdosis)
     %
@@ -360,7 +361,7 @@ template_ekdosis_preamble = r"""
     \FormatDiv{1}{\begin{center}\Huge}{\end{center}}
     \FormatDiv{2}{\begin{center}\LARGE}{\end{center}\vspace*{-1em}}
     \FormatDiv{3}{\begin{center}\LARGE\textsc}{\end{center}\vspace*{-1em}}
-    
+
     %  Encodage des dialogues
     %
     %
@@ -445,6 +446,7 @@ template_ekdosis_fin_doc = r"""
     \end{document}
     """
 
+
 def exporter_template_ekdosis():
     template_ekdosis_exemple_apparat = r"""
         \DeclareWitness{A}{1670}{Description de A}
@@ -459,7 +461,8 @@ def exporter_template_ekdosis():
     )
     if chemin:
         with open(chemin, "w", encoding="utf-8") as f:
-            f.write(template_ekdosis_preamble + template_ekdosis_exemple_apparat + template_ekdosis_debut_doc + template_ekdosis_fin_doc)
+            f.write(
+                template_ekdosis_preamble + template_ekdosis_exemple_apparat + template_ekdosis_debut_doc + template_ekdosis_fin_doc)
 
 
 def exporter_xslt():
@@ -558,8 +561,75 @@ def afficher_nagscreen():
     )
     bouton.pack(pady=10)
 
+def reset_application():
+    confirmation = messagebox.askyesno("Confirmation", "Voulez-vous vraiment réinitialiser l'application ?")
+    if not confirmation:
+        return
+    global titre_piece, numero_acte, numero_scene, nombre_scenes
+    global auteur_nom_complet, editeur_nom_complet
+
+    # Réinitialisation des variables globales
+    titre_piece = ""
+    numero_acte = ""
+    numero_scene = ""
+    nombre_scenes = ""
+    auteur_nom_complet = ""
+    editeur_nom_complet = ""
+
+    # Effacer le contenu des zones de texte
+    zone_saisie.delete("1.0", tk.END)
+    zone_resultat_tei.delete("1.0", tk.END)
+    zone_resultat_ekdosis.delete("1.0", tk.END)
+
+    # Réinitialiser la liste des témoins si elle existe
+    try:
+        liste_ref.set("")
+        menu_ref["values"] = []
+    except:
+        pass
+
+    # Réinitialiser la prévisualisation HTML si elle existe
+    if 'zone_resultat_html' in globals():
+        zone_resultat_html.delete("1.0", tk.END)
+
+    initialiser_projet()
+
+
+def initialiser_projet():
+    infos = boite_initialisation_parchemin()
+    # Déclaration des variables globales
+    global prenom_auteur, nom_auteur, auteur_nom_complet, titre_piece, numero_acte
+    global numero_scene, nombre_scenes, nombre_temoins, nombre_temoins_predefini
+    global nom_editeur, prenom_editeur, editeur_nom_complet
+    #
+    prenom_auteur = infos["Prénom de l'auteur"]
+    nom_auteur = infos["Nom de l'auteur"]
+    titre_piece = infos["Titre de la pièce"]
+    numero_acte = infos["Numéro de l'acte"]
+    numero_scene = infos["Numéro de la scène"]
+    nombre_scenes = infos["Nombre de scènes dans l'acte"]
+    noms_persos = infos["Noms des personnages (séparés par virgule)"]
+    nombre_temoins = infos["Nombre de témoins"]
+    nombre_temoins_predefini = nombre_temoins
+    nom_editeur = infos["Nom de l'éditeur (vous)"]
+    prenom_editeur = infos["Prénom de l'éditeur"]
+
+    auteur_nom_complet = f"{prenom_auteur} {nom_auteur}"
+    editeur_nom_complet = f"{prenom_editeur} {nom_editeur}"
+    titre_nettoye = nettoyer_identifiant(titre_piece)
+    nom_court = f"{titre_nettoye}_A{numero_acte}_S{numero_scene}of{nombre_scenes}"
+    fenetre.title(f"Ekdosis-TEI Studio – {nom_court}")
+
+    ligne_personnages = " ".join(f"##{nom.strip()}##" for nom in noms_persos.split(",") if nom.strip())
+
+    zone_saisie.insert("1.0",
+                       f"####{numero_acte}####\n\n"
+                       f"###{numero_scene}###\n\n"
+                       f"{ligne_personnages}\n\n"
+                       )
+
 # A SUPPRIMER
-#def demander_infos_initiales():
+# def demander_infos_initiales():
 #    global titre_piece, numero_acte, numero_scene, nombre_scenes
 #
 #    titre_piece = simpledialog.askstring("Titre de la pièce", "Entrez le titre de la pièce :")
@@ -580,7 +650,7 @@ def collecter_temoins(nb_temoins):
     for i in range(nb_temoins):
         donnees = demander_un_temoin_parchemin(i)
         if not donnees:
-            return [] # pour ignorer
+            return []  # pour ignorer
         temoins.append(donnees)
     return temoins
 
@@ -992,8 +1062,8 @@ def exporter_ekdosis():
     if not temoins:
         messagebox.showwarning("Annulé",
                                "La collecte des témoins a été annulée.\n"
-                                         "Vous pouvez exporter toutefois le LaTeX sans le template\n"
-                                         "en copiant-collant le code généré ci-dessous"
+                               "Vous pouvez exporter toutefois le LaTeX sans le template\n"
+                               "en copiant-collant le code généré ci-dessous"
                                )
         return
 
@@ -1003,13 +1073,13 @@ def exporter_ekdosis():
     ])
 
     contenu_complet = (
-        template_ekdosis_preamble +
-        declarations_temoins +
-        template_ekdosis_debut_doc +
-        "\n" +
-        contenu +
-        "\n" +
-        template_ekdosis_fin_doc
+            template_ekdosis_preamble +
+            declarations_temoins +
+            template_ekdosis_debut_doc +
+            "\n" +
+            contenu +
+            "\n" +
+            template_ekdosis_fin_doc
     )
 
     fichier = fd.asksaveasfilename(
@@ -1023,7 +1093,6 @@ def exporter_ekdosis():
         with open(fichier, "w", encoding="utf-8") as f:
             f.write(contenu_complet)
         messagebox.showinfo("Succès", f"Fichier ekdosis enregistré :\n{fichier}")
-
 
 
 def enregistrer_saisie():
@@ -1079,6 +1148,7 @@ def mettre_a_jour_menu(*args):
     if lignes:
         liste_ref.current(0)
 
+
 def previsualiser_html():
     global auteur_nom_complet, editeur_nom_complet, titre_piece, numero_acte, numero_scene
 
@@ -1087,7 +1157,8 @@ def previsualiser_html():
         messagebox.showwarning("Avertissement", "Aucun contenu TEI à prévisualiser.")
         return
 
-    reponse = messagebox.askyesno("Apparat critique", "Souhaitez-vous préciser les métadonnées des témoins pour l'apparat critique ?")
+    reponse = messagebox.askyesno("Apparat critique",
+                                  "Souhaitez-vous préciser les métadonnées des témoins pour l'apparat critique ?")
     temoins_dict = {}
 
     if reponse:
@@ -1460,6 +1531,7 @@ def previsualiser_html():
 
     except Exception as e:
         messagebox.showerror("Erreur", f"Erreur pendant la transformation XSLT :\n{e}")
+
 
 def convertir_tei_en_html(tei_text):
     html = []
@@ -1849,7 +1921,7 @@ def comparer_etats():
                             for texte_rdg, liste_temoins in rdgs.items() if texte_rdg != lem
                         ]
                         ekdosis_block = [f'      \\app{{',
-                                       f'        \\lem[wit={{{", ".join(wit_lem)}}}]{{{echapper_caracteres_ekdosis(lem)}}}']
+                                         f'        \\lem[wit={{{", ".join(wit_lem)}}}]{{{echapper_caracteres_ekdosis(lem)}}}']
                         ekdosis_block.extend(rdg_blocks)
                         ekdosis_block.append('      }')
                         ligne_ekdosis.append("\n".join(ekdosis_block))
@@ -1955,7 +2027,7 @@ def comparer_etats():
                                 for texte_rdg, liste_temoins in rdgs.items() if texte_rdg != lem
                             ]
                             ekdosis_block = [f'      \\app{{',
-                                           f'        \\lem[wit={{{", ".join(wit_lem)}}}]{{{echapper_caracteres_ekdosis(lem)}}}']
+                                             f'        \\lem[wit={{{", ".join(wit_lem)}}}]{{{echapper_caracteres_ekdosis(lem)}}}']
                             ekdosis_block.extend(rdg_blocks)
                             ekdosis_block.append('      }')
                             ligne_ekdosis.append("\n".join(ekdosis_block))
@@ -2055,7 +2127,7 @@ def comparer_etats():
                             rdg_blocks.append(
                                 f'        \\rdg[wit={{{", ".join(liste_temoins)}}}]{{{echapper_caracteres_ekdosis(texte_rdg)}}}')
                     ekdosis_block = [f'      \\app{{',
-                                   f'        \\lem[wit={{{", ".join(wit_lem)}}}]{{{echapper_caracteres_ekdosis(lem)}}}']
+                                     f'        \\lem[wit={{{", ".join(wit_lem)}}}]{{{echapper_caracteres_ekdosis(lem)}}}']
                     ekdosis_block.extend(rdg_blocks)
                     ekdosis_block.append('      }')
                     ligne_ekdosis.append("\n".join(ekdosis_block))
@@ -2120,6 +2192,7 @@ fenetre.config(menu=menu_bar)
 menu_fichier = tk.Menu(menu_bar, tearoff=0)
 menu_bar.add_cascade(label="Fichier", menu=menu_fichier)
 
+menu_fichier.add_command(label="Réinitialiser la saisie", command=reset_application)
 menu_fichier.add_command(label="Charger un échantillon de test", command=importer_echantillon)
 menu_fichier.add_separator()
 menu_fichier.add_command(label="Exporter TEI", command=exporter_tei)
@@ -2240,16 +2313,12 @@ def boite_initialisation_parchemin():
         frame = tk.Frame(dialog, bg="#fdf6e3")
         frame.pack(padx=20, pady=5, fill=tk.X)
 
-        label = tk.Label(frame, text=label_text, bg="#fdf6e3", fg="#4a3c1a", font=police_label)
+        label = tk.Label(frame, text=label_text, bg="#fdf6e3", fg="#4a3c1a",
+                         font=police_label, wraplength=250, anchor="w", justify="left", width=35)
         label.pack(side=tk.LEFT)
 
-        # Large zone de saisie pour la ligne des personnages
-        if "personnages" in label_text.lower():
-            entry = tk.Entry(frame, textvariable=var, font=police_entree, width=45)
-        else:
-            entry = tk.Entry(frame, textvariable=var, font=police_entree, width=30)
-
-        entry.pack(side=tk.RIGHT)
+        entry = tk.Entry(frame, textvariable=var, font=police_entree, width=30)
+        entry.pack(side=tk.RIGHT, fill=tk.X, expand=True)
 
     result = {}
 
@@ -2265,39 +2334,6 @@ def boite_initialisation_parchemin():
     dialog.bind("<Return>", lambda e: valider())
     dialog.wait_window()
     return result
-
-def initialiser_projet():
-    infos = boite_initialisation_parchemin()
-    # Déclaration des variables globales
-    global prenom_auteur, nom_auteur, auteur_nom_complet, titre_piece, numero_acte
-    global numero_scene, nombre_scenes, nombre_temoins, nombre_temoins_predefini
-    global nom_editeur, prenom_editeur, editeur_nom_complet
-    #
-    prenom_auteur = infos["Prénom de l'auteur"]
-    nom_auteur = infos["Nom de l'auteur"]
-    titre_piece = infos["Titre de la pièce"]
-    numero_acte = infos["Numéro de l'acte"]
-    numero_scene = infos["Numéro de la scène"]
-    nombre_scenes = infos["Nombre de scènes dans l'acte"]
-    noms_persos = infos["Noms des personnages (séparés par virgule)"]
-    nombre_temoins = infos["Nombre de témoins"]
-    nombre_temoins_predefini = nombre_temoins
-    nom_editeur = infos["Nom de l'éditeur (vous)"]
-    prenom_editeur = infos["Prénom de l'éditeur"]
-
-    auteur_nom_complet = f"{prenom_auteur} {nom_auteur}"
-    editeur_nom_complet = f"{prenom_editeur} {nom_editeur}"
-    titre_nettoye = nettoyer_identifiant(titre_piece)
-    nom_court = f"{titre_nettoye}_A{numero_acte}_S{numero_scene}of{nombre_scenes}"
-    fenetre.title(f"Ekdosis-TEI Studio – {nom_court}")
-
-    ligne_personnages = " ".join(f"##{nom.strip()}##" for nom in noms_persos.split(",") if nom.strip())
-
-    zone_saisie.insert("1.0",
-                       f"####{numero_acte}####\n\n"
-                       f"###{numero_scene}###\n\n"
-                       f"{ligne_personnages}\n\n"
-                       )
 
 def autosave(event=None):
     try:
