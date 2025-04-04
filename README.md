@@ -89,7 +89,7 @@ Ce projet est distribué sous la licence **MIT**. Voir `LICENSE` pour plus de d�
 
 ## ✍️ Auteur
 
-Développé par Tony Gheeraert dans le cadre de la **Chaire d’Excellence en Éditions Numériques**<br><br>
+Développé par Tony Gheeraert dans le cadre de la **Chaire d’Excellence en Éditions Numériques**<br>
 Université de Rouen – Centre d'étude et de recherche Editer-Interpréter (UR 3229)<br>
 Presses de l'Université de Rouen et du Havre
 
