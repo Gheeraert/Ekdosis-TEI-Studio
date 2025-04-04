@@ -1,6 +1,6 @@
 # 🧾 Ekdosis-Tei Studio
 
-**Ekdosis-Tei Studio** est un outil d'encodage **TEI XML** et **LaTeX (avec le paquet ekdosis)** des variantes dans le théâtre classique, avec gestion des actes, scènes, personnages, locuteurs, vers et variantes textuelles ligne à ligne. Développé avec Python et Tkinter, il s'adresse aux chercheurs et éditeurs critiques travaillant sur les textes dramatiques anciens. L'interface est inspirée du **markdown**. Système de prévisualisation html via une feuille xslt dynamique intégrée au script Python.
+**Ekdosis-Tei Studio** est un outil d'encodage **TEI XML** et **LaTeX (avec le paquet ekdosis)** des variantes dans le théâtre classique, avec gestion des actes, scènes, personnages, locuteurs, vers et variantes textuelles ligne à ligne. Développé avec Python et Tkinter, il s'adresse aux chercheurs et éditeurs critiques travaillant sur les textes dramatiques anciens. L'interface est inspirée du **markdown**. Système de prévisualisation html via une feuille xslt dynamique intégrée au script Python. **Aucune connaissance de la TEI ni d'un système de balisage quelconque n'est requis, l'encodage est entièrement automatique.**
 
 ![Python](https://img.shields.io/badge/Python-3.9%2B-blue)
 ![TEI](https://img.shields.io/badge/Format-TEI%20XML-ffcc00)
