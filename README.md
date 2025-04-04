@@ -93,11 +93,12 @@ Développé par Tony Gheeraert dans le cadre de la **Chaire d’Excellence en É
 Université de Rouen – Centre d'étude et de recherche Editer-Interpréter (UR 3229)
 Presses de l'Université de Rouen et du Havre
 
-Remerciements à Federico Siraguso et Roch Delannay pour leur contribution au template LaTeX
+Remerciements à Federico Siragusa et Roch Delannay pour leur contribution au template LaTeX
 
 
 ---
 
 ## 🌐 Capture d’écran (à venir !)
 
-*Interface avec didascalie reconnue et affichée dans les onglets TEI et LaTeX.*
+![image](https://github.com/user-attachments/assets/157acc17-1415-4ab4-ba84-5cecb93a3f2a)
+
