@@ -30,6 +30,7 @@ import tempfile
 import webbrowser
 import tkinter as tk
 from tkinter import messagebox, simpledialog
+from tkinter.simpledialog import askinteger
 import lxml.etree as LET
 import os, webbrowser
 from datetime import date
@@ -1047,16 +1048,27 @@ def exporter_tei():
 
 
 def exporter_ekdosis():
+    global nombre_temoins_predefini
     contenu = zone_resultat_ekdosis.get("1.0", tk.END).strip()
     if not contenu:
         messagebox.showwarning("Avertissement", "Aucun contenu ekdosis à enregistrer.")
         return
 
+    from tkinter.simpledialog import askinteger
+
     try:
         nb_temoins = int(nombre_temoins_predefini)
     except Exception:
-        messagebox.showwarning("Erreur", "Le nombre de témoins est introuvable ou invalide.")
-        return
+        nb_temoins = askinteger(
+            "Nombre de témoins manquant",
+            "Le nombre de témoins est introuvable ou invalide.\nVeuillez l’entrer manuellement :",
+            minvalue=1
+        )
+        if nb_temoins is None:
+            messagebox.showinfo("Annulé", "Saisie annulée par l'utilisateur.")
+            return
+        else:
+            nombre_temoins_predefini = str(nb_temoins)
 
     temoins = collecter_temoins(nb_temoins)
     if not temoins:
