@@ -1067,6 +1067,13 @@ def exporter_ekdosis():
                                )
         return
 
+    if len(temoins) != nb_temoins:
+        messagebox.showwarning(
+            "Incohérence",
+            f"Le nombre de témoins collectés ({len(temoins)}) ne correspond pas "
+            f"au nombre attendu ({nb_temoins}). L'export sera à vérifier."
+        )
+
     declarations_temoins = "\n".join([
         f"\\DeclareWitness{{{t['abbr']}}}{{{t['year']}}}{{{t['desc']}}}"
         for t in temoins
@@ -1778,14 +1785,32 @@ def comparer_etats():
         messagebox.showwarning("Erreur", "Le numéro de vers de départ doit être un entier.")
         return
 
+    # Valeurs par défaut pour le header
+    titre = globals().get("titre_piece", "").strip() or "Titre non renseigné"
+    auteur = globals().get("auteur_nom_complet", "").strip() or "Auteur inconnu"
+    editeur = globals().get("editeur_nom_complet", "").strip() or "Éditeur scientifique inconnu"
+    acte = globals().get("numero_acte", "").strip() or "?"
+    scene = globals().get("numero_scene", "").strip() or "?"
+
+    # Construction sécurisée du header TEI
     resultat_tei = [
         '<?xml version="1.0" encoding="UTF-8"?>',
         '<TEI xmlns="http://www.tei-c.org/ns/1.0">',
         '  <teiHeader>',
         '    <fileDesc>',
-        f'      <titleStmt><title></title></titleStmt>',
-        '      <publicationStmt><p></p></publicationStmt>',
-        '      <sourceDesc></sourceDesc>',
+        f'      <titleStmt>',
+        f'        <title>{titre}</title>',
+        f'        <author>{auteur}</author>',
+        f'        <editor>{editeur}</editor>',
+        f'      </titleStmt>',
+        '      <publicationStmt>',
+        '        <publisher>Presses de l\'Université de Rouen et du Havre</publisher>',
+        '        <pubPlace>Rouen</pubPlace>',
+        f'       <date>{date.today().strftime("%d %B %Y")}</date>',
+        '      </publicationStmt>',
+        '      <sourceDesc>',
+        f'        <p>généré par Ekdosis-TEI Studio – Acte {acte}, Scène {scene}</p>',
+        '      </sourceDesc>',
         '    </fileDesc>',
         '  </teiHeader>',
         '  <text>',
