@@ -3,13 +3,13 @@ L’encodage se fait dans une zone de saisie structurée avec une syntaxe simple
 
 Soit une édition avec trois témoins, on écrira:
 
-Etat du vers 1 selon le témoin 1
-Etat du vers 1 selon le témoin 2
-Etat du vers 1 selon le témoin 3
+Etat du vers 1 selon le témoin 1<br>
+Etat du vers 1 selon le témoin 2<br>
+Etat du vers 1 selon le témoin 3<br>
 
-Etat du vers 2 selon le témoin 1
-Etat du vers 2 selon le témoin 2
-Etat du vers 2 selon le témoin 3
+Etat du vers 1 selon le témoin 1<br>
+Etat du vers 1 selon le témoin 2<br>
+Etat du vers 1 selon le témoin 3<br>
 
 etc...
 
