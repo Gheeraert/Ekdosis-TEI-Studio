@@ -1,4 +1,4 @@
-**1. 🖊️ Syntaxe de saisie (Markdown inspiré)**
+**1. 🖊️ Syntaxe de saisie (inspirée du Markdown)**
 L’encodage se fait dans une zone de saisie structurée avec une syntaxe simple : les vers sont saisis ligne à ligne, avec ou sans variantes selon les témoins.
 
 Soit une édition avec trois témoins, on écrira:
