@@ -89,8 +89,8 @@ Ce projet est distribué sous la licence **MIT**. Voir `LICENSE` pour plus de d�
 
 ## ✍️ Auteur
 
-Développé par Tony Gheeraert dans le cadre de la **Chaire d’Excellence en Éditions Numériques**  
-Université de Rouen – Centre d'étude et de recherche Editer-Interpréter (UR 3229)
+Développé par Tony Gheeraert dans le cadre de la **Chaire d’Excellence en Éditions Numériques**<br><br>
+Université de Rouen – Centre d'étude et de recherche Editer-Interpréter (UR 3229)<br>
 Presses de l'Université de Rouen et du Havre
 
 Remerciements à Federico Siragusa et Roch Delannay pour leur contribution au template LaTeX
