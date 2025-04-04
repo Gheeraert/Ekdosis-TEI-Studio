@@ -98,7 +98,7 @@ Remerciements à Federico Siragusa et Roch Delannay pour leur contribution au te
 
 ---
 
-## 🌐 Capture d’écran (à venir !)
+## 🌐 Capture d’écran
 
 ![image](https://github.com/user-attachments/assets/157acc17-1415-4ab4-ba84-5cecb93a3f2a)
 
