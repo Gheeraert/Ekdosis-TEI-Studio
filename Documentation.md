@@ -36,4 +36,7 @@ Avant d’exporter une édition en TEI ou en LaTeX (ekdosis), une boîte de dial
 - une description du témoin ("édition princeps", "dernière édition du vivant de l'auteur", etc.)
 
 Ces métadonnées sont ensuite automatiquement intégrées dans l'environnement de l'édition critique (TEI ou LaTeX-ekdosis)
-✅ Le fichier LaTeX généré est compatible avec le package ekdosis, prêt à être compilé, ou visualisé en html statique via traitement XSLT dynamique intégré au logiciel. Attention, ekdosis exige la compilation par LuaLaTeX.
+Le fichier LaTeX généré est compatible avec le package ekdosis, prêt à être compilé, ou visualisé en html statique via traitement XSLT dynamique intégré au logiciel.
+
+N.B. Attention, ekdosis exige la compilation par LuaLaTeX.
+N.B. La sortie ekdosis qui apparaît à la volée dans l'onglet du bas doit être intégrée au template (fourni sur le dépôt) pour être opérationnelle, tandis que la sortie "exporter ekdosis" est complète et compilable telle quelle en LaTeX.
