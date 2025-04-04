@@ -32,6 +32,8 @@ import tkinter as tk
 from tkinter import messagebox, simpledialog
 import lxml.etree as LET
 import os, webbrowser
+from datetime import date
+import locale
 
 
 def importer_echantillon():
@@ -480,7 +482,7 @@ def chemin_relatif(nom_fichier):
 
 def afficher_nagscreen():
     nag = tk.Toplevel(fenetre)
-    nag.title("Bienvenue dans Ekdosis-TEI-Studio")
+    nag.title("Bienvenue dans Ekdosis-TEI Studio")
 
     # Thème parchemin
     COULEUR_FOND = "#fdf6e3"
@@ -1078,6 +1080,8 @@ def mettre_a_jour_menu(*args):
         liste_ref.current(0)
 
 def previsualiser_html():
+    global auteur_nom_complet, editeur_nom_complet, titre_piece, numero_acte, numero_scene
+
     tei = zone_resultat_tei.get("1.0", tk.END).strip()
     if not tei:
         messagebox.showwarning("Avertissement", "Aucun contenu TEI à prévisualiser.")
@@ -1107,6 +1111,75 @@ def previsualiser_html():
                 new_wits = [temoins_dict.get(abbr, abbr) for abbr in abbrs]
                 node.set("wit", ", ".join(new_wits))  # <-- ici le patch élégant
 
+        # Insertion facultative du bloc de métadonnées en tête de sortie
+        # Mise en français pour la date avec fallback
+        try:
+            locale.setlocale(locale.LC_TIME, "fr_FR.UTF-8")
+        except:
+            locale.setlocale(locale.LC_TIME, "")  # fallback silencieux
+
+        # Insertion facultative du bloc de métadonnées en tête de sortie
+        # Supprimer tout bloc <metadonnees> existant pour éviter les doublons
+        for ancien in tei_xml.xpath(".//tei:metadonnees", namespaces={"tei": "http://www.tei-c.org/ns/1.0"}):
+            ancien.getparent().remove(ancien)
+
+        try:
+            if all(var.strip() for var in
+                   [auteur_nom_complet, editeur_nom_complet, titre_piece, numero_acte, numero_scene]):
+
+                # Éviter les doublons si déjà présent
+                if not tei_xml.xpath(".//tei:metadonnees", namespaces={"tei": "http://www.tei-c.org/ns/1.0"}):
+                    bloc = LET.Element("{http://www.tei-c.org/ns/1.0}metadonnees")
+
+                    # Nettoyage
+                    auteur_nom_complet = auteur_nom_complet.strip('" ')
+                    editeur_nom_complet = editeur_nom_complet.strip('" ')
+                    titre_piece = titre_piece.strip('" ')
+                    numero_acte = numero_acte.strip()
+                    numero_scene = numero_scene.strip()
+
+                    # Format de la date
+                    try:
+                        locale.setlocale(locale.LC_TIME, "fr_FR.UTF-8")
+                    except:
+                        locale.setlocale(locale.LC_TIME, "")  # fallback silencieux
+
+                    # Ligne 1 à 3 : informations institutionnelles
+                    LET.SubElement(bloc,
+                                   "{http://www.tei-c.org/ns/1.0}credit").text = "Texte généré par Ekdosis-TEI Studio"
+                    LET.SubElement(bloc,
+                                   "{http://www.tei-c.org/ns/1.0}credit").text = "Chaire d'excellence en Éditions numériques"
+                    LET.SubElement(bloc,
+                                   "{http://www.tei-c.org/ns/1.0}credit").text = "Université de Rouen Normandie - Région Normandie"
+                    # Ligne blanche (séparateur visuel)
+                    LET.SubElement(bloc,
+                                   "{http://www.tei-c.org/ns/1.0}credit").text = "\u00A0"  # U+00A0 = espace insécable
+
+                    # Ligne 4 : auteur + titre italique + acte/scène
+                    credit_auteur_titre = LET.Element("{http://www.tei-c.org/ns/1.0}credit")
+                    credit_auteur_titre.text = auteur_nom_complet + " – "
+
+                    hi = LET.SubElement(credit_auteur_titre, "{http://www.tei-c.org/ns/1.0}hi")
+                    hi.set("rend", "italic")
+                    hi.text = titre_piece
+                    hi.tail = f", Acte {numero_acte}, Scène {numero_scene}"
+
+                    bloc.append(credit_auteur_titre)
+
+                    # Ligne 5 : éditeur
+                    LET.SubElement(bloc,
+                                   "{http://www.tei-c.org/ns/1.0}credit").text = f"Édition critique par {editeur_nom_complet}"
+
+                    # Ligne 6 : date
+                    LET.SubElement(bloc,
+                                   "{http://www.tei-c.org/ns/1.0}credit").text = "Document généré le " + date.today().strftime(
+                        "%d %B %Y")
+
+                    # Insertion en tête
+                    tei_xml.insert(0, bloc)
+        except Exception as e:
+            print(f"[INFO] Bloc <metadonnees> non inséré : {e}")
+
         # XSLT complet avec belle mise en page ET infobulles avec années
         xslt_str = '''<?xml version="1.0" encoding="UTF-8"?>
 <xsl:stylesheet version="2.0"
@@ -1122,7 +1195,13 @@ def previsualiser_html():
         <meta charset="UTF-8"/>
         <title>Édition TEI</title>
         <xsl:text disable-output-escaping="yes">
-          <![CDATA[<link href="https://fonts.googleapis.com/css2?family=IM+Fell+DW+Pica&display=swap" rel="stylesheet">]]>
+            <![CDATA[<link href="https://fonts.googleapis.com/css2?family=IM+Fell+DW+Pica&display=swap" rel="stylesheet">]]>
+        </xsl:text>
+        <xsl:text disable-output-escaping="yes">
+            <![CDATA[<link href="https://fonts.googleapis.com/css2?family=EB+Garamond&display=swap" rel="stylesheet">]]>
+        </xsl:text>
+        <xsl:text disable-output-escaping="yes">
+            <![CDATA[<link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro&display=swap" rel="stylesheet">]]>
         </xsl:text>
         <style>
           body {
@@ -1133,11 +1212,56 @@ def previsualiser_html():
             max-width: 800px;
             margin-left: 9em;
           }
+          .ligne-logos-gauche {
+           display: flex;
+           align-items: center;
+           gap: 1em;
+           margin-bottom: 0.5em;
+          }
+          .logo-credit {
+           width: 200px;
+           height: auto;
+           opacity: 0.85;
+          }
+          .logo-ekdosis {
+           width: 50px;
+           height: auto;
+           opacity: 0.9;
+          }
+          .bloc-credit {
+           font-family: 'Source Sans Pro', sans-serif;
+           font-size: 0.7em;
+           color: #3a3a3a;
+           margin: 1.5em 0;
+           padding: 0.6em 1.2em;
+           border: 1px solid #ccc2b2;
+           background: #fefdf8;
+           line-height: 1.2;
+           text-align: left;
+           max-width: 650px;
+           margin-left: auto;
+           margin-right: auto;
+          border-radius: 6px;
+          box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.04);
+          }
+         .italic {
+          font-style: italic;
+          color: darkred;
+          }
+          .bold {
+          font-weight: bold;
+          }
+          .underline {
+          text-decoration: underline;
+          }
           .acte, .scene, .personnages {
             font-weight: bold;
             margin-top: 1.5em;
             margin-bottom: 0.5em;
             margin-left: 11em;
+          }
+          .titre-piece {
+            font-style: italic;
           }
           .scene-titre {
             font-style: italic;
@@ -1215,12 +1339,18 @@ def previsualiser_html():
             margin-left: 14em;
           }
         </style>
+      <link rel="icon" href="https://www.normandie.fr/sites/default/files/2021-03/favicon.ico" type="image/x-icon"/>
       </head>
       <body>
-        <xsl:apply-templates/>
+        <xsl:apply-templates select="tei:metadonnees"/>
+        <xsl:apply-templates select="tei:text"/>
       </body>
     </html>
   </xsl:template>
+
+<xsl:template match="tei:seg">
+  <xsl:apply-templates/>
+</xsl:template>
 
   <!-- Acte -->
   <xsl:template match="tei:div[@type='act']">
@@ -1288,7 +1418,32 @@ def previsualiser_html():
     </span>
   </xsl:template>
 
-  <!-- Ignorer les rdg dans le texte principal -->
+<xsl:template match="tei:hi">
+  <span>
+    <xsl:attribute name="class">
+      <xsl:value-of select="@rend"/>
+    </xsl:attribute>
+    <xsl:apply-templates/>
+  </span>
+</xsl:template>
+
+<xsl:template match="tei:metadonnees">
+  <div class="bloc-credit">
+    <div class="ligne-logos-gauche">
+      <img src="logos.png" alt="Logos" class="logo-credit"/>
+    </div>
+    <xsl:apply-templates select="tei:credit"/>
+  </div>
+</xsl:template>
+
+
+  <xsl:template match="tei:credit">
+    <div class="credit-line">
+    <xsl:apply-templates/>
+  </div>
+  </xsl:template>
+
+<!-- A SUPPRIMER - Ignorer les rdg dans le texte principal -->
   <xsl:template match="tei:rdg"/>
 </xsl:stylesheet>
 '''
@@ -1305,9 +1460,6 @@ def previsualiser_html():
 
     except Exception as e:
         messagebox.showerror("Erreur", f"Erreur pendant la transformation XSLT :\n{e}")
-
-
-
 
 def convertir_tei_en_html(tei_text):
     html = []
@@ -1561,7 +1713,7 @@ def comparer_etats():
         '    <fileDesc>',
         f'      <titleStmt><title></title></titleStmt>',
         '      <publicationStmt><p></p></publicationStmt>',
-        '      <sourceDesc><p>Généré par Ekdosis-TEI Studio (Université de Rouen, chaire Editions numériques)</p></sourceDesc>',
+        '      <sourceDesc></sourceDesc>',
         '    </fileDesc>',
         '  </teiHeader>',
         '  <text>',
@@ -2056,18 +2208,24 @@ except Exception as e:
 
 def boite_initialisation_parchemin():
     champs_def = [
+        ("Nom de l'auteur", ""),
+        ("Prénom de l'auteur", ""),
         ("Titre de la pièce", ""),
         ("Numéro de l'acte", ""),
         ("Numéro de la scène", ""),
         ("Nombre de scènes dans l'acte", ""),
         ("Noms des personnages (séparés par virgule)", ""),
         ("Nombre de témoins", ""),
+        ("Nom de l'éditeur (vous)", ""),
+        ("Prénom de l'éditeur", ""),
     ]
 
     dialog = tk.Toplevel()
     dialog.title("Initialisation du projet")
     dialog.configure(bg="#fdf6e3")
-    dialog.geometry("540x320")
+    dialog.geometry("640x500")
+    dialog.minsize(600, 500)
+    dialog.resizable(True, True)
     dialog.grab_set()
 
     police_label = ("Georgia", 11)
@@ -2110,7 +2268,13 @@ def boite_initialisation_parchemin():
 
 def initialiser_projet():
     infos = boite_initialisation_parchemin()
-    global titre_piece, numero_acte, numero_scene, nombre_scenes, nombre_temoins, nombre_temoins_predefini
+    # Déclaration des variables globales
+    global prenom_auteur, nom_auteur, auteur_nom_complet, titre_piece, numero_acte
+    global numero_scene, nombre_scenes, nombre_temoins, nombre_temoins_predefini
+    global nom_editeur, prenom_editeur, editeur_nom_complet
+    #
+    prenom_auteur = infos["Prénom de l'auteur"]
+    nom_auteur = infos["Nom de l'auteur"]
     titre_piece = infos["Titre de la pièce"]
     numero_acte = infos["Numéro de l'acte"]
     numero_scene = infos["Numéro de la scène"]
@@ -2118,7 +2282,11 @@ def initialiser_projet():
     noms_persos = infos["Noms des personnages (séparés par virgule)"]
     nombre_temoins = infos["Nombre de témoins"]
     nombre_temoins_predefini = nombre_temoins
+    nom_editeur = infos["Nom de l'éditeur (vous)"]
+    prenom_editeur = infos["Prénom de l'éditeur"]
 
+    auteur_nom_complet = f"{prenom_auteur} {nom_auteur}"
+    editeur_nom_complet = f"{prenom_editeur} {nom_editeur}"
     titre_nettoye = nettoyer_identifiant(titre_piece)
     nom_court = f"{titre_nettoye}_A{numero_acte}_S{numero_scene}of{nombre_scenes}"
     fenetre.title(f"Ekdosis-TEI Studio – {nom_court}")
