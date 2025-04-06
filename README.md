@@ -11,7 +11,7 @@
 
 ## ✨ Fonctionnalités principales
 
-- 🏛 Saisie encodée structurée en style markdown : actes, scènes, personnages, locuteurs, tirades, didascalies
+- 🏛 Saisie encodée structurée en style markdown : actes, scènes, personnages, locuteurs, tirades, didascalies (interface graphique complète possible)
 - 🔀 Comparaison automatique de variantes ligne à ligne (difflib)
 - 🔎 Génération parallèle des résultats en :
   - **TEI XML** avec balises `<app>`, `<lem>`, `<rdg>`, `<stage>`, etc.
