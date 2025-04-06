@@ -44,6 +44,27 @@ Je le vois bien, Arsace, est nouvelle à tes yeux
 Je le voy bien, Arsace, est nouvelle à tes yeux
 Je le vois bien, Arsace, est nouvelle à tes yeux
 Je le voy bien, Arsace, est nouvelle à tes yeux
+
+Souvent ce Cabinet***
+Souvent ce Cabinet***
+Souvent ce Cabinet***
+Souvent ce Cabinet***
+
+#Arsace#
+***superbe & solitaire,
+***superbe & solitaire,
+***superbe & solitaire,
+***superbe & solitaire,
+
+Des secrets de Titus est le dépositaire.
+Des secrets de Titus est le dépositaire.
+Des secrets de Titus est le dépositaire.
+Des secrets de Titus est le dépositaire.
+
+C'est icy quelquefois qu'il se cache à sa Cour,
+C'est icy quelquefois qu'il se cache à sa Cour,
+C'est ici quelquefois qu'il se cache à sa Cour,
+C'est ici quelquefois qu'il se cache à sa Cour, 
 ```
 
 ---
