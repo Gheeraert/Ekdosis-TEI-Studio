@@ -31,6 +31,7 @@ import webbrowser
 import tkinter as tk
 from tkinter import messagebox, simpledialog
 from tkinter.simpledialog import askinteger
+from tkinter import Toplevel, Radiobutton, StringVar
 import lxml.etree as LET
 import os, webbrowser
 from datetime import date
@@ -380,7 +381,7 @@ template_ekdosis_preamble = r"""
     % numéro de paragraphe à gauche)
     %
     \SetLineation{
-    %	modulo,
+    %   modulo,
         vmodulo=5
     }
     \SetLineation{lineation=none}
@@ -433,8 +434,8 @@ template_ekdosis_debut_doc = r"""
         % Ne pas décommenter (bug connu)
         %
         %\begin{cast}
-        %	\castitem{\role{xmlid=antiochus}Antiochus, \roledesc{roi de Comagène}}
-        %	\castitem{\role{xmlid=arsace}Arsace, \roledesc{Confident d'Antiochus}}
+        %   \castitem{\role{xmlid=antiochus}Antiochus, \roledesc{roi de Comagène}}
+        %   \castitem{\role{xmlid=arsace}Arsace, \roledesc{Confident d'Antiochus}}
         %\end{cast}
         %\set{La Scene est à Rome}
         %\normalfont
@@ -497,7 +498,7 @@ def afficher_nagscreen():
     nag.configure(bg=COULEUR_FOND)
 
     largeur_nag = 540
-    hauteur_nag = 500
+    hauteur_nag = 550
     fenetre.update_idletasks()
     x_main = fenetre.winfo_rootx()
     y_main = fenetre.winfo_rooty()
@@ -535,7 +536,13 @@ def afficher_nagscreen():
     # Mention
     chaire = tk.Label(
         nag,
-        text="Assistant pour l'encodage des variantes de textes théâtraux\n\npar T. Gheeraert\n Presses de l'Université de Rouen et du Havre\n Chaire d'excellence en éditions numériques\n CEREdI (UR 3229)",
+        text = """Assistant pour l'encodage des variantes des textes de théâtre
+        
+        par T. Gheeraert
+        Presses de l'Université de Rouen et du Havre
+        Chaire d'excellence en éditions numériques
+        CEREdI (UR 3229)
+        ceen_team@univ-rouen.fr""",
         font=("Georgia", 12),
         bg=COULEUR_FOND,
         fg=COULEUR_TEXTE,
@@ -546,7 +553,7 @@ def afficher_nagscreen():
     # Bouton
     def commencer():
         nag.destroy()
-        initialiser_projet()
+        initialiser_projet(mode_test=False)
 
     bouton = tk.Button(
         nag, text="Commencer",
@@ -568,6 +575,7 @@ def reset_application():
         return
     global titre_piece, numero_acte, numero_scene, nombre_scenes
     global auteur_nom_complet, editeur_nom_complet
+    global vers_num
 
     # Réinitialisation des variables globales
     titre_piece = ""
@@ -594,14 +602,466 @@ def reset_application():
         zone_resultat_html.delete("1.0", tk.END)
 
     initialiser_projet()
+def demander_numero_vers():
+    fenetre = tk.Toplevel()
+    fenetre.title("Numéro du vers")
+    fenetre.configure(bg="#fdf6e3")
+    fenetre.grab_set()
+    fenetre.resizable(False, False)
+    # DEBUG Tout est collé en "dur" il faudrait passer les variables COULEUR_FOND, etc
+    tk.Label(fenetre, text="Veuillez entrer le numéro du vers de départ :",
+             bg="#fdf6e3", fg="#4a3c1a", font=("Georgia", 12)).pack(padx=20, pady=(20, 10))
+
+    champ = tk.Entry(fenetre, font=("Georgia", 12), justify="center", width=10)
+    champ.pack(pady=(0, 15))
+    champ.focus()
+
+    resultat = {"valeur": None}
+
+    def valider():
+        resultat["valeur"] = champ.get().strip()
+        fenetre.destroy()
+
+    bouton_valider = tk.Button(fenetre, text="Valider", command=valider,
+                               bg="#fdf6e3", fg="#4a3c1a",
+                               font=("Georgia", 12))
+    bouton_valider.pack(pady=(0, 20))
+
+    fenetre.bind("<Return>", lambda event: valider())
+    fenetre.wait_window()
+
+    return resultat["valeur"]
+
+def demander_mode_saisie():
+    fenetre = tk.Toplevel()
+    fenetre.title("Choisissez votre mode de saisie")
+    fenetre.configure(bg="#f5f0dc")  # ton parchemin doux
+
+    # Dimensions fixes
+    fenetre.geometry("400x220")
+    fenetre.resizable(False, False)
+
+    # Cadre parcheminé
+    cadre = tk.Frame(fenetre, bg="#f5f0dc", bd=3, relief=tk.GROOVE)
+    cadre.pack(expand=True, fill="both", padx=20, pady=20)
+
+    # Titre
+    label = tk.Label(
+        cadre,
+        text="Souhaitez-vous activer la saisie assistée ?",
+        bg="#f5f0dc",
+        fg="#4b3f2f",
+        font=("Garamond", 14, "bold"),
+        wraplength=360,
+        justify="center"
+    )
+    label.pack(pady=(10, 20))
+
+    # Boutons
+    bouton_assistee = tk.Button(
+        cadre,
+        text="Saisie assistée",
+        font=("Garamond", 12),
+        bg="#e0d8b0",
+        fg="black",
+        relief=tk.RAISED,
+        command=lambda: choisir_mode(fenetre, True)
+    )
+    bouton_assistee.pack(pady=5)
+
+    bouton_libre = tk.Button(
+        cadre,
+        text="Saisie libre",
+        font=("Garamond", 12),
+        bg="#ddd4aa",
+        fg="black",
+        relief=tk.RAISED,
+        command=lambda: choisir_mode(fenetre, False)
+    )
+    bouton_libre.pack(pady=5)
+
+    # Bouton de fermeture (pour laisser l’utilisateur libre)
+    bouton_annuler = tk.Button(
+        cadre,
+        text="Annuler",
+        font=("Garamond", 11),
+        bg="#cbbf9b",
+        fg="black",
+        command=fenetre.destroy
+    )
+    bouton_annuler.pack(pady=(10, 5))
+
+def choisir_mode(fenetre, mode_assiste):
+    fenetre.destroy()
+    if mode_assiste:
+        lancer_saisie_assistee()
+    else:
+        print("[INFO] Saisie libre sélectionnée.")  # ou rien
+
+def lancer_saisie_assistee_par_menu():
+    global vers_num, numero_vers, flag_numero_vers
+    numero_vers = demander_numero_vers()
+    flag_numero_vers = 1
+
+    lancer_saisie_assistee()
+
+def lancer_saisie_assistee(): # Menu principal de l'assistant de saisie
+    global vers_num, numero_vers, flag_numero_vers
+    fenetre = Toplevel()
+    fenetre.title("Assistant de saisie")
+    fenetre.configure(bg="#fdf6e3")
+    fenetre.geometry("400x300")
+    fenetre.grab_set()
+    if flag_numero_vers != 1 :
+        numero_vers = vers_num  # Pour l'affichage dans le titre de la boîte
+        flag_numero_vers = 0
+
+    # Style parchemin
+    cadre = tk.Frame(fenetre, bg="#fdf6e3", padx=20, pady=20)
+    cadre.pack(expand=True, fill="both")
+
+    # Texte d'intro
+    tk.Label(cadre, text="Que souhaitez-vous faire ?", font=("Garamond", 14, "bold"),
+             bg="#fdf6e3", wraplength=350).pack(pady=(0, 10))
+
+    choix = StringVar()
+    choix.set("dialogue")  # Valeur par défaut
+
+    # Boutons radio
+    options = [
+        ("Transcrire un nouvel acte", "acte"),
+        ("Transcrire une nouvelle scène", "scene"),
+        ("Changer de locuteur", "locuteur"),
+        ("Entrer du dialogue", "dialogue"),
+        ("Fermer l’assistant", "fermer")
+    ]
+
+    for label, value in options:
+        Radiobutton(cadre, text=label, variable=choix, value=value,
+                    font=("Garamond", 12), bg="#fdf6e3",
+                    selectcolor="#eee8d5", anchor="w", justify="left").pack(anchor="w")
+
+    def valider_choix():
+        global vers_num, numero_vers
+        selection = choix.get()
+        fenetre.destroy()
+        if selection == "acte":
+            ouvrir_saisie_acte()
+        elif selection == "scene":
+            ouvrir_saisie_scene()
+        elif selection == "locuteur":
+            ouvrir_saisie_locuteur()
+        elif selection == "dialogue":
+            ouvrir_saisie_vers()
+        elif selection == "fermer":
+            return
+
+    tk.Button(cadre, text="Valider", command=valider_choix, bg="#e0cda9",
+           font=("Garamond", 12, "bold")).pack(pady=20)
+
+def ouvrir_saisie_vers():
+    global vers_num, nombre_temoins_predefini, numero_vers
+    boite = tk.Toplevel()
+    boite.title(f"Saisie du vers {numero_vers}")
+    boite.configure(bg="#f5f0e6")
+    boite.grab_set()
+
+    tk.Label(boite, text=f"Vers {numero_vers}", font=("Garamond", 16, "bold"),
+             background="#f5f0e6").pack(pady=10)
+
+    entrees = []
+
+    for i in range(nombre_temoins_predefini):
+        cadre = tk.Frame(boite, bg="#f5f0e6")
+        cadre.pack(pady=5, padx=10, anchor="w")
+
+        label = tk.Label(cadre, text=f"Témoin {i + 1} :", font=("Garamond", 12), bg="#f5f0e6")
+        label.grid(row=0, column=0, sticky="w")
+
+        entree = tk.Entry(cadre, width=60, font=("Courier", 11))
+        entree.grid(row=0, column=1, padx=5)
+        entrees.append(entree)
+
+    # Une seule paire de cases à cocher globales
+    var_debut = tk.BooleanVar()
+    var_fin = tk.BooleanVar()
+
+    cadre_check = tk.Frame(boite, bg="#f5f0e6")
+    cadre_check.pack(pady=(10, 0), anchor="w", padx=10)
+
+    tk.Checkbutton(
+        cadre_check, text="Début de vers partagé",
+        variable=var_debut, bg="#f5f0e6", font=("Garamond", 10)
+    ).pack(anchor="w")
+
+    tk.Checkbutton(
+        cadre_check, text="Fin de vers partagé",
+        variable=var_fin, bg="#f5f0e6", font=("Garamond", 10)
+    ).pack(anchor="w")
+
+    def traitement_saisie_vers(suite="meme_locuteur"):
+        global numero_vers, flag
+        flag = 0
+
+        # Test : tous les champs sont-ils vides ?
+        tous_vides = all(not entree.get().strip() for entree in entrees)
+
+        # Avertissement si certains champs sont vides
+        if not tous_vides:
+            for i, entree in enumerate(entrees):
+                if not entree.get().strip():
+                    messagebox.showwarning(
+                        "Champs incomplets",
+                        f"La ligne du témoin {i + 1} est vide. Veuillez la remplir avant de continuer.")
+                    break
+
+        # Blocage si deux cases cochées
+        if var_debut.get() and var_fin.get():
+            messagebox.showerror(
+                "Erreur de saisie",
+                "Ne pas cocher à la fois 'début' et 'fin de vers partagé'.")
+            return
+
+        # Préparation des lignes à insérer
+        lignes = []
+        for i in range(nombre_temoins_predefini):
+            texte = entrees[i].get().strip()
+            if var_debut.get():
+                if flag != 1:
+                    texte = texte + "***"
+                    numero_vers -= 1
+                    flag = 1
+                else:
+                    texte = texte + "***"
+            elif var_fin.get():
+                texte = "***" + texte
+            lignes.append(texte)
+
+        # Si vraiment tous les champs sont vides → on ferme sans rien insérer
+        if all(not ligne for ligne in lignes):
+            boite.destroy()
+            return
+
+        # Insertion
+        zone_saisie.insert(tk.END, "\n".join(lignes) + "\n\n")
+        boite.destroy()
+
+        # Suite logique
+        if suite == "fermer":
+            return
+        if suite == "meme_locuteur":
+            numero_vers += 1
+            ouvrir_saisie_vers()
+        elif suite == "changement_locuteur":
+            numero_vers += 1
+            ouvrir_saisie_locuteur()
+        elif suite == "fin_scene":
+            numero_vers += 1
+            ouvrir_saisie_scene()
+
+    # Boutons de validation
+    cadre_boutons = tk.Frame(boite, bg="#f5f0e6")
+    cadre_boutons.pack(pady=15)
+
+    tk.Button(cadre_boutons, text="Didascalie",
+              command=lambda: [traitement_saisie_vers("fermer"), ouvrir_didascalie(callback_apres=ouvrir_saisie_vers)],
+              font=("Garamond", 10), bg="#ddd4c3").grid(row=0, column=3, padx=5)
+
+    tk.Button(cadre_boutons, text="Même locuteur",
+              command=lambda: traitement_saisie_vers("meme_locuteur")).grid(row=0, column=0, padx=5)
+
+    tk.Button(cadre_boutons, text="Changement de locuteur",
+              command=lambda: traitement_saisie_vers("changement_locuteur")).grid(row=0, column=1, padx=5)
+
+    tk.Button(cadre_boutons, text="Nouvelle scène",
+              command=lambda: traitement_saisie_vers("fin_scene")).grid(row=0, column=2, padx=5)
+
+    # Remplace "fermer sans rien faire" par "Fermer", en copiant les vers
+    tk.Button(boite, text="Fermer", command=lambda: traitement_saisie_vers("fin_scene")).pack(pady=(0, 10))
+
+def ouvrir_didascalie(callback_apres=None):
+    fenetre_dida = tk.Toplevel()
+    fenetre_dida.title("Ajouter une didascalie")
+    fenetre_dida.configure(bg="#fdf6e3")
+    fenetre_dida.grab_set()
+
+    cadre = tk.Frame(fenetre_dida, bg="#fdf6e3", padx=20, pady=20)
+    cadre.pack(expand=True, fill="both")
+
+    tk.Label(cadre, text="Didascalie :", font=("Garamond", 12), bg="#fdf6e3").pack()
+    champ_dida = tk.Entry(cadre, width=50, font=("Garamond", 12))
+    champ_dida.pack(pady=(0, 10))
+
+    def valider_dida():
+        texte = champ_dida.get().strip()
+        if texte:
+            zone_saisie.insert(tk.END, f"\n**{texte}**\n\n")
+        fenetre_dida.destroy()
+        if callback_apres:
+            callback_apres()
+
+    tk.Button(cadre, text="Insérer", command=valider_dida,
+              font=("Garamond", 12), bg="#e0cda9").pack(pady=(5, 5))
+
+    tk.Button(cadre, text="Fermer", command=fenetre_dida.destroy,
+              font=("Garamond", 10), bg="#eee8d5").pack()
+
+def ouvrir_saisie_locuteur():
+    global numero_vers
+    fenetre = Toplevel()
+    fenetre.title("Changer de locuteur")
+    fenetre.configure(bg="#fdf6e3")
+    fenetre.geometry("300x200")
+    fenetre.grab_set()
+
+    cadre = tk.Frame(fenetre, bg="#fdf6e3", padx=20, pady=20)
+    cadre.pack(expand=True, fill="both")
+
+    tk.Label(cadre, text="Nom du nouveau locuteur :", font=("Garamond", 12),
+             bg="#fdf6e3").pack(pady=(0, 10))
+
+    champ_nom = tk.Entry(cadre, font=("Garamond", 12), justify="center")
+    champ_nom.pack(pady=(0, 10))
+
+    def valider(event=None):
+        global vers_num, numero_vers
+        nom = champ_nom.get().strip()
+        if nom:
+            ligne = f"#{nom}#\n"
+            zone_saisie.insert(tk.END, ligne)
+            fenetre.destroy()
+            ouvrir_saisie_vers()  # saut automatique vers la saisie des vers
+        else:
+            messagebox.showwarning("Erreur", "Veuillez entrer un nom de locuteur.")
+
+    fenetre.bind('<Return>', valider)
+
+    tk.Button(cadre, text="Valider", command=valider,
+              font=("Garamond", 12), bg="#e0cda9").pack(pady=(10, 0))
+
+    tk.Button(cadre, text="Fermer", command=fenetre.destroy,
+              font=("Garamond", 10), bg="#eee8d5").pack(pady=(5, 0))
+
+def ouvrir_saisie_scene():
+    global vers_num, numero_vers
+    fenetre_scene = tk.Toplevel()
+    fenetre_scene.title("Changement de scène")
+    fenetre_scene.configure(bg="#fdf6e3")
+    fenetre_scene.grab_set()
+
+    tk.Label(fenetre_scene, text="Numéro de scène :", bg="#fdf6e3", font=("Garamond", 12)).pack(padx=10, pady=(10, 0))
+    entree_num_scene = tk.Entry(fenetre_scene, width=30, justify="center")
+    entree_num_scene.pack(padx=10, pady=5)
+    entree_num_scene.focus_set()
+
+    tk.Label(fenetre_scene, text="Personnages présents :", bg="#fdf6e3", font=("Garamond", 12)).pack(padx=10, pady=(10, 0))
+    entree_personnages = tk.Entry(fenetre_scene, width=50)
+    entree_personnages.insert(0, "##Nom## ##AutreNom##")  # exemple de syntaxe
+    entree_personnages.pack(padx=10, pady=5)
+
+    tk.Label(fenetre_scene, text="Premier locuteur :", bg="#fdf6e3", font=("Garamond", 12)).pack(padx=10, pady=(10, 0))
+    entree_locuteur = tk.Entry(fenetre_scene, width=30)
+    entree_locuteur.insert(0, "#Nom#")  # exemple de syntaxe
+    entree_locuteur.pack(padx=10, pady=5)
+
+    def valider_scene():
+        global vers_num, numero_vers
+        num_scene = entree_num_scene.get().strip()
+        persos = entree_personnages.get().strip()
+        premier = entree_locuteur.get().strip()
+        if num_scene and persos and premier:
+            texte_scene = f"\n###{num_scene}###\n{persos}\n{premier}\n"
+            zone_saisie.insert(tk.END, texte_scene)
+        fenetre_scene.destroy()
+        ouvrir_saisie_vers()
+
+    bouton_valider = tk.Button(fenetre_scene, text="Valider", command=valider_scene, bg="#e0c097")
+    bouton_valider.pack(pady=(10, 5))
+
+    bouton_fermer = tk.Button(fenetre_scene, text="Fermer", command=fenetre_scene.destroy, bg="#e0c097")
+    bouton_fermer.pack(pady=(0, 10))
+
+def ouvrir_saisie_acte():
+    global versnum, numero_vers
+    fenetre = Toplevel()
+    fenetre.title("Nouvel acte")
+    fenetre.configure(bg="#fdf6e3")
+    fenetre.grab_set()
+
+    cadre = tk.Frame(fenetre, bg="#fdf6e3", padx=20, pady=20)
+    cadre.pack(expand=True, fill="both")
+
+    tk.Label(cadre, text="Numéro de l'acte :", font=("Garamond", 12),
+             bg="#fdf6e3").pack(pady=(0, 10))
+
+    champ_acte = tk.Entry(cadre, font=("Garamond", 12), justify="center")
+    champ_acte.pack(pady=(0, 10))
+    fenetre.bind("<Return>", lambda event: valider())
+
+    def valider():
+        numero = champ_acte.get().strip()
+        if numero.isdigit():
+            ligne = f"####{numero}####\n"
+            zone_saisie.insert(tk.END, ligne)
+            fenetre.destroy()
+            ouvrir_saisie_scene()
+        else:
+            messagebox.showwarning("Erreur", "Veuillez entrer un numéro d'acte valide.")
+
+    bouton = tk.Button(cadre, text="Valider", command=valider,
+                       font=("Garamond", 12), bg="#e0cda9")
+    bouton.pack(pady=(10, 0))
+
+    # Bouton pour quitter sans valider
+    tk.Button(cadre, text="Fermer", command=fenetre.destroy,
+              font=("Garamond", 10), bg="#eee8d5").pack(pady=(5, 0))
 
 
-def initialiser_projet():
-    infos = boite_initialisation_parchemin()
+vers_actuel = 1
+bloc_saisie = []
+
+def traitement_saisie(textes, action):
+    global vers_actuel, bloc_saisie
+
+    # On stocke les textes saisis pour ce vers
+    bloc_saisie.append((vers_actuel, textes))
+
+    if action == "meme":
+        vers_actuel += 1
+        ouvrir_boite_saisie_vers(vers_actuel, temoins, traitement_saisie)
+
+    elif action == "changement":
+        ouvrir_boite_changement_locuteur()
+
+    elif action == "fin":
+        messagebox.showinfo("Scène terminée", f"{len(bloc_saisie)} vers encodés.")
+        # Ici on pourrait injecter dans la zone de saisie principale par exemple.
+
+def initialiser_projet(mode_test=False):
+    #DEBUG - MODE TEST NON BLOQUANT
+    if mode_test:
+        infos = {
+            "Prénom de l'auteur": "Jean",
+            "Nom de l'auteur": "Racine",
+            "Titre de la pièce": "Phèdre",
+            "Numéro de l'acte": "1",
+            "Numéro de la scène": "1",
+            "Nombre de scènes dans l'acte": "5",
+            "Numéro du vers de départ": "1",
+            "Noms des personnages (séparés par virgule)": "Phèdre, Hippolyte, Théramène",
+            "Nombre de témoins": "3",
+            "Nom de l'éditeur (vous)": "Manutius",
+            "Prénom de l'éditeur": "Aldo"
+        }
+    else:
+    ### FIN DU BLOC TEST - A SUPPRIMER
+        infos = boite_initialisation_parchemin()
+
     # Déclaration des variables globales
     global prenom_auteur, nom_auteur, auteur_nom_complet, titre_piece, numero_acte
     global numero_scene, nombre_scenes, nombre_temoins, nombre_temoins_predefini
     global nom_editeur, prenom_editeur, editeur_nom_complet
+    global vers_num, numero_vers
     #
     prenom_auteur = infos["Prénom de l'auteur"]
     nom_auteur = infos["Nom de l'auteur"]
@@ -609,9 +1069,14 @@ def initialiser_projet():
     numero_acte = infos["Numéro de l'acte"]
     numero_scene = infos["Numéro de la scène"]
     nombre_scenes = infos["Nombre de scènes dans l'acte"]
+    vers_num = infos["Numéro du vers de départ"]
+    vers_num=int(vers_num)
+    entree_vers.delete(0, tk.END) # combobox
+    entree_vers.insert(0, str(vers_num))
+    numero_vers = vers_num # pour utilisation locale dans les boîtes de saisie
     noms_persos = infos["Noms des personnages (séparés par virgule)"]
     nombre_temoins = infos["Nombre de témoins"]
-    nombre_temoins_predefini = nombre_temoins
+    nombre_temoins_predefini = int(nombre_temoins)
     nom_editeur = infos["Nom de l'éditeur (vous)"]
     prenom_editeur = infos["Prénom de l'éditeur"]
 
@@ -629,6 +1094,64 @@ def initialiser_projet():
                        f"{ligne_personnages}\n\n"
                        )
 
+    demander_mode_saisie_post_initialisation()
+
+def demander_mode_saisie_post_initialisation():
+    fenetre_mode = tk.Toplevel()
+    fenetre_mode.title("Mode de saisie")
+    fenetre_mode.configure(bg="#fdf6e3")
+    fenetre_mode.geometry("400x220")
+    fenetre_mode.resizable(False, False)
+    fenetre_mode.grab_set()
+
+    cadre = tk.Frame(fenetre_mode, bg="#fdf6e3", bd=3, relief=tk.GROOVE)
+    cadre.pack(expand=True, fill="both", padx=20, pady=20)
+
+    label = tk.Label(
+        cadre,
+        text="Souhaitez-vous activer la saisie assistée ?",
+        bg="#fdf6e3",
+        fg="#4b3f2f",
+        font=("Garamond", 14, "bold"),
+        wraplength=360,
+        justify="center"
+    )
+    label.pack(pady=(10, 20))
+
+    bouton_assistee = tk.Button(
+        cadre,
+        text="Oui, saisie assistée",
+        font=("Garamond", 12),
+        bg="#e0d8b0",
+        fg="black",
+        relief=tk.RAISED,
+        command=lambda: [fenetre_mode.destroy(), ouvrir_saisie_locuteur()]
+    )
+    bouton_assistee.pack(pady=5)
+
+    bouton_libre = tk.Button(
+        cadre,
+        text="Non, rester en mode libre",
+        font=("Garamond", 12),
+        bg="#ddd4aa",
+        fg="black",
+        relief=tk.RAISED,
+        command=fenetre_mode.destroy
+    )
+    bouton_libre.pack(pady=5)
+
+    bouton_annuler = tk.Button(
+        cadre,
+        text="Annuler",
+        font=("Garamond", 11),
+        bg="#cbbf9b",
+        fg="black",
+        command=fenetre_mode.destroy
+    )
+    bouton_annuler.pack(pady=(10, 5))
+
+
+
 # A SUPPRIMER
 # def demander_infos_initiales():
 #    global titre_piece, numero_acte, numero_scene, nombre_scenes
@@ -645,7 +1168,6 @@ def initialiser_projet():
 #            )
 #        fenetre.destroy()
 
-
 def collecter_temoins(nb_temoins):
     temoins = []
     for i in range(nb_temoins):
@@ -654,7 +1176,6 @@ def collecter_temoins(nb_temoins):
             return []  # pour ignorer
         temoins.append(donnees)
     return temoins
-
 
 def demander_un_temoin_parchemin(numero):
     fenetre = tk.Toplevel()
@@ -716,7 +1237,6 @@ def demander_un_temoin_parchemin(numero):
 
     return result if result else None
 
-
 def collecter_temoins(nb_temoins):
     temoins = []
     for i in range(nb_temoins):
@@ -726,7 +1246,6 @@ def collecter_temoins(nb_temoins):
         temoins.append(donnees)
     return temoins
 
-
 def nom_fichier(base, extension):
     try:
         titre_nettoye = nettoyer_identifiant(titre_piece)
@@ -735,10 +1254,8 @@ def nom_fichier(base, extension):
         # Variables non encore définies : nom provisoire
         return f"temp_{base}.{extension}"
 
-
 def normaliser_bloc(bloc):
     return "\n".join([l for l in bloc.strip().splitlines() if l.strip()])
-
 
 def valider_structure_amelioree():
     texte = zone_saisie.get("1.0", tk.END).strip()
@@ -1254,6 +1771,8 @@ def previsualiser_html():
                     hi.set("rend", "italic")
                     hi.text = titre_piece
                     hi.tail = f", Acte {numero_acte}, Scène {numero_scene}"
+                    LET.SubElement(bloc,
+                                   "{http://www.tei-c.org/ns/1.0}credit").text = "Licence Creative Commons - CC-BY-NC-SA"
 
                     bloc.append(credit_auteur_titre)
 
@@ -1321,10 +1840,10 @@ def previsualiser_html():
           }
           .bloc-credit {
            font-family: 'Source Sans Pro', sans-serif;
-           font-size: 0.7em;
+           font-size: 0.8em;
            color: #3a3a3a;
            margin: 1.5em 0;
-           padding: 0.6em 1.2em;
+           padding: 0.6em 1.1em;
            border: 1px solid #ccc2b2;
            background: #fefdf8;
            line-height: 1.2;
@@ -2260,6 +2779,7 @@ menu_edit.add_command(label="Tout sélectionner", accelerator="Ctrl+A",
 menu_outils = tk.Menu(menu_bar, tearoff=0)
 menu_bar.add_cascade(label="Outils", menu=menu_outils)
 
+menu_outils.add_command(label="Lancer l’assistant de saisie", command=lancer_saisie_assistee_par_menu)
 menu_outils.add_command(label="Valider la structure", command=valider_structure)
 menu_outils.add_command(label="Comparer les états", command=comparer_etats)
 
@@ -2316,7 +2836,6 @@ try:
 except Exception as e:
     print(f"[autosave] Impossible de charger le fichier : {e}")
 
-
 def boite_initialisation_parchemin():
     champs_def = [
         ("Nom de l'auteur", ""),
@@ -2326,6 +2845,7 @@ def boite_initialisation_parchemin():
         ("Numéro de la scène", ""),
         ("Nombre de scènes dans l'acte", ""),
         ("Noms des personnages (séparés par virgule)", ""),
+        ("Numéro du vers de départ", ""),
         ("Nombre de témoins", ""),
         ("Nom de l'éditeur (vous)", ""),
         ("Prénom de l'éditeur", ""),
@@ -2424,16 +2944,23 @@ label_ref.pack(side=tk.LEFT)
 
 menu_ref = ttk.Combobox(frame_ref, state="readonly", width=5)
 menu_ref.pack(side=tk.LEFT)
+temoins = ["B", "A", "C"]  # exemple
+temoins.sort()  # tri alphabétique
+menu_ref['values'] = temoins
+menu_ref.set(temoins[0])  # sélection par défaut
 liste_ref = menu_ref
 
 frame_vers = tk.Frame(frame_params, bg="#f4f4f4")
 frame_vers.pack(side=tk.LEFT, padx=10)
 
+###  DEBUG
+### Ligne sans doute à supprimer pour éviter les ambiguités
+### le numéro du vers étant initialisé par ailleurs
 label_vers = tk.Label(frame_vers, text="Numéro du 1er vers :", bg="#f4f4f4")
 label_vers.pack(side=tk.LEFT)
 
 entree_vers = tk.Entry(frame_vers, width=5)
-entree_vers.insert(0, "1")
+entree_vers.insert(0, "1") # valeur temporaire par défaut
 entree_vers.pack(side=tk.LEFT)
 
 notebook = ttk.Notebook(fenetre)
