@@ -20,7 +20,7 @@
 - 🔤 Échappement automatique des caractères spéciaux (`&`, etc.)
 - 🧑‍🎓 Interface conviviale en Tkinter avec onglets TEI / LaTeX
 - 🧪 Validation de structure intégrée (actes, scènes, locuteurs)
-- 🎨 Style visuel "parchemin" pour une expérience élégante
+- 🎨 Style visuel "parchemin"
 - 🌐 Prévisualisation en html
 
 ---
