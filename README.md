@@ -71,7 +71,7 @@ C'est ici quelquefois qu'il se cache à sa Cour,
 
 ## 🚀 Lancer l'application
 
-Assurez-vous d'avoir Python 3.9+ installé. Un exécutable est également disponible (Ubuntu et Windows)
+Assurez-vous d'avoir Python 3.9+ installé. Un exécutable est également disponible (.dmg pour Mac, .exe pour Windows)
 
 ```bash
 python TEILaTeXStudio.py
