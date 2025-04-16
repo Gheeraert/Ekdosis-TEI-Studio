@@ -91,8 +91,8 @@ Exécutable: Téléchargez et lancez simplement le fichier (.dmg pour Mac, .exe 
 
 ## 🧪 En projet
 
-- Prise en compte des variantes de didascalies
-- Encodage de scènes muettes
+- Encodage des didascalies internes
+- amélioration de la saisie des métadonnées
 - Résolution des cas particuliers
 - portage en ligne via serveur Flask
 
