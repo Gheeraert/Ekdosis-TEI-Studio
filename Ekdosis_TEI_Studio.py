@@ -2785,7 +2785,7 @@ def aligner_variantes_par_mot(tokens, temoins, ref_index):
         ligne_tei.append("      </app>\n")
 
         # Ekdosis reste inchangé
-        ekdo = [f'      \\app{{']
+        ekdo = [f' \n      \\app{{']
         ekdo.append(
             f'        \\lem[wit={{{", ".join(mots_colonne.get(lemme, []))}}}]{{{echapper_caracteres_ekdosis(lemme)}}}'
         )
@@ -3001,7 +3001,7 @@ def comparer_etats():
 
                 # Ajout du premier demi-vers
                 resultat_tei.append(f'<l n="{vers_num_1}">\n' + "".join(ligne_tei) + '</l>')
-                vers_formate_1 = "\n".join(ligne_ekdosis)
+                vers_formate_1 = " ".join(part.strip() for part in ligne_ekdosis)
                 resultat_ekdosis.append(
                     f'        \\vnum{{{vers_num_1}}}' + '{\n' + vers_formate_1 + '\\\\    \n         }')
 
@@ -3056,7 +3056,7 @@ def comparer_etats():
                     # ✅ Ajout du second demi-vers
                     resultat_tei.append(f'<l n="{vers_num_2}">\n' + "".join(ligne_tei) + '</l>')
 
-                    vers_formate_2 = "\n".join(ligne_ekdosis)
+                    vers_formate_2 = " ".join(part.strip() for part in ligne_ekdosis)
                     # ekdosis peu intuitif sur la numérotation des vers
                     # • lineation=none         → désactive la colonne de numérotation à gauche
                     # • modulo + vmodulo=0     → désactive l’affichage périodique des numéros à droite
@@ -3087,7 +3087,7 @@ def comparer_etats():
             ligne_tei, ligne_ekdosis = aligner_variantes_par_mot(tokens, temoins, ref_index)
 
             resultat_tei.append(f'<l n="{vers_courant}">\n' + "".join(ligne_tei) + '</l>\n')
-            vers_formate = "\n".join(ligne_ekdosis)
+            vers_formate = " ".join(ligne_ekdosis)
             resultat_ekdosis.append(f"        \\vnum{{{vers_courant}}}{{\n{vers_formate}  \\\\    \n        }}")
 
             if vers_courant == int(vers_courant):
