@@ -1,5 +1,6 @@
 # ==============================================================================
 # Ekdosis-TEI Studio
+# Version 1.1.1
 #
 # Un outil d'encodage inspiré du markdown
 # pour encoder des variantes dans le théâtre classique
