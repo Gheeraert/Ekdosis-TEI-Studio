@@ -2743,7 +2743,11 @@ Laissez une ligne vide avant et après les **didascalies**
     messagebox.showinfo("Aide à la transcription", exemple)
 
 def ajouter_espace_si_necessaire(mot):
-    return mot if re.match(r".*[\.,;:!?-]$", mot) else mot + " "
+    if not mot:
+        return ""
+    if re.match(r".*[\.\,\;\:\!\?\)\]]$", mot):
+        return mot + " "
+    return mot + " "
 
 def aligner_variantes_par_mot(tokens, temoins, ref_index):
     from collections import defaultdict
