@@ -379,10 +379,12 @@ template_ekdosis_preamble = r"""
     % (La config ci-dessous prévient l'affichage du 
     % numéro de paragraphe à gauche)
     %
+    % Pour activer la numérotation de 5 en 5 :
     \SetLineation{
     %   modulo,
         vmodulo=5
     }
+    % Pour désactiver la numérotation superflue à gauche:
     \SetLineation{lineation=none}
     %
     % Export TEI de la numérotation des vers
@@ -1654,32 +1656,25 @@ def valider_structure_amelioree():
     a_scene = False
     locuteur_en_cours = None
 
-    # Surbrillance valide/erreurs
     zone_saisie.tag_config("erreur", background="misty rose")
     zone_saisie.tag_config("valide", background="pale green")
 
     i = 0
     while i < len(lignes):
         ligne = lignes[i].strip()
-        print(ligne)
         ligne_num = i + 1
 
-        # === Dièses mal appariés ===
         if ligne.count("#") % 2 != 0:
             erreurs.append(f"Ligne {ligne_num} : nombre impair de dièses.")
-
-        # === Dièses mal appariés ===
         if ligne.count("*") % 2 != 0:
             erreurs.append(f"Ligne {ligne_num} : nombre impair d'astérisques.")
 
-        # === Acte ===
         if re.fullmatch(r"####\d+####", ligne):
             a_acte = True
             a_scene = False
             i += 1
             continue
 
-        # === Scène ===
         if re.fullmatch(r"###\d+###", ligne):
             if not a_acte:
                 erreurs.append(f"Ligne {ligne_num} : scène définie avant tout acte.")
@@ -1687,12 +1682,9 @@ def valider_structure_amelioree():
             i += 1
             continue
 
-        # === Bloc de personnages ===
         if re.fullmatch(r"(##[^\#]+##\s*)+", ligne):
             if not a_scene:
                 erreurs.append(f"Ligne {ligne_num} : personnages présents hors d'une scène.")
-
-            # Vérifier qu’un locuteur suive
             j = i + 1
             locuteur_trouvé = False
             while j < len(lignes):
@@ -1708,68 +1700,50 @@ def valider_structure_amelioree():
             i += 1
             continue
 
-        # === Locuteur ===
         if re.fullmatch(r"#[^#]+#", ligne):
             if not a_scene:
                 erreurs.append(f"Ligne {ligne_num} : locuteur défini hors d'une scène.")
             if locuteur_en_cours:
                 erreurs.append(f"Ligne {ligne_num} : locuteur '{locuteur_en_cours}' sans contenu.")
-
             locuteur_en_cours = ligne[1:-1].strip()
 
-            # === Bloc de variantes ===
         j = i + 1
         while j < len(lignes):
-
             variantes = 0
-
-            # On traite toutes les lignes jusqu'à rencontrer un vrai séparateur
             while j < len(lignes):
                 l = lignes[j].strip()
-
-                # Cas d'arrêt (séparateurs réels)
                 if (not l or
-                        re.fullmatch(r"#[^#]+#", l) or  # nouveau locuteur
-                        re.fullmatch(r"###\d+###", l) or  # nouvelle scène
-                        re.fullmatch(r"####\d+####", l) or  # nouvel acte
-                        re.fullmatch(r"(##[^\#]+##\s*)+", l)):  # bloc de personnages
+                    re.fullmatch(r"#[^#]+#", l) or
+                    re.fullmatch(r"###\d+###", l) or
+                    re.fullmatch(r"####\d+####", l) or
+                    re.fullmatch(r"(##[^\#]+##\s*)+", l)):
                     break
-
-                # Sinon : c'est une variante valide (vers, didascalie ou vers partagé)
                 variantes += 1
                 j += 1
-
-                # Si on a atteint le nombre attendu, on valide le bloc
                 if variantes == nombre_temoins_predefini:
                     blocs_valides += 1
                     debut = f"{j - variantes}.0"
                     fin = f"{j}.end"
                     zone_saisie.tag_add("valide", debut, fin)
-                    variantes = 0  # reset pour la suite
-                    break  # on sort pour passer au prochain locuteur
-
-            # Si on sort sans avoir validé le bon nombre
+                    variantes = 0
+                    break
             if variantes != 0:
                 erreurs.append(
-                    f"Ligne {ligne_num} : {variantes} variante(s) incomplètes pour '{locuteur_en_cours}', {nombre_temoins_predefini} attendue(s).")
-
-            break  # après un locuteur traité
-
+                    f"Ligne {ligne_num} : {variantes} variante(s) incomplètes pour '{locuteur_en_cours}', {nombre_temoins_predefini} attendue(s)."
+                )
+            break
         locuteur_en_cours = None
         i = j
         continue
 
-        # === Vers orphelins ===
         if ligne:
             if locuteur_en_cours:
                 erreurs.append(f"Ligne {ligne_num} : vers trouvé sans locuteur déclaré.")
             i += 1
             continue
 
-        # === Ligne vide ===
         i += 1
 
-    # === Vérifications finales ===
     if not any(re.fullmatch(r"####\d+####", l.strip()) for l in lignes):
         erreurs.append("Aucun acte (####n####) n’est défini.")
     if not any(re.fullmatch(r"###\d+###", l.strip()) for l in lignes):
@@ -1777,29 +1751,35 @@ def valider_structure_amelioree():
     if not any(re.fullmatch(r"#[^#]+#", l.strip()) for l in lignes):
         erreurs.append("Aucun locuteur (#Nom#) n’est défini.")
 
-    # === Résultat ===
-    # Toujours nettoyer les anciens surlignages au début
     zone_saisie.tag_remove("erreur", "1.0", tk.END)
     zone_saisie.tag_remove("valide", "1.0", tk.END)
 
     if erreurs:
-        # Définir la couleur du tag "erreur" pour bien voir les erreurs
-        zone_saisie.tag_configure("erreur", background="#ffb3b3")  # rose clair
+        zone_saisie.tag_configure("erreur", background="#ffb3b3")
+        premiere_erreur_ligne = None
+
+        for err in erreurs:
+            if "Ligne" in err:
+                match = re.search(r"Ligne (\d+)", err)
+                if match:
+                    ligne_erronnee = int(match.group(1))
+                    debut = f"{ligne_erronnee}.0"
+                    fin = f"{ligne_erronnee}.end"
+                    zone_saisie.tag_add("erreur", debut, fin)
+                    if premiere_erreur_ligne is None:
+                        premiere_erreur_ligne = ligne_erronnee
 
         reponse = messagebox.askyesno(
             "Erreurs détectées",
-            f"{len(erreurs)} erreurs détectées.\n"
-            f"Voulez-vous voir la liste détaillée ?"
+            f"{len(erreurs)} erreurs détectées.\nVoulez-vous voir la liste détaillée ?"
         )
         if reponse:
             messagebox.showerror("Détail des erreurs", "\n".join(erreurs))
-        for err in erreurs:
-            match = re.search(r"Ligne (\d+)", err)
-            if match:
-                ligne_erronnee = int(match.group(1))
-                debut = f"{ligne_erronnee}.0"
-                fin = f"{ligne_erronnee}.end"
-                zone_saisie.tag_add("erreur", debut, fin)
+
+        if premiere_erreur_ligne:
+            zone_saisie.see(f"{premiere_erreur_ligne}.0")
+
+        return False
     else:
         messagebox.showinfo(
             "Validation réussie",
@@ -1807,7 +1787,6 @@ def valider_structure_amelioree():
         )
         return True
 
-    return False  # en cas d’erreurs
 
 # Remplacement automatique
 valider_structure = valider_structure_amelioree
@@ -2820,7 +2799,13 @@ def verifier_et_comparer():
     if valider_structure():
         comparer_etats()
     else:
-        messagebox.showwarning("Erreur de structure", "Veuillez corriger les erreurs avant de générer le code.")
+        reponse = messagebox.askyesno(
+            "Structure incorrecte",
+            "Des erreurs ont été détectées dans la structure.\n"
+            "Souhaitez-vous quand même générer le code ?"
+        )
+        if reponse:
+            comparer_etats()
 
 def comparer_etats():
     texte = zone_saisie.get("1.0", tk.END).strip()
@@ -3068,8 +3053,18 @@ def comparer_etats():
                     resultat_tei.append(f'<l n="{vers_num_2}">\n' + "".join(ligne_tei) + '</l>')
 
                     vers_formate_2 = "\n".join(ligne_ekdosis)
+                    # ekdosis peu intuitif sur la numérotation des vers
+                    # • lineation=none         → désactive la colonne de numérotation à gauche
+                    # • modulo + vmodulo=0     → désactive l’affichage périodique des numéros à droite
+                    resultat_ekdosis.append("""        \\SetLineation{
+                                lineation=none,
+                                modulo,
+                                vmodulo=0
+                            }""")
                     resultat_ekdosis.append(
-                        f'        \\vnum{{{vers_num_2}}}' + '{\n' + '\\hspace*{10em}' + vers_formate_2 + '\\\\    \n         }')
+                        f'        \\vnum{{{vers_num_2}}}' + '{\n' + '\\hspace*{5em}' + vers_formate_2 + '\\\\    \n         }')
+                    resultat_ekdosis.append(f'        \\resetvlinenumber[{math.ceil(numero_vers_base)+1}]')
+                    resultat_ekdosis.append("        \\SetLineation{vmodulo=5}")
 
                 # ✅ Ignorer aussi le bloc A (le premier demi-vers)
                 sous_bloc_texte = "\n".join(lignes)
