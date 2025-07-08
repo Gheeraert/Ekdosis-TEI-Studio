@@ -36,156 +36,276 @@ import locale
 import json
 
 def importer_echantillon():
-    exemple = """####1####
-###1###
-##Antiochus## ##Arsace##
+    exemple = """====1====
+####ACTE I.####
+####ACTE I.####
+####ACTE I.####
+####ACTE PREMIER.####
+####ACTE I.####
 
-#Antiochus#
+===1===
+###SCENE PREMIERE.###
+###SCENE PREMIERE.###
+###SCENE PREMIERE.###
+###SCENE PREMIERE.###
+###SCENE PREMIERE.###
 
-**Antiochus entre**
-**Antiochus entre**
-**Antiochus entre**
-**Antiochus entre**
+==Iocaste Olympe==
+##IOCASTE,## ##OLYMPE.##
+##IOCASTE,## ##OLYMPE.##.
+##JOCASTE,## ##OLYMPE.##
+##JOCASTE,## ##OLYMPE.##
+##JOCASTE,## ##OLYMPE.##
 
-Arrestons un moment. La pompe de ces lieux,
-Arrestons un moment. La pompe de ces lieux,
-Arrestons un moment. La pompe de ces lieux,
-Arrestons un moment. La pompe de ces lieux,
+=1=
+#IOCASTE#
+#IOCASTE.#
+#IOCASTE.#
+#JOCASTE.#
+#JOCASTE#
 
-Je le voy bien, Arsace, est nouvelle à tes yeux
-Je le voy bien, Arsace, est nouvelle à tes yeux
-Je le vois bien, Arsace, est nouvelle à tes yeux
-Je le vos bien, Arsace, est nouvelle à tes yeux
 
-Souvent ce Cabinet***
-Souvent ce Cabinet***
-Souvent ce Cabinet***
-Souvent ce Cabinet***
+ILs sont sortis, Olympe~? Ah mortelles douleurs~!
+ILs sont sortis, Olympe~? Ah mortelles douleurs~!
+ILs sont sortis, Olympe~? Ah mortelles douleurs~!
+ILs sont sortis, Olympe~? Ah mortelles douleurs~!
+ILs sont sortis, Olympe~? Ah mortelles douleurs~!
 
-#Arsace#
-***superbe & solitaire,
-***superbe & solitaire,
-***superbe & solitaire,
-***superbe & solitaire,
+Qv’vn moment de repos me va couster de pleurs~!
+Qu’un moment de repos me va couster de pleurs,
+Qu’un moment de repos me va couster de pleurs,
+Qu’un moment de repos me va couster de pleurs~!
+Qu’un moment de repos me va couster de pleurs~!
 
-#Antiochus#
-Des secrets de Titus est le dépositaire.
-Des secrets de Titus est le dépositaire.
-Des secrets de Titus est le dépositaire.
-Des secrets de Titus est le dépositaire.
+Mes yeux depuis six mois estoient ouuerts aux larmes,
+Mes yeux depuis six mois estoient ouverts aux larmes~!
+Mes yeux depuis six mois estoient ouverts aux larmes~?
+Mes yeux depuis six mois estoient ouverts aux larmes~;
+Mes yeux depuis six mois estoient ouverts aux larmes,
 
-C'est icy quelquefois qu'il se cache à sa Cour,
-C'est icy quelquefois qu'il se cache à sa Cour,
-C'est ici quelquefois qu'il se cache à sa Cour,
-C'est ici quelquefois qu'il se cache à sa Cour,    
+Et le sommeil les ferme en de telles allarmes~?
+Et le sommeil les ferme en de telles allarmes~?
+Et le sommeil les ferme en de telles allarmes~?
+Et le sommeil les ferme en de telles allarmes~?
+Et le sommeil les ferme en de telles allarmes~?
 
-Lors qu'il vient à la Reyne expliquer son amour
-Lors qu'il vient à la Reine expliquer son amour.
-Lors qu'il vient à la Reine expliquer son amour.
-Lors qu'il vient à la Reine expliquer son amour.
+Il deuoit bien plutost les fermer pour jamais,
+Il devoit bien plûtost les fermer pour jamais,
+Il devoit bien plûtost les fermer pour jamais,
+Puisse plûtost la mort les fermer pour jamais,
+Il devoit bien plutost les fermer pour jamais,
 
-De son Apartement cette porte est prochaine
-De son Apartement cette porte est prochaine
-De son Apartement cette porte est prochaine
-De son Appartement cette porte est prochaine
+Que de fauoriser le plus noir des forfaits.
+Que de favoriser le plus noir des forfaits.
+Que de favoriser le plus noir des forfaits.
+Et m’empescher de voir le plus noir des forfaits.
+Que de favoriser le plus noir des forfaits.
 
-Et cette autre conduit dans celuy de la Reyne.
-Et cette autre conduit dans celuy de la Reyne.
-Et cette autre conduit dans celui de la Reine.
-Et cette autre conduit dans celuy de la Reine.
+Mais en sont ils aux mains~?***
+Mais en sont-ils aux mains~?***
+Mais en sont-ils aux mains~?***
+Mais en sont-ils aux mains~?***
+Mais en sont ils aux mains~?***
 
-Va chez elle. Dy-luy qu'importun à regret,
-Va chez elle. Dy-luy qu'importun à regret,
-Va chés elle. Di-lui qu'importun à regret,
-Va chez elle. Di-Luy qu'importun à regret,
+##OLYMPE.##
+##OLYMPE.##
+##OLYMPE.##
+##OLYMPE.##
+##OLYMPE.##
 
-J'ose luy demander un entretien secret.
-J'ose luy demander un entretien secret.
-J'ose luy demander un entretien secret.
-J'ose luy demander un entretien secret.
+***Du haut de la muraille ,
+***Du haut de la muraille,
+***Du haut de la muraille,
+***Du haut de la muraille,
+***Du haut de la muraille ,
 
-#Arsace#
-Vous, Seigneur, importun Vous cet Amy fidelle
-Vous, Seigneur, importun~? Vous cet Amy fidelle
-Vous, Seigneur, importun~? Vous cet Ami fidelle
-Vous, Seigneur, importun~? Vous cet Ami fidelle
+Ie les ay veûs déja tous rangez en bataille,
+Je les ay veûs déja tous rangez en bataille,
+Je les ay veûs déja tous rangez en bataille,
+Je les ay veûs déja tous rangez en bataille.
+Je les ay veûs déja tous rangez en bataille,
 
-Qu'un soin si gerereux interesse pour elle?
-Qu'un soin si gerereux interesse pour elle?
-Qu'un soin si gerereux interesse pour elle?
-Qu'un soin si gerereux interesse pour elle?
 
-Vous, cet Antiochus, son Amant autrefois;
-Vous, cet Antiochus, son Amant autrefois;
-Vous, cet Antiochus, son Amant autrefois;
-Vous, cet Antiochus, son Amant autrefois;
+I’ay veu déja le fer briller de toutes parts, 
+J’ay veu déja le fer briller de toutes parts, 
+J’ay veu déja le fer briller de toutes parts, 
+J’ay veu déja le fer briller de toutes parts, 
+I’ay veu déja le fer briller de toutes parts, 
 
-Vous, que l'Orient conte entre ses plus grands Rois?
-Vous, que l'Orient conte entre ses plus grands Rois?
-Vous, que l'Orient conte entre ses plus grands Rois?
-Vous, que l'Orient conte entre ses plus grands Rois:
+Et pour vous auertir, j’ay quitté les rempars.
+Et pour vous avertir, j’ay quitté les remparts.
+Et pour vous avertir, j’ay quitté les remparts.
+Et pour vous avertir, j’ay quitté les remparts.
+Et pour vous avertir, j’ay quitté les rempars.
 
-Quoy déja de Titus l'Epouse en espérance
-Quoi~! déja de Titus l'Epouse en espérance
-Quoy~! déja de Titus l'Epouse en espérance
-Quoy~! déja de Titus Epouse en espérance
+I’ay veu le fer en main Etéocle luy mesme~;  
+J’ay veu le fer en main Etéocle luy-mesme,  
+J’ay veu le fer en main Etéocle luy-mesme,  
+J’ay veu le fer en main Etéocle luy-même,  
+I’ay veu le fer en main Etéocle luy mesme~;  
 
-Ce rang entre elle et vous met-il tant de distance~?
-Ce rang entre elle et vous met-il tant de distance.
-Ce rang entre elle et vous met-il tant de distance~?
-Ce rang entre elle et vous met-il tant de distance~? 
 
-#Antiochus#
-Va, dis-je, et sans vouloir te charger d'autres soins,
-Va, dis-je, et sans vouloir te charger d'autres soins;
-Va, dis-je, et sans vouloir te charger d'autres soins?
-Va, dis-je, et sans savoir te charger d'autres soins?
+Il marche des premiers, & d’vne ardeur extréme
+Il marche des premiers, & d’une ardeur extrême,
+Il marche des premiers, & d’une ardeur extrême,
+Il marche des premiers, & d’une ardeur extrême,
+Il marche des premiers, & d’une ardeur extréme
 
-Voy si je puis bientost luy parler sans témoins.
-Voy si je puis bientost luy parler sans témoins.
-Voi si je puis bientost lui parler sans témoins.
-Voi si je puis bientost luy parler sans témoins.
+Il montre aux plus hardis à brauer le danger.
+Il montre aux plus hardis à braver le danger.
+Il montre aux plus hardis à braver le danger.
+Il montre aux plus hardis à braver le danger.
+Il montre aux plus hardis à braver le danger.
 
-###2###
-##Antiochus##
-#Antiochus#
-HE bien, Antiochus, es-tu toûjours le mesme ?
-HE bien, Antiochus, es-tu toûjours le mesme ?
-HE bien, Antiochus, es-tu toûjours le mesme ?
-HE bien, Antiochus, es-tu toûjours le mesme ?
+#IOCASTE.#
+#IOCASTE.#
+#JOCASTE.#
+#JOCASTE.#
+#JOCASTE.#
 
-Voy si je puis bientost luy parler sans témoins.
-Voy si je puis bientost luy parler sans témoins.
-Voi si je puis bientost lui parler sans témoins.
-Voi si je puis bientost luy parler sans témoins.
+N’en doutons plus, Olympe, ils se vont égorger,
+N’en doutons plus, Olympe, ils se vont égorger.
+N’en doutons plus, Olympe, ils se vont égorger.
+N’en doutons plus, Olympe, ils se vont égorger.
+N’en doutons plus, Olympe, ils se vont égorger,
 
-###3###
-##Antiochus##, ##Titus##, ##Bérénice##
-#Bérénice#
-Dans un mois, dans un an comment souffrirons-nous
-Dans un mois, dans un an, comment souffrirons-nous
-Dans un mois dans un an comment souffrirons-nous
-Dans un mois, dans un an comment souffrirez-vous
+**à vn Page.**
+**[/]**
+**[/]**
+**[/]**
 
-Seigneur que tant de mers me séparent de vous
-Seigneur que tant de mers me séparent de nous
-Seigneur, que tant de mers me séparent de vous
-Seigneur que tant de mers me séparent de vous
 
-Que le jour recommance et que le jours finisse
-Que le jour recommence et que le jours finisse
-Que le jour recommence et que le jours finisse
-Que le jour recommence et que le jours finisse
+Que l’on aille au plus viste auertir la Princesse,
+Que l’on coure avertir & haster la Princesse,
+Que l’on coure avertir & haster la Princesse,
+Que l’on coure avertir & haster la Princesse,
+Que l’on aille au plus viste avertir la Princesse,
 
-Sans que jamais Titus puisse voir Bérénice
-Sans que jamais Titus puisse voir Bérénice
-Sans que jamais Titus puisse voir Bérénice
-Sans que jamais Titus puisse voir Bérénice
+Ie l’attens. Iuste Ciel~! soustenez ma foiblesse,
+Je l’attens. Juste Ciel~! soûtenez ma foiblesse,
+Je l’attens. Juste Ciel~! soûtenez ma foiblesse,
+Je l’attens. Juste Ciel~! soûtenez ma foiblesse,
+Je l’attens. Juste Ciel~! soustenez ma foiblesse,
 
-Sans que de tour le jour je puisse voir Titus.
-Sans que de tour le jour je puisse voir Titus.
-Sans que de tour le jour je puisse voir Titus.
-Sans que de tour le jour, je puisse voir Titus!"""
+Il faut, il faut courir apres ces inhumains,
+Il faut, il faut courir apres ces inhumains,
+Il faut, il faut courir aprés ces inhumains,
+Il faut courir, Olympe, aprés ces inhumains,
+Il faut, il faut courir apres ces inhumains,
+
+Il les faut separer, ou mourir par leurs mains.
+Il les faut separer, ou mourir par leurs mains.
+Il les faut separer, ou mourir par leurs mains.
+Il les faut separer, ou mourir par leurs mains.
+Il les faut separer, ou mourir par leurs mains.
+
+Nous voicy donc, Olympe, à ce iour détestable
+Nous voicy donc, Olympe, à ce jour detestable
+Nous voici donc, Olympe, à ce jour detestable
+Nous voicy donc, helas~! à ce jour detestable
+Nous voicy donc, Olympe, à ce iour détestable
+
+
+Dont la seule frayeur me rendoit miserable,
+Dont la seule frayeur me rendoit miserable.
+Dont la seule frayeur me rendoit miserable.
+Dont la seule frayeur me rendoit miserable.
+Dont la seule frayeur me rendoit miserable,
+
+Ny prieres, ny pleurs, ne m’ont de rien seruy,
+Ni prieres, ni pleurs ne m’ont de rien servy,
+Ni prieres, ni pleurs ne m’ont de rien servi,
+Ni prieres, ni pleurs ne m’ont de rien servi,
+Ny prieres, ny pleurs, ne m’ont de rien servy,
+
+Et le couroux du sort vouloit estre assouuy.
+Et le courroux du sort vouloit estre assouvy.
+Et le courroux du sort vouloit estre assouvi.
+Et le courroux du sort vouloit estre assouvi.
+Et le couroux du sort vouloit estre assouvy.
+
+O toy, qui que tu sois qui rens le jour au monde,
+O toy, qui que tu sois, qui rens le jour au monde,
+O toy, qui que tu sois, qui rens le jour au monde,
+O toy, Soleil, ô toy, qui rens le jour au monde,
+O toy, qui que tu sois qui rens le jour au monde,
+
+Que ne l’as tu laissé dans vne nuit profonde~?
+Que ne l’as-tu laissé dans une nuit profonde~?
+Que ne l’as-tu laissé dans une nuit profonde~?
+Que ne l’as-tu laissé dans une nuit profonde~?
+Que ne l’as tu laissé dans une nuit profonde~?
+
+A de si noirs forfaits, prestes-tu tes rayons,
+A de si noirs forfaits, prestes-tu tes rayons,
+A de si noirs forfaits, prestes-tu tes rayons,
+A de si noirs forfaits, prestes-tu tes rayons,
+A de si noirs forfaits, prestes-tu tes rayons,
+
+Et peus-tu sans horreur voir ce que nous voyons~?
+Et peux-tu sans horreur voir ce que nous voyons~?
+Et peux-tu sans horreur voir ce que nous voyons~?
+Et peux-tu sans horreur voir ce que nous voyons~?
+Et peus-tu sans horreur voir ce que nous voyons~?
+
+Mais ces Monstres, helas~! ne t’espouuantent gueres,
+Mais ces Monstres, helas~! ne t’épouvantent gueres.
+Mais ces Monstres, helas~! ne t’épouvantent gueres.
+Mais ces Monstres, helas~! ne t’épouvantent gueres,
+Mais ces Monstres, helas~! ne t’espouvantent gueres,
+
+Le seul sang de Lajus les a rendus vulgaires~;
+Le seul sang de Lajus les a rendus vulgaires.
+Le seul sang de Lajus les a rendus vulgaires.
+La race de Lajus les a rendus vulgaires.
+Le seul sang de Lajus les a rendus vulgaires~;
+
+Tu peus voir sans frayeur les crimes de mes Fils,
+Tu peux voir sans frayeur les crimes de mes Fils,
+Tu peux voir sans frayeur les crimes de mes Fils,
+Tu peux voir sans frayeur les crimes de mes Fils,
+Tu peus voir sans frayeur les crimes de mes Fils,
+
+Apres ceux que le Pere & la Mere ont commis~: 
+Apres ceux que le Pere & la Mere ont commis~: 
+Aprés ceux que le Pere & la Mere ont commis~: 
+Aprés ceux que le Pere & la Mere ont commis~: 
+Apres ceux que le Pere & la Mere ont commis~: 
+
+Tu ne t’estonnes pas si mes Fils sont perfides, 
+Tu ne t’estonnes pas si mes Fils sont perfides, 
+Tu ne t’estonnes pas si mes Fils sont perfides, 
+Tu ne t’estonnes pas si mes Fils sont perfides, 
+Tu ne t’estonnes pas si mes Fils sont perfides, 
+
+S’ils sont tous deux méchans, & s’ils sont parricides,
+S’ils sont tous deux méchans, & s’ils sont parricides,
+S’ils sont tous deux méchans, & s’ils sont parricides,
+S’ils sont tous deux méchans, & s’ils sont parricides,
+S’ils sont tous deux méchans, & s’ils sont parricides,
+
+Tu sçais qu’ils sont sortis d’vn sang incestueux,
+Tu sçais qu’ils sont sortis d’un sang incestueux,
+Tu sçais qu’ils sont sortis d’un sang incestueux,
+Tu sçais qu’ils sont sortis d’un sang incestueux,
+Tu sçais qu’ils sont sortis d’un sang incestueux,
+
+Et tu t’estonnerois s’ils estoient vertueux.
+Et tu t’estonnerois s’ils estoient vertueux.
+Et tu t’estonnerois s’ils estoient vertueux.
+Et tu t’estonnerois s’ils estoient vertueux.
+Et tu t’estonnerois s’ils estoient vertueux.
+
+Ce sang en leur donnant la lumiere céleste,
+Ce sang en leur donnant la lumiere céleste,
+Leur donna pour le crime vne pente funeste, 
+Leur donna pour le crime une pente funeste, 
+
+Et leurs cœurs infectez de ce fatal poison,
+Et leurs cœurs infectez de ce fatal poison,
+S’ouurirent à la haine auant qu’à la raison.
+S’ouvrirent à la haine avant qu’à la raison.
+"""
 
     zone_saisie.delete("1.0", tk.END)
     zone_saisie.insert("1.0", exemple)
@@ -888,7 +1008,6 @@ def ouvrir_saisie_vers():
 
     # Remplace "fermer sans rien faire" par "Fermer", en copiant les vers
     tk.Button(boite, text="Fermer", command=lambda: traitement_saisie_vers("fin_scene")).pack(pady=(0, 10))
-
 
 def ouvrir_didascalie(callback_apres=None):
     fenetre_dida = tk.Toplevel()
@@ -2120,15 +2239,17 @@ def enregistrer_saisie():
 
 def formatter_persname_tei(noms):
     return ", ".join(
-        f'<persName ref="#{nettoyer_identifiant(n.strip(",. "))}">{n.strip(",. ")}</persName>'
+        f'<persName ref="#{nettoyer_identifiant(n)}">{n}</persName>'
         for n in noms
     )
 
+
 def formatter_persname_ekdosis(noms):
     return ", ".join(
-        f'\\pn{{#{nettoyer_identifiant(n.strip(",. "))}}}{{{n.strip(",. ")}}}'
+        f'\\pn{{#{nettoyer_identifiant(n)}}}{{{n}}}'
         for n in noms
     )
+
 
 def extraire_numero_et_titre(s):
     numero = int(s)
@@ -2260,7 +2381,6 @@ def previsualiser_html():
   xmlns:tei="http://www.tei-c.org/ns/1.0"
   exclude-result-prefixes="tei">
 
-
   <xsl:output method="html" encoding="UTF-8" indent="yes"/>
 
   <xsl:template match="/tei:TEI">
@@ -2341,7 +2461,6 @@ def previsualiser_html():
             font-style: italic;
             margin-bottom: 0.5em;
             margin-left: 11em;
-            margin-bottom: 1.5em;
           }
           .locuteur {
             font-variant: small-caps;
@@ -2416,22 +2535,19 @@ def previsualiser_html():
         </style>
       <link rel="icon" href="https://www.normandie.fr/sites/default/files/2021-03/favicon.ico" type="image/x-icon"/>
       </head>
-    <body>
-      <xsl:apply-templates select="tei:metadonnees"/>
-      <xsl:apply-templates select="tei:text"/>
-    </body>
-  </html>
-</xsl:template>
+      <body>
+        <xsl:apply-templates select="tei:metadonnees"/>
+        <xsl:apply-templates select="tei:text"/>
+      </body>
+    </html>
+  </xsl:template>
 
-<!-- Divers -->
 <xsl:template match="tei:seg">
   <xsl:apply-templates/>
 </xsl:template>
 
-<!-- =======================
-     ACTES : normalisé + variantes (centrés)
-     ======================= -->
-<!-- Acte : titre normalisé -->
+
+ <!-- Acte : titre normalisé -->
 <xsl:template match="tei:div[@type='act']">
   <div class="acte">[Acte <xsl:value-of select="@n"/>]</div>
   <xsl:apply-templates/>
@@ -2454,15 +2570,8 @@ def previsualiser_html():
   </div>
 </xsl:template>
 
-<!-- =======================
-     SCENES : normalisé + variantes (centrés)
-     ======================= -->
-<!-- Scène : titre normalisé -->
-<xsl:template match="tei:head[not(tei:app)]">
-  <div class="scene-titre">[<xsl:apply-templates/>]</div>
-</xsl:template>
-<!-- Scène : variantes -->
-<!-- Centrer les variantes de titre de scène -->
+  <!-- Titre de scène -->
+  <!-- Variante dans les titres de scène ou d’acte (dans <head>) -->
 <xsl:template match="tei:head/tei:app">
   <div class="scene-titre variation">
     <xsl:attribute name="data-tooltip">
@@ -2480,120 +2589,18 @@ def previsualiser_html():
   </div>
 </xsl:template>
 
-<!-- Apparatus (variante) sur les titres de scène : centré, classe scene-titre -->
-<xsl:template match="tei:div[@type='scene']/tei:app">
-  <div class="scene-titre variation">
-    <xsl:attribute name="data-tooltip">
-      <xsl:variable name="tooltip">
-        <xsl:for-each select="tei:rdg">
-          <xsl:value-of select="@wit"/>
-          <xsl:text>: </xsl:text>
-          <xsl:value-of select="normalize-space(.)"/>
-          <xsl:text>&#10;&#10;</xsl:text>
-        </xsl:for-each>
-      </xsl:variable>
-      <xsl:value-of select="$tooltip"/>
-    </xsl:attribute>
-    <xsl:apply-templates select="tei:lem"/>
-  </div>
-</xsl:template>
 
-<!-- =======================
-     PERSONNAGES (didascalie d'ouverture) : normalisé + variantes (centrés)
-     ======================= -->
-<!-- Si <stage> ne contient QUE des <persName>, encadre de crochets -->
-<xsl:template match="tei:stage[not(tei:app) and count(node()) = count(tei:persName)]">
-  <p class="didascalie">[
-    <xsl:for-each select="tei:persName">
-      <xsl:apply-templates/>
-      <xsl:if test="position() != last()">, </xsl:if>
-    </xsl:for-each>
-    ]
-  </p>
-</xsl:template>
-
-
-<!-- Liste avec variantes -->
-<xsl:template match="tei:stage/tei:app">
-  <div class="personnages variation">
-    <xsl:attribute name="data-tooltip">
-      <xsl:variable name="tooltip">
-        <xsl:for-each select="tei:rdg">
-          <xsl:value-of select="@wit"/>
-          <xsl:text>: </xsl:text>
-          <xsl:value-of select="normalize-space(.)"/>
-          <xsl:text>&#10;&#10;</xsl:text>
-        </xsl:for-each>
-      </xsl:variable>
-      <xsl:value-of select="$tooltip"/>
-    </xsl:attribute>
-    <xsl:apply-templates select="tei:lem"/>
-  </div>
-</xsl:template>
-
-<!-- =======================
-     Didascalies internes (dans le corps des scènes, NON personnages d'ouverture)
-     ======================= -->
-<xsl:template match="tei:stage[tei:app]">
-  <p class="didascalie variation">
+  <!-- DIDASCALIES - plusieurs cas de figure -->
+  
+  <!-- Liste de personnages (avec variantes en tooltip sur <app>) -->
+<xsl:template match="tei:stage[@type='characters']">
+  <div class="personnages">
     <xsl:apply-templates/>
-  </p>
-</xsl:template>
-<xsl:template match="tei:stage[not(parent::div[@type='scene']) and not(parent::div[@type='act']) and not(tei:app)]">
-  <p class="didascalie">
-    <xsl:apply-templates/>
-  </p>
-</xsl:template>
-
-<!-- =======================
-     Bloc de parole (locuteur + tirade)
-     ======================= -->
-<xsl:template match="tei:sp">
-  <div class="locuteur">
-    <xsl:choose>
-      <xsl:when test="tei:app">
-        <xsl:apply-templates select="tei:app"/>
-      </xsl:when>
-      <xsl:otherwise>
-        <xsl:value-of select="tei:speaker"/>
-      </xsl:otherwise>
-    </xsl:choose>
-  </div>
-  <div class="tirade">
-    <xsl:apply-templates select="tei:stage | tei:l"/>
   </div>
 </xsl:template>
 
-<!-- =======================
-     Vers (structure + numéros)
-     ======================= -->
-<xsl:template match="tei:l">
-  <div>
-    <xsl:attribute name="class">
-      <xsl:text>vers-container</xsl:text>
-      <xsl:if test="contains(@n, '.2')">
-        <xsl:text> vers-decale</xsl:text>
-      </xsl:if>
-    </xsl:attribute>
-    <xsl:choose>
-      <xsl:when test="number(@n) mod 5 = 0">
-        <span class="num-vers"><xsl:value-of select="@n"/></span>
-      </xsl:when>
-      <xsl:otherwise>
-        <span class="num-vers"></span>
-      </xsl:otherwise>
-    </xsl:choose>
-    <span class="texte-vers">
-      <xsl:apply-templates/>
-    </span>
-  </div>
-</xsl:template>
-
-<!-- =======================
-     Apparatus CRITIQUE général (variantes in-text)
-     ======================= -->
-<xsl:template match="tei:app">
-  <span class="variation">
+<xsl:template match="tei:stage[@type='characters']/tei:app">
+  <span class="variation" style="font-variant: small-caps;">
     <xsl:attribute name="data-tooltip">
       <xsl:variable name="tooltip">
         <xsl:for-each select="tei:rdg">
@@ -2609,7 +2616,87 @@ def previsualiser_html():
   </span>
 </xsl:template>
 
-<!-- Style pour <hi rend="italic"> etc. -->
+<!-- Didascalies ordinaires -->
+<xsl:template match="tei:stage">
+  <p class="didascalie"><em><xsl:apply-templates/></em></p>
+</xsl:template>
+
+  <!-- Bloc de parole -->
+  <xsl:template match="tei:sp">
+  <div class="locuteur">
+    <xsl:apply-templates select="tei:speaker"/>
+  </div>
+  <div class="tirade">
+    <xsl:apply-templates select="tei:stage | tei:l"/>
+  </div>
+</xsl:template>
+
+<xsl:template match="tei:speaker">
+  <span style="font-variant: small-caps;">
+    <xsl:apply-templates/>
+  </span>
+</xsl:template>
+
+<xsl:template match="tei:speaker/tei:app">
+  <span class="variation" style="font-variant: small-caps;">
+    <xsl:attribute name="data-tooltip">
+      <xsl:variable name="tooltip">
+        <xsl:for-each select="tei:rdg">
+          <xsl:value-of select="@wit"/>
+          <xsl:text>: </xsl:text>
+          <xsl:value-of select="normalize-space(.)"/>
+          <xsl:text>&#10;&#10;</xsl:text>
+        </xsl:for-each>
+      </xsl:variable>
+      <xsl:value-of select="$tooltip"/>
+    </xsl:attribute>
+    <xsl:apply-templates select="tei:lem"/>
+  </span>
+</xsl:template>
+
+
+  <!-- Vers -->
+  <xsl:template match="tei:l">
+    <div>
+      <xsl:attribute name="class">
+        <xsl:text>vers-container</xsl:text>
+        <xsl:if test="contains(@n, '.2')">
+          <xsl:text> vers-decale</xsl:text>
+        </xsl:if>
+      </xsl:attribute>
+      <xsl:choose>
+        <xsl:when test="number(@n) mod 5 = 0">
+          <span class="num-vers"><xsl:value-of select="@n"/></span>
+        </xsl:when>
+        <xsl:otherwise>
+          <span class="num-vers"></span>
+        </xsl:otherwise>
+      </xsl:choose>
+      <span class="texte-vers">
+        <xsl:apply-templates/>
+      </span>
+    </div>
+  </xsl:template>
+
+  <!-- Apparatus -->
+  <xsl:template match="tei:app">
+    <xsl:variable name="tooltip">
+      <xsl:for-each select="tei:rdg">
+        <xsl:variable name="t" select="normalize-space(.)"/>
+        <xsl:value-of select="@wit"/>
+        <xsl:text>: </xsl:text>
+        <xsl:value-of select="$t"/>
+        <xsl:text>&#10;&#10;</xsl:text>
+      </xsl:for-each>
+    </xsl:variable>
+    <span class="variation">
+      <xsl:attribute name="data-tooltip">
+        <xsl:value-of select="$tooltip"/>
+      </xsl:attribute>
+      <xsl:apply-templates select="tei:lem"/>
+    </span>
+  </xsl:template>
+
 <xsl:template match="tei:hi">
   <span>
     <xsl:attribute name="class">
@@ -2619,7 +2706,6 @@ def previsualiser_html():
   </span>
 </xsl:template>
 
-<!-- Métadonnées/crédits -->
 <xsl:template match="tei:metadonnees">
   <div class="bloc-credit">
     <div class="ligne-logos-gauche">
@@ -2628,16 +2714,16 @@ def previsualiser_html():
     <xsl:apply-templates select="tei:credit"/>
   </div>
 </xsl:template>
-<xsl:template match="tei:credit">
-  <div class="credit-line">
+
+
+  <xsl:template match="tei:credit">
+    <div class="credit-line">
     <xsl:apply-templates/>
   </div>
-</xsl:template>
+  </xsl:template>
 
-<!-- À SUPPRIMER : rdg seuls -->
-<xsl:template match="tei:rdg"/>
-
-<!-- FIN DU XSLT -->
+<!-- A SUPPRIMER - Ignorer les rdg dans le texte principal -->
+  <xsl:template match="tei:rdg"/>
 </xsl:stylesheet>
 '''
         xslt_root = LET.XML(xslt_str.encode('utf-8'))
@@ -2868,9 +2954,91 @@ def ajouter_espace_si_necessaire(mot):
         return mot + " "
     return mot + " "
 
-def aligner_variantes_par_mot(tokens, temoins, ref_index):
-    from collections import defaultdict
+def extraire_blocs_et_dialogue(lignes, nb_temoins):
+    def detecter_bloc(prefix, n):
+        blocs = []
+        indices = []
+        for i, l in enumerate(lignes):
+            l_strip = l.strip()
+            # Pour 3 dièses : commence par '###', finit par '###', MAIS pas 4 ou plus !
+            if prefix == "###":
+                if l_strip.startswith("###") and l_strip.endswith("###") and not l_strip.startswith(
+                        "####") and not l_strip.endswith("####"):
+                    blocs.append(l_strip)
+                    indices.append(i)
+            # Pour 4 dièses : idem, mais 4 dièses pile
+            elif prefix == "####":
+                if l_strip.startswith("####") and l_strip.endswith("####") and not l_strip.startswith(
+                        "#####") and not l_strip.endswith("#####"):
+                    blocs.append(l_strip)
+                    indices.append(i)
+            # Pour 2 dièses, cas particulier personnages
+            elif prefix == "##":
+                if l_strip.startswith("##") and not l_strip.startswith("###"):
+                    blocs.append(l_strip)
+                    indices.append(i)
+        if len(blocs) != n:
+            print(f"[AVERTISSEMENT] {len(blocs)} blocs trouvés pour préfixe {prefix}, {n} attendus.")
+        return blocs, indices
 
+    # 1. Bloc à 4 dièses (optionnel)
+    bloc_acte, idx_acte = detecter_bloc("####", nb_temoins)
+    bloc_scene, idx_scene = [], []
+    bloc_persos, idx_persos = [], []
+
+    start_idx = max(idx_acte) + 1 if bloc_acte else 0
+
+    # 2. Bloc à 3 dièses (obligatoire)
+    bloc_scene, idx_scene = detecter_bloc("###", nb_temoins)
+    start_idx = max(idx_scene) + 1 if bloc_scene else start_idx
+
+    # 3. Bloc à 2 dièses (obligatoire)
+    bloc_persos, idx_persos = detecter_bloc("##", nb_temoins)
+    start_idx = max(idx_persos) + 1 if bloc_persos else start_idx
+
+    # 4. Le reste : dialogue pur, à partir de start_idx
+    lignes_dialogue = lignes[start_idx:]
+
+    dialogues = []
+    i = 0
+    while i < len(lignes_dialogue):
+        bloc_locuteur = []
+        # Bloc de variantes de locuteur
+        while (
+            i < len(lignes_dialogue)
+            and lignes_dialogue[i].strip().startswith("#")
+            and lignes_dialogue[i].strip().endswith("#")
+        ):
+            bloc_locuteur.append(lignes_dialogue[i].strip())
+            i += 1
+
+        if bloc_locuteur:
+            if len(bloc_locuteur) != nb_temoins:
+                print(
+                    f"[ERREUR] Bloc de locuteur mal formé : {len(bloc_locuteur)} lignes détectées, {nb_temoins} attendues.")
+            # Texte associé à ce bloc de locuteur (jusqu’au prochain bloc #...#)
+            bloc_texte = []
+            while (
+                i < len(lignes_dialogue)
+                and not (lignes_dialogue[i].strip().startswith("#") and lignes_dialogue[i].strip().endswith("#"))
+            ):
+                bloc_texte.append(lignes_dialogue[i])
+                i += 1
+            dialogues.append((bloc_locuteur, "\n".join(bloc_texte)))
+        else:
+            i += 1
+
+    # Nettoyage optionnel : on vire les blocs vides (au cas où)
+    dialogues = [(loc, bloc) for loc, bloc in dialogues if bloc.strip()]
+
+    return (
+        bloc_acte if bloc_acte else None,
+        bloc_scene if bloc_scene else None,
+        bloc_persos if bloc_persos else None,
+        dialogues
+    )
+
+def aligner_variantes_par_mot(tokens, temoins, ref_index):
     ligne_tei = []
     ligne_ekdosis = []
 
@@ -2918,6 +3086,20 @@ def aligner_variantes_par_mot(tokens, temoins, ref_index):
 
     return ligne_tei, ligne_ekdosis
 
+def speaker_aligned_output(speaker_list, temoins, ref_index, aligner_fonction):
+    """
+    Retourne la bonne chaîne <speaker> ou \speaker pour la liste de locuteurs,
+    en tenant compte des variantes et en évitant les répétitions inutiles.
+    """
+    cleaned = [l.strip("#").strip() for l in speaker_list]
+    if all(n == cleaned[0] for n in cleaned):
+        # Tous identiques: un seul nom
+        return cleaned[0], cleaned[0]
+    else:
+        tokens = [[n] for n in cleaned]
+        ligne_tei, ligne_ekdosis = aligner_fonction(tokens, temoins, ref_index)
+        return "".join(ligne_tei).strip(), "".join(ligne_ekdosis).strip()
+
 def verifier_et_comparer():
     if valider_structure():
         comparer_etats()
@@ -2934,6 +3116,7 @@ def comparer_etats():
     texte = zone_saisie.get("1.0", tk.END).strip()
     lignes = texte.splitlines()
     sous_blocs_ignorés = set()
+    resultat_ekdosis = []
 
     dialogues = []
     current_acte = None
@@ -2942,148 +3125,46 @@ def comparer_etats():
     current_speaker = None
     current_bloc = []
 
-    i = 0
-    while i < len(lignes):
-        ligne = lignes[i].strip()
+    bloc_acte, bloc_scene, bloc_persos, dialogues = extraire_blocs_et_dialogue(lignes, nombre_temoins_predefini)
 
-        # ==== ACTE numérique (structure) ====
-        if re.match(r"\=\=\=\=\d+\=\=\=\=", ligne):  # ====1====
-            if current_bloc and current_speaker:
-                dialogues.append(
-                    (current_acte, current_scene, current_personnages, current_speaker, "\n".join(current_bloc))
-                )
-                current_bloc = []
-            current_acte = re.findall(r"\d+", ligne)[0]
-            current_scene = None
-            current_personnages = []
-            i += 1
-            continue
+    print("ACTE :", bloc_acte)
+    print("SCENE :", bloc_scene)
+    print("PERSOS :", bloc_persos)
+    print("DIALOGUES :", dialogues)
 
-        # === SCÈNE numérique (structure) ===
-        elif re.match(r"\=\=\=\d+\=\=\=", ligne):  # ===1===
-            print(f"[DEBUG SCENE AVANT TRAITEMENT] ACTE: {current_acte} / SCENE: {current_scene}")
-            if current_bloc and current_speaker:
-                dialogues.append(
-                    (current_acte, current_scene, current_personnages, current_speaker, "\n".join(current_bloc))
-                )
-                current_bloc = []
-            current_scene = re.findall(r"\d+", ligne)[0]
-            current_personnages = []
-            i += 1
-            print(f"[DEBUG SCENE APRES] ACTE: {current_acte} / SCENE: {current_scene}")
-            continue
+    # ------------- ACTE -------------
+    if bloc_acte:
+        tokens = [[l.strip("#").strip()] for l in bloc_acte]
+        ref_index = liste_ref.current()
+        temoins = [chr(65 + i) for i in range(nombre_temoins_predefini)]
+        ligne_tei, ligne_ekdosis = aligner_variantes_par_mot(tokens, temoins, ref_index)
+        # Injection dans le résultat TEI (juste après ouverture du <div type="act">)
+        tei_head = '    <head>' + "".join(ligne_tei).strip() + '</head>'
+        # (garde le résultat à réinjecter juste après l’ouverture de l’acte)
+    else:
+        tei_head = None
 
-        # Lignes à dièses ####ACTE...####, ###SCENE...###, etc : ON LES STOCKE
-        # Bloc ACTE à variantes (####...####)
-        elif ligne.startswith("####") and ligne.endswith("####"):
-            if current_bloc and current_speaker:
-                dialogues.append(
-                    (current_acte, current_scene, current_personnages, current_speaker, "\n".join(current_bloc))
-                )
-                current_bloc = []
-            bloc_acte = []
-            while i < len(lignes) and lignes[i].strip().startswith("####") and lignes[i].strip().endswith("####"):
-                bloc_acte.append(lignes[i].strip())
-                i += 1
-            # Ajout du bloc d'acte à variantes dans dialogues, avec current_acte, etc.
-            dialogues.append(
-                (current_acte, current_scene, current_personnages, None, "\n".join(bloc_acte))
-            )
-            continue
+    # ------------- SCENE -------------
+    if bloc_scene:
+        tokens = [[l.strip("#").strip()] for l in bloc_scene]
+        ref_index = 0
+        temoins = [chr(65 + i) for i in range(nombre_temoins_predefini)]
+        ligne_tei_scene, ligne_ekdosis_scene = aligner_variantes_par_mot(tokens, temoins, ref_index)
+        tei_scene_head = '    <head>' + "".join(ligne_tei_scene).strip() + '</head>'
+    else:
+        tei_scene_head = None
 
-        # Bloc SCENE à variantes (###...###)
-        elif ligne.startswith("###") and ligne.endswith("###"):
-            if current_bloc and current_speaker:
-                dialogues.append(
-                    (current_acte, current_scene, current_personnages, current_speaker, "\n".join(current_bloc))
-                )
-                current_bloc = []
-            bloc_scene = []
-            while i < len(lignes) and lignes[i].strip().startswith("###") and lignes[i].strip().endswith("###"):
-                bloc_scene.append(lignes[i].strip())
-                i += 1
-            dialogues.append(
-                (current_acte, current_scene, current_personnages, None, "\n".join(bloc_scene))
-            )
-            continue
+    # ------------- PERSONNAGES -------------
+    if bloc_persos:
+        tokens = [[l.replace("#", "").strip()] for l in bloc_persos]
+        ref_index = 0
+        temoins = [chr(65 + i) for i in range(nombre_temoins_predefini)]
+        ligne_tei_persos, ligne_ekdosis_persos = aligner_variantes_par_mot(tokens, temoins, ref_index)
+        tei_persos_stage = "    <stage type='personnages'>" + "".join(ligne_tei_persos).strip() + '</stage>'
+    else:
+        tei_persos_stage = None
 
-        elif re.match(r"(\#\#[^#]+\#\#)+", ligne):
-            if current_bloc and current_speaker:
-                dialogues.append(
-                    (current_acte, current_scene, current_personnages, current_speaker, "\n".join(current_bloc))
-                )
-                current_bloc = []
-            bloc_personnages = []
-            while i < len(lignes) and re.match(r"(\#\#[^#]+\#\#)+", lignes[i].strip()):
-                bloc_personnages.append(lignes[i].strip())
-                i += 1
-            if len(bloc_personnages) == nombre_temoins_predefini:
-                index_ref = liste_ref.current()
-                ligne_ref = bloc_personnages[index_ref]
-                personnages = re.findall(r"\#\#([^\#\#]+)\#\#", ligne_ref)
-                # CHAMP 5 : on stocke la chaîne jointe, PAS la liste
-                dialogues.append(
-                    (current_acte, current_scene, personnages, None, "\n".join(bloc_personnages))
-                )
-            else:
-                print(
-                    f"[ERREUR] Bloc de personnages mal formé : {len(bloc_personnages)} lignes détectées, {nombre_temoins_predefini} attendues.")
-            continue
-
-
-
-        # Bloc LOCUTEUR multi-témoins (#...#)
-        elif ligne.startswith("#") and ligne.endswith("#"):
-            if current_bloc and current_speaker:
-                dialogues.append(
-                    (current_acte, current_scene, current_personnages, current_speaker, "\n".join(current_bloc))
-                )
-                current_bloc = []
-            bloc_locuteur = []
-            while i < len(lignes) and lignes[i].strip().startswith("#") and lignes[i].strip().endswith("#"):
-                bloc_locuteur.append(lignes[i].strip())
-                i += 1
-            if len(bloc_locuteur) == nombre_temoins_predefini:
-                index_ref = liste_ref.current()
-                ligne_ref = bloc_locuteur[index_ref]
-                current_speaker = ligne_ref[1:-1].strip()
-                current_bloc = []
-                current_bloc.extend(bloc_locuteur)
-            else:
-                print(
-                    f"[ERREUR] Bloc de locuteur mal formé : {len(bloc_locuteur)} lignes détectées, {nombre_temoins_predefini} attendues.")
-            continue
-
-        # Ligne de texte normale (vers, didascalies, etc)
-        elif ligne:
-            current_bloc.append(ligne)
-            i += 1
-            continue
-
-        # Ligne vide
-        elif not ligne and current_bloc:
-            current_bloc.append("")
-            i += 1
-            continue
-
-        i += 1  # fallback général (sécurité)
-
-    # Fin du texte : stocker le dernier bloc s'il reste du contenu
-    if current_bloc and current_speaker:
-        dialogues.append((current_acte, current_scene, current_personnages, current_speaker, "\n".join(current_bloc)))
-
-    # DEBUG
-    print("  Dialogues", dialogues)
-    print("-" * 40)
-    for d in dialogues:
-        print("[DEBUG] Dialogue extrait:")
-        print("  Acte:", d[0])
-        print("  Scène:", d[1])
-        print("  Personnages:", d[2])
-        print("  Locuteur:", d[3])
-        print("  Bloc:\n", d[4])
-        print("-" * 40)
-
+    print('DIALOGUES =' , dialogues)
     try:
         numero_depart = int(entree_vers.get())
     except ValueError:
@@ -3094,10 +3175,11 @@ def comparer_etats():
     titre = globals().get("titre_piece", "").strip() or "Titre non renseigné"
     auteur = globals().get("auteur_nom_complet", "").strip() or "Auteur inconnu"
     editeur = globals().get("editeur_nom_complet", "").strip() or "Éditeur scientifique inconnu"
-    acte = globals().get("numero_acte", "").strip() or "?"
-    scene = globals().get("numero_scene", "").strip() or "?"
+    num_acte = globals().get("numero_acte", "").strip() or "?"
+    num_scene = globals().get("numero_scene", "").strip() or "?"
 
     # Construction sécurisée du header TEI
+    resultat_ekdosis = []
     resultat_tei = [
         '<?xml version="1.0" encoding="UTF-8"?>',
         '<TEI xmlns="http://www.tei-c.org/ns/1.0">',
@@ -3114,7 +3196,7 @@ def comparer_etats():
         f'       <date>{date.today().strftime("%d %B %Y")}</date>',
         '      </publicationStmt>',
         '      <sourceDesc>',
-        f'        <p>généré par Ekdosis-TEI Studio – Acte {acte}, Scène {scene}</p>',
+        f'        <p>généré par Ekdosis-TEI Studio – Acte {num_acte}, Scène {num_scene}</p>',
         '      </sourceDesc>',
         '    </fileDesc>',
         '  </teiHeader>',
@@ -3122,125 +3204,42 @@ def comparer_etats():
         '    <body>'
     ]
 
-    resultat_ekdosis = []
-
     vers_courant = numero_depart
-    current_acte_out = None
-    current_scene_out = None
     dernier_locuteur = None
-    changement_locuteur_deja_traite = False
+    changement_locuteur_deja_traite = False  # ← ajoute cette ligne ici
 
-    # Tampons pour variantes de titres
-    variante_acte = None
-    variante_acte_ekdosis = None
-    variante_scene = None
-    variante_scene_ekdosis = None
+    resultat_tei.append(f'<div type="act" n="{num_acte}">')
+    if tei_head:
+        resultat_tei.append(tei_head)
 
-    for acte, scene, personnages, speaker, bloc in dialogues:
-        lignes = [l for l in bloc.strip().splitlines() if l.strip()]
+    resultat_tei.append(f'  <div type="scene" n="{num_scene}">')
+    if tei_scene_head:
+        resultat_tei.append(tei_scene_head)
+    if tei_persos_stage:
+        resultat_tei.append(tei_persos_stage)
 
-        # ---------- Gestion des tampons pour variantes titre ----------
-        # -- Bloc ACTE (####...####) -- (stockage du tampon)
-        if len(lignes) == nombre_temoins_predefini and all(
-                l.startswith("####") and l.endswith("####") for l in lignes
-        ):
-            tokens = [[l.strip("#").strip()] for l in lignes]
-            ref_index = liste_ref.current()
-            temoins = [chr(65 + i) for i in range(nombre_temoins_predefini)]
-            ligne_tei, ligne_ekdosis = aligner_variantes_par_mot(tokens, temoins, ref_index)
-            variante_acte = '    ' + "".join(ligne_tei)
-            variante_acte_ekdosis = '    \\stage{' + "".join(ligne_ekdosis) + '}'
-            continue
-
-        # -- Bloc SCENE (###...###) -- (stockage du tampon)
-        if len(lignes) == nombre_temoins_predefini and all(
-                l.startswith("###") and l.endswith("###") for l in lignes
-        ):
-            tokens = [[l.strip("#").strip()] for l in lignes]
-            ref_index = liste_ref.current()
-            temoins = [chr(65 + i) for i in range(nombre_temoins_predefini)]
-            ligne_tei, ligne_ekdosis = aligner_variantes_par_mot(tokens, temoins, ref_index)
-
-            # On force l'encapsulation dans <app> s'il n'y a pas déjà une balise
-            texte_variante = "".join(ligne_tei).strip()
-            if not texte_variante.strip().startswith("<app"):
-                wit = " ".join(f"#{t}" for t in temoins)
-                variante_scene = f'    <app>\n      <lem wit="{wit}">{texte_variante}</lem>\n    </app>'
-            else:
-                variante_scene = '    ' + texte_variante
-
-            # Pour Ekdosis, à adapter selon ce que tu veux faire
-            variante_scene_ekdosis = '    \\stage{' + "".join(ligne_ekdosis) + '}'
-            continue
-
-        # ---------- Traitement structurel ----------
-        if acte is not None and scene is not None and personnages:
-            # -- Ouverture acte --
-            if acte != current_acte_out:
-                if current_acte_out is not None:
-                    resultat_tei.append("  </div>")
-                    resultat_tei.append("</div>")
-                    resultat_ekdosis.append("% Fin de la scène")
-                    resultat_ekdosis.append("% Fin de l'acte")
-
-                current_acte_out = acte
-                num, titre = extraire_numero_et_titre(acte)
-
-                # Préparation ouverture
-                balise_ouverture_acte = f'<div type="act" n="{num}">'
-                balise_ouverture_acte_ekdosis = f'\\ekddiv{{head=ACTE {titre.upper()}, type=act, n={num}, depth=2}}\n'
-
-                # Ajout dans l’ordre
-                resultat_tei.append(balise_ouverture_acte)
-                if variante_acte:
-                    resultat_tei.append(variante_acte)
-                    variante_acte = None
-
-                resultat_ekdosis.append(balise_ouverture_acte_ekdosis)
-                if variante_acte_ekdosis:
-                    resultat_ekdosis.append(variante_acte_ekdosis)
-                    variante_acte_ekdosis = None
-
-                current_scene_out = None
-
-            # -- Ouverture scène --
-            if scene != current_scene_out:
-                if current_scene_out is not None:
-                    resultat_tei.append("  </sp>")
-                    resultat_tei.append("  </div>")
-                    resultat_ekdosis.append("      \\end{ekdverse}\n    \\end{speech}   % Fin de la scène")
-
-                current_scene_out = scene
-                dernier_locuteur = None
-                changement_locuteur_deja_traite = False
-
-                balise_ouverture_scene = f'  <div type="scene" n="{scene}">\n    <head>Scène {scene}</head>'
-                balise_ouverture_scene_ekdosis = f'\\ekddiv{{head=Scène {scene}, type=scene, n={scene}, depth=3}}\n'
-
-                resultat_tei.append(balise_ouverture_scene)
-                if variante_scene:
-                    resultat_tei.append(variante_scene)
-                    variante_scene = None
-
-                resultat_ekdosis.append(balise_ouverture_scene_ekdosis)
-                if variante_scene_ekdosis:
-                    resultat_ekdosis.append(variante_scene_ekdosis)
-                    variante_scene_ekdosis = None
-
-                if personnages:
-                    pers_tei = formatter_persname_tei(personnages)
-                    pers_ekdosis = formatter_persname_ekdosis(personnages)
-                    resultat_tei.append(f'    <stage>{pers_tei}.</stage>')
-                    resultat_ekdosis.append(f'    \\stage{{{pers_ekdosis}}}')
+    for speaker, bloc in dialogues:
+        speakers = speaker if isinstance(speaker, list) else [speaker]
 
         sous_blocs = bloc.split("\n\n")
-        if speaker != dernier_locuteur:
+
+        if speakers != dernier_locuteur:
             if dernier_locuteur is not None:
                 resultat_tei.append("    </sp>")
                 resultat_ekdosis.append("      \\end{ekdverse}\n    \\end{speech}")
-            resultat_tei.append(f'    <sp>\n      <speaker>{speaker}</speaker>')
-            resultat_ekdosis.append("    \\begin{speech}\n      \\speaker{" + speaker + "}\n      \\begin{ekdverse}")
-            dernier_locuteur = speaker
+
+            # ALIGNE VARIANTES
+            tokens = [[l.strip("#").strip()] for l in speakers]
+            temoins = [chr(65 + i) for i in range(len(speakers))]
+            ref_index = 0  # ou liste_ref.current()
+            ligne_tei, ligne_ekdosis = aligner_variantes_par_mot(tokens, temoins, ref_index)
+            tei_speaker = "".join(ligne_tei).strip()
+            ekdosis_speaker = "".join(ligne_ekdosis).strip()
+
+            resultat_tei.append(f'    <sp>\n      <speaker>{tei_speaker}</speaker>')
+            resultat_ekdosis.append(
+                "    \\begin{speech}\n      \\speaker{" + ekdosis_speaker + "}\n      \\begin{ekdverse}")
+            dernier_locuteur = speakers  # On mémorise toujours la liste (pour la prochaine itération)
 
         for sous_bloc in sous_blocs:
             sous_bloc_texte = normaliser_bloc(sous_bloc)
@@ -3250,50 +3249,23 @@ def comparer_etats():
 
             lignes = [l.strip() for l in sous_bloc.strip().splitlines() if l.strip()]
 
-            # -- Bloc PERSONNAGES (##...##) --
-            print("DEBUG lignes :", lignes)
-            print("DEBUG nombre_temoins_predefini :", nombre_temoins_predefini)
-            for l in lignes:
-                print("DEBUG ligne individuelle :", repr(l))
-                print("re.match :", re.match(r"(\#\#[^#]+\#\#)+", l))
-            if len(lignes) == nombre_temoins_predefini and all(re.match(r"(\#\#[^#]+\#\#)+", l) for l in lignes):
-                tokens = [[re.sub(r"\s+", " ", l.replace("##", "").strip())] for l in lignes]
-                ref_index = liste_ref.current()
-                temoins = [chr(65 + i) for i in range(nombre_temoins_predefini)]
-                ligne_tei, ligne_ekdosis = aligner_variantes_par_mot(tokens, temoins, ref_index)
-                print("DEBUG tokens :", tokens)
-                print("DEBUG ligne_tei :", ligne_tei)
-                resultat_tei.append('    <stage>' + "".join(ligne_tei) + '</stage>')
-                resultat_ekdosis.append('    \\stage{' + "".join(ligne_ekdosis) + '}')
-                continue
-
-            # -- Bloc LOCUTEUR (#...#) --
-            if len(lignes) == nombre_temoins_predefini and all(l.startswith("#") and l.endswith("#") for l in lignes):
-                tokens = [[l.strip("#").strip()] for l in lignes]
-                ref_index = liste_ref.current()
-                temoins = [chr(65 + i) for i in range(nombre_temoins_predefini)]
-                ligne_tei, ligne_ekdosis = aligner_variantes_par_mot(tokens, temoins, ref_index)
-                resultat_tei.append('    ' + "".join(ligne_tei))
-                resultat_ekdosis.append('      \\stage{' + "".join(ligne_ekdosis) + '}')
-                continue
-
-            # -- Autres blocs (vers, etc.) --
-            # Ici tu continues ton traitement usuel
-
-            # Bloc de didascalies (un pour chaque témoin)
-            if len(lignes) == nombre_temoins_predefini and all(l.startswith("**") and l.endswith("**") for l in lignes):
+            #Didascalies
+            if all(l.startswith('**') for l in lignes) and len(lignes):
+                print('didascalie reperee')
                 temoins = [chr(65 + i) for i in range(len(lignes))]
-                tokens = [l[2:-2].strip().split() for l in lignes]  # on enlève les **
+                # On retire *toutes* les étoiles au début et à la fin (même si >2), puis on strip
+                didascalies_nettoyees = [re.sub(r'^\*+\s*|\s*\*+$', '', l).strip() for l in lignes]
+                # Pour les didascalies, en général, tu veux un alignement "texte entier" (pas split par mot)
+                tokens = [[d] for d in didascalies_nettoyees]
                 ref_index = liste_ref.current()
 
                 ligne_tei, ligne_ekdosis = aligner_variantes_par_mot(tokens, temoins, ref_index)
 
-                # Résultat final TEI
-                resultat_tei.append('      <stage>\n' + "".join(ligne_tei) + '      </stage>\n')
-
-                # Résultat final Ekdosis
+                resultat_tei.append('      <stage type="stage-direction">\n' + "".join(ligne_tei) + '      </stage>\n')
                 resultat_ekdosis.append('      \\didas{')
                 resultat_ekdosis.append("".join(ligne_ekdosis) + '      }')
+
+                # NE PAS toucher à vers_courant ici ! On ne l’incrémente ni le décrémente.
                 continue
 
             # Cas du vers partagé : *** à la fin (bloc A) et *** au début (bloc B)
@@ -3324,7 +3296,7 @@ def comparer_etats():
                 trouver_texte = False
                 speaker_suivant = None
 
-                for acte2, scene2, persos2, speaker2, bloc2 in dialogues:
+                for speaker2, bloc2 in dialogues:
                     if trouver_debut:
                         lignes_brutes = bloc2.strip().splitlines()
                         lignes_b_nettoyees = []
@@ -3358,10 +3330,22 @@ def comparer_etats():
 
                     # ✅ Changement de locuteur si nécessaire
                     if speaker_suivant and speaker_suivant != dernier_locuteur:
-                        resultat_tei.append("    </sp>\n    <sp>\n      <speaker>{}</speaker>".format(speaker_suivant))
+                        # Pour éviter tout bug, assure que speaker_suivant est une liste :
+                        speakers = speaker_suivant if isinstance(speaker_suivant, list) else [speaker_suivant]
+                        temoins = [chr(65 + i) for i in range(len(speakers))]
+                        ref_index = liste_ref.current()
+
+                        # On aligne ou on prend direct, selon uniformité
+                        tei_speaker, ekdosis_speaker = speaker_aligned_output(
+                            speakers, temoins, ref_index, aligner_variantes_par_mot
+                        )
+
+                        # Fermeture puis ouverture de balises de locuteur
+                        resultat_tei.append(f"    </sp>\n    <sp>\n      <speaker>{tei_speaker}</speaker>")
                         resultat_ekdosis.append("      \\end{ekdverse}\n    \\end{speech}")
                         resultat_ekdosis.append(
-                            f'    \\begin{{speech}}\n      \\speaker{{{speaker_suivant}}}\n      \\begin{{ekdverse}}')
+                            f"    \\begin{{speech}}\n      \\speaker{{{ekdosis_speaker}}}\n      \\begin{{ekdverse}}"
+                        )
                         dernier_locuteur = speaker_suivant  # mise à jour
                         changement_locuteur_deja_traite = True
 
@@ -3413,18 +3397,16 @@ def comparer_etats():
 
         changement_locuteur_deja_traite = False  # ← réinitialisation à chaque itération
 
-    if current_scene_out:
-        resultat_tei.append("    </sp>")
-        resultat_tei.append("    </div>")
-        resultat_ekdosis.append("      \\end{ekdverse}\n    \\end{speech}   % Fin de la scène")
-
-    if current_acte_out is not None:
-        resultat_tei.append("</div>")
-        resultat_ekdosis.append("% Fin de l'acte")
+    resultat_tei.append('</sp>')
+    if bloc_scene:
+        resultat_tei.append('</div>')
+    if bloc_acte:
+        resultat_tei.append('</div>')
 
     zone_resultat_tei.delete("1.0", tk.END)
 
     resultat_tei.append('</body></text>')
+    ### Ci-dessousn comportement normal de fermeture
     resultat_tei.append('</TEI>')
     zone_resultat_tei.insert(tk.END, "\n".join(resultat_tei) + "\n")
 
@@ -3439,6 +3421,7 @@ def comparer_etats():
             zone_resultat_html.insert(tk.END, html)
         except Exception as e:
             print(f"[Prévisualisation HTML] Erreur : {e}")
+
 
 # Interface Tkinter
 fenetre = tk.Tk()
