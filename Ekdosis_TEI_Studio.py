@@ -2330,10 +2330,15 @@ def previsualiser_html():
             margin-top: 1.5em;
             margin-bottom: 0.5em;
             margin-left: 11em;
-            text-align: center;
           }
           .titre-piece {
             font-style: italic;
+          }
+          .acte-titre{
+            font-weight: bold;
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+            margin-left: 11em;
           }
           .scene-titre {
             font-style: italic;
@@ -2424,10 +2429,17 @@ def previsualiser_html():
   <xsl:apply-templates/>
 </xsl:template>
 
+ <!-- ACTES ET SCENES -->
+ <!-- Acte : titre sans variante -->
+<xsl:template match="tei:div[@type='act']/tei:head">
+  <div class="acte-titre">
+    <xsl:apply-templates/>
+  </div>
+</xsl:template>
 
  <!-- Acte : titre normalisé -->
 <xsl:template match="tei:div[@type='act']">
-  <div class="acte">[Acte <xsl:value-of select="@n"/>]</div>
+  <div class="acte-titre">[Acte <xsl:value-of select="@n"/>]</div>
   <xsl:apply-templates/>
 </xsl:template>
 <!-- Acte : variantes -->
@@ -2449,6 +2461,13 @@ def previsualiser_html():
 </xsl:template>
 
   <!-- Titre de scène -->
+ <!-- Acte : scène sans variante -->
+<xsl:template match="tei:div[@type='scene']/tei:head">
+  <div class="scene-titre">
+    <xsl:apply-templates/>
+  </div>
+</xsl:template>
+
   <!-- Variante dans les titres de scène ou d’acte (dans <head>) -->
 <xsl:template match="tei:head/tei:app">
   <div class="scene-titre variation">
@@ -2839,6 +2858,8 @@ def ajouter_espace_si_necessaire(mot):
 def extraire_blocs_et_dialogue(lignes, nb_temoins):
     def detecter_bloc(prefix, n):
         blocs = []
+        bloc_acte = []
+        bloc_scene = []
         indices = []
         for i, l in enumerate(lignes):
             l_strip = l.strip()
@@ -3095,6 +3116,7 @@ def comparer_etats():
     changement_locuteur_deja_traite = False  # ← ajoute cette ligne ici
 
     if bloc_acte:
+        print("DEBUG: bloc_acte =", bloc_acte)
         resultat_tei.append(f'<div type="act" n="{num_acte}">')
 
     if tei_head:
