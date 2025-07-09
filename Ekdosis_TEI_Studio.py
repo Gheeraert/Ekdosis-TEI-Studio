@@ -35,276 +35,147 @@ from datetime import date
 import locale
 import json
 
+
 def importer_echantillon():
-    exemple = """====1====
-####ACTE I.####
-####ACTE I.####
-####ACTE I.####
-####ACTE PREMIER.####
-####ACTE I.####
+    exemple = """####acte 1####
+####acte 1####
+####acte 1####
+####acte 1####
 
-===1===
-###SCENE PREMIERE.###
-###SCENE PREMIERE.###
-###SCENE PREMIERE.###
-###SCENE PREMIERE.###
-###SCENE PREMIERE.###
+###scene 1###
+###scene 1###
+###scene 1###
+###scene 1###
 
-==Iocaste Olympe==
-##IOCASTE,## ##OLYMPE.##
-##IOCASTE,## ##OLYMPE.##.
-##JOCASTE,## ##OLYMPE.##
-##JOCASTE,## ##OLYMPE.##
-##JOCASTE,## ##OLYMPE.##
+##Antiochus## ##Arsace##
+##Antiochus## ##Arsace##
+##Antiochus## ##Arsace##
+##Antiochus## ##Arsace##
 
-=1=
-#IOCASTE#
-#IOCASTE.#
-#IOCASTE.#
-#JOCASTE.#
-#JOCASTE#
+#Antiochus#
+#Antiochus#
+#Antiochus#
+#Antiochus#
 
+**Antiochus entre**
+**Antiochus entre**
+**Antiochus entre**
+**Antiochus entre**
 
-ILs sont sortis, Olympe~? Ah mortelles douleurs~!
-ILs sont sortis, Olympe~? Ah mortelles douleurs~!
-ILs sont sortis, Olympe~? Ah mortelles douleurs~!
-ILs sont sortis, Olympe~? Ah mortelles douleurs~!
-ILs sont sortis, Olympe~? Ah mortelles douleurs~!
+Arrestons un moment. La pompe de ces lieux,
+Arrestons un moment. La pompe de ces lieux,
+Arrestons un moment. La pompe de ces lieux,
+Arrestons un moment. La pompe de ces lieux,
 
-Qv’vn moment de repos me va couster de pleurs~!
-Qu’un moment de repos me va couster de pleurs,
-Qu’un moment de repos me va couster de pleurs,
-Qu’un moment de repos me va couster de pleurs~!
-Qu’un moment de repos me va couster de pleurs~!
+Je le voy bien, Arsace, est nouvelle à tes yeux
+Je le voy bien, Arsace, est nouvelle à tes yeux
+Je le vois bien, Arsace, est nouvelle à tes yeux
+Je le vos bien, Arsace, est nouvelle à tes yeux
 
-Mes yeux depuis six mois estoient ouuerts aux larmes,
-Mes yeux depuis six mois estoient ouverts aux larmes~!
-Mes yeux depuis six mois estoient ouverts aux larmes~?
-Mes yeux depuis six mois estoient ouverts aux larmes~;
-Mes yeux depuis six mois estoient ouverts aux larmes,
+Souvent ce Cabinet***
+Souvent ce Cabinet***
+Souvent ce Cabinet***
+Souvent ce Cabinet***
 
-Et le sommeil les ferme en de telles allarmes~?
-Et le sommeil les ferme en de telles allarmes~?
-Et le sommeil les ferme en de telles allarmes~?
-Et le sommeil les ferme en de telles allarmes~?
-Et le sommeil les ferme en de telles allarmes~?
+#Arsace#
+#Arsace#
+#Arsace#
+#Arsace#
 
-Il deuoit bien plutost les fermer pour jamais,
-Il devoit bien plûtost les fermer pour jamais,
-Il devoit bien plûtost les fermer pour jamais,
-Puisse plûtost la mort les fermer pour jamais,
-Il devoit bien plutost les fermer pour jamais,
+***superbe & solitaire,
+***superbe & solitaire,
+***superbe & solitaire,
+***superbe & solitaire,
 
-Que de fauoriser le plus noir des forfaits.
-Que de favoriser le plus noir des forfaits.
-Que de favoriser le plus noir des forfaits.
-Et m’empescher de voir le plus noir des forfaits.
-Que de favoriser le plus noir des forfaits.
+#Antiochus#
+#Antiochus#
+#Antiochus#
+#Antiochus#
 
-Mais en sont ils aux mains~?***
-Mais en sont-ils aux mains~?***
-Mais en sont-ils aux mains~?***
-Mais en sont-ils aux mains~?***
-Mais en sont ils aux mains~?***
+Des secrets de Titus est le dépositaire.
+Des secrets de Titus est le dépositaire.
+Des secrets de Titus est le dépositaire.
+Des secrets de Titus est le dépositaire.
 
-##OLYMPE.##
-##OLYMPE.##
-##OLYMPE.##
-##OLYMPE.##
-##OLYMPE.##
+C'est icy quelquefois qu'il se cache à sa Cour,
+C'est icy quelquefois qu'il se cache à sa Cour,
+C'est ici quelquefois qu'il se cache à sa Cour,
+C'est ici quelquefois qu'il se cache à sa Cour,    
 
-***Du haut de la muraille ,
-***Du haut de la muraille,
-***Du haut de la muraille,
-***Du haut de la muraille,
-***Du haut de la muraille ,
+Lors qu'il vient à la Reyne expliquer son amour
+Lors qu'il vient à la Reine expliquer son amour.
+Lors qu'il vient à la Reine expliquer son amour.
+Lors qu'il vient à la Reine expliquer son amour.
 
-Ie les ay veûs déja tous rangez en bataille,
-Je les ay veûs déja tous rangez en bataille,
-Je les ay veûs déja tous rangez en bataille,
-Je les ay veûs déja tous rangez en bataille.
-Je les ay veûs déja tous rangez en bataille,
+De son Apartement cette porte est prochaine
+De son Apartement cette porte est prochaine
+De son Apartement cette porte est prochaine
+De son Appartement cette porte est prochaine
 
+Et cette autre conduit dans celuy de la Reyne.
+Et cette autre conduit dans celuy de la Reyne.
+Et cette autre conduit dans celui de la Reine.
+Et cette autre conduit dans celuy de la Reine.
 
-I’ay veu déja le fer briller de toutes parts, 
-J’ay veu déja le fer briller de toutes parts, 
-J’ay veu déja le fer briller de toutes parts, 
-J’ay veu déja le fer briller de toutes parts, 
-I’ay veu déja le fer briller de toutes parts, 
+Va chez elle. Dy-luy qu'importun à regret,
+Va chez elle. Dy-luy qu'importun à regret,
+Va chés elle. Di-lui qu'importun à regret,
+Va chez elle. Di-Luy qu'importun à regret,
 
-Et pour vous auertir, j’ay quitté les rempars.
-Et pour vous avertir, j’ay quitté les remparts.
-Et pour vous avertir, j’ay quitté les remparts.
-Et pour vous avertir, j’ay quitté les remparts.
-Et pour vous avertir, j’ay quitté les rempars.
+J'ose luy demander un entretien secret.
+J'ose luy demander un entretien secret.
+J'ose luy demander un entretien secret.
+J'ose luy demander un entretien secret.
 
-I’ay veu le fer en main Etéocle luy mesme~;  
-J’ay veu le fer en main Etéocle luy-mesme,  
-J’ay veu le fer en main Etéocle luy-mesme,  
-J’ay veu le fer en main Etéocle luy-même,  
-I’ay veu le fer en main Etéocle luy mesme~;  
+#Arsace#
+#Arsace#
+#Arsace#
+#Arsace#
 
+Vous, Seigneur, importun Vous cet Amy fidelle
+Vous, Seigneur, importun~? Vous cet Amy fidelle
+Vous, Seigneur, importun~? Vous cet Ami fidelle
+Vous, Seigneur, importun~? Vous cet Ami fidelle
 
-Il marche des premiers, & d’vne ardeur extréme
-Il marche des premiers, & d’une ardeur extrême,
-Il marche des premiers, & d’une ardeur extrême,
-Il marche des premiers, & d’une ardeur extrême,
-Il marche des premiers, & d’une ardeur extréme
+Qu'un soin si gerereux interesse pour elle?
+Qu'un soin si gerereux interesse pour elle?
+Qu'un soin si gerereux interesse pour elle?
+Qu'un soin si gerereux interesse pour elle?
 
-Il montre aux plus hardis à brauer le danger.
-Il montre aux plus hardis à braver le danger.
-Il montre aux plus hardis à braver le danger.
-Il montre aux plus hardis à braver le danger.
-Il montre aux plus hardis à braver le danger.
+Vous, cet Antiochus, son Amant autrefois;
+Vous, cet Antiochus, son Amant autrefois;
+Vous, cet Antiochus, son Amant autrefois;
+Vous, cet Antiochus, son Amant autrefois;
 
-#IOCASTE.#
-#IOCASTE.#
-#JOCASTE.#
-#JOCASTE.#
-#JOCASTE.#
+Vous, que l'Orient conte entre ses plus grands Rois?
+Vous, que l'Orient conte entre ses plus grands Rois?
+Vous, que l'Orient conte entre ses plus grands Rois?
+Vous, que l'Orient conte entre ses plus grands Rois:
 
-N’en doutons plus, Olympe, ils se vont égorger,
-N’en doutons plus, Olympe, ils se vont égorger.
-N’en doutons plus, Olympe, ils se vont égorger.
-N’en doutons plus, Olympe, ils se vont égorger.
-N’en doutons plus, Olympe, ils se vont égorger,
+Quoy déja de Titus l'Epouse en espérance
+Quoi~! déja de Titus l'Epouse en espérance
+Quoy~! déja de Titus l'Epouse en espérance
+Quoy~! déja de Titus Epouse en espérance
 
-**à vn Page.**
-**[/]**
-**[/]**
-**[/]**
+Ce rang entre elle et vous met-il tant de distance~?
+Ce rang entre elle et vous met-il tant de distance.
+Ce rang entre elle et vous met-il tant de distance~?
+Ce rang entre elle et vous met-il tant de distance~? 
 
+#Antiochus#
+#Antiochus#
+#Antiochus#
+#Antiochus#
 
-Que l’on aille au plus viste auertir la Princesse,
-Que l’on coure avertir & haster la Princesse,
-Que l’on coure avertir & haster la Princesse,
-Que l’on coure avertir & haster la Princesse,
-Que l’on aille au plus viste avertir la Princesse,
+Va, dis-je, et sans vouloir te charger d'autres soins,
+Va, dis-je, et sans vouloir te charger d'autres soins;
+Va, dis-je, et sans vouloir te charger d'autres soins?
+Va, dis-je, et sans savoir te charger d'autres soins?
 
-Ie l’attens. Iuste Ciel~! soustenez ma foiblesse,
-Je l’attens. Juste Ciel~! soûtenez ma foiblesse,
-Je l’attens. Juste Ciel~! soûtenez ma foiblesse,
-Je l’attens. Juste Ciel~! soûtenez ma foiblesse,
-Je l’attens. Juste Ciel~! soustenez ma foiblesse,
-
-Il faut, il faut courir apres ces inhumains,
-Il faut, il faut courir apres ces inhumains,
-Il faut, il faut courir aprés ces inhumains,
-Il faut courir, Olympe, aprés ces inhumains,
-Il faut, il faut courir apres ces inhumains,
-
-Il les faut separer, ou mourir par leurs mains.
-Il les faut separer, ou mourir par leurs mains.
-Il les faut separer, ou mourir par leurs mains.
-Il les faut separer, ou mourir par leurs mains.
-Il les faut separer, ou mourir par leurs mains.
-
-Nous voicy donc, Olympe, à ce iour détestable
-Nous voicy donc, Olympe, à ce jour detestable
-Nous voici donc, Olympe, à ce jour detestable
-Nous voicy donc, helas~! à ce jour detestable
-Nous voicy donc, Olympe, à ce iour détestable
-
-
-Dont la seule frayeur me rendoit miserable,
-Dont la seule frayeur me rendoit miserable.
-Dont la seule frayeur me rendoit miserable.
-Dont la seule frayeur me rendoit miserable.
-Dont la seule frayeur me rendoit miserable,
-
-Ny prieres, ny pleurs, ne m’ont de rien seruy,
-Ni prieres, ni pleurs ne m’ont de rien servy,
-Ni prieres, ni pleurs ne m’ont de rien servi,
-Ni prieres, ni pleurs ne m’ont de rien servi,
-Ny prieres, ny pleurs, ne m’ont de rien servy,
-
-Et le couroux du sort vouloit estre assouuy.
-Et le courroux du sort vouloit estre assouvy.
-Et le courroux du sort vouloit estre assouvi.
-Et le courroux du sort vouloit estre assouvi.
-Et le couroux du sort vouloit estre assouvy.
-
-O toy, qui que tu sois qui rens le jour au monde,
-O toy, qui que tu sois, qui rens le jour au monde,
-O toy, qui que tu sois, qui rens le jour au monde,
-O toy, Soleil, ô toy, qui rens le jour au monde,
-O toy, qui que tu sois qui rens le jour au monde,
-
-Que ne l’as tu laissé dans vne nuit profonde~?
-Que ne l’as-tu laissé dans une nuit profonde~?
-Que ne l’as-tu laissé dans une nuit profonde~?
-Que ne l’as-tu laissé dans une nuit profonde~?
-Que ne l’as tu laissé dans une nuit profonde~?
-
-A de si noirs forfaits, prestes-tu tes rayons,
-A de si noirs forfaits, prestes-tu tes rayons,
-A de si noirs forfaits, prestes-tu tes rayons,
-A de si noirs forfaits, prestes-tu tes rayons,
-A de si noirs forfaits, prestes-tu tes rayons,
-
-Et peus-tu sans horreur voir ce que nous voyons~?
-Et peux-tu sans horreur voir ce que nous voyons~?
-Et peux-tu sans horreur voir ce que nous voyons~?
-Et peux-tu sans horreur voir ce que nous voyons~?
-Et peus-tu sans horreur voir ce que nous voyons~?
-
-Mais ces Monstres, helas~! ne t’espouuantent gueres,
-Mais ces Monstres, helas~! ne t’épouvantent gueres.
-Mais ces Monstres, helas~! ne t’épouvantent gueres.
-Mais ces Monstres, helas~! ne t’épouvantent gueres,
-Mais ces Monstres, helas~! ne t’espouvantent gueres,
-
-Le seul sang de Lajus les a rendus vulgaires~;
-Le seul sang de Lajus les a rendus vulgaires.
-Le seul sang de Lajus les a rendus vulgaires.
-La race de Lajus les a rendus vulgaires.
-Le seul sang de Lajus les a rendus vulgaires~;
-
-Tu peus voir sans frayeur les crimes de mes Fils,
-Tu peux voir sans frayeur les crimes de mes Fils,
-Tu peux voir sans frayeur les crimes de mes Fils,
-Tu peux voir sans frayeur les crimes de mes Fils,
-Tu peus voir sans frayeur les crimes de mes Fils,
-
-Apres ceux que le Pere & la Mere ont commis~: 
-Apres ceux que le Pere & la Mere ont commis~: 
-Aprés ceux que le Pere & la Mere ont commis~: 
-Aprés ceux que le Pere & la Mere ont commis~: 
-Apres ceux que le Pere & la Mere ont commis~: 
-
-Tu ne t’estonnes pas si mes Fils sont perfides, 
-Tu ne t’estonnes pas si mes Fils sont perfides, 
-Tu ne t’estonnes pas si mes Fils sont perfides, 
-Tu ne t’estonnes pas si mes Fils sont perfides, 
-Tu ne t’estonnes pas si mes Fils sont perfides, 
-
-S’ils sont tous deux méchans, & s’ils sont parricides,
-S’ils sont tous deux méchans, & s’ils sont parricides,
-S’ils sont tous deux méchans, & s’ils sont parricides,
-S’ils sont tous deux méchans, & s’ils sont parricides,
-S’ils sont tous deux méchans, & s’ils sont parricides,
-
-Tu sçais qu’ils sont sortis d’vn sang incestueux,
-Tu sçais qu’ils sont sortis d’un sang incestueux,
-Tu sçais qu’ils sont sortis d’un sang incestueux,
-Tu sçais qu’ils sont sortis d’un sang incestueux,
-Tu sçais qu’ils sont sortis d’un sang incestueux,
-
-Et tu t’estonnerois s’ils estoient vertueux.
-Et tu t’estonnerois s’ils estoient vertueux.
-Et tu t’estonnerois s’ils estoient vertueux.
-Et tu t’estonnerois s’ils estoient vertueux.
-Et tu t’estonnerois s’ils estoient vertueux.
-
-Ce sang en leur donnant la lumiere céleste,
-Ce sang en leur donnant la lumiere céleste,
-Leur donna pour le crime vne pente funeste, 
-Leur donna pour le crime une pente funeste, 
-
-Et leurs cœurs infectez de ce fatal poison,
-Et leurs cœurs infectez de ce fatal poison,
-S’ouurirent à la haine auant qu’à la raison.
-S’ouvrirent à la haine avant qu’à la raison.
+Voy si je puis bientost luy parler sans témoins.
+Voy si je puis bientost luy parler sans témoins.
+Voi si je puis bientost lui parler sans témoins.
+Voi si je puis bientost luy parler sans témoins.
 """
 
     zone_saisie.delete("1.0", tk.END)
@@ -1009,6 +880,7 @@ def ouvrir_saisie_vers():
     # Remplace "fermer sans rien faire" par "Fermer", en copiant les vers
     tk.Button(boite, text="Fermer", command=lambda: traitement_saisie_vers("fin_scene")).pack(pady=(0, 10))
 
+
 def ouvrir_didascalie(callback_apres=None):
     fenetre_dida = tk.Toplevel()
     fenetre_dida.title("Ajouter une didascalie")
@@ -1389,6 +1261,7 @@ def nom_fichier(base, extension):
         # Variables non encore définies : nom provisoire
         return f"temp_{base}.{extension}"
 
+
 def sauvegarder_configuration(infos, temoins_collectes):
     if not infos or not temoins_collectes:
         messagebox.showerror("Erreur", "Impossible de sauvegarder : informations incomplètes.")
@@ -1408,6 +1281,7 @@ def sauvegarder_configuration(infos, temoins_collectes):
         messagebox.showinfo("Sauvegarde", f"Configuration sauvegardée dans {nom_fichier}.")
     except Exception as e:
         messagebox.showerror("Erreur", f"Erreur lors de la sauvegarde : {e}")
+
 
 def sauvegarder_config(chemin_fichier):
     global prenom_auteur, nom_auteur, titre_piece, numero_acte, numero_scene
@@ -1499,6 +1373,7 @@ def sauvegarder_config_sous():
     except Exception as e:
         messagebox.showerror("Erreur", f"Erreur lors de la sauvegarde : {e}")
 
+
 def charger_configuration():
     global prenom_auteur, nom_auteur, auteur_nom_complet, titre_piece, numero_acte
     global numero_scene, nombre_scenes, nombre_temoins, nombre_temoins_predefini
@@ -1521,7 +1396,7 @@ def charger_configuration():
         messagebox.showerror("Erreur", f"Erreur de chargement : {e}")
         return
 
-     # Mise à jour des variables globales
+    # Mise à jour des variables globales
     prenom_auteur = config["Prénom de l'auteur"]
     nom_auteur = config["Nom de l'auteur"]
     titre_piece = config["Titre de la pièce"]
@@ -1549,11 +1424,13 @@ def charger_configuration():
 
     messagebox.showinfo("Chargement réussi", f"Configuration '{os.path.basename(chemin_fichier)}' chargée avec succès.")
 
+
 def editer_config_courant():
     if not config_en_cours:
         messagebox.showwarning("Avertissement", "Aucune configuration chargée ou créée.")
         return
     editer_config_apres_chargement(config_en_cours)
+
 
 def editer_config_apres_chargement(config):
     global prenom_auteur, nom_auteur, titre_piece, numero_acte, numero_scene
@@ -1583,7 +1460,8 @@ def editer_config_apres_chargement(config):
 
     entrees = {}
     for i, (label, valeur) in enumerate(champs.items()):
-        tk.Label(fenetre, text=label, bg="#f5f0dc", font=("Garamond", 12)).grid(row=i, column=0, sticky="e", pady=5, padx=5)
+        tk.Label(fenetre, text=label, bg="#f5f0dc", font=("Garamond", 12)).grid(row=i, column=0, sticky="e", pady=5,
+                                                                                padx=5)
         entree = tk.Entry(fenetre, font=("Garamond", 12), width=40)
         entree.insert(0, valeur)
         entree.grid(row=i, column=1, pady=5, padx=5)
@@ -1619,6 +1497,7 @@ def editer_config_apres_chargement(config):
         entrees_temoins.append((entry_abbr, entry_year, entry_desc))
 
         # === Fonction de validation ===
+
     def valider_modifications():
         nonlocal temoins_collectes_temp
 
@@ -1644,7 +1523,7 @@ def editer_config_apres_chargement(config):
         # === Zone de texte regénérée - à SUPPRIMER ! Ne pas tout effacer!!
         # zone_saisie.delete("1.0", tk.END)
         # ligne_personnages = " ".join(f"##{nom.strip()}##" for nom in noms_persos.split(",") if nom.strip())
-        #zone_saisie.insert("1.0",
+        # zone_saisie.insert("1.0",
         #                   f"####{numero_acte}####\n\n"
         #                   f"###{numero_scene}###\n\n"
         #                   f"{ligne_personnages}\n\n"
@@ -1715,6 +1594,7 @@ def editer_config_apres_chargement(config):
     fenetre.grab_set()
     fenetre.wait_window()
 
+
 def charger_texte_zone_saisie():
     chemin_fichier = filedialog.askopenfilename(
         title="Charger un texte saisi",
@@ -1761,18 +1641,18 @@ def charger_texte_zone_saisie():
     except Exception as e:
         messagebox.showerror("Erreur", f"Erreur lors du chargement du texte : {e}")
 
+
 def normaliser_bloc(bloc):
     return "\n".join([l for l in bloc.strip().splitlines() if l.strip()])
 
 def valider_structure_amelioree():
-    texte = zone_saisie.get("1.0", "end-1c")  # PAS tk.END !
+    texte = zone_saisie.get("1.0", "end-1c")
     lignes = texte.split("\n")
     zone_saisie.tag_remove("erreur", "1.0", tk.END)
     zone_saisie.tag_remove("valide", "1.0", tk.END)
 
     erreurs = []
     blocs_valides = 0
-    a_acte = False
     a_scene = False
     locuteur_en_cours = None
 
@@ -1789,15 +1669,13 @@ def valider_structure_amelioree():
         if ligne.count("*") % 2 != 0:
             erreurs.append(f"Ligne {ligne_num} : nombre impair d'astérisques.")
 
-        if re.fullmatch(r"####\d+####", ligne):
-            a_acte = True
+        # Balise acte = autorisé, mais pas obligatoire, donc on saute sans rien imposer
+        if re.fullmatch(r"####.*####", ligne):
             a_scene = False
             i += 1
             continue
 
-        if re.fullmatch(r"###\d+###", ligne):
-            if not a_acte:
-                erreurs.append(f"Ligne {ligne_num} : scène définie avant tout acte.")
+        if re.fullmatch(r"###.*###", ligne):
             a_scene = True
             i += 1
             continue
@@ -1809,7 +1687,7 @@ def valider_structure_amelioree():
             locuteur_trouvé = False
             while j < len(lignes):
                 ligne_suiv = lignes[j].strip()
-                if re.fullmatch(r"####\d+####", ligne_suiv) or re.fullmatch(r"###\d+###", ligne_suiv):
+                if re.fullmatch(r"####.*####", ligne_suiv) or re.fullmatch(r"###.*###", ligne_suiv):
                     break
                 if re.fullmatch(r"#[^#]+#", ligne_suiv):
                     locuteur_trouvé = True
@@ -1834,8 +1712,8 @@ def valider_structure_amelioree():
                 l = lignes[j].strip()
                 if (not l or
                     re.fullmatch(r"#[^#]+#", l) or
-                    re.fullmatch(r"###\d+###", l) or
-                    re.fullmatch(r"####\d+####", l) or
+                    re.fullmatch(r"###.*###", l) or
+                    re.fullmatch(r"####.*####", l) or
                     re.fullmatch(r"(##[^\#]+##\s*)+", l)):
                     break
                 variantes += 1
@@ -1864,13 +1742,13 @@ def valider_structure_amelioree():
 
         i += 1
 
-    if not any(re.fullmatch(r"####\d+####", l.strip()) for l in lignes):
-        erreurs.append("Aucun acte (####n####) n’est défini.")
-    if not any(re.fullmatch(r"###\d+###", l.strip()) for l in lignes):
-        erreurs.append("Aucune scène (###n###) n’est définie.")
+    # Tests globaux de structure : scène et locuteur seulement !
+    if not any(re.fullmatch(r"###.*###", l.strip()) for l in lignes):
+        erreurs.append("Aucune scène (###...###) n’est définie.")
     if not any(re.fullmatch(r"#[^#]+#", l.strip()) for l in lignes):
         erreurs.append("Aucun locuteur (#Nom#) n’est défini.")
 
+    # Coloration/surlignement et messages d'erreur : inchangés
     zone_saisie.tag_remove("erreur", "1.0", tk.END)
     zone_saisie.tag_remove("valide", "1.0", tk.END)
 
@@ -1907,10 +1785,8 @@ def valider_structure_amelioree():
         )
         return True
 
-
 # Remplacement automatique
 valider_structure = valider_structure_amelioree
-
 
 
 # Ajouter ce bouton à l’interface existante
@@ -2236,6 +2112,7 @@ def enregistrer_saisie():
             f.write(contenu)
 
         messagebox.showinfo("Succès", "Saisie enregistrée.")
+
 
 def formatter_persname_tei(noms):
     return ", ".join(
@@ -2591,7 +2468,7 @@ def previsualiser_html():
 
 
   <!-- DIDASCALIES - plusieurs cas de figure -->
-  
+
   <!-- Liste de personnages (avec variantes en tooltip sur <app>) -->
 <xsl:template match="tei:stage[@type='characters']">
   <div class="personnages">
@@ -2740,6 +2617,7 @@ def previsualiser_html():
     except Exception as e:
         messagebox.showerror("Erreur", f"Erreur pendant la transformation XSLT :\n{e}")
 
+
 def convertir_tei_en_html(tei_text):
     html = []
     dans_tirade = False
@@ -2799,7 +2677,7 @@ def convertir_tei_en_html(tei_text):
 
             bloc_stage = "\n".join(stage_lignes)
 
-                       # Nouvelle fonction : nettoyer tout le contenu de <stage>
+            # Nouvelle fonction : nettoyer tout le contenu de <stage>
             def nettoyer_stage(texte):
                 # Enlever toutes les balises TEI (app, lem, rdg, etc.)
                 texte = re.sub(r'<[^>]+>', '', texte, flags=re.DOTALL)
@@ -2858,6 +2736,7 @@ def convertir_tei_en_html(tei_text):
             i += 1
 
     return "\n".join(html)
+
 
 def previsualiser_html_xslt():
     tei = zone_resultat_tei.get("1.0", tk.END).strip()
@@ -2947,12 +2826,14 @@ Laissez une ligne vide avant et après les **didascalies**
 """
     messagebox.showinfo("Aide à la transcription", exemple)
 
+
 def ajouter_espace_si_necessaire(mot):
     if not mot:
         return ""
     if re.match(r".*[\.\,\;\:\!\?\)\]]$", mot):
         return mot + " "
     return mot + " "
+
 
 def extraire_blocs_et_dialogue(lignes, nb_temoins):
     def detecter_bloc(prefix, n):
@@ -3005,9 +2886,9 @@ def extraire_blocs_et_dialogue(lignes, nb_temoins):
         bloc_locuteur = []
         # Bloc de variantes de locuteur
         while (
-            i < len(lignes_dialogue)
-            and lignes_dialogue[i].strip().startswith("#")
-            and lignes_dialogue[i].strip().endswith("#")
+                i < len(lignes_dialogue)
+                and lignes_dialogue[i].strip().startswith("#")
+                and lignes_dialogue[i].strip().endswith("#")
         ):
             bloc_locuteur.append(lignes_dialogue[i].strip())
             i += 1
@@ -3019,8 +2900,8 @@ def extraire_blocs_et_dialogue(lignes, nb_temoins):
             # Texte associé à ce bloc de locuteur (jusqu’au prochain bloc #...#)
             bloc_texte = []
             while (
-                i < len(lignes_dialogue)
-                and not (lignes_dialogue[i].strip().startswith("#") and lignes_dialogue[i].strip().endswith("#"))
+                    i < len(lignes_dialogue)
+                    and not (lignes_dialogue[i].strip().startswith("#") and lignes_dialogue[i].strip().endswith("#"))
             ):
                 bloc_texte.append(lignes_dialogue[i])
                 i += 1
@@ -3037,6 +2918,7 @@ def extraire_blocs_et_dialogue(lignes, nb_temoins):
         bloc_persos if bloc_persos else None,
         dialogues
     )
+
 
 def aligner_variantes_par_mot(tokens, temoins, ref_index):
     ligne_tei = []
@@ -3086,6 +2968,7 @@ def aligner_variantes_par_mot(tokens, temoins, ref_index):
 
     return ligne_tei, ligne_ekdosis
 
+
 def speaker_aligned_output(speaker_list, temoins, ref_index, aligner_fonction):
     """
     Retourne la bonne chaîne <speaker> ou \speaker pour la liste de locuteurs,
@@ -3100,6 +2983,7 @@ def speaker_aligned_output(speaker_list, temoins, ref_index, aligner_fonction):
         ligne_tei, ligne_ekdosis = aligner_fonction(tokens, temoins, ref_index)
         return "".join(ligne_tei).strip(), "".join(ligne_ekdosis).strip()
 
+
 def verifier_et_comparer():
     if valider_structure():
         comparer_etats()
@@ -3111,6 +2995,7 @@ def verifier_et_comparer():
         )
         if reponse:
             comparer_etats()
+
 
 def comparer_etats():
     texte = zone_saisie.get("1.0", tk.END).strip()
@@ -3164,7 +3049,7 @@ def comparer_etats():
     else:
         tei_persos_stage = None
 
-    print('DIALOGUES =' , dialogues)
+    print('DIALOGUES =', dialogues)
     try:
         numero_depart = int(entree_vers.get())
     except ValueError:
@@ -3249,7 +3134,7 @@ def comparer_etats():
 
             lignes = [l.strip() for l in sous_bloc.strip().splitlines() if l.strip()]
 
-            #Didascalies
+            # Didascalies
             if all(l.startswith('**') for l in lignes) and len(lignes):
                 print('didascalie reperee')
                 temoins = [chr(65 + i) for i in range(len(lignes))]
@@ -3363,7 +3248,7 @@ def comparer_etats():
                             }""")
                     resultat_ekdosis.append(
                         f'        \\vnum{{{vers_num_2}}}' + '{\n' + '\\hspace*{5em}' + vers_formate_2 + '\\\\    \n         }')
-                    resultat_ekdosis.append(f'        \\resetvlinenumber[{math.ceil(numero_vers_base)+1}]')
+                    resultat_ekdosis.append(f'        \\resetvlinenumber[{math.ceil(numero_vers_base) + 1}]')
                     resultat_ekdosis.append("        \\SetLineation{vmodulo=5}")
 
                 # ✅ Ignorer aussi le bloc A (le premier demi-vers)
