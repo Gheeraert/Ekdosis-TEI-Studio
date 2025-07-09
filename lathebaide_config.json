@@ -1,0 +1,40 @@
+{
+    "Nom de l'auteur": "Racine",
+    "Prénom de l'auteur": "Jean",
+    "Titre de la pièce": "La Thébaïde",
+    "Numéro de l'acte": "1",
+    "Numéro de la scène": "1",
+    "Nombre de scènes dans l'acte": "5",
+    "Noms des personnages (séparés par virgule)": "Jocaste, Olympe",
+    "Numéro du vers de départ": "1",
+    "Nombre de témoins": "5",
+    "Nom de l'éditeur (vous)": "Fourquet-Gracieux",
+    "Prénom de l'éditeur": "Claire",
+    "Temoins": [
+        {
+            "abbr": "A",
+            "year": "1664",
+            "desc": "Princeps"
+        },
+        {
+            "abbr": "B",
+            "year": "1676",
+            "desc": "Collective"
+        },
+        {
+            "abbr": "C",
+            "year": "1687",
+            "desc": "Collective"
+        },
+        {
+            "abbr": "D",
+            "year": "1697",
+            "desc": "Collective"
+        },
+        {
+            "abbr": "E",
+            "year": "2025",
+            "desc": "Régularisée"
+        }
+    ]
+}

@@ -1,0 +1,35 @@
+{
+    "Nom de l'auteur": "Racine",
+    "Prénom de l'auteur": "Jean",
+    "Titre de la pièce": "Bérénice",
+    "Numéro de l'acte": "1",
+    "Numéro de la scène": "1",
+    "Nombre de scènes dans l'acte": "5",
+    "Noms des personnages (séparés par virgule)": "Antiochus, Arsace",
+    "Numéro du vers de départ": "1",
+    "Nombre de témoins": "4",
+    "Nom de l'éditeur (vous)": "Gheeraert",
+    "Prénom de l'éditeur": "Tony",
+    "Temoins": [
+        {
+            "abbr": "A",
+            "year": "1671",
+            "desc": "1"
+        },
+        {
+            "abbr": "B",
+            "year": "1676",
+            "desc": "2"
+        },
+        {
+            "abbr": "C",
+            "year": "1687",
+            "desc": "3"
+        },
+        {
+            "abbr": "D",
+            "year": "1697",
+            "desc": "4"
+        }
+    ]
+}
