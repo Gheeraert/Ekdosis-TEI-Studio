@@ -2330,6 +2330,7 @@ def previsualiser_html():
             margin-top: 1.5em;
             margin-bottom: 0.5em;
             margin-left: 11em;
+            text-align: center;
           }
           .titre-piece {
             font-style: italic;
@@ -3093,11 +3094,15 @@ def comparer_etats():
     dernier_locuteur = None
     changement_locuteur_deja_traite = False  # ← ajoute cette ligne ici
 
-    resultat_tei.append(f'<div type="act" n="{num_acte}">')
+    if bloc_acte:
+        resultat_tei.append(f'<div type="act" n="{num_acte}">')
+
     if tei_head:
         resultat_tei.append(tei_head)
 
-    resultat_tei.append(f'  <div type="scene" n="{num_scene}">')
+    if bloc_scene:
+        resultat_tei.append(f'  <div type="scene" n="{num_scene}">')
+
     if tei_scene_head:
         resultat_tei.append(tei_scene_head)
     if tei_persos_stage:
