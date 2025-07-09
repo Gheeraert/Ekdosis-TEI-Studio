@@ -11,7 +11,8 @@
 
 ## ✨ Fonctionnalités principales
 
-- 🏛 Saisie encodée structurée en style markdown : actes, scènes, personnages, locuteurs, tirades, didascalies (interface graphique complète possible)
+- 🏛 Saisie scène par scène, encodée structurée en style markdown : actes, scènes, personnages, locuteurs, tirades, didascalies
+- interface graphique complète possible)
 - 🔀 Comparaison automatique de variantes ligne à ligne (difflib)
 - 🔎 Génération parallèle des résultats en :
   - **TEI XML** avec balises `<app>`, `<lem>`, `<rdg>`, `<stage>`, etc.
@@ -28,11 +29,29 @@
 ## 🖋️ Exemple de saisie
 
 ```
-####1####
-###1###
-##Antiochus## ##Arsace##
-#Antiochus#
+####Acte Premier####
+####Acte Premier####
+####Acte Premier####
+####Acte I####
 
+###Scène 1###
+###Scène 1###
+###Scène 1###
+###Scène Première###
+
+##Antiochus## ##Arsace##
+##Antiochus## ##Arsace##
+##Antiochus## ##Arsace##
+##Antiochus## ##Arsac##
+
+#Antiochus#
+#Antiochus#
+#Antiochus#
+#Antiocus#
+
+**Antiochus entre.**
+**Antiochus entre.**
+**Antiochus entre.**
 **Antiochus entre.**
 
 Arrestons un moment. La pompe de ces lieux
@@ -51,6 +70,10 @@ Souvent ce Cabinet***
 Souvent ce Cabinet***
 
 #Arsace#
+#Arsace#
+#Arsace#
+#Arsace#
+
 ***superbe & solitaire,
 ***superbe & solitaire,
 ***superbe & solitaire,
@@ -84,15 +107,14 @@ Exécutable: Téléchargez et lancez simplement le fichier (.dmg pour Mac, .exe 
 
 ## 📦 Dépendances
 
-- Python standard (`tkinter`, `difflib`, `re`, etc.)
+- Python standard (`tkinter`, `re`, etc.)
 - template LaTeX préconfiguré avec ekdosis pour l'affichage direct du code LaTeX généré
-- feuille de transformation XSL à adapter pour la sortie TEI
+- feuille de transformation XSL à adapter pour la sortie TEI (librairie `lxml`)
 ---
 
 ## 🧪 En projet
 
-- Encodage des didascalies internes
-- amélioration de la saisie des métadonnées
+- Encodage des didascalies internes (implicites)
 - Résolution des cas particuliers
 - portage en ligne via serveur Flask
 
