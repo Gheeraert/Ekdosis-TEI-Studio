@@ -2325,7 +2325,19 @@ def previsualiser_html():
           .underline {
           text-decoration: underline;
           }
-          .acte, .scene, .personnages {
+          .acte-titre {
+          font-weight: bold;
+          margin-top: 1.5em;
+          margin-bottom: 0.5em;
+          margin-left: 6em;
+          }
+        .scene-titre {
+          font-style: italic;
+          margin-bottom: 0.5em;
+          margin-left: 6em;
+        }
+        
+        .acte, .scene, .personnages {
             font-weight: bold;
             margin-top: 1.5em;
             margin-bottom: 0.5em;
@@ -2333,17 +2345,6 @@ def previsualiser_html():
           }
           .titre-piece {
             font-style: italic;
-          }
-          .acte-titre{
-            font-weight: bold;
-            margin-top: 1.5em;
-            margin-bottom: 0.5em;
-            margin-left: 11em;
-          }
-          .scene-titre {
-            font-style: italic;
-            margin-bottom: 0.5em;
-            margin-left: 11em;
           }
           .locuteur {
             font-variant: small-caps;
@@ -2437,52 +2438,55 @@ def previsualiser_html():
   </div>
 </xsl:template>
 
- <!-- Acte : titre normalisé -->
-<xsl:template match="tei:div[@type='act']">
-  <div class="acte-titre">[Acte <xsl:value-of select="@n"/>]</div>
-  <xsl:apply-templates/>
-</xsl:template>
-<!-- Acte : variantes -->
-<xsl:template match="tei:div[@type='act']/tei:app">
-  <div class="acte variation">
-    <xsl:attribute name="data-tooltip">
-      <xsl:variable name="tooltip">
-        <xsl:for-each select="tei:rdg">
-          <xsl:value-of select="@wit"/>
-          <xsl:text>: </xsl:text>
-          <xsl:value-of select="normalize-space(.)"/>
-          <xsl:text>&#10;&#10;</xsl:text>
-        </xsl:for-each>
-      </xsl:variable>
-      <xsl:value-of select="$tooltip"/>
-    </xsl:attribute>
-    <xsl:apply-templates select="tei:lem"/>
+<!-- Acte : titre sans variante -->
+<xsl:template match="tei:div[@type='act']/tei:head">
+  <div class="acte-titre">
+    <xsl:apply-templates/>
   </div>
 </xsl:template>
 
-  <!-- Titre de scène -->
- <!-- Acte : scène sans variante -->
+<!-- Acte : titre AVEC variante (cas d'<app> dans <head>) -->
+<xsl:template match="tei:div[@type='act']/tei:head/tei:app">
+  <div class="acte-titre">
+    <span class="variation">
+      <xsl:attribute name="data-tooltip">
+        <xsl:variable name="tooltip">
+          <xsl:for-each select="tei:rdg">
+            <xsl:value-of select="@wit"/>
+            <xsl:text>: </xsl:text>
+            <xsl:value-of select="normalize-space(.)"/>
+            <xsl:text>&#10;&#10;</xsl:text>
+          </xsl:for-each>
+        </xsl:variable>
+        <xsl:value-of select="$tooltip"/>
+      </xsl:attribute>
+      <xsl:apply-templates select="tei:lem"/>
+    </span>
+  </div>
+</xsl:template>
+
 <xsl:template match="tei:div[@type='scene']/tei:head">
   <div class="scene-titre">
     <xsl:apply-templates/>
   </div>
 </xsl:template>
 
-  <!-- Variante dans les titres de scène ou d’acte (dans <head>) -->
-<xsl:template match="tei:head/tei:app">
-  <div class="scene-titre variation">
-    <xsl:attribute name="data-tooltip">
-      <xsl:variable name="tooltip">
-        <xsl:for-each select="tei:rdg">
-          <xsl:value-of select="@wit"/>
-          <xsl:text>: </xsl:text>
-          <xsl:value-of select="normalize-space(.)"/>
-          <xsl:text>&#10;&#10;</xsl:text>
-        </xsl:for-each>
-      </xsl:variable>
-      <xsl:value-of select="$tooltip"/>
-    </xsl:attribute>
-    <xsl:apply-templates select="tei:lem"/>
+<xsl:template match="tei:div[@type='scene']/tei:head/tei:app">
+  <div class="scene-titre">
+    <span class="variation">
+      <xsl:attribute name="data-tooltip">
+        <xsl:variable name="tooltip">
+          <xsl:for-each select="tei:rdg">
+            <xsl:value-of select="@wit"/>
+            <xsl:text>: </xsl:text>
+            <xsl:value-of select="normalize-space(.)"/>
+            <xsl:text>&#10;&#10;</xsl:text>
+          </xsl:for-each>
+        </xsl:variable>
+        <xsl:value-of select="$tooltip"/>
+      </xsl:attribute>
+      <xsl:apply-templates select="tei:lem"/>
+    </span>
   </div>
 </xsl:template>
 
