@@ -2325,18 +2325,23 @@ def previsualiser_html():
           .underline {
           text-decoration: underline;
           }
-          .acte-titre {
+          .acte-titre-sans-variation {
           font-weight: bold;
           margin-top: 1.5em;
           margin-bottom: 0.5em;
-          margin-left: 6em;
+          margin-left: 11em;
+          }
+          .scene-titre-sans-variation {
+          font-weight: bold;
+          margin-top: 1.5em;
+          margin-bottom: 0.5em;
+          margin-left: 11em;
           }
         .scene-titre {
           font-style: italic;
           margin-bottom: 0.5em;
-          margin-left: 6em;
+          margin-left: 0em;
         }
-        
         .acte, .scene, .personnages {
             font-weight: bold;
             margin-top: 1.5em;
@@ -2433,14 +2438,14 @@ def previsualiser_html():
  <!-- ACTES ET SCENES -->
  <!-- Acte : titre sans variante -->
 <xsl:template match="tei:div[@type='act']/tei:head">
-  <div class="acte-titre">
+  <div class="acte-titre-sans-variation">
     <xsl:apply-templates/>
   </div>
 </xsl:template>
 
 <!-- Acte : titre sans variante -->
 <xsl:template match="tei:div[@type='act']/tei:head">
-  <div class="acte-titre">
+  <div class="acte-titre-sans-variation">
     <xsl:apply-templates/>
   </div>
 </xsl:template>
@@ -2466,7 +2471,7 @@ def previsualiser_html():
 </xsl:template>
 
 <xsl:template match="tei:div[@type='scene']/tei:head">
-  <div class="scene-titre">
+  <div class="scene-titre-sans-variation">
     <xsl:apply-templates/>
   </div>
 </xsl:template>
