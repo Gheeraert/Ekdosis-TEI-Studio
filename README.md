@@ -18,6 +18,7 @@
   - **TEI XML** avec balises `<app>`, `<lem>`, `<rdg>`, `<stage>`, etc.
   - **LaTeX** compatible avec le package `ekdosis` et template adapté fourni (template par T. Gheeraert et F. Siraguso)
 - 🎭 Gestion des didascalies : format `**texte**` reconnu et encodé en `<stage>` / `\didas{}`
+- - 🎭 Gestion des vers remaniés complètement à gérer globalement : format `#####texte#####` reconnu et traité par une seule balise <app>
 - 🔤 Échappement automatique des caractères spéciaux (`&`, etc.)
 - 🧑‍🎓 Interface conviviale en Tkinter avec onglets TEI / LaTeX
 - 🧪 Validation de structure intégrée (actes, scènes, locuteurs)
@@ -53,6 +54,7 @@
 **Antiochus entre.**
 **Antiochus entre.**
 **Antiochus entre.**
+_(2 étoiles pour les didascalies)_
 
 Arrestons un moment. La pompe de ces lieux
 Arrestons un moment. La pompe de ces lieux
@@ -68,6 +70,8 @@ Souvent ce Cabinet***
 Souvent ce Cabinet***
 Souvent ce Cabinet***
 Souvent ce Cabinet***
+_(3 étoiles en fin de vers
+pour la première moitié des vers partagés)_
 
 #Arsace#
 #Arsace#
@@ -78,6 +82,8 @@ Souvent ce Cabinet***
 ***superbe & solitaire,
 ***superbe & solitaire,
 ***superbe & solitaire,
+_(3 étoiles en début de vers
+pour la seconde moitié des vers partagés)_
 
 Des secrets de Titus est le dépositaire.
 Des secrets de Titus est le dépositaire.
@@ -87,7 +93,15 @@ Des secrets de Titus est le dépositaire.
 C'est icy quelquefois qu'il se cache à sa Cour,
 C'est icy quelquefois qu'il se cache à sa Cour,
 C'est ici quelquefois qu'il se cache à sa Cour,
-C'est ici quelquefois qu'il se cache à sa Cour, 
+C'est ici quelquefois qu'il se cache à sa Cour,
+
+#####Il deuoit bien plutost les fermer pour jamais,
+#####Il devoit bien plûtost les fermer pour jamais,
+#####Il devoit bien plûtost les fermer pour jamais,
+#####Puisse plûtost la mort les fermer pour jamais,
+#####Il devoit bien plutost les fermer pour jamais,
+_(5 dièses pour neutraliser le traitement des variantes mot par mot
+et traiter le vers en entier avec une seule balise <app>)_
 ```
 
 ---
