@@ -124,6 +124,9 @@ Exécutable: Téléchargez et lancez simplement le fichier (.dmg pour Mac, .exe 
 - Python standard (`tkinter`, `re`, etc.)
 - template LaTeX préconfiguré avec ekdosis pour l'affichage direct du code LaTeX généré
 - feuille de transformation XSL à adapter pour la sortie TEI (librairie `lxml`)
+- Module [lxml](https://lxml.de/) (pour le traitement XML)
+- Module [tkinter](https://docs.python.org/fr/3/library/tkinter.html) (pour l’interface graphique, inclus dans Python officiel)
+
 ---
 
 ## 🧪 En projet
