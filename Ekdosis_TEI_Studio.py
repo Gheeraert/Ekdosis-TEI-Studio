@@ -3061,7 +3061,7 @@ def comparer_etats():
     # ------------- SCENE -------------
     if bloc_scene:
         tokens = [[l.strip("#").strip()] for l in bloc_scene]
-        ref_index = 0
+        ref_index = liste_ref.current()
         temoins = [chr(65 + i) for i in range(nombre_temoins_predefini)]
         ligne_tei_scene, ligne_ekdosis_scene = aligner_variantes_par_mot(tokens, temoins, ref_index)
         tei_scene_head = '    <head>' + "".join(ligne_tei_scene).strip() + '</head>'
@@ -3071,7 +3071,7 @@ def comparer_etats():
     # ------------- PERSONNAGES -------------
     if bloc_persos:
         tokens = [[l.replace("#", "").strip()] for l in bloc_persos]
-        ref_index = 0
+        ref_index = liste_ref.current()
         temoins = [chr(65 + i) for i in range(nombre_temoins_predefini)]
         ligne_tei_persos, ligne_ekdosis_persos = aligner_variantes_par_mot(tokens, temoins, ref_index)
         tei_persos_stage = "    <stage type='personnages'>" + "".join(ligne_tei_persos).strip() + '</stage>'
