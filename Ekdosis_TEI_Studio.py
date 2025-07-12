@@ -2863,7 +2863,6 @@ def ajouter_espace_si_necessaire(mot):
         return mot + " "
     return mot + " "
 
-
 def extraire_blocs_et_dialogue(lignes, nb_temoins):
     def detecter_bloc(prefix, n):
         blocs = []
@@ -2949,7 +2948,6 @@ def extraire_blocs_et_dialogue(lignes, nb_temoins):
         bloc_persos if bloc_persos else None,
         dialogues
     )
-
 
 def aligner_variantes_par_mot(tokens, temoins, ref_index):
     ligne_tei = []
@@ -3186,7 +3184,7 @@ def comparer_etats():
                 resultat_ekdosis.append('      \\didas{')
                 resultat_ekdosis.append("".join(ligne_ekdosis) + '      }')
 
-                # NE PAS toucher à vers_courant ici ! On ne l’incrémente ni le décrémente.
+                # NE PAS toucher à vers_courant ici! On ne l’incrémente ni le décrémente.
                 continue
 
             # Cas du vers partagé : *** à la fin (bloc A) et *** au début (bloc B)
@@ -3297,6 +3295,43 @@ def comparer_etats():
             if len(lignes) < 2:
                 continue
 
+            # Cas spécial : variantes vers entier (toutes lignes commencent par 5 dièses)
+            if all(l.startswith('#####') for l in lignes) and len(lignes):
+                print('vers entier à traiter repere')
+                temoins = [chr(65 + i) for i in range(len(lignes))]
+                ref_index = liste_ref.current()
+                # On enlève les 5 dièses et on strippe chaque vers
+                vers_variantes = [l[5:].strip() for l in lignes]
+
+                tei = '      <app>\n'
+                for idx, vers in enumerate(vers_variantes):
+                    wit = f"#{temoins[idx]}"
+                    if idx == ref_index:
+                        tei += f'        <lem wit="{wit}">{encoder_caracteres_tei(vers)}</lem>\n'
+                    else:
+                        tei += f'        <rdg wit="{wit}">{encoder_caracteres_tei(vers)}</rdg>\n'
+                tei += '      </app>\n'
+                resultat_tei.append(f'<l n="{vers_courant}">\n{tei}</l>\n')
+
+                # Pour Ekdosis :
+                ekdo = ['      \\app{']
+                ekdo.append(
+                    f'        \\lem[wit={{{temoins[ref_index]}}}]{{{echapper_caracteres_ekdosis(vers_variantes[ref_index])}}}')
+                for idx, vers in enumerate(vers_variantes):
+                    if idx == ref_index:
+                        continue
+                    ekdo.append(f'        \\rdg[wit={{{temoins[idx]}}}]{{{echapper_caracteres_ekdosis(vers)}}}')
+                ekdo.append("      }")
+                resultat_ekdosis.append(
+                    f"        \\vnum{{{vers_courant}}}{{\n{chr(10).join(ekdo)}  \\\\    \n        }}")
+
+                # Incrémenter le numéro de vers
+                if vers_courant == int(vers_courant):
+                    vers_courant += 1
+                else:
+                    vers_courant = math.ceil(vers_courant)
+                continue
+
             temoins = [chr(65 + i) for i in range(len(lignes))]
             tokens = [l.split() for l in lignes]
             ref_index = liste_ref.current()
@@ -3327,7 +3362,7 @@ def comparer_etats():
     zone_resultat_tei.delete("1.0", tk.END)
 
     resultat_tei.append('</body></text>')
-    ### Ci-dessousn comportement normal de fermeture
+    ### Ci-dessous comportement normal de fermeture
     resultat_tei.append('</TEI>')
     zone_resultat_tei.insert(tk.END, "\n".join(resultat_tei) + "\n")
 
