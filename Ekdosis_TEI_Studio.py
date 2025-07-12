@@ -1708,28 +1708,50 @@ def valider_structure_amelioree():
         j = i + 1
         while j < len(lignes):
             variantes = 0
+            lignes_bloc = []
+            indices_bloc = []
             while j < len(lignes):
                 l = lignes[j].strip()
                 if (not l or
-                    re.fullmatch(r"#[^#]+#", l) or
-                    re.fullmatch(r"###.*###", l) or
-                    re.fullmatch(r"####.*####", l) or
-                    re.fullmatch(r"(##[^\#]+##\s*)+", l)):
+                        re.fullmatch(r"#[^#]+#", l) or
+                        re.fullmatch(r"###.*###", l) or
+                        re.fullmatch(r"####.*####", l) or
+                        re.fullmatch(r"(##[^\#]+##\s*)+", l)):
                     break
                 variantes += 1
+                lignes_bloc.append(l)
+                indices_bloc.append(j)
                 j += 1
                 if variantes == nombre_temoins_predefini:
+                    # Ajout du contrôle sur le nombre de mots (hors lignes #####)
+                    lignes_bloc_a_tester = [ligne for ligne in lignes_bloc if not ligne.startswith("#####")]
+                    if lignes_bloc_a_tester:  # Évite les blocs qui ne contiennent QUE des ##### !
+                        nb_mots = [len(ligne.split()) for ligne in lignes_bloc_a_tester]
+                        if len(set(nb_mots)) > 1:
+                            erreur_msg = (
+                                f"Lignes {indices_bloc[0] + 1}-{indices_bloc[-1] + 1} : variantes de longueur inégale ({nb_mots}) pour '{locuteur_en_cours}'."
+                            )
+                            erreurs.append(erreur_msg)
+                            # Couleur jaune sur toutes les lignes du bloc
+                            zone_saisie.tag_configure("desaligne", background="#fff2cc")
+                            for idx in indices_bloc:
+                                debut = f"{idx + 1}.0"
+                                fin = f"{idx + 1}.end"
+                                zone_saisie.tag_add("desaligne", debut, fin)
                     blocs_valides += 1
                     debut = f"{j - variantes}.0"
                     fin = f"{j}.end"
                     zone_saisie.tag_add("valide", debut, fin)
                     variantes = 0
+                    lignes_bloc = []
+                    indices_bloc = []
                     break
             if variantes != 0:
                 erreurs.append(
                     f"Ligne {ligne_num} : {variantes} variante(s) incomplètes pour '{locuteur_en_cours}', {nombre_temoins_predefini} attendue(s)."
                 )
             break
+
         locuteur_en_cours = None
         i = j
         continue
@@ -1822,19 +1844,30 @@ def encoder_caracteres_tei(texte):
     return texte.replace("&", "&amp;").replace("~", " ")
 
 
-def rechercher():
+def rechercher(zone):
     terme = simpledialog.askstring("Rechercher", "Mot ou expression à chercher :")
     if terme:
-        zone_saisie.tag_remove("found", "1.0", tk.END)
+        zone.tag_remove("found", "1.0", tk.END)
         start_pos = "1.0"
+        found_any = False
+        # Option insensible à la casse avec nocase=1
         while True:
-            start_pos = zone_saisie.search(terme, start_pos, stopindex=tk.END)
+            start_pos = zone.search(terme, start_pos, stopindex=tk.END, nocase=1)
             if not start_pos:
                 break
             end_pos = f"{start_pos}+{len(terme)}c"
-            zone_saisie.tag_add("found", start_pos, end_pos)
+            zone.tag_add("found", start_pos, end_pos)
+            if not found_any:
+                # Scroll to first found occurrence
+                zone.see(start_pos)
+                # Facultatif : sélectionne aussi la première occurrence
+                zone.tag_remove(tk.SEL, "1.0", tk.END)
+                zone.tag_add(tk.SEL, start_pos, end_pos)
+                zone.focus()
+                found_any = True
             start_pos = end_pos
-        zone_saisie.tag_config("found", background="yellow")
+        zone.tag_config("found", background="yellow")
+
 
 
 def remplacer_avance(zone):
@@ -2113,13 +2146,38 @@ def enregistrer_saisie():
 
         messagebox.showinfo("Succès", "Saisie enregistrée.")
 
+import os
+import tkinter as tk
+from tkinter import filedialog as fd, messagebox
+
+def enregistrer_preview(html_result):
+    fichier_html = fd.asksaveasfilename(
+        defaultextension=".html",
+        filetypes=[("Fichiers HTML", "*.html")],
+        initialfile=nom_fichier("preview", "html"),
+        title="Enregistrer le preview HTML"
+    )
+
+    if fichier_html:
+        if os.path.exists(fichier_html):
+            reponse = messagebox.askyesno(
+                "Fichier existant",
+                f"Le fichier {os.path.basename(fichier_html)} existe déjà.\nVoulez-vous l’écraser ?"
+            )
+            if not reponse:
+                return
+        try:
+            with open(fichier_html, "w", encoding="utf-8") as f:
+                f.write(str(html_result))
+            messagebox.showinfo("Succès", f"Preview HTML enregistré sous:\n{fichier_html}")
+        except Exception as e:
+            messagebox.showerror("Erreur", f"Impossible d’enregistrer le fichier: {e}")
 
 def formatter_persname_tei(noms):
     return ", ".join(
         f'<persName ref="#{nettoyer_identifiant(n)}">{n}</persName>'
         for n in noms
     )
-
 
 def formatter_persname_ekdosis(noms):
     return ", ".join(
@@ -2643,6 +2701,9 @@ def previsualiser_html():
 
         webbrowser.open(f"file://{chemin_temp_html}")
 
+        # Proposition d’enregistrement
+        enregistrer_preview(html_result)
+
     except Exception as e:
         messagebox.showerror("Erreur", f"Erreur pendant la transformation XSLT :\n{e}")
 
@@ -2999,10 +3060,10 @@ def aligner_variantes_par_mot(tokens, temoins, ref_index):
 
 
 def speaker_aligned_output(speaker_list, temoins, ref_index, aligner_fonction):
-    """
-    Retourne la bonne chaîne <speaker> ou \speaker pour la liste de locuteurs,
-    en tenant compte des variantes et en évitant les répétitions inutiles.
-    """
+    #
+    # Retourne la bonne chaîne <speaker> ou \speaker pour la liste de locuteurs,
+    # en tenant compte des variantes et en évitant les répétitions inutiles.
+    #
     cleaned = [l.strip("#").strip() for l in speaker_list]
     if all(n == cleaned[0] for n in cleaned):
         # Tous identiques: un seul nom
@@ -3150,7 +3211,7 @@ def comparer_etats():
             # ALIGNE VARIANTES
             tokens = [[l.strip("#").strip()] for l in speakers]
             temoins = [chr(65 + i) for i in range(len(speakers))]
-            ref_index = 0  # ou liste_ref.current()
+            ref_index = liste_ref.current()
             ligne_tei, ligne_ekdosis = aligner_variantes_par_mot(tokens, temoins, ref_index)
             tei_speaker = "".join(ligne_tei).strip()
             ekdosis_speaker = "".join(ligne_ekdosis).strip()
