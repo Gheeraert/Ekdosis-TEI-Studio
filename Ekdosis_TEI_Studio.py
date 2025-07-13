@@ -2218,6 +2218,25 @@ from tkinter import filedialog as fd, messagebox, simpledialog
 def enregistrer_triple():
     global html_result
 
+    # Vérifier si html_result est défini dans l'espace global
+    if "html_result" not in globals():
+        messagebox.showwarning("Avertissement", "Aucun aperçu HTML à enregistrer. Lancez d'abord le 'Preview'.")
+        return
+
+    if html_result is None:
+        messagebox.showwarning("Avertissement", "Aucun aperçu HTML à enregistrer. Lancez d'abord le 'Preview'.")
+        return
+
+    # S’il s’agit d’un widget Text
+    if hasattr(html_result, "get"):
+        html = html_result.get("1.0", tk.END).strip()
+    else:
+        html = str(html_result).strip()
+
+    if not html:
+        messagebox.showwarning("Avertissement", "Aucun aperçu HTML à enregistrer. Lancez d'abord le 'Preview'.")
+        return
+
     # 1. Récupération des contenus
     raw = zone_saisie.get("1.0", tk.END).strip()
     tei = zone_resultat_tei.get("1.0", tk.END).strip()
@@ -3008,7 +3027,7 @@ def afficher_aide():
     exemple = r"""
 Mémo
 
-####1####             → Acte I
+####Acte I####             → Acte I
 ###1###            → Scène 1
 ##Titus## ##Bérénice## → Personnages présents
 #Titus#            → Locuteur (début de tirade)
