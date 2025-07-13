@@ -1835,13 +1835,42 @@ def nettoyer_identifiant(nom):
 
 
 def echapper_caracteres_ekdosis(texte):
-    """Échappe les caractères spéciaux ekdosis comme l’esperluette et remplace ~ par une espace."""
-    return texte.replace("&", r"\&").replace("~", " ")
-
+    # Remplace & par \&,
+    # et ~, ~~... par des espacements LaTeX adaptés :
+    # ~   → ~ (espace insécable LaTeX)
+    # ~~  → \enspace
+    # ~~~ → \quad
+    #~~~~ → \qquad
+    # >4  → \hspace*{Nx1em}
+    #
+    texte = texte.replace("&", r"\&")
+    # Remplace les séries de ~ par l’espace adapté
+    def replace_tildes(match):
+        n = len(match.group(0))
+        if n == 1:
+            return "~"
+        elif n == 2:
+            return r"\enspace"
+        elif n == 3:
+            return r"\quad"
+        elif n == 4:
+            return r"\qquad"
+        else:
+            return r"\hspace*{" + str(n) + "em}"
+    return re.sub(r'~+', replace_tildes, texte)
 
 def encoder_caracteres_tei(texte):
-    """Encode les caractères spéciaux XML/TEI comme l’esperluette et remplace ~ par une espace."""
-    return texte.replace("&", "&amp;").replace("~", " ")
+    """
+    Remplace & par &amp;,
+    et ~, ~~... par des espaces insécables Unicode :
+    ~   → &#160;
+    ~~  → &#160;&#160;
+    ~~~ → &#160;&#160;&#160;
+    etc.
+    """
+    texte = texte.replace("&", "&amp;")
+    # Remplace tous les groupes de ~ par autant d’espaces insécables
+    return re.sub(r'~+', lambda m: "&#160;" * len(m.group(0)), texte)
 
 
 def rechercher(zone):
@@ -3365,12 +3394,16 @@ def comparer_etats():
                 vers_variantes = [l[5:].strip() for l in lignes]
 
                 tei = '      <app>\n'
+
+                # D'abord le lem (variante de référence)
+                tei += f'        <lem wit="#{temoins[ref_index]}">{encoder_caracteres_tei(vers_variantes[ref_index])}</lem>\n'
+
+                # Puis les autres variantes (rdg)
                 for idx, vers in enumerate(vers_variantes):
-                    wit = f"#{temoins[idx]}"
-                    if idx == ref_index:
-                        tei += f'        <lem wit="{wit}">{encoder_caracteres_tei(vers)}</lem>\n'
-                    else:
+                    if idx != ref_index:
+                        wit = f"#{temoins[idx]}"
                         tei += f'        <rdg wit="{wit}">{encoder_caracteres_tei(vers)}</rdg>\n'
+
                 tei += '      </app>\n'
                 resultat_tei.append(f'<l n="{vers_courant}">\n{tei}</l>\n')
 
