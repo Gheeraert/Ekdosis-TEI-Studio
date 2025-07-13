@@ -2202,11 +2202,98 @@ def enregistrer_preview(html_result):
         except Exception as e:
             messagebox.showerror("Erreur", f"Impossible d’enregistrer le fichier: {e}")
 
-def formatter_persname_tei(noms):
-    return ", ".join(
-        f'<persName ref="#{nettoyer_identifiant(n)}">{n}</persName>'
-        for n in noms
-    )
+
+import os
+import tkinter as tk
+from tkinter import filedialog as fd, messagebox
+
+import os
+import tkinter as tk
+from tkinter import filedialog as fd, messagebox, simpledialog
+
+import os
+import tkinter as tk
+from tkinter import filedialog as fd, messagebox, simpledialog
+
+def enregistrer_triple():
+    global html_result
+
+    # 1. Récupération des contenus
+    raw = zone_saisie.get("1.0", tk.END).strip()
+    tei = zone_resultat_tei.get("1.0", tk.END).strip()
+    # html_result peut être un widget Text ou un objet lxml.XSLTResultTree
+    if hasattr(html_result, "get"):
+        html = html_result.get("1.0", tk.END).strip()
+    else:
+        html = str(html_result).strip()
+
+    # 2. Vérifications d’existence de contenu
+    if not raw:
+        return messagebox.showwarning("Avertissement", "Aucune saisie à enregistrer.")
+    if not tei:
+        return messagebox.showwarning("Avertissement", "Aucun contenu TEI à enregistrer.")
+    if not html:
+        return messagebox.showwarning("Avertissement", "Aucun aperçu HTML à enregistrer.")
+
+    # 3. Choix du dossier racine
+    root_dir = fd.askdirectory(title="Choisissez le dossier racine")
+    if not root_dir:
+        return
+
+    # 4. Noms par défaut
+    default_txt  = nom_fichier("saisie",  "txt")
+    default_xml  = nom_fichier("tei",     "xml")
+    default_html = nom_fichier("preview", "html")
+
+    # 5. Confirmation / modification des basenames
+    txt_name  = simpledialog.askstring("Nom fichier texte",
+                                       "Nom du fichier de transcription (.txt) :",
+                                       initialvalue=default_txt)
+    if txt_name is None: return
+
+    xml_name  = simpledialog.askstring("Nom fichier TEI",
+                                       "Nom du fichier TEI (.xml) :",
+                                       initialvalue=default_xml)
+    if xml_name is None: return
+
+    html_name = simpledialog.askstring("Nom fichier HTML",
+                                       "Nom du fichier HTML (.html) :",
+                                       initialvalue=default_html)
+    if html_name is None: return
+
+    # 6. Construction des chemins et création des dossiers
+    chemins = {
+        "Saisie": os.path.join(root_dir, "transcriptions", txt_name),
+        "TEI"   : os.path.join(root_dir, "xml-tei",      xml_name),
+        "HTML"  : os.path.join(root_dir, "html", "fichiers-originaux", html_name),
+    }
+    for path in chemins.values():
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+
+    # 7. Vérif. d’écrasement
+    existants = [p for p in chemins.values() if os.path.exists(p)]
+    if existants:
+        liste = "\n".join(os.path.basename(p) for p in existants)
+        if not messagebox.askyesno(
+            "Fichiers existants",
+            f"Les fichiers suivants existent déjà :\n\n{liste}\n\nVoulez-vous les écraser ?"
+        ):
+            return
+
+    # 8. Écriture
+    try:
+        with open(chemins["Saisie"], "w", encoding="utf-8") as f:
+            f.write(raw)
+        with open(chemins["TEI"], "w", encoding="utf-8") as f:
+            f.write(tei)
+        with open(chemins["HTML"], "w", encoding="utf-8") as f:
+            f.write(html)
+    except Exception as e:
+        return messagebox.showerror("Erreur", f"Impossible d'enregistrer : {e}")
+
+    # 9. Message de succès
+    msg = "\n".join(f"{clé} → {chemin}" for clé, chemin in chemins.items())
+    messagebox.showinfo("Succès", "Fichiers enregistrés :\n\n" + msg)
 
 def formatter_persname_ekdosis(noms):
     return ", ".join(
@@ -2238,7 +2325,7 @@ def mettre_a_jour_menu(*args):
 
 
 def previsualiser_html():
-    global auteur_nom_complet, editeur_nom_complet, titre_piece, numero_acte, numero_scene
+    global auteur_nom_complet, editeur_nom_complet, titre_piece, numero_acte, numero_scene, html_result
 
     tei = zone_resultat_tei.get("1.0", tk.END).strip()
     if not tei:
@@ -3671,7 +3758,7 @@ btn_export_ekdosis.pack(side=tk.LEFT, padx=10)
 btn_sauver_saisie = tk.Button(frame_bas, text="💾 Export saisie brute", command=enregistrer_saisie)
 btn_sauver_saisie.pack(side=tk.LEFT, padx=10)
 
-btn_remplacer = tk.Button(frame_bas, text="Remplacer (Ctrl+H)", command=remplacer_avance)
+btn_remplacer = tk.Button(frame_bas, text="💾 Export complet", command=enregistrer_triple)
 btn_remplacer.pack(side=tk.LEFT, padx=10)
 
 btn_previsualiser = tk.Button(frame_bas, text="🌐 Preview", command=previsualiser_html)
