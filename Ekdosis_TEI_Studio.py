@@ -2314,6 +2314,198 @@ def enregistrer_triple():
     msg = "\n".join(f"{clé} → {chemin}" for clé, chemin in chemins.items())
     messagebox.showinfo("Succès", "Fichiers enregistrés :\n\n" + msg)
 
+def fusionner_html():
+    import os, re, locale
+    from tkinter import filedialog, messagebox, simpledialog
+    from datetime import date
+
+    html_files = filedialog.askopenfilenames(
+        title="Sélectionnez les fichiers HTML à fusionner",
+        filetypes=[("Fichiers HTML", "*.html *.htm")]
+    )
+    if not html_files:
+        return
+
+    html_files = sorted(html_files, key=lambda x: os.path.basename(x).lower())
+    titre = simpledialog.askstring("Titre", "Titre de la pièce (ex : La Thébaïde):")
+    if not titre:
+        return
+    acte = simpledialog.askstring("Acte", "Numéro d'acte (ex : Acte I):")
+    if not acte:
+        return
+
+    def roman_to_int(roman):
+        roman = roman.strip().upper().replace("ACTE", "").strip()
+        roman_dict = {
+            'I': 1, 'II': 2, 'III': 3, 'IV': 4, 'V': 5,
+            'VI': 6, 'VII': 7, 'VIII': 8, 'IX': 9, 'X': 10
+        }
+        if roman.isdigit():
+            return roman
+        return str(roman_dict.get(roman, roman))
+
+    try:
+        locale.setlocale(locale.LC_TIME, "fr_FR.UTF-8")
+    except:
+        locale.setlocale(locale.LC_TIME, "")
+    today_str = date.today().strftime("%d %B %Y")
+
+    bloc_credit_perso = f'''
+<div class="bloc-credit">
+<div class="credit-line">Jean Racine – <span class="italic">{titre}</span>, acte {acte}</div>
+<div class="credit-line">Édition critique par Claire Fourquet-Gracieux</div>
+<div class="credit-line">Document généré le {today_str} depuis Ekdosis-TEI Studio</div>
+</div>
+'''
+
+    num_acte = roman_to_int(re.sub(r"Acte\s*", "", acte, flags=re.IGNORECASE))
+    def_name = f"acte_{num_acte}.html"
+    save_path = filedialog.asksaveasfilename(
+        defaultextension=".html",
+        filetypes=[("Fichiers HTML", "*.html")],
+        initialfile=def_name,
+        title="Enregistrer l'acte fusionné"
+    )
+    if not save_path:
+        return
+
+    merged = []
+
+    for idx, filepath in enumerate(html_files):
+        with open(filepath, 'r', encoding='utf-8') as f:
+            content = f.read()
+
+        content = re.sub(r'<style.*?>.*?</style>', '', content, flags=re.DOTALL | re.IGNORECASE)
+        content = re.sub(r'</body>\s*</html>\s*$', '', content, flags=re.IGNORECASE)
+
+        if idx == 0:
+            parts = re.split(r'(<body[^>]*>)', content, maxsplit=1, flags=re.IGNORECASE | re.DOTALL)
+            if len(parts) < 3:
+                messagebox.showerror("Erreur", "Impossible de repérer le <body> dans le premier fichier.")
+                return
+            pre_body = parts[0] + parts[1]
+            google_fonts_line = '<link href="https://fonts.googleapis.com/css2?family=Old+Standard+TT:wght@400;700&display=swap" rel="stylesheet">\n'
+            pre_body = re.sub(r'(<head[^>]*>)', r'\1\n' + google_fonts_line, pre_body, count=1, flags=re.IGNORECASE)
+            merged.append(pre_body)
+
+            body_inside = parts[2]
+            body_inside = re.sub(r'<link rel="stylesheet" href="../../../css/edition.css">', '', body_inside, flags=re.IGNORECASE)
+            body_inside = '<link rel="stylesheet" href="../../../css/edition.css">\n' + body_inside
+            lines = body_inside.splitlines()
+            filtered = [line for line in lines if not (
+                'bloc-credit' in line or 'logo-credit' in line or 'credit-line' in line
+            )]
+            merged.append(bloc_credit_perso + "\n" + "\n".join(filtered))
+        else:
+            content = re.sub(r'<\/?body[^>]*>', '', content, flags=re.IGNORECASE)
+            content = re.sub(r'<\/?html[^>]*>', '', content, flags=re.IGNORECASE)
+            lines = content.splitlines()
+            filtered = [line for line in lines if not (
+                'bloc-credit' in line or 'logo-credit' in line or 'credit-line' in line
+            )]
+            merged.append("\n".join(filtered))
+
+    merged.append("\n</body>\n</html>")
+    with open(save_path, 'w', encoding='utf-8') as f:
+        f.write("".join(merged))
+
+    messagebox.showinfo("Succès", f"Acte HTML fusionné enregistré :\n{save_path}")
+
+def fusionner_markdown():
+    import os
+    from tkinter import filedialog, messagebox
+
+    md_files = filedialog.askopenfilenames(
+        title="Fichiers Markdown à fusionner",
+        filetypes=[("Fichiers Markdown ou texte", "*.md *.txt")]
+    )
+    if not md_files:
+        return
+
+    md_files = sorted(md_files, key=lambda x: os.path.basename(x).lower())
+    save_path = filedialog.asksaveasfilename(
+        defaultextension=".md",
+        filetypes=[("Fichiers Markdown", "*.md")],
+        initialfile="fusion.md",
+        title="Enregistrer le Markdown fusionné"
+    )
+    if not save_path:
+        return
+
+    merged = []
+    for filepath in md_files:
+        with open(filepath, 'r', encoding='utf-8') as f:
+            merged.append(f.read().strip())
+
+    with open(save_path, 'w', encoding='utf-8') as f:
+        f.write('\n\n'.join(merged))
+
+    messagebox.showinfo("Succès", f"Fichier Markdown fusionné enregistré :\n{save_path}")
+
+def fusionner_tei():
+    import os, re
+    from tkinter import filedialog, messagebox
+
+    files = filedialog.askopenfilenames(
+        title="Fichiers TEI à fusionner",
+        filetypes=[("TEI XML", "*.xml")]
+    )
+    if not files:
+        return
+
+    files = sorted(files, key=lambda p: os.path.basename(p).lower())
+    docs = []
+    for path in files:
+        try:
+            with open(path, encoding="utf-8") as f:
+                docs.append(f.read())
+        except Exception as e:
+            messagebox.showerror("Erreur", f"Impossible de lire {path} :\n{e}")
+            return
+
+    body_open_re = re.compile(r'^(.*?<body[^>]*>)', re.DOTALL | re.IGNORECASE)
+    body_close_re = re.compile(r'(</body>.*)$', re.DOTALL | re.IGNORECASE)
+    body_content_re = re.compile(r'<body[^>]*>(.*?)</body>', re.DOTALL | re.IGNORECASE)
+
+    first = docs[0]
+    m_open = body_open_re.match(first)
+    m_close = body_close_re.search(first)
+    m_body = body_content_re.search(first)
+    if not (m_open and m_close and m_body):
+        messagebox.showerror("Erreur", "Le premier fichier ne contient pas de <body>…</body> valide.")
+        return
+
+    header = m_open.group(1)
+    footer = m_close.group(1)
+    bodies = [m_body.group(1)]
+
+    for idx, doc in enumerate(docs[1:], start=2):
+        m = body_content_re.search(doc)
+        if not m:
+            messagebox.showerror("Erreur", f"Fichier n°{idx} : pas de <body>…</body> trouvé.")
+            return
+        bodies.append(m.group(1))
+
+    merged = header + "\n".join(bodies) + footer
+    save_path = filedialog.asksaveasfilename(
+        defaultextension=".xml",
+        filetypes=[("TEI XML", "*.xml")],
+        initialfile="acte_fusionne.xml",
+        title="Enregistrer le TEI fusionné"
+    )
+    if not save_path:
+        return
+
+    try:
+        with open(save_path, "w", encoding="utf-8") as out:
+            out.write(merged)
+    except Exception as e:
+        messagebox.showerror("Erreur", f"Impossible d'écrire le fichier :\n{e}")
+        return
+
+    messagebox.showinfo("Succès", f"TEI fusionné enregistré :\n{save_path}")
+
+
 def formatter_persname_ekdosis(noms):
     return ", ".join(
         f'\\pn{{#{nettoyer_identifiant(n)}}}{{{n}}}'
@@ -3633,6 +3825,10 @@ menu_bar.add_cascade(label="Outils", menu=menu_outils)
 menu_outils.add_command(label="Lancer l’assistant de saisie", command=lancer_saisie_assistee_par_menu)
 menu_outils.add_command(label="Valider la structure", command=valider_structure)
 menu_outils.add_command(label="Comparer les états", command=comparer_etats)
+menu_edit.add_separator()
+menu_outils.add_command(label="Fusionner HTML", command=fusionner_html)
+menu_outils.add_command(label="Fusionner Markdown", command=fusionner_markdown)
+menu_outils.add_command(label="Fusionner TEI", command=fusionner_tei)
 
 # Menu Affichage
 menu_affichage = tk.Menu(menu_bar, tearoff=0)
