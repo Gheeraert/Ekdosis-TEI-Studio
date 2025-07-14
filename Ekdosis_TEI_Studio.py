@@ -1,6 +1,6 @@
 # ==============================================================================
 # Ekdosis-TEI Studio
-# Version 1.2.5
+# Version 1.3.1
 #
 # Un outil d'encodage inspiré du markdown
 # pour encoder des variantes dans le théâtre classique
@@ -3370,7 +3370,7 @@ def aligner_variantes_par_mot(tokens, temoins, ref_index):
                 )
         ligne_tei.append("      </app>\n")
 
-        # Ekdosis reste inchangé
+        # Ekdosis
         ekdo = [f' \n      \\app{{']
         ekdo.append(
             f'        \\lem[wit={{{", ".join(mots_colonne.get(lemme, []))}}}]{{{echapper_caracteres_ekdosis(lemme)}}}'
@@ -3399,7 +3399,6 @@ def speaker_aligned_output(speaker_list, temoins, ref_index, aligner_fonction):
         tokens = [[n] for n in cleaned]
         ligne_tei, ligne_ekdosis = aligner_fonction(tokens, temoins, ref_index)
         return "".join(ligne_tei).strip(), "".join(ligne_ekdosis).strip()
-
 
 def verifier_et_comparer():
     if valider_structure():
@@ -3443,8 +3442,16 @@ def comparer_etats():
         # Injection dans le résultat TEI (juste après ouverture du <div type="act">)
         tei_head = '    <head>' + "".join(ligne_tei).strip() + '</head>'
         # (garde le résultat à réinjecter juste après l’ouverture de l’acte)
+        head_acte_ekdosis = tokens[ref_index][0]
+        # possibilité d'affichage de l'acte en ajoutant head={head_acte_ekdosis}
+        ekddiv_acte = f'\\ekddiv{{type=act, n={numero_acte}, depth=2}}'
+        ekdosis_head = "\n".join(ligne_ekdosis).strip()  # variantes (ou rien si pas de variantes)
+        ekdosis_head = f"\\stage{{{ekdosis_head}}}"
+
     else:
         tei_head = None
+        ekddiv_acte = None
+        ekdosis_head = None
 
     # ------------- SCENE -------------
     if bloc_scene:
@@ -3453,8 +3460,14 @@ def comparer_etats():
         temoins = [chr(65 + i) for i in range(nombre_temoins_predefini)]
         ligne_tei_scene, ligne_ekdosis_scene = aligner_variantes_par_mot(tokens, temoins, ref_index)
         tei_scene_head = '    <head>' + "".join(ligne_tei_scene).strip() + '</head>'
-    else:
-        tei_scene_head = None
+
+        # Génération du \ekddiv et du titre encapsulé dans \stage{}
+        head_scene_ekdosis = tokens[ref_index][0]
+        # possibilité d'afficher head={head_scene_ekdosis}
+        ekddiv_scene = f'\\ekddiv{{type=scene, n={numero_scene}, depth=3}}'
+        ekdosis_scene_head = "\n".join(ligne_ekdosis_scene).strip()
+        if ekdosis_scene_head:
+            ekdosis_scene_head = f"\\stage{{{ekdosis_scene_head}}}"
 
     # ------------- PERSONNAGES -------------
     if bloc_persos:
@@ -3463,8 +3476,10 @@ def comparer_etats():
         temoins = [chr(65 + i) for i in range(nombre_temoins_predefini)]
         ligne_tei_persos, ligne_ekdosis_persos = aligner_variantes_par_mot(tokens, temoins, ref_index)
         tei_persos_stage = "    <stage type='personnages'>" + "".join(ligne_tei_persos).strip() + '</stage>'
+        ekdosis_persos_stage = "\\stage{" + "".join(ligne_ekdosis_persos).strip() + "}"
     else:
         tei_persos_stage = None
+        ekdosis_persos_stage = None
 
     print('DIALOGUES =', dialogues)
     try:
@@ -3510,6 +3525,9 @@ def comparer_etats():
     dernier_locuteur = None
     changement_locuteur_deja_traite = False  # ← ajoute cette ligne ici
 
+    # === Construction de la chaîne ===
+    # === TEI ===
+
     if bloc_acte:
         print("DEBUG: bloc_acte =", bloc_acte)
         resultat_tei.append(f'<div type="act" n="{num_acte}">')
@@ -3522,8 +3540,23 @@ def comparer_etats():
 
     if tei_scene_head:
         resultat_tei.append(tei_scene_head)
+
     if tei_persos_stage:
         resultat_tei.append(tei_persos_stage)
+
+    # === EKDOSIS ===
+    if bloc_acte:
+        if ekddiv_acte:
+            resultat_ekdosis.append(ekddiv_acte)
+        if ekdosis_head:
+            resultat_ekdosis.append(ekdosis_head)
+    if bloc_scene:
+        if ekddiv_scene:
+            resultat_ekdosis.append(ekddiv_scene)
+        if ekdosis_scene_head:
+            resultat_ekdosis.append(ekdosis_scene_head)
+    if ekdosis_persos_stage:
+        resultat_ekdosis.append(ekdosis_persos_stage)
 
     for speaker, bloc in dialogues:
         speakers = speaker if isinstance(speaker, list) else [speaker]
@@ -3746,6 +3779,8 @@ def comparer_etats():
         changement_locuteur_deja_traite = False  # ← réinitialisation à chaque itération
 
     resultat_tei.append('</sp>')
+    resultat_ekdosis.append("      \\end{ekdverse}\n    \\end{speech}")
+
     if bloc_scene:
         resultat_tei.append('</div>')
     if bloc_acte:
