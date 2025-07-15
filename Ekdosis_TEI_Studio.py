@@ -1,6 +1,6 @@
 # ==============================================================================
 # Ekdosis-TEI Studio
-# Version 1.1.1
+# Version 1.2.5
 #
 # Un outil d'encodage inspiré du markdown
 # pour encoder des variantes dans le théâtre classique
@@ -35,11 +35,26 @@ from datetime import date
 import locale
 import json
 
+
 def importer_echantillon():
-    exemple = """####1####
-###1###
+    exemple = """####acte 1####
+####acte 1####
+####acte 1####
+####acte 1####
+
+###scene 1###
+###scene 1###
+###scene 1###
+###scene 1###
+
+##Antiochus## ##Arsace##
+##Antiochus## ##Arsace##
+##Antiochus## ##Arsace##
 ##Antiochus## ##Arsace##
 
+#Antiochus#
+#Antiochus#
+#Antiochus#
 #Antiochus#
 
 **Antiochus entre**
@@ -63,12 +78,20 @@ Souvent ce Cabinet***
 Souvent ce Cabinet***
 
 #Arsace#
+#Arsace#
+#Arsace#
+#Arsace#
+
 ***superbe & solitaire,
 ***superbe & solitaire,
 ***superbe & solitaire,
 ***superbe & solitaire,
 
 #Antiochus#
+#Antiochus#
+#Antiochus#
+#Antiochus#
+
 Des secrets de Titus est le dépositaire.
 Des secrets de Titus est le dépositaire.
 Des secrets de Titus est le dépositaire.
@@ -105,6 +128,10 @@ J'ose luy demander un entretien secret.
 J'ose luy demander un entretien secret.
 
 #Arsace#
+#Arsace#
+#Arsace#
+#Arsace#
+
 Vous, Seigneur, importun Vous cet Amy fidelle
 Vous, Seigneur, importun~? Vous cet Amy fidelle
 Vous, Seigneur, importun~? Vous cet Ami fidelle
@@ -136,6 +163,10 @@ Ce rang entre elle et vous met-il tant de distance~?
 Ce rang entre elle et vous met-il tant de distance~? 
 
 #Antiochus#
+#Antiochus#
+#Antiochus#
+#Antiochus#
+
 Va, dis-je, et sans vouloir te charger d'autres soins,
 Va, dis-je, et sans vouloir te charger d'autres soins;
 Va, dis-je, et sans vouloir te charger d'autres soins?
@@ -145,47 +176,7 @@ Voy si je puis bientost luy parler sans témoins.
 Voy si je puis bientost luy parler sans témoins.
 Voi si je puis bientost lui parler sans témoins.
 Voi si je puis bientost luy parler sans témoins.
-
-###2###
-##Antiochus##
-#Antiochus#
-HE bien, Antiochus, es-tu toûjours le mesme ?
-HE bien, Antiochus, es-tu toûjours le mesme ?
-HE bien, Antiochus, es-tu toûjours le mesme ?
-HE bien, Antiochus, es-tu toûjours le mesme ?
-
-Voy si je puis bientost luy parler sans témoins.
-Voy si je puis bientost luy parler sans témoins.
-Voi si je puis bientost lui parler sans témoins.
-Voi si je puis bientost luy parler sans témoins.
-
-###3###
-##Antiochus##, ##Titus##, ##Bérénice##
-#Bérénice#
-Dans un mois, dans un an comment souffrirons-nous
-Dans un mois, dans un an, comment souffrirons-nous
-Dans un mois dans un an comment souffrirons-nous
-Dans un mois, dans un an comment souffrirez-vous
-
-Seigneur que tant de mers me séparent de vous
-Seigneur que tant de mers me séparent de nous
-Seigneur, que tant de mers me séparent de vous
-Seigneur que tant de mers me séparent de vous
-
-Que le jour recommance et que le jours finisse
-Que le jour recommence et que le jours finisse
-Que le jour recommence et que le jours finisse
-Que le jour recommence et que le jours finisse
-
-Sans que jamais Titus puisse voir Bérénice
-Sans que jamais Titus puisse voir Bérénice
-Sans que jamais Titus puisse voir Bérénice
-Sans que jamais Titus puisse voir Bérénice
-
-Sans que de tour le jour je puisse voir Titus.
-Sans que de tour le jour je puisse voir Titus.
-Sans que de tour le jour je puisse voir Titus.
-Sans que de tour le jour, je puisse voir Titus!"""
+"""
 
     zone_saisie.delete("1.0", tk.END)
     zone_saisie.insert("1.0", exemple)
@@ -452,12 +443,10 @@ template_ekdosis_fin_doc = r"""
 
 
 def exporter_template_ekdosis():
-    template_ekdosis_exemple_apparat = r"""
-        \DeclareWitness{A}{1670}{Description de A}
-        \DeclareWitness{B}{1671}{Description de B}
-        \DeclareWitness{C}{1672}{Description de C}
-        \DeclareWitness{D}{1673}{Description de D}
-        """
+    template_ekdosis_exemple_apparat = "\n".join([
+        f"\\DeclareWitness{{{t['abbr']}}}{{{t['year']}}}{{{t['desc']}}}"
+        for t in temoins
+    ])
     chemin = filedialog.asksaveasfilename(
         defaultextension=".tex",
         filetypes=[("Fichier ekdosis", "*.tex")],
@@ -1270,6 +1259,7 @@ def nom_fichier(base, extension):
         # Variables non encore définies : nom provisoire
         return f"temp_{base}.{extension}"
 
+
 def sauvegarder_configuration(infos, temoins_collectes):
     if not infos or not temoins_collectes:
         messagebox.showerror("Erreur", "Impossible de sauvegarder : informations incomplètes.")
@@ -1289,6 +1279,7 @@ def sauvegarder_configuration(infos, temoins_collectes):
         messagebox.showinfo("Sauvegarde", f"Configuration sauvegardée dans {nom_fichier}.")
     except Exception as e:
         messagebox.showerror("Erreur", f"Erreur lors de la sauvegarde : {e}")
+
 
 def sauvegarder_config(chemin_fichier):
     global prenom_auteur, nom_auteur, titre_piece, numero_acte, numero_scene
@@ -1380,6 +1371,7 @@ def sauvegarder_config_sous():
     except Exception as e:
         messagebox.showerror("Erreur", f"Erreur lors de la sauvegarde : {e}")
 
+
 def charger_configuration():
     global prenom_auteur, nom_auteur, auteur_nom_complet, titre_piece, numero_acte
     global numero_scene, nombre_scenes, nombre_temoins, nombre_temoins_predefini
@@ -1402,7 +1394,7 @@ def charger_configuration():
         messagebox.showerror("Erreur", f"Erreur de chargement : {e}")
         return
 
-     # Mise à jour des variables globales
+    # Mise à jour des variables globales
     prenom_auteur = config["Prénom de l'auteur"]
     nom_auteur = config["Nom de l'auteur"]
     titre_piece = config["Titre de la pièce"]
@@ -1430,11 +1422,13 @@ def charger_configuration():
 
     messagebox.showinfo("Chargement réussi", f"Configuration '{os.path.basename(chemin_fichier)}' chargée avec succès.")
 
+
 def editer_config_courant():
     if not config_en_cours:
         messagebox.showwarning("Avertissement", "Aucune configuration chargée ou créée.")
         return
     editer_config_apres_chargement(config_en_cours)
+
 
 def editer_config_apres_chargement(config):
     global prenom_auteur, nom_auteur, titre_piece, numero_acte, numero_scene
@@ -1464,7 +1458,8 @@ def editer_config_apres_chargement(config):
 
     entrees = {}
     for i, (label, valeur) in enumerate(champs.items()):
-        tk.Label(fenetre, text=label, bg="#f5f0dc", font=("Garamond", 12)).grid(row=i, column=0, sticky="e", pady=5, padx=5)
+        tk.Label(fenetre, text=label, bg="#f5f0dc", font=("Garamond", 12)).grid(row=i, column=0, sticky="e", pady=5,
+                                                                                padx=5)
         entree = tk.Entry(fenetre, font=("Garamond", 12), width=40)
         entree.insert(0, valeur)
         entree.grid(row=i, column=1, pady=5, padx=5)
@@ -1500,6 +1495,7 @@ def editer_config_apres_chargement(config):
         entrees_temoins.append((entry_abbr, entry_year, entry_desc))
 
         # === Fonction de validation ===
+
     def valider_modifications():
         nonlocal temoins_collectes_temp
 
@@ -1525,7 +1521,7 @@ def editer_config_apres_chargement(config):
         # === Zone de texte regénérée - à SUPPRIMER ! Ne pas tout effacer!!
         # zone_saisie.delete("1.0", tk.END)
         # ligne_personnages = " ".join(f"##{nom.strip()}##" for nom in noms_persos.split(",") if nom.strip())
-        #zone_saisie.insert("1.0",
+        # zone_saisie.insert("1.0",
         #                   f"####{numero_acte}####\n\n"
         #                   f"###{numero_scene}###\n\n"
         #                   f"{ligne_personnages}\n\n"
@@ -1596,6 +1592,7 @@ def editer_config_apres_chargement(config):
     fenetre.grab_set()
     fenetre.wait_window()
 
+
 def charger_texte_zone_saisie():
     chemin_fichier = filedialog.askopenfilename(
         title="Charger un texte saisi",
@@ -1642,18 +1639,18 @@ def charger_texte_zone_saisie():
     except Exception as e:
         messagebox.showerror("Erreur", f"Erreur lors du chargement du texte : {e}")
 
+
 def normaliser_bloc(bloc):
     return "\n".join([l for l in bloc.strip().splitlines() if l.strip()])
 
 def valider_structure_amelioree():
-    texte = zone_saisie.get("1.0", "end-1c")  # PAS tk.END !
+    texte = zone_saisie.get("1.0", "end-1c")
     lignes = texte.split("\n")
     zone_saisie.tag_remove("erreur", "1.0", tk.END)
     zone_saisie.tag_remove("valide", "1.0", tk.END)
 
     erreurs = []
     blocs_valides = 0
-    a_acte = False
     a_scene = False
     locuteur_en_cours = None
 
@@ -1670,15 +1667,13 @@ def valider_structure_amelioree():
         if ligne.count("*") % 2 != 0:
             erreurs.append(f"Ligne {ligne_num} : nombre impair d'astérisques.")
 
-        if re.fullmatch(r"####\d+####", ligne):
-            a_acte = True
+        # Balise acte = autorisé, mais pas obligatoire, donc on saute sans rien imposer
+        if re.fullmatch(r"####.*####", ligne):
             a_scene = False
             i += 1
             continue
 
-        if re.fullmatch(r"###\d+###", ligne):
-            if not a_acte:
-                erreurs.append(f"Ligne {ligne_num} : scène définie avant tout acte.")
+        if re.fullmatch(r"###.*###", ligne):
             a_scene = True
             i += 1
             continue
@@ -1690,7 +1685,7 @@ def valider_structure_amelioree():
             locuteur_trouvé = False
             while j < len(lignes):
                 ligne_suiv = lignes[j].strip()
-                if re.fullmatch(r"####\d+####", ligne_suiv) or re.fullmatch(r"###\d+###", ligne_suiv):
+                if re.fullmatch(r"####.*####", ligne_suiv) or re.fullmatch(r"###.*###", ligne_suiv):
                     break
                 if re.fullmatch(r"#[^#]+#", ligne_suiv):
                     locuteur_trouvé = True
@@ -1711,28 +1706,50 @@ def valider_structure_amelioree():
         j = i + 1
         while j < len(lignes):
             variantes = 0
+            lignes_bloc = []
+            indices_bloc = []
             while j < len(lignes):
                 l = lignes[j].strip()
                 if (not l or
-                    re.fullmatch(r"#[^#]+#", l) or
-                    re.fullmatch(r"###\d+###", l) or
-                    re.fullmatch(r"####\d+####", l) or
-                    re.fullmatch(r"(##[^\#]+##\s*)+", l)):
+                        re.fullmatch(r"#[^#]+#", l) or
+                        re.fullmatch(r"###.*###", l) or
+                        re.fullmatch(r"####.*####", l) or
+                        re.fullmatch(r"(##[^\#]+##\s*)+", l)):
                     break
                 variantes += 1
+                lignes_bloc.append(l)
+                indices_bloc.append(j)
                 j += 1
                 if variantes == nombre_temoins_predefini:
+                    # Ajout du contrôle sur le nombre de mots (hors lignes #####)
+                    lignes_bloc_a_tester = [ligne for ligne in lignes_bloc if not ligne.startswith("#####")]
+                    if lignes_bloc_a_tester:  # Évite les blocs qui ne contiennent QUE des ##### !
+                        nb_mots = [len(ligne.split()) for ligne in lignes_bloc_a_tester]
+                        if len(set(nb_mots)) > 1:
+                            erreur_msg = (
+                                f"Lignes {indices_bloc[0] + 1}-{indices_bloc[-1] + 1} : variantes de longueur inégale ({nb_mots}) pour '{locuteur_en_cours}'."
+                            )
+                            erreurs.append(erreur_msg)
+                            # Couleur jaune sur toutes les lignes du bloc
+                            zone_saisie.tag_configure("desaligne", background="#fff2cc")
+                            for idx in indices_bloc:
+                                debut = f"{idx + 1}.0"
+                                fin = f"{idx + 1}.end"
+                                zone_saisie.tag_add("desaligne", debut, fin)
                     blocs_valides += 1
                     debut = f"{j - variantes}.0"
                     fin = f"{j}.end"
                     zone_saisie.tag_add("valide", debut, fin)
                     variantes = 0
+                    lignes_bloc = []
+                    indices_bloc = []
                     break
             if variantes != 0:
                 erreurs.append(
                     f"Ligne {ligne_num} : {variantes} variante(s) incomplètes pour '{locuteur_en_cours}', {nombre_temoins_predefini} attendue(s)."
                 )
             break
+
         locuteur_en_cours = None
         i = j
         continue
@@ -1745,13 +1762,13 @@ def valider_structure_amelioree():
 
         i += 1
 
-    if not any(re.fullmatch(r"####\d+####", l.strip()) for l in lignes):
-        erreurs.append("Aucun acte (####n####) n’est défini.")
-    if not any(re.fullmatch(r"###\d+###", l.strip()) for l in lignes):
-        erreurs.append("Aucune scène (###n###) n’est définie.")
+    # Tests globaux de structure : scène et locuteur seulement !
+    if not any(re.fullmatch(r"###.*###", l.strip()) for l in lignes):
+        erreurs.append("Aucune scène (###...###) n’est définie.")
     if not any(re.fullmatch(r"#[^#]+#", l.strip()) for l in lignes):
         erreurs.append("Aucun locuteur (#Nom#) n’est défini.")
 
+    # Coloration/surlignement et messages d'erreur : inchangés
     zone_saisie.tag_remove("erreur", "1.0", tk.END)
     zone_saisie.tag_remove("valide", "1.0", tk.END)
 
@@ -1788,10 +1805,8 @@ def valider_structure_amelioree():
         )
         return True
 
-
 # Remplacement automatique
 valider_structure = valider_structure_amelioree
-
 
 
 # Ajouter ce bouton à l’interface existante
@@ -1818,28 +1833,68 @@ def nettoyer_identifiant(nom):
 
 
 def echapper_caracteres_ekdosis(texte):
-    """Échappe les caractères spéciaux ekdosis comme l’esperluette et remplace ~ par une espace."""
-    return texte.replace("&", r"\&").replace("~", " ")
-
+    # Remplace & par \&,
+    # et ~, ~~... par des espacements LaTeX adaptés :
+    # ~   → ~ (espace insécable LaTeX)
+    # ~~  → \enspace
+    # ~~~ → \quad
+    #~~~~ → \qquad
+    # >4  → \hspace*{Nx1em}
+    #
+    texte = texte.replace("&", r"\&")
+    # Remplace les séries de ~ par l’espace adapté
+    def replace_tildes(match):
+        n = len(match.group(0))
+        if n == 1:
+            return "~"
+        elif n == 2:
+            return r"\enspace"
+        elif n == 3:
+            return r"\quad"
+        elif n == 4:
+            return r"\qquad"
+        else:
+            return r"\hspace*{" + str(n) + "em}"
+    return re.sub(r'~+', replace_tildes, texte)
 
 def encoder_caracteres_tei(texte):
-    """Encode les caractères spéciaux XML/TEI comme l’esperluette et remplace ~ par une espace."""
-    return texte.replace("&", "&amp;").replace("~", " ")
+    """
+    Remplace & par &amp;,
+    et ~, ~~... par des espaces insécables Unicode :
+    ~   → &#160;
+    ~~  → &#160;&#160;
+    ~~~ → &#160;&#160;&#160;
+    etc.
+    """
+    texte = texte.replace("&", "&amp;")
+    # Remplace tous les groupes de ~ par autant d’espaces insécables
+    return re.sub(r'~+', lambda m: "&#160;" * len(m.group(0)), texte)
 
 
-def rechercher():
+def rechercher(zone):
     terme = simpledialog.askstring("Rechercher", "Mot ou expression à chercher :")
     if terme:
-        zone_saisie.tag_remove("found", "1.0", tk.END)
+        zone.tag_remove("found", "1.0", tk.END)
         start_pos = "1.0"
+        found_any = False
+        # Option insensible à la casse avec nocase=1
         while True:
-            start_pos = zone_saisie.search(terme, start_pos, stopindex=tk.END)
+            start_pos = zone.search(terme, start_pos, stopindex=tk.END, nocase=1)
             if not start_pos:
                 break
             end_pos = f"{start_pos}+{len(terme)}c"
-            zone_saisie.tag_add("found", start_pos, end_pos)
+            zone.tag_add("found", start_pos, end_pos)
+            if not found_any:
+                # Scroll to first found occurrence
+                zone.see(start_pos)
+                # Facultatif : sélectionne aussi la première occurrence
+                zone.tag_remove(tk.SEL, "1.0", tk.END)
+                zone.tag_add(tk.SEL, start_pos, end_pos)
+                zone.focus()
+                found_any = True
             start_pos = end_pos
-        zone_saisie.tag_config("found", background="yellow")
+        zone.tag_config("found", background="yellow")
+
 
 
 def remplacer_avance(zone):
@@ -2118,12 +2173,403 @@ def enregistrer_saisie():
 
         messagebox.showinfo("Succès", "Saisie enregistrée.")
 
-def formatter_persname_tei(noms):
-    return ", ".join(
-        f'<persName ref="#{nettoyer_identifiant(n)}">{n}</persName>'
-        for n in noms
+import os
+import tkinter as tk
+from tkinter import filedialog as fd, messagebox
+
+def enregistrer_preview(html_result):
+    fichier_html = fd.asksaveasfilename(
+        defaultextension=".html",
+        filetypes=[("Fichiers HTML", "*.html")],
+        initialfile=nom_fichier("preview", "html"),
+        title="Enregistrer le preview HTML"
     )
 
+    if fichier_html:
+        if os.path.exists(fichier_html):
+            reponse = messagebox.askyesno(
+                "Fichier existant",
+                f"Le fichier {os.path.basename(fichier_html)} existe déjà.\nVoulez-vous l’écraser ?"
+            )
+            if not reponse:
+                return
+        try:
+            with open(fichier_html, "w", encoding="utf-8") as f:
+                f.write(str(html_result))
+            messagebox.showinfo("Succès", f"Preview HTML enregistré sous:\n{fichier_html}")
+        except Exception as e:
+            messagebox.showerror("Erreur", f"Impossible d’enregistrer le fichier: {e}")
+
+
+def enregistrer_triple():
+    global html_result
+
+    # Vérifier si html_result est défini dans l'espace global
+    if "html_result" not in globals():
+        messagebox.showwarning("Avertissement", "Aucun aperçu HTML à enregistrer. Lancez d'abord le 'Preview'.")
+        return
+
+    if html_result is None:
+        messagebox.showwarning("Avertissement", "Aucun aperçu HTML à enregistrer. Lancez d'abord le 'Preview'.")
+        return
+
+    # S’il s’agit d’un widget Text
+    if hasattr(html_result, "get"):
+        html = html_result.get("1.0", tk.END).strip()
+    else:
+        html = str(html_result).strip()
+
+    if not html:
+        messagebox.showwarning("Avertissement", "Aucun aperçu HTML à enregistrer. Lancez d'abord le 'Preview'.")
+        return
+
+    # 1. Récupération des contenus
+    raw = zone_saisie.get("1.0", tk.END).strip()
+    tei = zone_resultat_tei.get("1.0", tk.END).strip()
+    # html_result peut être un widget Text ou un objet lxml.XSLTResultTree
+    if hasattr(html_result, "get"):
+        html = html_result.get("1.0", tk.END).strip()
+    else:
+        html = str(html_result).strip()
+
+    # 2. Vérifications d’existence de contenu
+    if not raw:
+        return messagebox.showwarning("Avertissement", "Aucune saisie à enregistrer.")
+    if not tei:
+        return messagebox.showwarning("Avertissement", "Aucun contenu TEI à enregistrer.")
+    if not html:
+        return messagebox.showwarning("Avertissement", "Aucun aperçu HTML à enregistrer.")
+
+    # 3. Choix du dossier racine
+    root_dir = fd.askdirectory(title="Choisissez le dossier racine")
+    if not root_dir:
+        return
+
+    # 4. Noms par défaut
+    default_txt  = nom_fichier("saisie",  "txt")
+    default_xml  = nom_fichier("tei",     "xml")
+    default_html = nom_fichier("preview", "html")
+
+    # 5. Confirmation / modification des basenames
+    txt_name  = simpledialog.askstring("Nom fichier texte",
+                                       "Nom du fichier de transcription (.txt) :",
+                                       initialvalue=default_txt)
+    if txt_name is None: return
+
+    xml_name  = simpledialog.askstring("Nom fichier TEI",
+                                       "Nom du fichier TEI (.xml) :",
+                                       initialvalue=default_xml)
+    if xml_name is None: return
+
+    html_name = simpledialog.askstring("Nom fichier HTML",
+                                       "Nom du fichier HTML (.html) :",
+                                       initialvalue=default_html)
+    if html_name is None: return
+
+    # 6. Construction des chemins et création des dossiers
+    chemins = {
+        "Saisie": os.path.join(root_dir, "transcriptions", txt_name),
+        "TEI"   : os.path.join(root_dir, "xml-tei",      xml_name),
+        "HTML"  : os.path.join(root_dir, "html", "fichiers-originaux", html_name),
+    }
+    for path in chemins.values():
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+
+    # 7. Vérif. d’écrasement
+    existants = [p for p in chemins.values() if os.path.exists(p)]
+    if existants:
+        liste = "\n".join(os.path.basename(p) for p in existants)
+        if not messagebox.askyesno(
+            "Fichiers existants",
+            f"Les fichiers suivants existent déjà :\n\n{liste}\n\nVoulez-vous les écraser ?"
+        ):
+            return
+
+    # 8. Écriture
+    try:
+        with open(chemins["Saisie"], "w", encoding="utf-8") as f:
+            f.write(raw)
+        with open(chemins["TEI"], "w", encoding="utf-8") as f:
+            f.write(tei)
+        with open(chemins["HTML"], "w", encoding="utf-8") as f:
+            f.write(html)
+    except Exception as e:
+        return messagebox.showerror("Erreur", f"Impossible d'enregistrer : {e}")
+
+    # 9. Message de succès
+    msg = "\n".join(f"{clé} → {chemin}" for clé, chemin in chemins.items())
+    messagebox.showinfo("Succès", "Fichiers enregistrés :\n\n" + msg)
+
+def fusionner_html():
+    import os, re, locale
+    from tkinter import filedialog, messagebox, simpledialog
+    from datetime import date
+
+    html_files = filedialog.askopenfilenames(
+        title="Sélectionnez les fichiers HTML à fusionner",
+        filetypes=[("Fichiers HTML", "*.html *.htm")]
+    )
+    if not html_files:
+        return
+
+    html_files = sorted(html_files, key=lambda x: os.path.basename(x).lower())
+    titre = simpledialog.askstring("Titre", "Titre de la pièce (ex : La Thébaïde):")
+    if not titre:
+        return
+    acte = simpledialog.askstring("Acte", "Numéro d'acte (ex : Acte I):")
+    if not acte:
+        return
+
+    def roman_to_int(roman):
+        roman = roman.strip().upper().replace("ACTE", "").strip()
+        roman_dict = {
+            'I': 1, 'II': 2, 'III': 3, 'IV': 4, 'V': 5,
+            'VI': 6, 'VII': 7, 'VIII': 8, 'IX': 9, 'X': 10
+        }
+        if roman.isdigit():
+            return roman
+        return str(roman_dict.get(roman, roman))
+
+    try:
+        locale.setlocale(locale.LC_TIME, "fr_FR.UTF-8")
+    except:
+        locale.setlocale(locale.LC_TIME, "")
+    today_str = date.today().strftime("%d %B %Y")
+
+    bloc_credit_perso = f'''
+<div class="bloc-credit">
+<div class="credit-line">Jean Racine – <span class="italic">{titre}</span>, acte {acte}</div>
+<div class="credit-line">Édition critique par Claire Fourquet-Gracieux</div>
+<div class="credit-line">Document généré le {today_str} depuis Ekdosis-TEI Studio</div>
+</div>
+'''
+
+    num_acte = roman_to_int(re.sub(r"Acte\s*", "", acte, flags=re.IGNORECASE))
+    def_name = f"acte_{num_acte}.html"
+    save_path = filedialog.asksaveasfilename(
+        defaultextension=".html",
+        filetypes=[("Fichiers HTML", "*.html")],
+        initialfile=def_name,
+        title="Enregistrer l'acte fusionné"
+    )
+    if not save_path:
+        return
+
+    merged = []
+
+    for idx, filepath in enumerate(html_files):
+        with open(filepath, 'r', encoding='utf-8') as f:
+            content = f.read()
+
+        content = re.sub(r'<style.*?>.*?</style>', '', content, flags=re.DOTALL | re.IGNORECASE)
+        content = re.sub(r'</body>\s*</html>\s*$', '', content, flags=re.IGNORECASE)
+
+        if idx == 0:
+            parts = re.split(r'(<body[^>]*>)', content, maxsplit=1, flags=re.IGNORECASE | re.DOTALL)
+            if len(parts) < 3:
+                messagebox.showerror("Erreur", "Impossible de repérer le <body> dans le premier fichier.")
+                return
+            pre_body = parts[0] + parts[1]
+            google_fonts_line = '<link href="https://fonts.googleapis.com/css2?family=Old+Standard+TT:wght@400;700&display=swap" rel="stylesheet">\n'
+            pre_body = re.sub(r'(<head[^>]*>)', r'\1\n' + google_fonts_line, pre_body, count=1, flags=re.IGNORECASE)
+            merged.append(pre_body)
+
+            body_inside = parts[2]
+            body_inside = re.sub(r'<link rel="stylesheet" href="../../../css/edition.css">', '', body_inside, flags=re.IGNORECASE)
+            body_inside = '<link rel="stylesheet" href="../../../css/edition.css">\n' + body_inside
+            lines = body_inside.splitlines()
+            filtered = [line for line in lines if not (
+                'bloc-credit' in line or 'logo-credit' in line or 'credit-line' in line
+            )]
+            merged.append(bloc_credit_perso + "\n" + "\n".join(filtered))
+        else:
+            content = re.sub(r'<\/?body[^>]*>', '', content, flags=re.IGNORECASE)
+            content = re.sub(r'<\/?html[^>]*>', '', content, flags=re.IGNORECASE)
+            lines = content.splitlines()
+            filtered = [line for line in lines if not (
+                'bloc-credit' in line or 'logo-credit' in line or 'credit-line' in line
+            )]
+            merged.append("\n".join(filtered))
+
+    merged.append("\n</body>\n</html>")
+    with open(save_path, 'w', encoding='utf-8') as f:
+        f.write("".join(merged))
+
+    messagebox.showinfo("Succès", f"Acte HTML fusionné enregistré :\n{save_path}")
+
+def fusionner_markdown():
+    import os
+    from tkinter import filedialog, messagebox
+
+    md_files = filedialog.askopenfilenames(
+        title="Fichiers Markdown à fusionner",
+        filetypes=[("Fichiers Markdown ou texte", "*.md *.txt")]
+    )
+    if not md_files:
+        return
+
+    md_files = sorted(md_files, key=lambda x: os.path.basename(x).lower())
+    save_path = filedialog.asksaveasfilename(
+        defaultextension=".md",
+        filetypes=[("Fichiers Markdown", "*.md")],
+        initialfile="fusion.md",
+        title="Enregistrer le Markdown fusionné"
+    )
+    if not save_path:
+        return
+
+    merged = []
+    for filepath in md_files:
+        with open(filepath, 'r', encoding='utf-8') as f:
+            merged.append(f.read().strip())
+
+    with open(save_path, 'w', encoding='utf-8') as f:
+        f.write('\n\n'.join(merged))
+
+    messagebox.showinfo("Succès", f"Fichier Markdown fusionné enregistré :\n{save_path}")
+
+def fusionner_tei():
+    import os, re
+    from tkinter import filedialog, messagebox
+
+    files = filedialog.askopenfilenames(
+        title="Fichiers TEI à fusionner",
+        filetypes=[("TEI XML", "*.xml")]
+    )
+    if not files:
+        return
+
+    files = sorted(files, key=lambda p: os.path.basename(p).lower())
+    docs = []
+    for path in files:
+        try:
+            with open(path, encoding="utf-8") as f:
+                docs.append(f.read())
+        except Exception as e:
+            messagebox.showerror("Erreur", f"Impossible de lire {path} :\n{e}")
+            return
+
+    body_open_re = re.compile(r'^(.*?<body[^>]*>)', re.DOTALL | re.IGNORECASE)
+    body_close_re = re.compile(r'(</body>.*)$', re.DOTALL | re.IGNORECASE)
+    body_content_re = re.compile(r'<body[^>]*>(.*?)</body>', re.DOTALL | re.IGNORECASE)
+
+    first = docs[0]
+    m_open = body_open_re.match(first)
+    m_close = body_close_re.search(first)
+    m_body = body_content_re.search(first)
+    if not (m_open and m_close and m_body):
+        messagebox.showerror("Erreur", "Le premier fichier ne contient pas de <body>…</body> valide.")
+        return
+
+    header = m_open.group(1)
+    footer = m_close.group(1)
+    bodies = [m_body.group(1)]
+
+    for idx, doc in enumerate(docs[1:], start=2):
+        m = body_content_re.search(doc)
+        if not m:
+            messagebox.showerror("Erreur", f"Fichier n°{idx} : pas de <body>…</body> trouvé.")
+            return
+        bodies.append(m.group(1))
+
+    merged = header + "\n".join(bodies) + footer
+    save_path = filedialog.asksaveasfilename(
+        defaultextension=".xml",
+        filetypes=[("TEI XML", "*.xml")],
+        initialfile="acte_fusionne.xml",
+        title="Enregistrer le TEI fusionné"
+    )
+    if not save_path:
+        return
+
+    try:
+        with open(save_path, "w", encoding="utf-8") as out:
+            out.write(merged)
+    except Exception as e:
+        messagebox.showerror("Erreur", f"Impossible d'écrire le fichier :\n{e}")
+        return
+
+    messagebox.showinfo("Succès", f"TEI fusionné enregistré :\n{save_path}")
+
+def fusionner_ekdosis():
+    import os, re
+    from tkinter import filedialog, messagebox, simpledialog
+    from datetime import date
+
+    # 1. Sélection des fichiers
+    files = filedialog.askopenfilenames(
+        title="Fichiers Ekdosis à fusionner",
+        filetypes=[("Fichiers LaTeX Ekdosis", "*.tex")]
+    )
+    if not files:
+        return
+
+    files = sorted(files, key=lambda p: os.path.basename(p).lower())
+
+    # 2. Demande du titre et de l'acte
+    titre = simpledialog.askstring("Titre", "Titre de la pièce (ex : La Thébaïde):")
+    if not titre:
+        return
+    acte = simpledialog.askstring("Acte", "Numéro d'acte (ex : Acte I):")
+    if not acte:
+        return
+
+    today_str = date.today().strftime("%d %B %Y")
+    bloc_credit = (
+        "%% ====================================\n"
+        f"%% Racine – {titre}, acte {acte}\n"
+        "%% Édition critique par Claire Fourquet-Gracieux\n"
+        f"%% Document généré le {today_str} depuis Ekdosis-TEI Studio\n"
+        "%% ====================================\n\n"
+    )
+
+    merged = [bloc_credit]
+    n = len(files)
+
+    for idx, path in enumerate(files):
+        try:
+            with open(path, encoding="utf-8") as f:
+                doc = f.read()
+        except Exception as e:
+            messagebox.showerror("Erreur", f"Impossible de lire {path} :\n{e}")
+            return
+
+        # Premier fichier : on garde tout SAUF la fin (on retire \end{ekdosis} et \end{document})
+        if idx == 0:
+            # On garde jusqu'à \end{document} (sans la fin)
+            doc = re.sub(r'^\s*', '', doc)
+            doc = re.sub(r'\\end\{ekdosis\}\s*\\end\{document\}\s*$', '', doc, flags=re.DOTALL)
+            merged.append(doc)
+        # Fichiers intermédiaires : on garde uniquement le corps
+        elif idx < n - 1:
+            # Supprimer tout avant \begin{document} (inclus)
+            doc = re.sub(r'(?s)^.*?\\begin\{ekdosis\}', '', doc)
+            # Supprimer \end{ekdosis} et \end{document}
+            doc = re.sub(r'\\end\{ekdosis\}\s*\\end\{document\}\s*$', '', doc, flags=re.DOTALL)
+            merged.append(doc)
+        # Dernier fichier : on garde tout après \begin{document}, et on garde la fin
+        else:
+            doc = re.sub(r'(?s)^.*?\\begin\{ekdosis\}', '', doc)
+            merged.append(doc)
+
+    # 4. Boîte de dialogue pour sauvegarder le résultat
+    save_path = filedialog.asksaveasfilename(
+        defaultextension=".tex",
+        filetypes=[("Fichiers LaTeX Ekdosis", "*.tex")],
+        initialfile="fusion_ekdosis.tex",
+        title="Enregistrer l'acte Ekdosis fusionné"
+    )
+    if not save_path:
+        return
+
+    try:
+        with open(save_path, "w", encoding="utf-8") as out:
+            out.write("".join(merged))
+    except Exception as e:
+        messagebox.showerror("Erreur", f"Impossible d'écrire le fichier :\n{e}")
+        return
+
+    messagebox.showinfo("Succès", f"Fichier Ekdosis fusionné enregistré :\n{save_path}")
 
 def formatter_persname_ekdosis(noms):
     return ", ".join(
@@ -2155,7 +2601,7 @@ def mettre_a_jour_menu(*args):
 
 
 def previsualiser_html():
-    global auteur_nom_complet, editeur_nom_complet, titre_piece, numero_acte, numero_scene
+    global auteur_nom_complet, editeur_nom_complet, titre_piece, numero_acte, numero_scene, html_result
 
     tei = zone_resultat_tei.get("1.0", tk.END).strip()
     if not tei:
@@ -2329,7 +2775,24 @@ def previsualiser_html():
           .underline {
           text-decoration: underline;
           }
-          .acte, .scene, .personnages {
+          .acte-titre-sans-variation {
+          font-weight: bold;
+          margin-top: 1.5em;
+          margin-bottom: 0.5em;
+          margin-left: 11em;
+          }
+          .scene-titre-sans-variation {
+          font-weight: bold;
+          margin-top: 1.5em;
+          margin-bottom: 0.5em;
+          margin-left: 11em;
+          }
+        .scene-titre {
+          font-style: italic;
+          margin-bottom: 0.5em;
+          margin-left: 0em;
+        }
+        .acte, .scene, .personnages {
             font-weight: bold;
             margin-top: 1.5em;
             margin-bottom: 0.5em;
@@ -2337,11 +2800,6 @@ def previsualiser_html():
           }
           .titre-piece {
             font-style: italic;
-          }
-          .scene-titre {
-            font-style: italic;
-            margin-bottom: 0.5em;
-            margin-left: 11em;
           }
           .locuteur {
             font-variant: small-caps;
@@ -2427,29 +2885,131 @@ def previsualiser_html():
   <xsl:apply-templates/>
 </xsl:template>
 
-  <!-- Acte -->
-  <xsl:template match="tei:div[@type='act']">
-    <div class="acte">ACTE <xsl:value-of select="@n"/></div>
+ <!-- ACTES ET SCENES -->
+ <!-- Acte : titre sans variante -->
+<xsl:template match="tei:div[@type='act']/tei:head">
+  <div class="acte-titre-sans-variation">
     <xsl:apply-templates/>
-  </xsl:template>
+  </div>
+</xsl:template>
 
-  <!-- Titre de scène -->
-  <xsl:template match="tei:head">
-    <div class="scene-titre"><xsl:apply-templates/></div>
-  </xsl:template>
+<!-- Acte : titre sans variante -->
+<xsl:template match="tei:div[@type='act']/tei:head">
+  <div class="acte-titre-sans-variation">
+    <xsl:apply-templates/>
+  </div>
+</xsl:template>
 
-  <!-- Didascalies -->
-  <xsl:template match="tei:stage">
+<!-- Acte : titre AVEC variante (cas d'<app> dans <head>) -->
+<xsl:template match="tei:div[@type='act']/tei:head/tei:app">
+  <div class="acte-titre">
+    <span class="variation">
+      <xsl:attribute name="data-tooltip">
+        <xsl:variable name="tooltip">
+          <xsl:for-each select="tei:rdg">
+            <xsl:value-of select="@wit"/>
+            <xsl:text>: </xsl:text>
+            <xsl:value-of select="normalize-space(.)"/>
+            <xsl:text>&#10;&#10;</xsl:text>
+          </xsl:for-each>
+        </xsl:variable>
+        <xsl:value-of select="$tooltip"/>
+      </xsl:attribute>
+      <xsl:apply-templates select="tei:lem"/>
+    </span>
+  </div>
+</xsl:template>
+
+<xsl:template match="tei:div[@type='scene']/tei:head">
+  <div class="scene-titre-sans-variation">
+    <xsl:apply-templates/>
+  </div>
+</xsl:template>
+
+<xsl:template match="tei:div[@type='scene']/tei:head/tei:app">
+  <div class="scene-titre">
+    <span class="variation">
+      <xsl:attribute name="data-tooltip">
+        <xsl:variable name="tooltip">
+          <xsl:for-each select="tei:rdg">
+            <xsl:value-of select="@wit"/>
+            <xsl:text>: </xsl:text>
+            <xsl:value-of select="normalize-space(.)"/>
+            <xsl:text>&#10;&#10;</xsl:text>
+          </xsl:for-each>
+        </xsl:variable>
+        <xsl:value-of select="$tooltip"/>
+      </xsl:attribute>
+      <xsl:apply-templates select="tei:lem"/>
+    </span>
+  </div>
+</xsl:template>
+
+
+  <!-- DIDASCALIES - plusieurs cas de figure -->
+
+  <!-- Liste de personnages (avec variantes en tooltip sur <app>) -->
+<xsl:template match="tei:stage[@type='characters']">
+  <div class="personnages">
+    <xsl:apply-templates/>
+  </div>
+</xsl:template>
+
+<xsl:template match="tei:stage[@type='characters']/tei:app">
+  <span class="variation" style="font-variant: small-caps;">
+    <xsl:attribute name="data-tooltip">
+      <xsl:variable name="tooltip">
+        <xsl:for-each select="tei:rdg">
+          <xsl:value-of select="@wit"/>
+          <xsl:text>: </xsl:text>
+          <xsl:value-of select="normalize-space(.)"/>
+          <xsl:text>&#10;&#10;</xsl:text>
+        </xsl:for-each>
+      </xsl:variable>
+      <xsl:value-of select="$tooltip"/>
+    </xsl:attribute>
+    <xsl:apply-templates select="tei:lem"/>
+  </span>
+</xsl:template>
+
+<!-- Didascalies ordinaires -->
+<xsl:template match="tei:stage">
   <p class="didascalie"><em><xsl:apply-templates/></em></p>
-  </xsl:template>
+</xsl:template>
 
   <!-- Bloc de parole -->
   <xsl:template match="tei:sp">
-  <div class="locuteur"><xsl:value-of select="tei:speaker"/></div>
+  <div class="locuteur">
+    <xsl:apply-templates select="tei:speaker"/>
+  </div>
   <div class="tirade">
     <xsl:apply-templates select="tei:stage | tei:l"/>
   </div>
 </xsl:template>
+
+<xsl:template match="tei:speaker">
+  <span style="font-variant: small-caps;">
+    <xsl:apply-templates/>
+  </span>
+</xsl:template>
+
+<xsl:template match="tei:speaker/tei:app">
+  <span class="variation" style="font-variant: small-caps;">
+    <xsl:attribute name="data-tooltip">
+      <xsl:variable name="tooltip">
+        <xsl:for-each select="tei:rdg">
+          <xsl:value-of select="@wit"/>
+          <xsl:text>: </xsl:text>
+          <xsl:value-of select="normalize-space(.)"/>
+          <xsl:text>&#10;&#10;</xsl:text>
+        </xsl:for-each>
+      </xsl:variable>
+      <xsl:value-of select="$tooltip"/>
+    </xsl:attribute>
+    <xsl:apply-templates select="tei:lem"/>
+  </span>
+</xsl:template>
+
 
   <!-- Vers -->
   <xsl:template match="tei:l">
@@ -2533,8 +3093,12 @@ def previsualiser_html():
 
         webbrowser.open(f"file://{chemin_temp_html}")
 
+        # Proposition d’enregistrement
+        enregistrer_preview(html_result)
+
     except Exception as e:
         messagebox.showerror("Erreur", f"Erreur pendant la transformation XSLT :\n{e}")
+
 
 def convertir_tei_en_html(tei_text):
     html = []
@@ -2595,7 +3159,7 @@ def convertir_tei_en_html(tei_text):
 
             bloc_stage = "\n".join(stage_lignes)
 
-                       # Nouvelle fonction : nettoyer tout le contenu de <stage>
+            # Nouvelle fonction : nettoyer tout le contenu de <stage>
             def nettoyer_stage(texte):
                 # Enlever toutes les balises TEI (app, lem, rdg, etc.)
                 texte = re.sub(r'<[^>]+>', '', texte, flags=re.DOTALL)
@@ -2654,6 +3218,7 @@ def convertir_tei_en_html(tei_text):
             i += 1
 
     return "\n".join(html)
+
 
 def previsualiser_html_xslt():
     tei = zone_resultat_tei.get("1.0", tk.END).strip()
@@ -2719,7 +3284,7 @@ def afficher_aide():
     exemple = r"""
 Mémo
 
-####1####             → Acte I
+####Acte I####             → Acte I
 ###1###            → Scène 1
 ##Titus## ##Bérénice## → Personnages présents
 #Titus#            → Locuteur (début de tirade)
@@ -2743,6 +3308,7 @@ Laissez une ligne vide avant et après les **didascalies**
 """
     messagebox.showinfo("Aide à la transcription", exemple)
 
+
 def ajouter_espace_si_necessaire(mot):
     if not mot:
         return ""
@@ -2750,9 +3316,93 @@ def ajouter_espace_si_necessaire(mot):
         return mot + " "
     return mot + " "
 
-def aligner_variantes_par_mot(tokens, temoins, ref_index):
-    from collections import defaultdict
+def extraire_blocs_et_dialogue(lignes, nb_temoins):
+    def detecter_bloc(prefix, n):
+        blocs = []
+        bloc_acte = []
+        bloc_scene = []
+        indices = []
+        for i, l in enumerate(lignes):
+            l_strip = l.strip()
+            # Pour 3 dièses : commence par '###', finit par '###', MAIS pas 4 ou plus !
+            if prefix == "###":
+                if l_strip.startswith("###") and l_strip.endswith("###") and not l_strip.startswith(
+                        "####") and not l_strip.endswith("####"):
+                    blocs.append(l_strip)
+                    indices.append(i)
+            # Pour 4 dièses : idem, mais 4 dièses pile
+            elif prefix == "####":
+                if l_strip.startswith("####") and l_strip.endswith("####") and not l_strip.startswith(
+                        "#####") and not l_strip.endswith("#####"):
+                    blocs.append(l_strip)
+                    indices.append(i)
+            # Pour 2 dièses, cas particulier personnages
+            elif prefix == "##":
+                if l_strip.startswith("##") and not l_strip.startswith("###"):
+                    blocs.append(l_strip)
+                    indices.append(i)
+        if len(blocs) != n:
+            print(f"[AVERTISSEMENT] {len(blocs)} blocs trouvés pour préfixe {prefix}, {n} attendus.")
+        return blocs, indices
 
+    # 1. Bloc à 4 dièses (optionnel)
+    bloc_acte, idx_acte = detecter_bloc("####", nb_temoins)
+    bloc_scene, idx_scene = [], []
+    bloc_persos, idx_persos = [], []
+
+    start_idx = max(idx_acte) + 1 if bloc_acte else 0
+
+    # 2. Bloc à 3 dièses (obligatoire)
+    bloc_scene, idx_scene = detecter_bloc("###", nb_temoins)
+    start_idx = max(idx_scene) + 1 if bloc_scene else start_idx
+
+    # 3. Bloc à 2 dièses (obligatoire)
+    bloc_persos, idx_persos = detecter_bloc("##", nb_temoins)
+    start_idx = max(idx_persos) + 1 if bloc_persos else start_idx
+
+    # 4. Le reste : dialogue pur, à partir de start_idx
+    lignes_dialogue = lignes[start_idx:]
+
+    dialogues = []
+    i = 0
+    while i < len(lignes_dialogue):
+        bloc_locuteur = []
+        # Bloc de variantes de locuteur
+        while (
+                i < len(lignes_dialogue)
+                and lignes_dialogue[i].strip().startswith("#")
+                and lignes_dialogue[i].strip().endswith("#")
+        ):
+            bloc_locuteur.append(lignes_dialogue[i].strip())
+            i += 1
+
+        if bloc_locuteur:
+            if len(bloc_locuteur) != nb_temoins:
+                print(
+                    f"[ERREUR] Bloc de locuteur mal formé : {len(bloc_locuteur)} lignes détectées, {nb_temoins} attendues.")
+            # Texte associé à ce bloc de locuteur (jusqu’au prochain bloc #...#)
+            bloc_texte = []
+            while (
+                    i < len(lignes_dialogue)
+                    and not (lignes_dialogue[i].strip().startswith("#") and lignes_dialogue[i].strip().endswith("#"))
+            ):
+                bloc_texte.append(lignes_dialogue[i])
+                i += 1
+            dialogues.append((bloc_locuteur, "\n".join(bloc_texte)))
+        else:
+            i += 1
+
+    # Nettoyage optionnel : on vire les blocs vides (au cas où)
+    dialogues = [(loc, bloc) for loc, bloc in dialogues if bloc.strip()]
+
+    return (
+        bloc_acte if bloc_acte else None,
+        bloc_scene if bloc_scene else None,
+        bloc_persos if bloc_persos else None,
+        dialogues
+    )
+
+def aligner_variantes_par_mot(tokens, temoins, ref_index):
     ligne_tei = []
     ligne_ekdosis = []
 
@@ -2785,7 +3435,7 @@ def aligner_variantes_par_mot(tokens, temoins, ref_index):
                 )
         ligne_tei.append("      </app>\n")
 
-        # Ekdosis reste inchangé
+        # Ekdosis
         ekdo = [f' \n      \\app{{']
         ekdo.append(
             f'        \\lem[wit={{{", ".join(mots_colonne.get(lemme, []))}}}]{{{echapper_caracteres_ekdosis(lemme)}}}'
@@ -2800,6 +3450,21 @@ def aligner_variantes_par_mot(tokens, temoins, ref_index):
 
     return ligne_tei, ligne_ekdosis
 
+
+def speaker_aligned_output(speaker_list, temoins, ref_index, aligner_fonction):
+    #
+    # Retourne la bonne chaîne <speaker> ou \speaker pour la liste de locuteurs,
+    # en tenant compte des variantes et en évitant les répétitions inutiles.
+    #
+    cleaned = [l.strip("#").strip() for l in speaker_list]
+    if all(n == cleaned[0] for n in cleaned):
+        # Tous identiques: un seul nom
+        return cleaned[0], cleaned[0]
+    else:
+        tokens = [[n] for n in cleaned]
+        ligne_tei, ligne_ekdosis = aligner_fonction(tokens, temoins, ref_index)
+        return "".join(ligne_tei).strip(), "".join(ligne_ekdosis).strip()
+
 def verifier_et_comparer():
     if valider_structure():
         comparer_etats()
@@ -2812,10 +3477,12 @@ def verifier_et_comparer():
         if reponse:
             comparer_etats()
 
+
 def comparer_etats():
     texte = zone_saisie.get("1.0", tk.END).strip()
     lignes = texte.splitlines()
     sous_blocs_ignorés = set()
+    resultat_ekdosis = []
 
     dialogues = []
     current_acte = None
@@ -2824,46 +3491,62 @@ def comparer_etats():
     current_speaker = None
     current_bloc = []
 
-    for ligne in lignes:
-        ligne = ligne.strip()
+    bloc_acte, bloc_scene, bloc_persos, dialogues = extraire_blocs_et_dialogue(lignes, nombre_temoins_predefini)
 
-        if re.match(r"\#\#\#\#\d+\#\#\#\#", ligne):  # Acte
-            if current_bloc and current_speaker:
-                dialogues.append(
-                    (current_acte, current_scene, current_personnages, current_speaker, "\n".join(current_bloc)))
-                current_bloc = []
-            current_acte = re.findall(r"\d+", ligne)[0]
-            current_scene = None
-            current_personnages = []
+    print("ACTE :", bloc_acte)
+    print("SCENE :", bloc_scene)
+    print("PERSOS :", bloc_persos)
+    print("DIALOGUES :", dialogues)
 
-        elif re.match(r"\#\#\#\d+\#\#\#", ligne):  # Scène
-            if current_bloc and current_speaker:
-                dialogues.append(
-                    (current_acte, current_scene, current_personnages, current_speaker, "\n".join(current_bloc)))
-                current_bloc = []
-            current_scene = re.findall(r"\d+", ligne)[0]
-            current_personnages = []
+    # ------------- ACTE -------------
+    if bloc_acte:
+        tokens = [[l.strip("#").strip()] for l in bloc_acte]
+        ref_index = liste_ref.current()
+        temoins = [chr(65 + i) for i in range(nombre_temoins_predefini)]
+        ligne_tei, ligne_ekdosis = aligner_variantes_par_mot(tokens, temoins, ref_index)
+        # Injection dans le résultat TEI (juste après ouverture du <div type="act">)
+        tei_head = '    <head>' + "".join(ligne_tei).strip() + '</head>'
+        # (garde le résultat à réinjecter juste après l’ouverture de l’acte)
+        head_acte_ekdosis = tokens[ref_index][0]
+        # possibilité d'affichage de l'acte en ajoutant head={head_acte_ekdosis}
+        ekddiv_acte = f'\\ekddiv{{type=act, n={numero_acte}, depth=2}}'
+        ekdosis_head = "\n".join(ligne_ekdosis).strip()  # variantes (ou rien si pas de variantes)
+        ekdosis_head = f"\\stage{{{ekdosis_head}}}"
 
-        elif re.match(r"(\#\#[^#]+\#\#)+", ligne):  # Personnages
-            personnages = re.findall(r"\#\#([^\#\#]+)\#\#", ligne)
-            current_personnages.extend(personnages)
+    else:
+        tei_head = None
+        ekddiv_acte = None
+        ekdosis_head = None
 
-        elif ligne.startswith("#") and ligne.endswith("#"):  # Locuteur
-            if current_bloc and current_speaker:
-                dialogues.append(
-                    (current_acte, current_scene, current_personnages, current_speaker, "\n".join(current_bloc)))
-            current_speaker = ligne[1:-1].strip()
-            current_bloc = []
+    # ------------- SCENE -------------
+    if bloc_scene:
+        tokens = [[l.strip("#").strip()] for l in bloc_scene]
+        ref_index = liste_ref.current()
+        temoins = [chr(65 + i) for i in range(nombre_temoins_predefini)]
+        ligne_tei_scene, ligne_ekdosis_scene = aligner_variantes_par_mot(tokens, temoins, ref_index)
+        tei_scene_head = '    <head>' + "".join(ligne_tei_scene).strip() + '</head>'
 
-        elif ligne:
-            current_bloc.append(ligne)
+        # Génération du \ekddiv et du titre encapsulé dans \stage{}
+        head_scene_ekdosis = tokens[ref_index][0]
+        # possibilité d'afficher head={head_scene_ekdosis}
+        ekddiv_scene = f'\\ekddiv{{type=scene, n={numero_scene}, depth=3}}'
+        ekdosis_scene_head = "\n".join(ligne_ekdosis_scene).strip()
+        if ekdosis_scene_head:
+            ekdosis_scene_head = f"\\stage{{{ekdosis_scene_head}}}"
 
-        elif not ligne and current_bloc:
-            current_bloc.append("")
+    # ------------- PERSONNAGES -------------
+    if bloc_persos:
+        tokens = [[l.replace("#", "").strip()] for l in bloc_persos]
+        ref_index = liste_ref.current()
+        temoins = [chr(65 + i) for i in range(nombre_temoins_predefini)]
+        ligne_tei_persos, ligne_ekdosis_persos = aligner_variantes_par_mot(tokens, temoins, ref_index)
+        tei_persos_stage = "    <stage type='personnages'>" + "".join(ligne_tei_persos).strip() + '</stage>'
+        ekdosis_persos_stage = "\\stage{" + "".join(ligne_ekdosis_persos).strip() + "}"
+    else:
+        tei_persos_stage = None
+        ekdosis_persos_stage = None
 
-    if current_bloc and current_speaker:
-        dialogues.append((current_acte, current_scene, current_personnages, current_speaker, "\n".join(current_bloc)))
-
+    print('DIALOGUES =', dialogues)
     try:
         numero_depart = int(entree_vers.get())
     except ValueError:
@@ -2874,10 +3557,11 @@ def comparer_etats():
     titre = globals().get("titre_piece", "").strip() or "Titre non renseigné"
     auteur = globals().get("auteur_nom_complet", "").strip() or "Auteur inconnu"
     editeur = globals().get("editeur_nom_complet", "").strip() or "Éditeur scientifique inconnu"
-    acte = globals().get("numero_acte", "").strip() or "?"
-    scene = globals().get("numero_scene", "").strip() or "?"
+    num_acte = globals().get("numero_acte", "").strip() or "?"
+    num_scene = globals().get("numero_scene", "").strip() or "?"
 
     # Construction sécurisée du header TEI
+    resultat_ekdosis = []
     resultat_tei = [
         '<?xml version="1.0" encoding="UTF-8"?>',
         '<TEI xmlns="http://www.tei-c.org/ns/1.0">',
@@ -2894,7 +3578,7 @@ def comparer_etats():
         f'       <date>{date.today().strftime("%d %B %Y")}</date>',
         '      </publicationStmt>',
         '      <sourceDesc>',
-        f'        <p>généré par Ekdosis-TEI Studio – Acte {acte}, Scène {scene}</p>',
+        f'        <p>généré par Ekdosis-TEI Studio – Acte {num_acte}, Scène {num_scene}</p>',
         '      </sourceDesc>',
         '    </fileDesc>',
         '  </teiHeader>',
@@ -2902,63 +3586,65 @@ def comparer_etats():
         '    <body>'
     ]
 
-    resultat_ekdosis = []
-
     vers_courant = numero_depart
-    current_acte_out = None
-    current_scene_out = None
     dernier_locuteur = None
     changement_locuteur_deja_traite = False  # ← ajoute cette ligne ici
 
-    for acte, scene, personnages, speaker, bloc in dialogues:
-        if acte != current_acte_out:
-            if current_acte_out is not None:
-                resultat_tei.append("  </div>")
-                resultat_tei.append("</div>")
-                resultat_ekdosis.append("% Fin de la scène")
-                resultat_ekdosis.append("% Fin de l'acte")
+    # === Construction de la chaîne ===
+    # === TEI ===
 
-            current_acte_out = acte
-            num, titre = extraire_numero_et_titre(acte)
+    if bloc_acte:
+        print("DEBUG: bloc_acte =", bloc_acte)
+        resultat_tei.append(f'<div type="act" n="{num_acte}">')
 
-            # TEI
-            resultat_tei.append(f'<div type="act" n="{num}">')
+    if tei_head:
+        resultat_tei.append(tei_head)
 
-            # ekdosis ekdosis-compatible
-            resultat_ekdosis.append(f'\\ekddiv{{head=ACTE {titre.upper()}, type=act, n={num}, depth=2}}\n')
+    if bloc_scene:
+        resultat_tei.append(f'  <div type="scene" n="{num_scene}">')
 
-            current_scene_out = None
+    if tei_scene_head:
+        resultat_tei.append(tei_scene_head)
 
-        if scene != current_scene_out:
-            if current_scene_out is not None:
-                resultat_tei.append("  </sp>")
-                resultat_tei.append("  </div>")
-                resultat_ekdosis.append("      \\end{ekdverse}\n    \\end{speech}   % Fin de la scène")
+    if tei_persos_stage:
+        resultat_tei.append(tei_persos_stage)
 
-            current_scene_out = scene
-            dernier_locuteur = None  # ← 🎯 AJOUT ICI
-            changement_locuteur_deja_traite = False  # ← 🎯 AJOUT ICI AUSSI
+    # === EKDOSIS ===
+    if bloc_acte:
+        if ekddiv_acte:
+            resultat_ekdosis.append(ekddiv_acte)
+        if ekdosis_head:
+            resultat_ekdosis.append(ekdosis_head)
+    if bloc_scene:
+        if ekddiv_scene:
+            resultat_ekdosis.append(ekddiv_scene)
+        if ekdosis_scene_head:
+            resultat_ekdosis.append(ekdosis_scene_head)
+    if ekdosis_persos_stage:
+        resultat_ekdosis.append(ekdosis_persos_stage)
 
-            # TEI
-            resultat_tei.append(f'  <div type="scene" n="{scene}">\n    <head>Scène {scene}</head>')
-
-            # ekdosis ekdosis-compatible
-            resultat_ekdosis.append(f'\\ekddiv{{head=Scène {scene}, type=scene, n={scene}, depth=3}}\n')
-
-            if personnages:
-                pers_tei = formatter_persname_tei(personnages)
-                pers_ekdosis = formatter_persname_ekdosis(personnages)
-                resultat_tei.append(f'    <stage>{pers_tei}.</stage>')
-                resultat_ekdosis.append(f'    \\stage{{{pers_ekdosis}}}')
+    for speaker, bloc in dialogues:
+        speakers = speaker if isinstance(speaker, list) else [speaker]
 
         sous_blocs = bloc.split("\n\n")
-        if speaker != dernier_locuteur:
+
+        if speakers != dernier_locuteur:
             if dernier_locuteur is not None:
                 resultat_tei.append("    </sp>")
                 resultat_ekdosis.append("      \\end{ekdverse}\n    \\end{speech}")
-            resultat_tei.append(f'    <sp>\n      <speaker>{speaker}</speaker>')
-            resultat_ekdosis.append("    \\begin{speech}\n      \\speaker{" + speaker + "}\n      \\begin{ekdverse}")
-            dernier_locuteur = speaker
+
+            # ALIGNE VARIANTES
+            tokens = [[l.strip("#").strip()] for l in speakers]
+            temoins = [chr(65 + i) for i in range(len(speakers))]
+            ref_index = liste_ref.current()
+            ligne_tei, ligne_ekdosis = aligner_variantes_par_mot(tokens, temoins, ref_index)
+            tei_speaker = "".join(ligne_tei).strip()
+            ekdosis_speaker = "".join(ligne_ekdosis).strip()
+
+            resultat_tei.append(f'    <sp>\n      <speaker>{tei_speaker}</speaker>')
+            resultat_ekdosis.append(
+                "    \\begin{speech}\n      \\speaker{" + ekdosis_speaker + "}\n      \\begin{ekdverse}")
+            dernier_locuteur = speakers  # On mémorise toujours la liste (pour la prochaine itération)
 
         for sous_bloc in sous_blocs:
             sous_bloc_texte = normaliser_bloc(sous_bloc)
@@ -2968,21 +3654,23 @@ def comparer_etats():
 
             lignes = [l.strip() for l in sous_bloc.strip().splitlines() if l.strip()]
 
-            # Bloc de didascalies (un pour chaque témoin)
-            if len(lignes) == nombre_temoins_predefini and all(l.startswith("**") and l.endswith("**") for l in lignes):
+            # Didascalies
+            if all(l.startswith('**') for l in lignes) and len(lignes):
+                print('didascalie reperee')
                 temoins = [chr(65 + i) for i in range(len(lignes))]
-                tokens = [l[2:-2].strip().split() for l in lignes]  # on enlève les **
+                # On retire *toutes* les étoiles au début et à la fin (même si >2), puis on strip
+                didascalies_nettoyees = [re.sub(r'^\*+\s*|\s*\*+$', '', l).strip() for l in lignes]
+                # Pour les didascalies, en général, tu veux un alignement "texte entier" (pas split par mot)
+                tokens = [[d] for d in didascalies_nettoyees]
                 ref_index = liste_ref.current()
 
                 ligne_tei, ligne_ekdosis = aligner_variantes_par_mot(tokens, temoins, ref_index)
 
-                # Résultat final TEI
-                resultat_tei.append('      <stage>\n' + "".join(ligne_tei) + '      </stage>\n')
-
-                # Résultat final Ekdosis
+                resultat_tei.append('      <stage type="stage-direction">\n' + "".join(ligne_tei) + '      </stage>\n')
                 resultat_ekdosis.append('      \\didas{')
                 resultat_ekdosis.append("".join(ligne_ekdosis) + '      }')
 
+                # NE PAS toucher à vers_courant ici! On ne l’incrémente ni le décrémente.
                 continue
 
             # Cas du vers partagé : *** à la fin (bloc A) et *** au début (bloc B)
@@ -3013,7 +3701,7 @@ def comparer_etats():
                 trouver_texte = False
                 speaker_suivant = None
 
-                for acte2, scene2, persos2, speaker2, bloc2 in dialogues:
+                for speaker2, bloc2 in dialogues:
                     if trouver_debut:
                         lignes_brutes = bloc2.strip().splitlines()
                         lignes_b_nettoyees = []
@@ -3047,10 +3735,22 @@ def comparer_etats():
 
                     # ✅ Changement de locuteur si nécessaire
                     if speaker_suivant and speaker_suivant != dernier_locuteur:
-                        resultat_tei.append("    </sp>\n    <sp>\n      <speaker>{}</speaker>".format(speaker_suivant))
+                        # Pour éviter tout bug, assure que speaker_suivant est une liste :
+                        speakers = speaker_suivant if isinstance(speaker_suivant, list) else [speaker_suivant]
+                        temoins = [chr(65 + i) for i in range(len(speakers))]
+                        ref_index = liste_ref.current()
+
+                        # On aligne ou on prend direct, selon uniformité
+                        tei_speaker, ekdosis_speaker = speaker_aligned_output(
+                            speakers, temoins, ref_index, aligner_variantes_par_mot
+                        )
+
+                        # Fermeture puis ouverture de balises de locuteur
+                        resultat_tei.append(f"    </sp>\n    <sp>\n      <speaker>{tei_speaker}</speaker>")
                         resultat_ekdosis.append("      \\end{ekdverse}\n    \\end{speech}")
                         resultat_ekdosis.append(
-                            f'    \\begin{{speech}}\n      \\speaker{{{speaker_suivant}}}\n      \\begin{{ekdverse}}')
+                            f"    \\begin{{speech}}\n      \\speaker{{{ekdosis_speaker}}}\n      \\begin{{ekdverse}}"
+                        )
                         dernier_locuteur = speaker_suivant  # mise à jour
                         changement_locuteur_deja_traite = True
 
@@ -3068,7 +3768,7 @@ def comparer_etats():
                             }""")
                     resultat_ekdosis.append(
                         f'        \\vnum{{{vers_num_2}}}' + '{\n' + '\\hspace*{5em}' + vers_formate_2 + '\\\\    \n         }')
-                    resultat_ekdosis.append(f'        \\resetvlinenumber[{math.ceil(numero_vers_base)+1}]')
+                    resultat_ekdosis.append(f'        \\resetvlinenumber[{math.ceil(numero_vers_base) + 1}]')
                     resultat_ekdosis.append("        \\SetLineation{vmodulo=5}")
 
                 # ✅ Ignorer aussi le bloc A (le premier demi-vers)
@@ -3079,6 +3779,47 @@ def comparer_etats():
 
             # Si ligne unique non didascalique, on ignore
             if len(lignes) < 2:
+                continue
+
+            # Cas spécial : variantes vers entier (toutes lignes commencent par 5 dièses)
+            if all(l.startswith('#####') for l in lignes) and len(lignes):
+                print('vers entier à traiter repere')
+                temoins = [chr(65 + i) for i in range(len(lignes))]
+                ref_index = liste_ref.current()
+                # On enlève les 5 dièses et on strippe chaque vers
+                vers_variantes = [l[5:].strip() for l in lignes]
+
+                tei = '      <app>\n'
+
+                # D'abord le lem (variante de référence)
+                tei += f'        <lem wit="#{temoins[ref_index]}">{encoder_caracteres_tei(vers_variantes[ref_index])}</lem>\n'
+
+                # Puis les autres variantes (rdg)
+                for idx, vers in enumerate(vers_variantes):
+                    if idx != ref_index:
+                        wit = f"#{temoins[idx]}"
+                        tei += f'        <rdg wit="{wit}">{encoder_caracteres_tei(vers)}</rdg>\n'
+
+                tei += '      </app>\n'
+                resultat_tei.append(f'<l n="{vers_courant}">\n{tei}</l>\n')
+
+                # Pour Ekdosis :
+                ekdo = ['      \\app{']
+                ekdo.append(
+                    f'        \\lem[wit={{{temoins[ref_index]}}}]{{{echapper_caracteres_ekdosis(vers_variantes[ref_index])}}}')
+                for idx, vers in enumerate(vers_variantes):
+                    if idx == ref_index:
+                        continue
+                    ekdo.append(f'        \\rdg[wit={{{temoins[idx]}}}]{{{echapper_caracteres_ekdosis(vers)}}}')
+                ekdo.append("      }")
+                resultat_ekdosis.append(
+                    f"        \\vnum{{{vers_courant}}}{{\n{chr(10).join(ekdo)}  \\\\    \n        }}")
+
+                # Incrémenter le numéro de vers
+                if vers_courant == int(vers_courant):
+                    vers_courant += 1
+                else:
+                    vers_courant = math.ceil(vers_courant)
                 continue
 
             temoins = [chr(65 + i) for i in range(len(lignes))]
@@ -3102,18 +3843,18 @@ def comparer_etats():
 
         changement_locuteur_deja_traite = False  # ← réinitialisation à chaque itération
 
-    if current_scene_out:
-        resultat_tei.append("    </sp>")
-        resultat_tei.append("    </div>")
-        resultat_ekdosis.append("      \\end{ekdverse}\n    \\end{speech}   % Fin de la scène")
+    resultat_tei.append('</sp>')
+    resultat_ekdosis.append("      \\end{ekdverse}\n    \\end{speech}")
 
-    if current_acte_out is not None:
-        resultat_tei.append("</div>")
-        resultat_ekdosis.append("% Fin de l'acte")
+    if bloc_scene:
+        resultat_tei.append('</div>')
+    if bloc_acte:
+        resultat_tei.append('</div>')
 
     zone_resultat_tei.delete("1.0", tk.END)
 
     resultat_tei.append('</body></text>')
+    ### Ci-dessous comportement normal de fermeture
     resultat_tei.append('</TEI>')
     zone_resultat_tei.insert(tk.END, "\n".join(resultat_tei) + "\n")
 
@@ -3184,6 +3925,11 @@ menu_bar.add_cascade(label="Outils", menu=menu_outils)
 menu_outils.add_command(label="Lancer l’assistant de saisie", command=lancer_saisie_assistee_par_menu)
 menu_outils.add_command(label="Valider la structure", command=valider_structure)
 menu_outils.add_command(label="Comparer les états", command=comparer_etats)
+menu_edit.add_separator()
+menu_outils.add_command(label="Fusionner HTML", command=fusionner_html)
+menu_outils.add_command(label="Fusionner Markdown", command=fusionner_markdown)
+menu_outils.add_command(label="Fusionner TEI", command=fusionner_tei)
+menu_outils.add_command(label="Fusionner Ekdosis", command=fusionner_ekdosis)
 
 # Menu Affichage
 menu_affichage = tk.Menu(menu_bar, tearoff=0)
@@ -3328,7 +4074,7 @@ btn_export_ekdosis.pack(side=tk.LEFT, padx=10)
 btn_sauver_saisie = tk.Button(frame_bas, text="💾 Export saisie brute", command=enregistrer_saisie)
 btn_sauver_saisie.pack(side=tk.LEFT, padx=10)
 
-btn_remplacer = tk.Button(frame_bas, text="Remplacer (Ctrl+H)", command=remplacer_avance)
+btn_remplacer = tk.Button(frame_bas, text="💾 Export complet", command=enregistrer_triple)
 btn_remplacer.pack(side=tk.LEFT, padx=10)
 
 btn_previsualiser = tk.Button(frame_bas, text="🌐 Preview", command=previsualiser_html)
