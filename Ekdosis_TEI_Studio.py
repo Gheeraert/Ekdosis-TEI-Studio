@@ -2246,6 +2246,8 @@ def enregistrer_triple():
         html = html_result.get("1.0", tk.END).strip()
     else:
         html = str(html_result).strip()
+    # Ekdosis
+    ekdosis = zone_resultat_ekdosis.get("1.0", tk.END).strip()
 
     # 2. Vérifications d’existence de contenu
     if not raw:
@@ -2254,6 +2256,8 @@ def enregistrer_triple():
         return messagebox.showwarning("Avertissement", "Aucun contenu TEI à enregistrer.")
     if not html:
         return messagebox.showwarning("Avertissement", "Aucun aperçu HTML à enregistrer.")
+    if not ekdosis:
+        return messagebox.showwarning("Avertissement", "Aucun contenu Ekdosis à enregistrer.")
 
     # 3. Choix du dossier racine
     root_dir = fd.askdirectory(title="Choisissez le dossier racine")
@@ -2264,6 +2268,7 @@ def enregistrer_triple():
     default_txt  = nom_fichier("saisie",  "txt")
     default_xml  = nom_fichier("tei",     "xml")
     default_html = nom_fichier("preview", "html")
+    default_ekdosis = nom_fichier("ekdosis", "tex")
 
     # 5. Confirmation / modification des basenames
     txt_name  = simpledialog.askstring("Nom fichier texte",
@@ -2281,11 +2286,17 @@ def enregistrer_triple():
                                        initialvalue=default_html)
     if html_name is None: return
 
+    ekdosis_name = simpledialog.askstring("Nom fichier Ekdosis",
+                                          "Nom du fichier Ekdosis (.tex) :",
+                                          initialvalue=default_ekdosis)
+    if ekdosis_name is None: return
+
     # 6. Construction des chemins et création des dossiers
     chemins = {
         "Saisie": os.path.join(root_dir, "transcriptions", txt_name),
         "TEI"   : os.path.join(root_dir, "xml-tei",      xml_name),
         "HTML"  : os.path.join(root_dir, "html", "fichiers-originaux", html_name),
+        "Ekdosis": os.path.join(root_dir, "ekdosis", ekdosis_name),
     }
     for path in chemins.values():
         os.makedirs(os.path.dirname(path), exist_ok=True)
@@ -2308,12 +2319,15 @@ def enregistrer_triple():
             f.write(tei)
         with open(chemins["HTML"], "w", encoding="utf-8") as f:
             f.write(html)
+        with open(chemins["Ekdosis"], "w", encoding="utf-8") as f:
+            f.write(ekdosis)
     except Exception as e:
         return messagebox.showerror("Erreur", f"Impossible d'enregistrer : {e}")
 
     # 9. Message de succès
     msg = "\n".join(f"{clé} → {chemin}" for clé, chemin in chemins.items())
     messagebox.showinfo("Succès", "Fichiers enregistrés :\n\n" + msg)
+
 
 def fusionner_html():
     import os, re, locale
