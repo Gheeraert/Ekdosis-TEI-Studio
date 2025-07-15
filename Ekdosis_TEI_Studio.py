@@ -2521,7 +2521,8 @@ def fusionner_tei():
     messagebox.showinfo("Succès", f"TEI fusionné enregistré :\n{save_path}")
 
 def fusionner_ekdosis():
-    import os, re
+    import os
+    import re
     from tkinter import filedialog, messagebox, simpledialog
     from datetime import date
 
@@ -2563,23 +2564,44 @@ def fusionner_ekdosis():
             messagebox.showerror("Erreur", f"Impossible de lire {path} :\n{e}")
             return
 
+        # Supprimer la page de titre dans tous les fichiers sauf le premier
+        if idx > 0:
+            doc = re.sub(
+                r'\\begin\{titlepage\}.*?\\end\{titlepage\}',
+                '',
+                doc,
+                flags=re.DOTALL
+            )
+
         # Premier fichier : on garde tout SAUF la fin (on retire \end{ekdosis} et \end{document})
         if idx == 0:
-            # On garde jusqu'à \end{document} (sans la fin)
-            doc = re.sub(r'^\s*', '', doc)
-            doc = re.sub(r'\\end\{ekdosis\}\s*\\end\{document\}\s*$', '', doc, flags=re.DOTALL)
+            doc = doc.lstrip()
+            doc = re.sub(
+                r'\\end\{ekdosis\}\s*\\end\{document\}\s*$',
+                '',
+                doc,
+                flags=re.DOTALL
+            )
             merged.append(doc)
         # Fichiers intermédiaires : on garde uniquement le corps
         elif idx < n - 1:
-            # Supprimer tout avant \begin{document} (inclus)
+            # Supprimer tout avant \begin{ekdosis}
             doc = re.sub(r'(?s)^.*?\\begin\{ekdosis\}', '', doc)
             # Supprimer \end{ekdosis} et \end{document}
-            doc = re.sub(r'\\end\{ekdosis\}\s*\\end\{document\}\s*$', '', doc, flags=re.DOTALL)
+            doc = re.sub(
+                r'\\end\{ekdosis\}\s*\\end\{document\}\s*$',
+                '',
+                doc,
+                flags=re.DOTALL
+            )
             merged.append(doc)
-        # Dernier fichier : on garde tout après \begin{document}, et on garde la fin
+        # Dernier fichier : on garde tout après \begin{ekdosis}, et on garde la fin
         else:
             doc = re.sub(r'(?s)^.*?\\begin\{ekdosis\}', '', doc)
             merged.append(doc)
+
+    # Nettoyage des retours à la ligne superflus
+    fusion = '\n'.join(frag.strip('\n') for frag in merged)
 
     # 4. Boîte de dialogue pour sauvegarder le résultat
     save_path = filedialog.asksaveasfilename(
@@ -2593,12 +2615,13 @@ def fusionner_ekdosis():
 
     try:
         with open(save_path, "w", encoding="utf-8") as out:
-            out.write("".join(merged))
+            out.write(fusion)
     except Exception as e:
         messagebox.showerror("Erreur", f"Impossible d'écrire le fichier :\n{e}")
         return
 
     messagebox.showinfo("Succès", f"Fichier Ekdosis fusionné enregistré :\n{save_path}")
+
 
 def formatter_persname_ekdosis(noms):
     return ", ".join(
@@ -3696,8 +3719,11 @@ def comparer_etats():
                 ligne_tei, ligne_ekdosis = aligner_variantes_par_mot(tokens, temoins, ref_index)
 
                 resultat_tei.append('      <stage type="stage-direction">\n' + "".join(ligne_tei) + '      </stage>\n')
-                resultat_ekdosis.append('      \\didas{')
-                resultat_ekdosis.append("".join(ligne_ekdosis) + '      }')
+                resultat_ekdosis.append(
+                    '      \\didas{' +
+                    "".join(ligne_ekdosis) +
+                    '}'
+                )
 
                 # NE PAS toucher à vers_courant ici! On ne l’incrémente ni le décrémente.
                 continue
