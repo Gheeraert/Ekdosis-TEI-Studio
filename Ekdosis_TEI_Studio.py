@@ -2110,11 +2110,26 @@ def exporter_ekdosis():
         for t in temoins
     ])
 
+    titlepage_bloc = "\n".join([
+        "\\begin{titlepage}",
+        "    \\centering",
+        f"    {{\\Huge \\textbf{{\\MakeUppercase{{{titre_piece}}}}} \\par}}",
+        "    \\vspace{1.5cm}",
+        f"    {{\\LARGE {auteur_nom_complet} \\par}}",
+        "    \\vspace{2cm}",
+        f"    {{\\Large \\textit{{Édition critique par {editeur_nom_complet}}} \\par}}",
+        "    \\vspace{2cm}",
+        "    {\\large \\today}",
+        "    \\vfill",
+        "\\end{titlepage}",
+    ])
+
     contenu_complet = (
             template_ekdosis_preamble +
             declarations_temoins +
             template_ekdosis_debut_doc +
             "\n" +
+            titlepage_bloc +
             contenu +
             "\n" +
             template_ekdosis_fin_doc
