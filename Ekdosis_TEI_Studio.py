@@ -2602,6 +2602,7 @@ def fusionner_ekdosis():
 
     # Nettoyage des retours à la ligne superflus
     fusion = '\n'.join(frag.strip('\n') for frag in merged)
+    fusion = fusion.replace('{#####}', '')
 
     # 4. Boîte de dialogue pour sauvegarder le résultat
     save_path = filedialog.asksaveasfilename(
