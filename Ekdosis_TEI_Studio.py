@@ -1808,6 +1808,15 @@ def valider_structure_amelioree():
 # Remplacement automatique
 valider_structure = valider_structure_amelioree
 
+# Fonction ci-dessous à débugger...
+def valider_tei_bien_forme(tei_text):
+    try:
+        LET.fromstring(tei_text.encode('utf-8'))
+        messagebox.showinfo("Validation TEI", "Le document TEI est bien formé (XML valide)!")
+    except Exception as e:
+        messagebox.showerror("Erreur TEI", f"Erreur XML: {e}")
+
+
 
 # Ajouter ce bouton à l’interface existante
 def ajouter_bouton_validation(frame):
