@@ -1875,7 +1875,7 @@ def rechercher(zone):
     terme = simpledialog.askstring("Rechercher", "Mot ou expression à chercher :")
     if terme:
         zone.tag_remove("found", "1.0", tk.END)
-        start_pos = "1.0"
+        start_pos = zone.index(tk.INSERT)
         found_any = False
         # Option insensible à la casse avec nocase=1
         while True:
@@ -1894,8 +1894,6 @@ def rechercher(zone):
                 found_any = True
             start_pos = end_pos
         zone.tag_config("found", background="yellow")
-
-
 
 def remplacer_avance(zone):
     terme = simpledialog.askstring("Remplacer", "Mot à rechercher :")
@@ -2215,7 +2213,6 @@ def enregistrer_preview(html_result):
         except Exception as e:
             messagebox.showerror("Erreur", f"Impossible d’enregistrer le fichier: {e}")
 
-
 def enregistrer_triple():
     global html_result
 
@@ -2241,13 +2238,11 @@ def enregistrer_triple():
     # 1. Récupération des contenus
     raw = zone_saisie.get("1.0", tk.END).strip()
     tei = zone_resultat_tei.get("1.0", tk.END).strip()
-    # html_result peut être un widget Text ou un objet lxml.XSLTResultTree
     if hasattr(html_result, "get"):
         html = html_result.get("1.0", tk.END).strip()
     else:
         html = str(html_result).strip()
-    # Ekdosis
-    ekdosis = zone_resultat_ekdosis.get("1.0", tk.END).strip()
+    ekdosis_body = zone_resultat_ekdosis.get("1.0", tk.END).strip()
 
     # 2. Vérifications d’existence de contenu
     if not raw:
@@ -2256,7 +2251,7 @@ def enregistrer_triple():
         return messagebox.showwarning("Avertissement", "Aucun contenu TEI à enregistrer.")
     if not html:
         return messagebox.showwarning("Avertissement", "Aucun aperçu HTML à enregistrer.")
-    if not ekdosis:
+    if not ekdosis_body:
         return messagebox.showwarning("Avertissement", "Aucun contenu Ekdosis à enregistrer.")
 
     # 3. Choix du dossier racine
@@ -2271,24 +2266,16 @@ def enregistrer_triple():
     default_ekdosis = nom_fichier("ekdosis", "tex")
 
     # 5. Confirmation / modification des basenames
-    txt_name  = simpledialog.askstring("Nom fichier texte",
-                                       "Nom du fichier de transcription (.txt) :",
-                                       initialvalue=default_txt)
+    txt_name  = simpledialog.askstring("Nom fichier texte", "Nom du fichier de transcription (.txt) :", initialvalue=default_txt)
     if txt_name is None: return
 
-    xml_name  = simpledialog.askstring("Nom fichier TEI",
-                                       "Nom du fichier TEI (.xml) :",
-                                       initialvalue=default_xml)
+    xml_name  = simpledialog.askstring("Nom fichier TEI", "Nom du fichier TEI (.xml) :", initialvalue=default_xml)
     if xml_name is None: return
 
-    html_name = simpledialog.askstring("Nom fichier HTML",
-                                       "Nom du fichier HTML (.html) :",
-                                       initialvalue=default_html)
+    html_name = simpledialog.askstring("Nom fichier HTML", "Nom du fichier HTML (.html) :", initialvalue=default_html)
     if html_name is None: return
 
-    ekdosis_name = simpledialog.askstring("Nom fichier Ekdosis",
-                                          "Nom du fichier Ekdosis (.tex) :",
-                                          initialvalue=default_ekdosis)
+    ekdosis_name = simpledialog.askstring("Nom fichier Ekdosis", "Nom du fichier Ekdosis (.tex) :", initialvalue=default_ekdosis)
     if ekdosis_name is None: return
 
     # 6. Construction des chemins et création des dossiers
@@ -2311,8 +2298,100 @@ def enregistrer_triple():
         ):
             return
 
-    # 8. Écriture
+    # 8. Construction de l’export Ekdosis AUTONOME (préambule, témoins, titlepage, contenu, fin)
     try:
+        # --- A. Déclarations des témoins
+        try:
+            nb_temoins = int(nombre_temoins_predefini)
+        except Exception:
+            from tkinter.simpledialog import askinteger
+            nb_temoins = askinteger(
+                "Nombre de témoins manquant",
+                "Le nombre de témoins est introuvable ou invalide.\nVeuillez l’entrer manuellement :",
+                minvalue=1
+            )
+            if nb_temoins is None:
+                messagebox.showinfo("Annulé", "Saisie annulée par l'utilisateur.")
+                return
+            else:
+                nombre_temoins_predefini = str(nb_temoins)
+
+        temoins = temoins_collectes if 'temoins_collectes' in globals() else []
+        if not temoins:
+            messagebox.showwarning("Annulé",
+                                   "La collecte des témoins a été annulée.\n"
+                                   "Vous pouvez exporter toutefois le LaTeX sans le template\n"
+                                   "en copiant-collant le code généré ci-dessous\n"
+                                   "et en l'insérant dans le template fourni sur le dépôt"
+                                   )
+            declarations_temoins = ""
+        else:
+            if len(temoins) != nb_temoins:
+                messagebox.showwarning(
+                    "Incohérence",
+                    f"Le nombre de témoins collectés ({len(temoins)}) ne correspond pas "
+                    f"au nombre attendu ({nb_temoins}). L'export sera à vérifier."
+                )
+            declarations_temoins = "\n".join([
+                f"\\DeclareWitness{{{t['abbr']}}}{{{t['year']}}}{{{t['desc']}}}"
+                for t in temoins
+            ])
+
+        # --- B. Bloc titlepage (avec fallback questions si variables manquantes)
+        try:
+            titre = titre_piece
+        except Exception:
+            titre = simpledialog.askstring("Titre", "Titre de la pièce :") or "Titre inconnu"
+        try:
+            auteur = auteur_nom_complet
+        except Exception:
+            auteur = simpledialog.askstring("Auteur", "Nom de l'auteur :") or "Auteur inconnu"
+        try:
+            editeur = editeur_nom_complet
+        except Exception:
+            editeur = simpledialog.askstring("Éditeur", "Nom de l'éditeur :") or "Éditeur inconnu"
+
+        titlepage_bloc = "\n".join([
+            "\\begin{titlepage}",
+            "    \\centering",
+            f"    {{\\Huge \\textbf{{\\MakeUppercase{{{titre}}}}} \\par}}",
+            "    \\vspace{1.5cm}",
+            f"    {{\\LARGE {auteur} \\par}}",
+            "    \\vspace{2cm}",
+            f"    {{\\Large \\textit{{Édition critique par {editeur}}} \\par}}",
+            "    \\vspace{2cm}",
+            "    {\\large \\today}",
+            "    \\vfill",
+            "\\end{titlepage}",
+        ])
+
+        # --- C. Préambule et balises (à adapter si globalement défini)
+        preamble = (
+            "\\documentclass{book}\n"
+            "\\usepackage[main=french,spanish,latin]{babel}\n"
+            "\\usepackage[T1]{fontenc}\n"
+            "\\usepackage{fontspec}\n"
+            "\\usepackage{csquotes}\n"
+            "\\usepackage[teiexport, divs=ekdosis, poetry=verse]{ekdosis}\n"
+            "\\usepackage{setspace}\n"
+            "\\usepackage{lettrine}\n"
+            "\\usepackage{hyperref}\n"
+            "\\usepackage{zref-user,zref-abspage}\n"
+            "% ... autres commandes utiles (optionnel)\n\n"
+        )
+        debut_doc = "\\begin{document}\n\\begin{ekdosis}\n"
+        fin_doc = "\n\\end{ekdosis}\n\\end{document}\n"
+
+        ekdosis_full = (
+            preamble +
+            declarations_temoins + "\n" +
+            debut_doc +
+            titlepage_bloc + "\n" +
+            ekdosis_body + "\n" +
+            fin_doc
+        )
+
+        # --- D. Écriture des fichiers
         with open(chemins["Saisie"], "w", encoding="utf-8") as f:
             f.write(raw)
         with open(chemins["TEI"], "w", encoding="utf-8") as f:
@@ -2320,7 +2399,7 @@ def enregistrer_triple():
         with open(chemins["HTML"], "w", encoding="utf-8") as f:
             f.write(html)
         with open(chemins["Ekdosis"], "w", encoding="utf-8") as f:
-            f.write(ekdosis)
+            f.write(ekdosis_full)
     except Exception as e:
         return messagebox.showerror("Erreur", f"Impossible d'enregistrer : {e}")
 
@@ -3970,9 +4049,7 @@ menu_edit.add_command(label="Coller", accelerator="Ctrl+V",
 menu_edit.add_command(label="Tout sélectionner", accelerator="Ctrl+A",
                       command=lambda: fenetre.focus_get().event_generate('<<SelectAll>>'))
 menu_edit.add_separator()
-menu_edit.add_command(label="Remplacement avancé dans la saisie", command=lambda: remplacer_avance(zone_saisie))
-menu_edit.add_command(label="Remplacement avancé dans le TEI", command=lambda: remplacer_avance(zone_resultat_tei))
-menu_edit.add_command(label="Remplacement avancé dans ekdosis", command=lambda: remplacer_avance(zone_resultat_ekdosis))
+menu_edit.add_command(label="Rechercher", command=lambda: rechercher(zone_saisie))
 
 # --- Menu Outils ---
 menu_outils = tk.Menu(menu_bar, tearoff=0)
@@ -4016,8 +4093,8 @@ fenetre.title("Comparateur avec scènes, personnages et locuteurs")
 fenetre.update_idletasks()
 fenetre.minsize(1000, fenetre.winfo_reqheight())
 fenetre.bind_all("<Control-s>", lambda event: enregistrer_saisie())
-fenetre.bind("<Control-f>", lambda e: rechercher())
-fenetre.bind("<Control-h>", lambda e: remplacer_avance())
+#fenetre.bind("<Control-f>", lambda e: rechercher())
+#fenetre.bind("<Control-h>", lambda e: remplacer_avance())
 
 afficher_nagscreen()
 
@@ -4031,6 +4108,8 @@ label_texte.pack()
 
 zone_saisie = scrolledtext.ScrolledText(frame_saisie, height=15, undo=True, maxundo=-1)
 zone_saisie.pack(fill=tk.BOTH, expand=True)
+zone_saisie.bind('<Control-f>', lambda e: rechercher(zone_saisie))
+menu_edit.add_command(label="Remplacement avancé dans la saisie", command=lambda: remplacer_avance(zone_saisie))
 
 try:
     nom_auto = nom_fichier("autosave", "txt")
@@ -4178,12 +4257,15 @@ onglet_tei = tk.Frame(notebook, bg="white")
 zone_resultat_tei = scrolledtext.ScrolledText(onglet_tei, height=15, undo=True, maxundo=-1)
 zone_resultat_tei.pack(fill=tk.BOTH, expand=True)
 notebook.add(onglet_tei, text="🧾 TEI")
+zone_saisie.bind('<Control-f>', lambda e: rechercher(zone_resultat_tei))
+menu_edit.add_command(label="Remplacement avancé dans le TEI", command=lambda: remplacer_avance(zone_resultat_tei))
 
 # ekdosis
 onglet_ekdosis = tk.Frame(notebook, bg="white")
 zone_resultat_ekdosis = scrolledtext.ScrolledText(onglet_ekdosis, height=15, undo=True, maxundo=-1)
 zone_resultat_ekdosis.pack(fill=tk.BOTH, expand=True)
 notebook.add(onglet_ekdosis, text="📘 ekdosis")
+zone_saisie.bind('<Control-f>', lambda e: rechercher(zone_resultat_ekdosis))
 
 # HTML
 onglet_html = tk.Frame(notebook, bg="white")
@@ -4191,11 +4273,15 @@ zone_resultat_html = scrolledtext.ScrolledText(onglet_html, height=15, undo=True
                                                font=("Georgia", 11))
 zone_resultat_html.pack(fill=tk.BOTH, expand=True)
 notebook.add(onglet_html, text="🌐 html")
+zone_saisie.bind('<Control-f>', lambda e: rechercher(zone_resultat_html))
 
 # appliquer_style_light(fenetre)
 appliquer_style_parchemin(fenetre)
 
 # --- Raccourcis clavier globaux ---
+zone_saisie.bind("<Control-f>", lambda e: rechercher(zone_saisie))
+zone_resultat_tei.bind("<Control-f>", lambda e: rechercher(zone_resultat_tei))
+
 # Sans doute à effacer tous
 fenetre.bind_all("<Control-a>", lambda event: fenetre.focus_get().event_generate('<<SelectAll>>'))
 fenetre.bind_all("<Control-x>", lambda event: fenetre.focus_get().event_generate('<<Cut>>'))
