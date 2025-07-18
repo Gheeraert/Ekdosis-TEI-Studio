@@ -3454,6 +3454,21 @@ Laissez une ligne vide avant et après les **didascalies**
 """
     messagebox.showinfo("Aide à la transcription", exemple)
 
+def mettre_a_jour_numeros(*args):
+    numeros_lignes.configure(state="normal")
+    numeros_lignes.delete("1.0", "end")
+    total_lignes = int(zone_saisie.index("end-1c").split('.')[0])
+    lignes = "\n".join(str(i) for i in range(1, total_lignes + 1))
+    numeros_lignes.insert("1.0", lignes)
+    numeros_lignes.configure(state="disabled")
+
+def synchroniser_scroll(*args):
+    zone_saisie.yview(*args)
+    numeros_lignes.yview(*args)
+
+def mettre_a_jour_scroll(*args):
+    scroll.set(*args)
+    numeros_lignes.yview_moveto(args[0])
 
 def ajouter_espace_si_necessaire(mot):
     if not mot:
@@ -4120,10 +4135,33 @@ label_texte = tk.Label(frame_saisie,
                        bg="#f4f4f4")
 label_texte.pack()
 
-zone_saisie = scrolledtext.ScrolledText(frame_saisie, height=15, undo=True, maxundo=-1)
-zone_saisie.pack(fill=tk.BOTH, expand=True)
+# Frame contenant la numérotation et la zone de saisie
+frame_saisie = tk.Frame(fenetre)  # ou root ou autre conteneur
+
+# Numérotation des lignes (non éditable)
+numeros_lignes = tk.Text(frame_saisie, width=4, padx=4, takefocus=0,
+                         border=0, background='lightgrey', state='disabled',
+                         wrap='none', font=("Courier", 10))
+numeros_lignes.pack(side="left", fill="y")
+
+# Zone de texte principale
+zone_saisie = tk.Text(frame_saisie, wrap="none", undo=True, font=("Courier", 10))
+scroll = tk.Scrollbar(frame_saisie, command=synchroniser_scroll)
+zone_saisie.configure(yscrollcommand=mettre_a_jour_scroll)
+zone_saisie.pack(side="left", fill="both", expand=True)
+scroll.pack(side="right", fill="y")
+
+# Intégration dans l'interface
+frame_saisie.pack(fill="both", expand=True)
+
 zone_saisie.bind('<Control-f>', lambda e: rechercher(zone_saisie))
 menu_edit.add_command(label="Remplacement avancé dans la saisie", command=lambda: remplacer_avance(zone_saisie))
+zone_saisie.bind("<KeyRelease>", mettre_a_jour_numeros)
+zone_saisie.bind("<MouseWheel>", lambda e: (zone_saisie.yview_scroll(int(-1*(e.delta/120)), "units"), mettre_a_jour_numeros()))
+zone_saisie.bind("<Button-1>", lambda e: zone_saisie.after(10, mettre_a_jour_numeros))
+
+# Mise à jour initiale
+mettre_a_jour_numeros()
 
 try:
     nom_auto = nom_fichier("autosave", "txt")
@@ -4132,7 +4170,6 @@ try:
             zone_saisie.insert("1.0", f.read())
 except Exception as e:
     print(f"[autosave] Impossible de charger le fichier : {e}")
-
 
 def boite_initialisation_parchemin():
     champs_def = [
