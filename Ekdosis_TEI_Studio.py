@@ -2423,9 +2423,6 @@ def enregistrer_triple():
 
 
 def fusionner_html():
-    import os, re, locale
-    from tkinter import filedialog, messagebox, simpledialog
-    from datetime import date
 
     html_files = filedialog.askopenfilenames(
         title="Sélectionnez les fichiers HTML à fusionner",
@@ -2461,7 +2458,7 @@ def fusionner_html():
     bloc_credit_perso = f'''
 <div class="bloc-credit">
 <div class="credit-line">Jean Racine – <span class="italic">{titre}</span>, acte {acte}</div>
-<div class="credit-line">Édition critique par Claire Fourquet-Gracieux</div>
+<div class="credit-line">Édition critique par {editeur_nom_complet}</div>
 <div class="credit-line">Document généré le {today_str} depuis Ekdosis-TEI Studio</div>
 </div>
 '''
@@ -2518,6 +2515,58 @@ def fusionner_html():
         f.write("".join(merged))
 
     messagebox.showinfo("Succès", f"Acte HTML fusionné enregistré :\n{save_path}")
+
+def nettoyer_html_result_et_enregistrer():
+
+    global html_result, titre_piece, numero_acte, editeur_nom_complet
+
+    try:
+        # ✅ Conversion sûre depuis XSLTResultTree → str
+        html = ET.tostring(html_result, encoding='unicode', method='html')
+    except Exception as e:
+        messagebox.showerror("Erreur", f"Impossible de convertir html_result en texte HTML :\n{e}")
+        return
+
+    # 🔧 Nettoyages HTML
+    html = re.sub(r'(?is)<head>.*?</head>', '', html)
+    html = re.sub(r'(?is)<link[^>]+>', '', html)
+    html = re.sub(r'(?is)<style.*?>.*?</style>', '', html)
+    html = re.sub(r'(?is)<div[^>]*class="ligne-logos-gauche"[^>]*>.*?</div>', '', html)
+    html = re.sub(r'(?is)<div[^>]*class="bloc-credit"[^>]*>.*?</div>', '', html)
+    html = re.sub(r'(?is)</body>.*?</html>', '', html)
+    html = re.sub(r'(?i)</body>', '', html)
+    html = re.sub(r'(?i)</html>', '', html)
+
+    # 🧾 Bloc de crédits
+    date_str = date.today().strftime("%d %B %Y")
+    bloc_credit = f'''<div class="bloc-credit">
+    <div class="credit-line">Jean Racine – <span class="italic">{titre_piece}</span>, {numero_acte}</div>
+    <div class="credit-line">Édition critique par {editeur_nom_complet}</div>
+    <div class="credit-line">Document généré le {date_str} depuis Ekdosis-TEI Studio</div>
+    </div>
+    '''
+
+    # ➕ Injection juste après <body>
+    html = re.sub(r'(?i)<body[^>]*>', lambda m: m.group(0) + "\n" + bloc_credit, html, count=1)
+
+    # 🧼 Suppression complète du <html...><body>
+    html = re.sub(r'(?is)^<html[^>]*>\s*<body[^>]*>', '', html)
+
+    # 💾 Sauvegarde du fichier
+    chemin = filedialog.asksaveasfilename(
+        title="Enregistrer le fichier nettoyé",
+        defaultextension=".html",
+        initialfile="acte_nettoye.html",
+        filetypes=[("Fichier HTML", "*.html")]
+    )
+    if not chemin:
+        return
+
+    with open(chemin, 'w', encoding='utf-8') as f:
+        f.write(html)
+
+    messagebox.showinfo("Succès", f"Fichier nettoyé enregistré :\n{chemin}")
+
 
 def fusionner_markdown():
     import os
@@ -4092,6 +4141,7 @@ menu_outils.add_command(label="Fusionner HTML", command=fusionner_html)
 menu_outils.add_command(label="Fusionner Markdown", command=fusionner_markdown)
 menu_outils.add_command(label="Fusionner TEI", command=fusionner_tei)
 menu_outils.add_command(label="Fusionner Ekdosis", command=fusionner_ekdosis)
+menu_outils.add_command(label="Préparer html pour visualisation", command=nettoyer_html_result_et_enregistrer)
 
 # Menu Affichage
 menu_affichage = tk.Menu(menu_bar, tearoff=0)
