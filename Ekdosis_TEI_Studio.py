@@ -1,6 +1,6 @@
 # ==============================================================================
 # Ekdosis-TEI Studio
-# Version 1.3.7
+# Version 1.3.9
 #
 # Un outil d'encodage inspiré du markdown
 # pour encoder des variantes dans le théâtre classique
@@ -34,6 +34,7 @@ import webbrowser
 from datetime import date
 import locale
 import json
+from bs4 import BeautifulSoup
 
 
 def importer_echantillon():
@@ -2422,6 +2423,111 @@ def enregistrer_triple():
     messagebox.showinfo("Succès", "Fichiers enregistrés :\n\n" + msg)
 
 
+def nettoyer_html_unique():
+    filepath = filedialog.askopenfilename(
+        title="Sélectionnez un fichier HTML à nettoyer",
+        filetypes=[("Fichiers HTML", "*.html *.htm")]
+    )
+    if not filepath:
+        return
+
+    titre = simpledialog.askstring("Titre", "Titre de la pièce (ex : La Thébaïde):")
+    if not titre:
+        return
+    acte = simpledialog.askstring("Acte", "Numéro d'acte (ex : Acte I):")
+    if not acte:
+        return
+
+    def roman_to_int(roman):
+        roman = roman.strip().upper().replace("ACTE", "").strip()
+        roman_dict = {
+            'I': 1, 'II': 2, 'III': 3, 'IV': 4, 'V': 5,
+            'VI': 6, 'VII': 7, 'VIII': 8, 'IX': 9, 'X': 10
+        }
+        if roman.isdigit():
+            return roman
+        return str(roman_dict.get(roman, roman))
+
+    try:
+        locale.setlocale(locale.LC_TIME, "fr_FR.UTF-8")
+    except:
+        locale.setlocale(locale.LC_TIME, "")
+    today_str = date.today().strftime("%d %B %Y")
+
+    bloc_credit = f'''
+<div class="bloc-credit">
+<div class="credit-line">Jean Racine – <span class="italic">{titre}</span>, acte {acte}</div>
+<div class="credit-line">Édition critique par {editeur_nom_complet}</div>
+<div class="credit-line">Document généré le {today_str} depuis Ekdosis-TEI Studio</div>
+</div>
+'''
+
+    with open(filepath, 'r', encoding='utf-8') as f:
+        soup = BeautifulSoup(f, 'html.parser')
+
+    # Suppression des balises <head>, <style>, <footer>, <html>, <body>
+    if soup.head:
+        soup.head.decompose()
+    for tag in soup.find_all(['style', 'footer']):
+        tag.decompose()
+    for tag in soup.find_all(['html', 'body']):
+        tag.unwrap()
+
+    # Supprimer bloc-credit complet s’il existe
+    bloc = soup.find('div', class_='bloc-credit')
+    if bloc:
+        bloc.decompose()
+
+    # Supprimer toutes les lignes orphelines "credit-line"
+    for tag in soup.find_all('div', class_='credit-line'):
+        tag.decompose()
+
+    html = str(soup)
+
+    # --- Enrobage avec structure éditoriale ---
+    header_html = '''<html lang="fr">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta charset="UTF-8">
+<title>Édition TEI</title>
+<link rel="stylesheet" href="../../../css/portail.css">
+</head>
+<body>
+  <div id="container">
+    <aside id="menu-lateral">Chargement du menu…</aside>
+    <main>
+      <div id="header"></div>
+'''
+
+    footer_html = '''
+      <div id="footer"></div>
+    </main>
+  </div>
+<script src="../../../js/header.js"></script>
+<script src="../../../js/footer.js"></script>
+<script src="../../../../js/menu-lateral.js"></script>
+</body>
+</html>
+'''
+
+    contenu_final = header_html + bloc_credit + "\n" + html.strip() + footer_html
+
+    num_acte = roman_to_int(acte)
+    def_name = f"acte_{num_acte}.html"
+    save_path = filedialog.asksaveasfilename(
+        defaultextension=".html",
+        filetypes=[("Fichiers HTML", "*.html")],
+        initialfile=def_name,
+        title="Enregistrer le fichier nettoyé"
+    )
+    if not save_path:
+        return
+
+    with open(save_path, 'w', encoding='utf-8') as f:
+        f.write(contenu_final)
+
+    messagebox.showinfo("Succès", f"Fichier HTML nettoyé enregistré :\n{save_path}")
+
 def fusionner_html():
 
     html_files = filedialog.askopenfilenames(
@@ -2515,58 +2621,6 @@ def fusionner_html():
         f.write("".join(merged))
 
     messagebox.showinfo("Succès", f"Acte HTML fusionné enregistré :\n{save_path}")
-
-def nettoyer_html_result_et_enregistrer():
-
-    global html_result, titre_piece, numero_acte, editeur_nom_complet
-
-    try:
-        # ✅ Conversion sûre depuis XSLTResultTree → str
-        html = ET.tostring(html_result, encoding='unicode', method='html')
-    except Exception as e:
-        messagebox.showerror("Erreur", f"Impossible de convertir html_result en texte HTML :\n{e}")
-        return
-
-    # 🔧 Nettoyages HTML
-    html = re.sub(r'(?is)<head>.*?</head>', '', html)
-    html = re.sub(r'(?is)<link[^>]+>', '', html)
-    html = re.sub(r'(?is)<style.*?>.*?</style>', '', html)
-    html = re.sub(r'(?is)<div[^>]*class="ligne-logos-gauche"[^>]*>.*?</div>', '', html)
-    html = re.sub(r'(?is)<div[^>]*class="bloc-credit"[^>]*>.*?</div>', '', html)
-    html = re.sub(r'(?is)</body>.*?</html>', '', html)
-    html = re.sub(r'(?i)</body>', '', html)
-    html = re.sub(r'(?i)</html>', '', html)
-
-    # 🧾 Bloc de crédits
-    date_str = date.today().strftime("%d %B %Y")
-    bloc_credit = f'''<div class="bloc-credit">
-    <div class="credit-line">Jean Racine – <span class="italic">{titre_piece}</span>, {numero_acte}</div>
-    <div class="credit-line">Édition critique par {editeur_nom_complet}</div>
-    <div class="credit-line">Document généré le {date_str} depuis Ekdosis-TEI Studio</div>
-    </div>
-    '''
-
-    # ➕ Injection juste après <body>
-    html = re.sub(r'(?i)<body[^>]*>', lambda m: m.group(0) + "\n" + bloc_credit, html, count=1)
-
-    # 🧼 Suppression complète du <html...><body>
-    html = re.sub(r'(?is)^<html[^>]*>\s*<body[^>]*>', '', html)
-
-    # 💾 Sauvegarde du fichier
-    chemin = filedialog.asksaveasfilename(
-        title="Enregistrer le fichier nettoyé",
-        defaultextension=".html",
-        initialfile="acte_nettoye.html",
-        filetypes=[("Fichier HTML", "*.html")]
-    )
-    if not chemin:
-        return
-
-    with open(chemin, 'w', encoding='utf-8') as f:
-        f.write(html)
-
-    messagebox.showinfo("Succès", f"Fichier nettoyé enregistré :\n{chemin}")
-
 
 def fusionner_markdown():
     import os
@@ -2690,7 +2744,7 @@ def fusionner_ekdosis():
     bloc_credit = (
         "%% ====================================\n"
         f"%% Racine – {titre}, acte {acte}\n"
-        "%% Édition critique par Claire Fourquet-Gracieux\n"
+        f"%% Édition critique par {editeur_nom_complet}\n"
         f"%% Document généré le {today_str} depuis Ekdosis-TEI Studio\n"
         "%% ====================================\n\n"
     )
@@ -4141,7 +4195,7 @@ menu_outils.add_command(label="Fusionner HTML", command=fusionner_html)
 menu_outils.add_command(label="Fusionner Markdown", command=fusionner_markdown)
 menu_outils.add_command(label="Fusionner TEI", command=fusionner_tei)
 menu_outils.add_command(label="Fusionner Ekdosis", command=fusionner_ekdosis)
-menu_outils.add_command(label="Préparer html pour visualisation", command=nettoyer_html_result_et_enregistrer)
+menu_outils.add_command(label="Préparer html pour visualisation", command=nettoyer_html_unique)
 
 # Menu Affichage
 menu_affichage = tk.Menu(menu_bar, tearoff=0)
