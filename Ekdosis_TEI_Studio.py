@@ -1,6 +1,6 @@
 # ==============================================================================
 # Ekdosis-TEI Studio
-# Version 1.3.10
+# Version 1.3.11
 #
 # Un outil d'encodage inspiré du markdown
 # pour encoder des variantes dans le théâtre classique
@@ -2431,12 +2431,14 @@ def nettoyer_html_unique():
     if not filepath:
         return
 
-    titre = simpledialog.askstring("Titre", "Titre de la pièce (ex : La Thébaïde):")
-    if not titre:
-        return
-    acte = simpledialog.askstring("Acte", "Numéro d'acte (ex : Acte I):")
-    if not acte:
-        return
+    filename = os.path.basename(filepath)
+    titre = filename.split('_')[0].capitalize()
+
+    # Extrait "AI" = Acte I et scène
+    match_acte = re.search(r'_A([IVX]+)', filename)
+    acte = f"Acte {match_acte.group(1)}" if match_acte else "Acte ?"
+    match_scene = re.search(r'_S([0-9]+)', filename)
+    scene = f"scène {match_scene.group(1)}" if match_scene else ""
 
     def roman_to_int(roman):
         roman = roman.strip().upper().replace("ACTE", "").strip()
@@ -2454,13 +2456,20 @@ def nettoyer_html_unique():
         locale.setlocale(locale.LC_TIME, "")
     today_str = date.today().strftime("%d %B %Y")
 
+    # Calcul du nom de fichier XML (sans _preview)
+    nom_fichier_html = os.path.basename(filepath)
+    nom_base = os.path.splitext(nom_fichier_html)[0].replace("_preview", "")
+    nom_fichier_xml = nom_base + ".xml"
+    chemin_vers_xml = f"../xml-tei/{nom_fichier_xml}"
+
     bloc_credit = f'''
-<div class="bloc-credit">
-<div class="credit-line">Jean Racine – <span class="italic">{titre}</span>, acte {acte}</div>
-<div class="credit-line">Édition critique par {editeur_nom_complet}</div>
-<div class="credit-line">Document généré le {today_str} depuis Ekdosis-TEI Studio</div>
-</div>
-'''
+    <div class="bloc-credit">
+    <div class="credit-line">Jean Racine – <span class="italic">{titre}</span>, {acte}</div>
+    <div class="credit-line">Édition critique par {editeur_nom_complet}</div>
+    <div class="credit-line">Document généré le {today_str} depuis Ekdosis-TEI Studio</div>
+    <div class="credit-line"><a href="{chemin_vers_xml}" download>Télécharger le XML</a></div>
+    </div>
+    '''
 
     with open(filepath, 'r', encoding='utf-8') as f:
         soup = BeautifulSoup(f, 'html.parser')
