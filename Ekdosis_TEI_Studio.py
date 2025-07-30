@@ -1,6 +1,6 @@
 # ==============================================================================
 # Ekdosis-TEI Studio
-# Version 1.3.9
+# Version 1.3.10
 #
 # Un outil d'encodage inspiré du markdown
 # pour encoder des variantes dans le théâtre classique
@@ -2513,14 +2513,19 @@ def nettoyer_html_unique():
     contenu_final = header_html + bloc_credit + "\n" + html.strip() + footer_html
 
     num_acte = roman_to_int(acte)
-    def_name = f"acte_{num_acte}.html"
-    save_path = filedialog.asksaveasfilename(
-        defaultextension=".html",
-        filetypes=[("Fichiers HTML", "*.html")],
-        initialfile=def_name,
-        title="Enregistrer le fichier nettoyé"
-    )
-    if not save_path:
+
+    # Nom du fichier sans "_preview" avant .html
+    base_filename = os.path.basename(filepath)
+    if "_preview" in base_filename:
+        output_filename = base_filename.replace("_preview", "")
+    else:
+        output_filename = f"acte_{num_acte}.html"
+
+    # Dossier parent
+    parent_dir = os.path.dirname(os.path.dirname(filepath))
+    save_path = os.path.join(parent_dir, output_filename)
+
+    if not messagebox.askokcancel("Confirmation", f"Le fichier sera enregistré sous :\n{save_path}\n\nConfirmer ?"):
         return
 
     with open(save_path, 'w', encoding='utf-8') as f:
