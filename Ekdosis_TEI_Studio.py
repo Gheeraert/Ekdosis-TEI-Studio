@@ -2424,6 +2424,14 @@ def enregistrer_triple():
 
 
 def nettoyer_html_unique():
+    try:
+        if not editeur_nom_complet:
+            messagebox.showinfo("Configuration", "Chargez d'abord le fichier de configuration")
+            return
+    except NameError:
+        messagebox.showinfo("Configuration", "Chargez d'abord le fichier de configuration")
+        return
+
     filepath = filedialog.askopenfilename(
         title="Sélectionnez un fichier HTML à nettoyer",
         filetypes=[("Fichiers HTML", "*.html *.htm")]
@@ -2459,7 +2467,7 @@ def nettoyer_html_unique():
     # Calcul du nom de fichier XML (sans _preview)
     nom_fichier_html = os.path.basename(filepath)
     nom_base = os.path.splitext(nom_fichier_html)[0].replace("_preview", "")
-    nom_fichier_xml = nom_base + ".xml"
+    nom_fichier_xml = nom_base + "_tei.xml"
     chemin_vers_xml = f"../xml-tei/{nom_fichier_xml}"
 
     bloc_credit = f'''
@@ -2541,6 +2549,53 @@ def nettoyer_html_unique():
         f.write(contenu_final)
 
     messagebox.showinfo("Succès", f"Fichier HTML nettoyé enregistré :\n{save_path}")
+
+    chemin_vers_xml = f"../xml-tei/{nom_fichier_xml}"
+
+    # Recherche du dernier <l n="..."> dans le fichier XML correspondant
+
+    # Construction du chemin absolu vers le fichier XML
+    xml_absolu = os.path.normpath(os.path.join(os.path.dirname(filepath), "..", "..", "xml-tei", nom_fichier_xml))
+
+    dernier_num_vers = None
+
+    # DEBUG
+    print(f"📄 Nom du fichier XML attendu : {nom_fichier_xml}")
+    print(f"🔍 Chemin absolu vers le fichier XML : {xml_absolu}")
+    # DEBUG
+
+    if os.path.exists(xml_absolu):
+        print("✅ Fichier XML trouvé.")
+        try:
+            with open(xml_absolu, 'r', encoding='utf-8') as f:
+                xml_content = f.read()
+
+            soup_xml = BeautifulSoup(xml_content, 'xml')
+            lignes = []
+
+            for l in soup_xml.find_all('l'):
+                n = l.get('n')
+                if n:
+                    n = n.strip()
+                    try:
+                        val = float(n)
+                        lignes.append(val)
+                        print(f"✅ <l n=\"{n}\"> accepté")
+                    except ValueError:
+                        print(f"❌ <l n=\"{n}\"> ignoré (non convertible en float)")
+
+            print(f"📊 Numéros de vers extraits : {lignes}")
+            if lignes:
+                dernier_num_vers = max(lignes)
+                print(f"📌 Dernier numéro trouvé : {dernier_num_vers}")
+
+        except Exception as e:
+            print("❌ Erreur lors de l'analyse du XML avec BeautifulSoup :", e)
+    else:
+        print("❌ Le fichier XML n'existe pas :", xml_absolu)
+
+    if dernier_num_vers is not None:
+        messagebox.showinfo("Dernier vers", f"Dernier vers numéroté : {dernier_num_vers}")
 
 def fusionner_html():
 
