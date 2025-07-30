@@ -2443,7 +2443,7 @@ def nettoyer_html_unique():
     titre = filename.split('_')[0].capitalize()
 
     # Extrait "AI" = Acte I et scène
-    match_acte = re.search(r'_A([IVX]+)', filename)
+    match_acte = re.search(r'_A(\d+)', filename)
     acte = f"Acte {match_acte.group(1)}" if match_acte else "Acte ?"
     match_scene = re.search(r'_S([0-9]+)', filename)
     scene = f"scène {match_scene.group(1)}" if match_scene else ""
