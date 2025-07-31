@@ -1,6 +1,6 @@
 # ==============================================================================
 # Ekdosis-TEI Studio
-# Version 1.4.0
+# Version 1.4.1
 #
 # Un outil d'encodage inspiré du markdown
 # pour encoder des variantes dans le théâtre classique
@@ -3735,6 +3735,12 @@ def extraire_blocs_et_dialogue(lignes, nb_temoins):
         dialogues
     )
 
+def est_balise_complete(token):
+    return bool(re.match(r'^<[^>]+>.*?</[^>]+>$', token))
+
+def remplacer_tildes_par_espaces_insecables(texte):
+    return texte.replace("~", "&#160;")
+
 def aligner_variantes_par_mot(tokens, temoins, ref_index):
     ligne_tei = []
     ligne_ekdosis = []
@@ -3751,20 +3757,34 @@ def aligner_variantes_par_mot(tokens, temoins, ref_index):
         lemme = tokens[ref_index][i] if i < len(tokens[ref_index]) else ""
 
         if len(mots_colonne) == 1:
-            # Pas de variante : mot ordinaire, ajouté avec espace
-            ligne_tei.append(encoder_caracteres_tei(lemme) + " ")
+            # Pas de variante
+            if est_balise_complete(lemme):
+                lemme_traite = remplacer_tildes_par_espaces_insecables(lemme)
+                ligne_tei.append(lemme_traite + " ")
+            else:
+                lemme_traite = remplacer_tildes_par_espaces_insecables(encoder_caracteres_tei(lemme))
+                ligne_tei.append(lemme_traite + " ")
             ligne_ekdosis.append(echapper_caracteres_ekdosis(lemme))
             continue
 
-        # Variante : retour à la ligne avant <app>
+        # Variante
         ligne_tei.append("\n      <app>\n")
+        if est_balise_complete(lemme):
+            lemme_affiche = remplacer_tildes_par_espaces_insecables(lemme)
+        else:
+            lemme_affiche = remplacer_tildes_par_espaces_insecables(encoder_caracteres_tei(ajouter_espace_si_necessaire(lemme)))
         ligne_tei.append(
-            f'        <lem wit="{" ".join(f"#{t}" for t in mots_colonne.get(lemme, []))}">{encoder_caracteres_tei(ajouter_espace_si_necessaire(lemme))}</lem>\n'
+            f'        <lem wit="{" ".join(f"#{t}" for t in mots_colonne.get(lemme, []))}">{lemme_affiche}</lem>\n'
         )
+
         for mot, wits in mots_colonne.items():
             if mot != lemme:
+                if est_balise_complete(mot):
+                    mot_affiche = remplacer_tildes_par_espaces_insecables(mot)
+                else:
+                    mot_affiche = remplacer_tildes_par_espaces_insecables(encoder_caracteres_tei(ajouter_espace_si_necessaire(mot)))
                 ligne_tei.append(
-                    f'        <rdg wit="{" ".join(f"#{t}" for t in wits)}">{encoder_caracteres_tei(ajouter_espace_si_necessaire(mot))}</rdg>\n'
+                    f'        <rdg wit="{" ".join(f"#{t}" for t in wits)}">{mot_affiche}</rdg>\n'
                 )
         ligne_tei.append("      </app>\n")
 
@@ -3782,6 +3802,7 @@ def aligner_variantes_par_mot(tokens, temoins, ref_index):
         ligne_ekdosis.append("\n".join(ekdo))
 
     return ligne_tei, ligne_ekdosis
+
 
 
 def speaker_aligned_output(speaker_list, temoins, ref_index, aligner_fonction):
@@ -3811,9 +3832,20 @@ def verifier_et_comparer():
             comparer_etats()
 
 
+def tokenizer_avec_balises(texte):
+    # Capture tout bloc <balise>…</balise> comme unité indivisible
+    return re.findall(r'<[^>]+>.*?</[^>]+>|\S+', texte)
+
 def comparer_etats():
     texte = zone_saisie.get("1.0", tk.END).strip()
     lignes = texte.splitlines()
+
+    # Étape : remplacer les italiques Markdown _..._ par des balises TEI <hi>
+    def convertir_italique_tei(texte):
+        return re.sub(r'_(.+?)_', r'<hi rend="italic">\1</hi>', texte)
+
+    lignes = [convertir_italique_tei(l) for l in lignes]
+
     sous_blocs_ignorés = set()
     resultat_ekdosis = []
 
@@ -4009,52 +4041,6 @@ def comparer_etats():
                 # NE PAS toucher à vers_courant ici! On ne l’incrémente ni le décrémente.
                 continue
 
-            # Cas spécial : italiques inline avec underscores (_mot en italique_)
-            if all('_' in l for l in lignes) and len(lignes):
-                print('italique inline repéré')
-                temoins = [chr(65 + i) for i in range(len(lignes))]
-                ref_index = liste_ref.current()
-
-                # Fonction locale pour convertir _italique_ en <hi rend="italic">italique</hi>
-                def convertir_italique_tei(texte):
-                    return re.sub(r'_(.+?)_', r'<hi rend="italic">\1</hi>', texte)
-
-                def convertir_italique_ekdosis(texte):
-                    return re.sub(r'_(.+?)_', r'\\hi{\1}', texte)
-
-                # Conversion TEI + nettoyage caractères
-                vers_tei = [convertir_italique_tei(encoder_caracteres_tei(l.strip())) for l in lignes]
-                vers_ekdo = [convertir_italique_ekdosis(echapper_caracteres_ekdosis(l.strip())) for l in lignes]
-
-                # Construction TEI
-                tei = '      <app>\n'
-                tei += f'        <lem wit="#{temoins[ref_index]}">{vers_tei[ref_index]}</lem>\n'
-                for idx, contenu in enumerate(vers_tei):
-                    if idx != ref_index:
-                        tei += f'        <rdg wit="#{temoins[idx]}">{contenu}</rdg>\n'
-                tei += '      </app>\n'
-                resultat_tei.append(f'<l n="{vers_courant}">\n{tei}</l>\n')
-
-                # Construction Ekdosis
-                ekdo = ['      \\app{']
-                ekdo.append(f'        \\lem[wit={{{temoins[ref_index]}}}]{{{vers_ekdo[ref_index]}}}')
-                for idx, contenu in enumerate(vers_ekdo):
-                    if idx == ref_index:
-                        continue
-                    ekdo.append(f'        \\rdg[wit={{{temoins[idx]}}}]{{{contenu}}}')
-                ekdo.append("      }")
-                resultat_ekdosis.append(
-                    f"        \\vnum{{{vers_courant}}}{{\n{chr(10).join(ekdo)}  \\\\    \n        }}"
-                )
-
-                # Incrémenter le numéro de vers
-                if vers_courant == int(vers_courant):
-                    vers_courant += 1
-                else:
-                    vers_courant = math.ceil(vers_courant)
-
-                continue
-
             # Cas du vers partagé : *** à la fin (bloc A) et *** au début (bloc B)
             if all(l.endswith('***') for l in lignes) and len(lignes) >= 2:
                 numero_vers_base = vers_courant  # e.g., 12
@@ -4204,8 +4190,16 @@ def comparer_etats():
                     vers_courant = math.ceil(vers_courant)
                 continue
 
+            # Conversion italique inline _mot_ → <hi rend="italic">mot</hi>
+            def convertir_italique_tei(texte):
+                return re.sub(r'_(.+?)_', r'<hi rend="italic">\1</hi>', texte)
+
+            lignes = [convertir_italique_tei(l) for l in lignes]
+
             temoins = [chr(65 + i) for i in range(len(lignes))]
-            tokens = [l.split() for l in lignes]
+
+            tokens = [tokenizer_avec_balises(l) for l in lignes]
+
             ref_index = liste_ref.current()
 
             ligne_tei, ligne_ekdosis = aligner_variantes_par_mot(tokens, temoins, ref_index)
