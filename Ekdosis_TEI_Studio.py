@@ -1,6 +1,6 @@
 # ==============================================================================
 # Ekdosis-TEI Studio
-# Version 1.3.11
+# Version 1.4.0
 #
 # Un outil d'encodage inspiré du markdown
 # pour encoder des variantes dans le théâtre classique
@@ -11,7 +11,7 @@
 # Affiliation :Chaire d'Excellence en Éditions Numériques, Université de Rouen
 #              Centre de recherche Editer-Interpréter (CEREdI, UR 3229)
 #              Presses universitaires de Rouen et du Havre
-# Date de création : mars 2025
+# Date de création : mars 2025 - juillet 2025
 # Licence : MIT
 # ==============================================================================
 
@@ -4007,6 +4007,52 @@ def comparer_etats():
                 )
 
                 # NE PAS toucher à vers_courant ici! On ne l’incrémente ni le décrémente.
+                continue
+
+            # Cas spécial : italiques inline avec underscores (_mot en italique_)
+            if all('_' in l for l in lignes) and len(lignes):
+                print('italique inline repéré')
+                temoins = [chr(65 + i) for i in range(len(lignes))]
+                ref_index = liste_ref.current()
+
+                # Fonction locale pour convertir _italique_ en <hi rend="italic">italique</hi>
+                def convertir_italique_tei(texte):
+                    return re.sub(r'_(.+?)_', r'<hi rend="italic">\1</hi>', texte)
+
+                def convertir_italique_ekdosis(texte):
+                    return re.sub(r'_(.+?)_', r'\\hi{\1}', texte)
+
+                # Conversion TEI + nettoyage caractères
+                vers_tei = [convertir_italique_tei(encoder_caracteres_tei(l.strip())) for l in lignes]
+                vers_ekdo = [convertir_italique_ekdosis(echapper_caracteres_ekdosis(l.strip())) for l in lignes]
+
+                # Construction TEI
+                tei = '      <app>\n'
+                tei += f'        <lem wit="#{temoins[ref_index]}">{vers_tei[ref_index]}</lem>\n'
+                for idx, contenu in enumerate(vers_tei):
+                    if idx != ref_index:
+                        tei += f'        <rdg wit="#{temoins[idx]}">{contenu}</rdg>\n'
+                tei += '      </app>\n'
+                resultat_tei.append(f'<l n="{vers_courant}">\n{tei}</l>\n')
+
+                # Construction Ekdosis
+                ekdo = ['      \\app{']
+                ekdo.append(f'        \\lem[wit={{{temoins[ref_index]}}}]{{{vers_ekdo[ref_index]}}}')
+                for idx, contenu in enumerate(vers_ekdo):
+                    if idx == ref_index:
+                        continue
+                    ekdo.append(f'        \\rdg[wit={{{temoins[idx]}}}]{{{contenu}}}')
+                ekdo.append("      }")
+                resultat_ekdosis.append(
+                    f"        \\vnum{{{vers_courant}}}{{\n{chr(10).join(ekdo)}  \\\\    \n        }}"
+                )
+
+                # Incrémenter le numéro de vers
+                if vers_courant == int(vers_courant):
+                    vers_courant += 1
+                else:
+                    vers_courant = math.ceil(vers_courant)
+
                 continue
 
             # Cas du vers partagé : *** à la fin (bloc A) et *** au début (bloc B)
