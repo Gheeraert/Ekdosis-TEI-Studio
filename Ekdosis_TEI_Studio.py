@@ -1,6 +1,6 @@
 # ==============================================================================
 # Ekdosis-TEI Studio
-# Version 1.4.1
+# Version 1.4.2
 #
 # Un outil d'encodage inspiré du markdown
 # pour encoder des variantes dans le théâtre classique
@@ -1872,18 +1872,17 @@ def echapper_caracteres_ekdosis(texte):
             return r"\hspace*{" + str(n) + "em}"
     return re.sub(r'~+', replace_tildes, texte)
 
+
 def encoder_caracteres_tei(texte):
     """
-    Remplace & par &amp;,
-    et ~, ~~... par des espaces insécables Unicode :
-    ~   → &#160;
-    ~~  → &#160;&#160;
-    ~~~ → &#160;&#160;&#160;
-    etc.
+    Échappe & (hors entités), et remplace ~ par &#160;.
     """
-    texte = texte.replace("&", "&amp;")
-    # Remplace tous les groupes de ~ par autant d’espaces insécables
+    # Évite les doubles échappements : échappe & seulement si ce n’est pas une entité
+    texte = re.sub(r'&(?!#?\w+;)', '&amp;', texte)
+
+    # Remplace les ~ successifs par des espaces insécables
     return re.sub(r'~+', lambda m: "&#160;" * len(m.group(0)), texte)
+
 
 
 def rechercher(zone):
@@ -3735,6 +3734,20 @@ def extraire_blocs_et_dialogue(lignes, nb_temoins):
         dialogues
     )
 
+def encoder_balise_complete(texte):
+    """
+    Applique encoder_caracteres_tei à l’intérieur d’une balise complète <...>...</...>,
+    sans toucher aux chevrons.
+    """
+    match = re.match(r'^(<[^>]+>)(.*?)(</[^>]+>)$', texte)
+    if match:
+        balise_ouv, contenu, balise_ferm = match.groups()
+        contenu_encode = encoder_caracteres_tei(contenu)
+        return f"{balise_ouv}{contenu_encode}{balise_ferm}"
+    else:
+        # Si ce n’est pas une balise complète, encoder normalement
+        return encoder_caracteres_tei(texte)
+
 def est_balise_complete(token):
     return bool(re.match(r'^<[^>]+>.*?</[^>]+>$', token))
 
@@ -3759,20 +3772,20 @@ def aligner_variantes_par_mot(tokens, temoins, ref_index):
         if len(mots_colonne) == 1:
             # Pas de variante
             if est_balise_complete(lemme):
-                lemme_traite = remplacer_tildes_par_espaces_insecables(lemme)
-                ligne_tei.append(lemme_traite + " ")
+                lemme_traite = encoder_balise_complete(lemme)
             else:
-                lemme_traite = remplacer_tildes_par_espaces_insecables(encoder_caracteres_tei(lemme))
-                ligne_tei.append(lemme_traite + " ")
+                lemme_traite = encoder_caracteres_tei(lemme)
+
+            ligne_tei.append(lemme_traite + " ")
             ligne_ekdosis.append(echapper_caracteres_ekdosis(lemme))
             continue
 
         # Variante
         ligne_tei.append("\n      <app>\n")
         if est_balise_complete(lemme):
-            lemme_affiche = remplacer_tildes_par_espaces_insecables(lemme)
+            lemme_affiche = encoder_balise_complete(lemme)
         else:
-            lemme_affiche = remplacer_tildes_par_espaces_insecables(encoder_caracteres_tei(ajouter_espace_si_necessaire(lemme)))
+            lemme_affiche = encoder_caracteres_tei(ajouter_espace_si_necessaire(lemme))
         ligne_tei.append(
             f'        <lem wit="{" ".join(f"#{t}" for t in mots_colonne.get(lemme, []))}">{lemme_affiche}</lem>\n'
         )
@@ -3780,9 +3793,9 @@ def aligner_variantes_par_mot(tokens, temoins, ref_index):
         for mot, wits in mots_colonne.items():
             if mot != lemme:
                 if est_balise_complete(mot):
-                    mot_affiche = remplacer_tildes_par_espaces_insecables(mot)
+                    mot_affiche = encoder_balise_complete(mot)
                 else:
-                    mot_affiche = remplacer_tildes_par_espaces_insecables(encoder_caracteres_tei(ajouter_espace_si_necessaire(mot)))
+                    mot_affiche = encoder_caracteres_tei(ajouter_espace_si_necessaire(mot))
                 ligne_tei.append(
                     f'        <rdg wit="{" ".join(f"#{t}" for t in wits)}">{mot_affiche}</rdg>\n'
                 )
@@ -3802,8 +3815,6 @@ def aligner_variantes_par_mot(tokens, temoins, ref_index):
         ligne_ekdosis.append("\n".join(ekdo))
 
     return ligne_tei, ligne_ekdosis
-
-
 
 def speaker_aligned_output(speaker_list, temoins, ref_index, aligner_fonction):
     #
