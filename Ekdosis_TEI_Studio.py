@@ -1,6 +1,6 @@
 # ==============================================================================
 # Ekdosis-TEI Studio
-# Version 1.5
+# Version 1.5.1
 #
 # Un outil d'encodage inspiré du markdown
 # pour encoder des variantes dans le théâtre classique
@@ -4674,3 +4674,4 @@ fenetre.bind_all("<Control-c>", lambda event: fenetre.focus_get().event_generate
 
 
 fenetre.mainloop()
+
