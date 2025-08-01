@@ -11,17 +11,20 @@
 
 ## ✨ Fonctionnalités principales
 
-- 🏛 Saisie encodée structurée en style markdown : actes, scènes, personnages, locuteurs, tirades, didascalies (interface graphique complète possible)
+- 🏛 Saisie encodée structurée en style markdown : ####actes####, ###scènes###, ##personnages##, #locuteurs#, tirades, **didascalies**, vers partagés***, (interface graphique complète possible)
 - 🔀 Comparaison automatique de variantes ligne à ligne (difflib)
 - 🔎 Génération parallèle des résultats en :
   - **TEI XML** avec balises `<app>`, `<lem>`, `<rdg>`, `<stage>`, etc.
   - **LaTeX** compatible avec le package `ekdosis` et template adapté fourni (template par T. Gheeraert et F. Siraguso)
 - 🎭 Gestion des didascalies : format `**texte**` reconnu et encodé en `<stage>` / `\didas{}`
+- 🎭 Gestion des didascalies implicites : format `$$SET$$**` . Encodage selon les principes de Ioanna Galleron
+- 🎭 Gestion des italiques _entre underscores_
+- 🎭 Gestion des vers complexes en bloc par le préfixe #####
 - 🔤 Échappement automatique des caractères spéciaux (`&`, etc.)
 - 🧑‍🎓 Interface conviviale en Tkinter avec onglets TEI / LaTeX
 - 🧪 Validation de structure intégrée (actes, scènes, locuteurs)
 - 🎨 Style visuel "parchemin"
-- 🌐 Prévisualisation en html
+- 🌐 Prévisualisation avancée en html
 
 ---
 
@@ -61,10 +64,32 @@ Des secrets de Titus est le dépositaire.
 Des secrets de Titus est le dépositaire.
 Des secrets de Titus est le dépositaire.
 
+Possibilité d'insérer _de l'italique avec underscore_ sur une partie de vers
+Possibilité d'insérer _de l'italique avec underscore_ sur une partie de vers
+Possibilité d'insérer _de l'italique avec underscore_ sur une partie de vers
+Possibilité d'insérer _de l'italique avec underscore_ sur une partie de vers
+
+##### Vers à gérer d'un seul tenant
+##### Vers à gérer d'un seul tenant
+##### Vers à gérer d'un seul tenant
+##### Vers à gérer d'un seul tenant
+##### Vers à gérer d'un seul tenant
+
+$$SET$$     /*didascalie implicite
+$$SET$$
+$$SET$$
+$$SET$$
+
 C'est icy quelquefois qu'il se cache à sa Cour,
 C'est icy quelquefois qu'il se cache à sa Cour,
 C'est ici quelquefois qu'il se cache à sa Cour,
-C'est ici quelquefois qu'il se cache à sa Cour, 
+C'est ici quelquefois qu'il se cache à sa Cour,
+
+$$fin$$    /* fin de didascalie implicite
+$$fin$$
+$$fin$$
+$$fin$$
+ 
 ```
 
 ---
@@ -91,8 +116,6 @@ Exécutable: Téléchargez et lancez simplement le fichier (.dmg pour Mac, .exe 
 
 ## 🧪 En projet
 
-- Encodage des didascalies internes
-- amélioration de la saisie des métadonnées
 - Résolution des cas particuliers
 - portage en ligne via serveur Flask
 
