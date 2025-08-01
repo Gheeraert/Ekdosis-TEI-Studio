@@ -1,6 +1,6 @@
 # ==============================================================================
 # Ekdosis-TEI Studio
-# Version 1.4.1
+# Version 1.5
 #
 # Un outil d'encodage inspiré du markdown
 # pour encoder des variantes dans le théâtre classique
@@ -36,6 +36,16 @@ import locale
 import json
 from bs4 import BeautifulSoup
 
+# 1. Le mapping mois → nom français
+MOIS_FR = {
+    1: "janvier",  2: "février", 3: "mars",     4: "avril",
+    5: "mai",      6: "juin",    7: "juillet",  8: "août",
+    9: "septembre",10: "octobre",11: "novembre",12: "décembre",
+}
+
+# 2. La fonction qui formate votre date
+def french_date(dt: date) -> str:
+    return f"{dt.day:02d} {MOIS_FR[dt.month]} {dt.year}"
 
 def importer_echantillon():
     exemple = """####acte 1####
@@ -1631,11 +1641,27 @@ def charger_texte_zone_saisie():
 
         # Vérifier la config associée
         if not os.path.exists(chemin_config):
-            messagebox.showwarning(
-                "Configuration absente",
-                f"Aucun fichier de configuration trouvé pour '{nom_fichier_config_base}_config.json'.\n\n"
-                f"Il est attendu dans le même dossier."
+            # on cherche dans le dossier frère (remonter d’un niveau puis descendre)
+            sibling = os.path.normpath(
+                os.path.join(
+                    os.path.dirname(chemin_config),  # dossier actuel
+                    os.pardir,  # ../
+                    "<nom_du_dossier_frere>",  # remplacer par le nom du dossier cible
+                    os.path.basename(chemin_config)  # même fichier
+                )
             )
+            if os.path.exists(sibling):
+                chemin_config = sibling
+            else:
+                messagebox.showwarning(
+                    "Configuration absente",
+                    f"Aucun fichier de configuration '{nom_fichier_config_base}_config.json' trouvé.\n\n"
+                    f"Recherché ici :\n"
+                    f" • {chemin_config}\n"
+                    f" • {sibling}"
+                )
+                return
+
 
     except Exception as e:
         messagebox.showerror("Erreur", f"Erreur lors du chargement du texte : {e}")
@@ -2461,7 +2487,7 @@ def nettoyer_html_unique():
         locale.setlocale(locale.LC_TIME, "fr_FR.UTF-8")
     except:
         locale.setlocale(locale.LC_TIME, "")
-    today_str = date.today().strftime("%d %B %Y")
+    today_str = french_date(date.today())
 
     # Calcul du nom de fichier XML (sans _preview)
     nom_fichier_html = os.path.basename(filepath)
@@ -2623,11 +2649,7 @@ def fusionner_html():
             return roman
         return str(roman_dict.get(roman, roman))
 
-    try:
-        locale.setlocale(locale.LC_TIME, "fr_FR.UTF-8")
-    except:
-        locale.setlocale(locale.LC_TIME, "")
-    today_str = date.today().strftime("%d %B %Y")
+    today_str = french_date(date.today())
 
     bloc_credit_perso = f'''
 <div class="bloc-credit">
@@ -2808,7 +2830,7 @@ def fusionner_ekdosis():
     if not acte:
         return
 
-    today_str = date.today().strftime("%d %B %Y")
+    today_str = french_date(date.today())
     bloc_credit = (
         "%% ====================================\n"
         f"%% Racine – {titre}, acte {acte}\n"
@@ -3010,8 +3032,7 @@ def previsualiser_html():
 
                     # Ligne 6 : date
                     LET.SubElement(bloc,
-                                   "{http://www.tei-c.org/ns/1.0}credit").text = "Document généré le " + date.today().strftime(
-                        "%d %B %Y")
+                                   "{http://www.tei-c.org/ns/1.0}credit").text = "Document généré le " + french_date(date.today())
 
                     # Insertion en tête
                     tei_xml.insert(0, bloc)
@@ -3027,16 +3048,34 @@ def previsualiser_html():
 
   <xsl:output method="html" encoding="UTF-8" indent="yes"/>
 
-    <!-- 1) Ne pas traiter les didascalies implicites comme des didascalies ordinaires -->
-  <xsl:template match="tei:stage[@ana='#implicit']">
-  <!-- Si c'est la première direction implicite, on ajoute le titre -->
-  <xsl:if test="not(preceding::tei:stage[@ana='#implicit'])">
-    <!-- à supprimer -->
-  </xsl:if>
-  <div class="stage-implicite" data-type="{@type}">
+<xsl:template match="tei:stage[@type='DI']">
+
+  <!-- on récupère SET, PROX… depuis @ana -->
+  <xsl:variable name="func" select="substring-after(@ana, '#')" />
+
+  <!-- table de conversion Galleron → label humain -->
+  <xsl:variable name="label">
+    <xsl:choose>
+      <xsl:when test="$func='SPC'">parole</xsl:when>
+      <xsl:when test="$func='ASP'">aspect</xsl:when>
+      <xsl:when test="$func='TMP'">temps</xsl:when>
+      <xsl:when test="$func='EVT'">événement</xsl:when>
+      <xsl:when test="$func='SET'">décor</xsl:when>
+      <xsl:when test="$func='PROX'">proxémie</xsl:when>
+      <xsl:when test="$func='ATT'">attitude</xsl:when>
+      <xsl:when test="$func='VOI'">voix</xsl:when>
+      <xsl:otherwise><xsl:value-of select="$func"/></xsl:otherwise>
+    </xsl:choose>
+  </xsl:variable>
+
+  <!-- on stocke à la fois le code et le label -->
+  <div class="stage-implicite"
+       data-type="{$func}"
+       data-label="{$label}">
     <xsl:apply-templates select="tei:l"/>
   </div>
 </xsl:template>
+
   
   <xsl:template match="/tei:TEI">
     <html lang="fr">
@@ -3164,7 +3203,7 @@ def previsualiser_html():
            margin: 0.5em 0;           /* un peu d’air au-dessus et en dessous */
           }
           .stage-implicite::after {
-           content: attr(data-type);  /* récupère la valeur de data-type */
+           content: attr(data-label);  /* récupère la valeur de data-type */
            position: absolute;
            top: 0;                    /* aligne en haut du premier vers */
            right: 0;                  /* plaque contre la marge droite du container */
@@ -3229,7 +3268,9 @@ def previsualiser_html():
       </head>
       <body>
         <xsl:apply-templates select="tei:metadonnees"/>
-        <div class="didas-implicites-label">didas. implicites</div>
+        <xsl:if test=".//tei:stage[@type='DI']">
+            <div class="didas-implicites-label">didas. implicites</div>
+        </xsl:if>
         <xsl:apply-templates select="tei:text"/>
       </body>
     </html>
@@ -3888,6 +3929,7 @@ def tokenizer_avec_balises(texte):
 
 def comparer_etats():
     stage_implicite_type = None
+    implicit_counter = 0
     texte = zone_saisie.get("1.0", tk.END).strip()
     lignes = texte.splitlines()
 
@@ -3977,6 +4019,7 @@ def comparer_etats():
     num_scene = globals().get("numero_scene", "").strip() or "?"
 
     # Construction sécurisée du header TEI
+    aujourdhui = french_date(date.today())
     resultat_ekdosis = []
     resultat_tei = [
         '<?xml version="1.0" encoding="UTF-8"?>',
@@ -3991,7 +4034,7 @@ def comparer_etats():
         '      <publicationStmt>',
         '        <publisher>Presses de l\'Université de Rouen et du Havre</publisher>',
         '        <pubPlace>Rouen</pubPlace>',
-        f'       <date>{date.today().strftime("%d %B %Y")}</date>',
+        f'       <date>{aujourdhui}</date>',
         '      </publicationStmt>',
         '      <sourceDesc>',
         f'        <p>généré par Ekdosis-TEI Studio – Acte {num_acte}, Scène {num_scene}</p>',
@@ -4071,20 +4114,26 @@ def comparer_etats():
             lignes = [l.strip() for l in sous_bloc.strip().splitlines() if l.strip()]
 
             # Traitement des didascalies implicites
-            # ——— Ouverture de <stage> implicite ———
+            # Didascalies implicites
+            m = re.match(r'^\$\$(.+)\$\$$', lignes[0])
             if stage_implicite_type is None \
                     and len(lignes) == nombre_temoins_predefini \
                     and len(set(lignes)) == 1 \
-                    and re.match(r'^\$\$(.+)\$\$$', lignes[0]):
-                type_stage = re.match(r'^\$\$(.+)\$\$$', lignes[0]).group(1)
-                resultat_tei.append(f'      <stage ana="#implicit" type="{type_stage}">')
-                stage_implicite_type = type_stage
+                    and m:
+                # la fonction éditoriale, ex. "SET" ou "PROX"
+                func = m.group(1).strip().upper()
+                # on génère un xml:id unique (ici fondé sur un compteur)
+                implicit_counter += 1
+                xml_id = f"implicite{implicit_counter}"
+                # DI = didascalie interne
+                resultat_tei.append(
+                    f'      <stage xml:id="{xml_id}" type="DI" ana="#{func}">'
+                )
+                stage_implicite_type = func
                 continue
 
-            # ——— Fermeture de </stage> implicite ———
-            if stage_implicite_type is not None \
-                    and len(lignes) == nombre_temoins_predefini \
-                    and all(l == '$$' for l in lignes):
+            # … puis, quand tu détectes la ligne de clôture "$$" :
+            if stage_implicite_type is not None and re.match(r'^\$\$\s*fin\s*\$\$$', lignes[0]):
                 resultat_tei.append('      </stage>')
                 stage_implicite_type = None
                 continue
