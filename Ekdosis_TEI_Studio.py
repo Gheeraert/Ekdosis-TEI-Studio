@@ -1,6 +1,6 @@
 # ==============================================================================
 # Ekdosis-TEI Studio
-# Version 1.4.2
+# Version 1.4.1
 #
 # Un outil d'encodage inspiré du markdown
 # pour encoder des variantes dans le théâtre classique
@@ -3027,6 +3027,17 @@ def previsualiser_html():
 
   <xsl:output method="html" encoding="UTF-8" indent="yes"/>
 
+    <!-- 1) Ne pas traiter les didascalies implicites comme des didascalies ordinaires -->
+  <xsl:template match="tei:stage[@ana='#implicit']">
+  <!-- Si c'est la première direction implicite, on ajoute le titre -->
+  <xsl:if test="not(preceding::tei:stage[@ana='#implicit'])">
+    <!-- à supprimer -->
+  </xsl:if>
+  <div class="stage-implicite" data-type="{@type}">
+    <xsl:apply-templates select="tei:l"/>
+  </div>
+</xsl:template>
+  
   <xsl:template match="/tei:TEI">
     <html lang="fr">
       <head>
@@ -3137,6 +3148,31 @@ def previsualiser_html():
             margin-left: 9em;
             margin-bottom: 0.5em;
           }
+          /* Container englobant tes vers interprétés */
+          /* Titre unique au-dessus du premier bloc implicite */
+          .didas-implicites-label {
+           text-align: right;
+           font-style: normal;
+           color: #777;
+           font-weight: bold;
+           font-size: 0.9em;
+           margin: 0.5em 0 0.2em; /* espace au-dessus et dessous */
+          }
+          .stage-implicite {
+           position: relative;        /* pour pouvoir placer le label en absolu */
+           padding-right: 6em;        /* espace à droite pour le label */
+           margin: 0.5em 0;           /* un peu d’air au-dessus et en dessous */
+          }
+          .stage-implicite::after {
+           content: attr(data-type);  /* récupère la valeur de data-type */
+           position: absolute;
+           top: 0;                    /* aligne en haut du premier vers */
+           right: 0;                  /* plaque contre la marge droite du container */
+           font-style: italic;
+           color: #777;               /* gris discret */
+           font-size: 0.85em;         /* un peu plus petit que le texte courant */
+           white-space: nowrap;       /* ne pas couper le mot-clé */
+          }
           .variation {
             position: relative;
             border-bottom: 1px dotted #8b5e3c;
@@ -3193,6 +3229,7 @@ def previsualiser_html():
       </head>
       <body>
         <xsl:apply-templates select="tei:metadonnees"/>
+        <div class="didas-implicites-label">didas. implicites</div>
         <xsl:apply-templates select="tei:text"/>
       </body>
     </html>
@@ -3847,7 +3884,10 @@ def tokenizer_avec_balises(texte):
     # Capture tout bloc <balise>…</balise> comme unité indivisible
     return re.findall(r'<[^>]+>.*?</[^>]+>|\S+', texte)
 
+
+
 def comparer_etats():
+    stage_implicite_type = None
     texte = zone_saisie.get("1.0", tk.END).strip()
     lignes = texte.splitlines()
 
@@ -4029,6 +4069,26 @@ def comparer_etats():
                 continue
 
             lignes = [l.strip() for l in sous_bloc.strip().splitlines() if l.strip()]
+
+            # Traitement des didascalies implicites
+            # ——— Ouverture de <stage> implicite ———
+            if stage_implicite_type is None \
+                    and len(lignes) == nombre_temoins_predefini \
+                    and len(set(lignes)) == 1 \
+                    and re.match(r'^\$\$(.+)\$\$$', lignes[0]):
+                type_stage = re.match(r'^\$\$(.+)\$\$$', lignes[0]).group(1)
+                resultat_tei.append(f'      <stage ana="#implicit" type="{type_stage}">')
+                stage_implicite_type = type_stage
+                continue
+
+            # ——— Fermeture de </stage> implicite ———
+            if stage_implicite_type is not None \
+                    and len(lignes) == nombre_temoins_predefini \
+                    and all(l == '$$' for l in lignes):
+                resultat_tei.append('      </stage>')
+                stage_implicite_type = None
+                continue
+
 
             # Didascalies
             if all(l.startswith('**') for l in lignes) and len(lignes):
