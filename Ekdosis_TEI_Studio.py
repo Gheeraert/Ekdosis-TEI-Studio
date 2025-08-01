@@ -1,6 +1,6 @@
 # ==============================================================================
 # Ekdosis-TEI Studio
-# Version 1.5
+# Version 1.5.1
 #
 # Un outil d'encodage inspiré du markdown
 # pour encoder des variantes dans le théâtre classique
@@ -2447,6 +2447,129 @@ def enregistrer_triple():
     msg = "\n".join(f"{clé} → {chemin}" for clé, chemin in chemins.items())
     messagebox.showinfo("Succès", "Fichiers enregistrés :\n\n" + msg)
 
+import os
+from tkinter import filedialog, messagebox
+from bs4 import BeautifulSoup
+
+def corriger_vers_partage_3():
+    # 1) Ouvrir un fichier TEI
+    chemin = filedialog.askopenfilename(
+        title="Ouvrir un fichier TEI",
+        filetypes=[("TEI / XML", "*.xml *.tei"), ("Tous fichiers", "*.*")],
+    )
+    if not chemin:
+        return
+
+    # 2) Charger et parser en XML
+    with open(chemin, "r", encoding="utf-8") as f:
+        soup = BeautifulSoup(f, "lxml-xml")
+
+    modifications = []
+    traites = set()
+
+    # 3) Parcourir tous les <l> qui contiennent '***'
+    for l_tag in soup.find_all("l"):
+        if l_tag in traites:
+            continue
+        if "***" not in l_tag.get_text():
+            continue
+
+        original_n = l_tag.get("n", "")
+        base = original_n.split(".")[0]
+
+        # 3a) Rassembler les fragments consécutifs
+        groupe = [l_tag]
+        for sib in l_tag.find_next_siblings("l"):
+            if "***" in sib.get_text():
+                groupe.append(sib)
+            else:
+                break
+
+        # 3b) Nettoyer les '***' dans chacun d’eux
+        for frag in groupe:
+            for txt in frag.find_all(string=True):
+                if "***" in txt:
+                    txt.replace_with(txt.replace("***", ""))
+            traites.add(frag)
+
+        # 3c) On se place sur le dernier fragment pour trouver le stage
+        dernier = groupe[-1]
+        stage = dernier.find_next(
+            lambda tag: tag.name == "stage" and tag.get("type") == "stage-direction"
+        )
+        if not stage:
+            continue
+
+        # 3d) Créer le troisième vers <l n="xx.3">
+        n3 = f"{base}.3"
+        l3 = soup.new_tag("l", n=n3)
+
+        # 3e) Vingt espaces insécables pour le décalage
+        l3.append("\u00A0" * 20)
+
+        # 3f) Transférer l’appareil <app> (avec lem/rdg) **tel quel**
+        app = stage.find("app")
+        if app:
+            extrait_app = app.extract()  # on détache de <stage>
+            l3.append(extrait_app)       # on réinsère dans <l>
+            text3 = extrait_app.get_text().strip()
+        else:
+            # au cas (rare) où il n’y aurait pas de <app>
+            text3 = stage.get_text().strip()
+            l3.append(text3)
+
+        # 3g) On remplace la balise <stage> par notre nouveau <l>
+        stage.replace_with(l3)
+
+        # mémoriser la modif
+        part2 = groupe[0].get_text().strip()  # fragment 2 « xx.2 »
+        modifications.append((original_n, part2, n3, text3))
+
+    # 4) Si rien n'a changé, on prévient et on quitte
+    if not modifications:
+        messagebox.showinfo(
+            "Aucune modification",
+            "Aucun vers partagé en trois n'a été trouvé dans ce fichier."
+        )
+        return
+
+    # 5) Demande d’enregistrement (une seule fois)
+    if messagebox.askyesno(
+        "Enregistrer",
+        f"Voulez-vous écraser le fichier original ?\n\n{chemin}"
+    ):
+        cible = chemin
+    else:
+        rep = os.path.dirname(chemin)
+        nom = os.path.basename(chemin)
+        cible = filedialog.asksaveasfilename(
+            title="Enregistrer la scène corrigée sous…",
+            initialdir=rep,
+            initialfile=nom,
+            defaultextension=".xml",
+            filetypes=[("TEI / XML", "*.xml *.tei"), ("Tous fichiers", "*.*")],
+        )
+        if not cible:
+            return
+
+    # 6) Si on change de chemin, confirmer l’écrasement
+    if cible != chemin and os.path.exists(cible):
+        if not messagebox.askyesno("Écraser", f"{cible} existe déjà. Écraser ?"):
+            return
+
+    # 7) Écrire le fichier
+    with open(cible, "w", encoding="utf-8") as f:
+        f.write(soup.prettify())
+
+    # 8) Afficher le bilan
+    lignes_bilan = []
+    for orig, frag2, frag3, t3 in modifications:
+        lignes_bilan.append(f"{orig}→«{frag2}»,  {frag3}→«{t3}»")
+    messagebox.showinfo(
+        "Texte modifié",
+        f"{len(modifications)} vers partagé(s) corrigé(s) :\n\n"
+        + "\n".join(lignes_bilan)
+    )
 
 def nettoyer_html_unique():
     try:
@@ -4419,6 +4542,8 @@ menu_bar.add_cascade(label="Outils", menu=menu_outils)
 menu_outils.add_command(label="Lancer l’assistant de saisie", command=lancer_saisie_assistee_par_menu)
 menu_outils.add_command(label="Valider la structure", command=valider_structure)
 menu_outils.add_command(label="Comparer les états", command=comparer_etats)
+menu_edit.add_separator()
+menu_outils.add_command(label="Nettoyer les vers partagés en trois", command=corriger_vers_partage_3)
 menu_edit.add_separator()
 menu_outils.add_command(label="Fusionner HTML", command=fusionner_html)
 menu_outils.add_command(label="Fusionner Markdown", command=fusionner_markdown)
