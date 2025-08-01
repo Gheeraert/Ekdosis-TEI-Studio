@@ -108,6 +108,7 @@ Exécutable: Téléchargez et lancez simplement le fichier (.dmg pour Mac, .exe 
 - Python standard (`tkinter`, `difflib`, `re`, etc.)
 - template LaTeX préconfiguré avec ekdosis pour l'affichage direct du code LaTeX généré
 - feuille de transformation XSL à adapter pour la sortie TEI
+- nécessite lxml et bs4 (à installer via la console, par ex: pip install bs4 et pip install lxml)
 ---
 
 ## 🧪 En projet
@@ -144,5 +145,6 @@ Remerciements à Federico Siragusa et Roch Delannay pour leur contribution au te
 ## 🌐 Capture d’écran
 
 ![image](https://github.com/user-attachments/assets/157acc17-1415-4ab4-ba84-5cecb93a3f2a)
+
 
 
