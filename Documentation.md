@@ -21,6 +21,10 @@ Les changements de locuteurs, d'actes, de scènes et de listes de personnages en
 #NOM#	Indique le locuteur d’une tirade	#PHÈDRE#
 **didascalie**	Insère une didascalie	**Elle sort.**
 ***vers partagé***	Indique un vers réparti entre deux personnages	"Imaginations!***" / "***Eternelles clartés"!
+$$SET$$ indique les didascalies implicites, selon le modèle proposé par Ioanna Galleron (Université Sorbonne Nouvelle)
+_underscore_ note les italiques
+Le tilde ~ note les espaces insécables
+5 dièses en début de vers neutralisent le calcul des variantes par mot 
 
 
 **2. 💾 Enregistrement de la saisie brute**
@@ -40,3 +44,6 @@ Le fichier LaTeX généré est compatible avec le package ekdosis, prêt à êtr
 
 N.B. Attention, ekdosis exige la compilation par LuaLaTeX.
 N.B. La sortie ekdosis qui apparaît à la volée dans l'onglet du bas doit être intégrée au template (fourni sur le dépôt) pour être opérationnelle, tandis que la sortie "exporter ekdosis" est complète et compilable telle quelle en LaTeX.
+
+N.B. La sortie ekdosis est actuellement instable (v. 1.5.1). Elle est stable sur la version 1.0 et 1.1 
+
