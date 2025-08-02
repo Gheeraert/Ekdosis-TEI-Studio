@@ -1,6 +1,6 @@
 # ==============================================================================
 # Ekdosis-TEI Studio
-# Version 1.5.3
+# Version 1.5.4
 #
 # Un outil d'encodage inspiré du markdown
 # pour encoder des variantes dans le théâtre classique
@@ -36,6 +36,7 @@ import locale
 import json
 from bs4 import BeautifulSoup
 from bs4 import NavigableString
+import urllib.request
 
 # Initialisation de toutes les variables globales importantes
 config_en_cours = None
@@ -1731,6 +1732,38 @@ def charger_texte_zone_saisie():
 def normaliser_bloc(bloc):
     return "\n".join([l for l in bloc.strip().splitlines() if l.strip()])
 
+def valider_tei_avec_schema():
+    fichier = filedialog.askopenfilename(title="Sélectionnez un fichier TEI-XML")
+    if not fichier:
+        return
+
+    rng_url  = "https://tei-c.org/release/xml/tei/custom/schema/relaxng/tei_all.rng"
+    rng_file = "tei_all.rng"
+
+    # Télécharger le schéma si nécessaire
+    if not os.path.exists(rng_file):
+        try:
+            messagebox.showinfo("Téléchargement", "Téléchargement du schéma TEI RelaxNG...")
+            urllib.request.urlretrieve(rng_url, rng_file)
+        except Exception as e:
+            messagebox.showerror("Erreur", f"Impossible de télécharger le schéma TEI :\n{str(e)}")
+            return
+
+    try:
+        xml_doc = ET.parse(fichier)
+        relaxng_doc = ET.parse(rng_file)
+        relaxng = ET.RelaxNG(relaxng_doc)
+
+        if relaxng.validate(xml_doc):
+            messagebox.showinfo("Validation TEI", "✅ Le fichier est conforme au schéma TEI.")
+        else:
+            erreurs = relaxng.error_log
+            messagebox.showerror("Erreurs TEI", f"❌ Le fichier n'est pas conforme au schéma.\n\n{erreurs}")
+    except ET.XMLSyntaxError as e:
+        messagebox.showerror("Erreur XML", f"❌ Le fichier n'est pas bien formé :\n{str(e)}")
+    except Exception as e:
+        messagebox.showerror("Erreur", f"Une erreur est survenue :\n{str(e)}")
+
 
 def valider_structure_amelioree():
     texte = zone_saisie.get("1.0", "end-1c")
@@ -2681,6 +2714,71 @@ def corriger_vers_partage_3():
         + "\n".join(lignes_bilan)
     )
 
+def chercher_remplacer_html():
+    # Sélection des fichiers
+    fichiers = filedialog.askopenfilenames(
+        title="Sélectionnez les fichiers HTML à traiter",
+        filetypes=[("Fichiers HTML", "*.html"), ("Tous les fichiers", "*.*")]
+    )
+
+    if not fichiers:
+        messagebox.showwarning("Annulé", "Aucun fichier sélectionné.")
+        return
+
+    motif_a_remplacer = simpledialog.askstring("Recherche", "Entrez l'expression à chercher (regex autorisé) :")
+    if not motif_a_remplacer:
+        messagebox.showwarning("Annulé", "Aucune expression fournie.")
+        return
+
+    remplacement = simpledialog.askstring("Remplacement", "Entrez la chaîne de remplacement :")
+    if remplacement is None:
+        messagebox.showwarning("Annulé", "Aucune chaîne de remplacement fournie.")
+        return
+
+    log_entries = []
+    nb_modifies = 0
+
+    for chemin_fichier in fichiers:
+        try:
+            with open(chemin_fichier, "r", encoding="utf-8") as f:
+                contenu = f.read()
+
+            nouveau_contenu, nombre_remplacements = re.subn(motif_a_remplacer, remplacement, contenu)
+
+            if contenu != nouveau_contenu:
+                # Sauvegarde .bak
+                chemin_bak = chemin_fichier + ".bak"
+                shutil.copyfile(chemin_fichier, chemin_bak)
+
+                # Écriture du nouveau contenu
+                with open(chemin_fichier, "w", encoding="utf-8") as f:
+                    f.write(nouveau_contenu)
+
+                nb_modifies += 1
+                log_entries.append(
+                    f"✓ {os.path.basename(chemin_fichier)} : {nombre_remplacements} remplacement(s)\n"
+                    f"    sauvegarde : {os.path.basename(chemin_bak)}"
+                )
+        except Exception as e:
+            log_entries.append(f"✗ {os.path.basename(chemin_fichier)} : ERREUR → {e}")
+
+    # Enregistrement du log
+    if fichiers:
+        dossier_log = os.path.dirname(fichiers[0])
+        nom_log = os.path.join(dossier_log, "log_remplacement.txt")
+        today_str = french_date(date.today())
+        horodatage = today_str
+
+        with open(nom_log, "w", encoding="utf-8") as f_log:
+            f_log.write(f"=== LOG DE REMPLACEMENT ({horodatage}) ===\n\n")
+            for ligne in log_entries:
+                f_log.write(ligne + "\n")
+
+    # Message final
+    messagebox.showinfo(
+        "Terminé",
+        f"{nb_modifies} fichier(s) modifié(s).\nUn log a été enregistré dans :\n\n{nom_log}"
+    )
 
 def nettoyer_html_unique():
     try:
@@ -4694,7 +4792,8 @@ menu_outils.add_command(label="Fusionner Markdown", command=fusionner_markdown)
 menu_outils.add_command(label="Fusionner TEI", command=fusionner_tei)
 menu_outils.add_command(label="Fusionner Ekdosis", command=fusionner_ekdosis)
 menu_outils.add_command(label="Préparer html pour visualisation", command=nettoyer_html_unique)
-
+menu_outils.add_command(label="Corriger html par lots", command=chercher_remplacer_html)
+menu_outils.add_command(label="Valider un fichier XML-TEI", command=valider_tei_avec_schema)
 # Menu Affichage
 menu_affichage = tk.Menu(menu_bar, tearoff=0)
 menu_bar.add_cascade(label="Affichage", menu=menu_affichage)
