@@ -1,6 +1,6 @@
 # ==============================================================================
 # Ekdosis-TEI Studio
-# Version 1.5.2
+# Version 1.5.3
 #
 # Un outil d'encodage inspiré du markdown
 # pour encoder des variantes dans le théâtre classique
@@ -64,14 +64,16 @@ temoins_collectes = []
 
 # 1. Le mapping mois → nom français
 MOIS_FR = {
-    1: "janvier",  2: "février", 3: "mars",     4: "avril",
-    5: "mai",      6: "juin",    7: "juillet",  8: "août",
-    9: "septembre",10: "octobre",11: "novembre",12: "décembre",
+    1: "janvier", 2: "février", 3: "mars", 4: "avril",
+    5: "mai", 6: "juin", 7: "juillet", 8: "août",
+    9: "septembre", 10: "octobre", 11: "novembre", 12: "décembre",
 }
+
 
 # 2. La fonction qui formate votre date
 def french_date(dt: date) -> str:
     return f"{dt.day:02d} {MOIS_FR[dt.month]} {dt.year}"
+
 
 def importer_echantillon():
     exemple = """####acte 1####
@@ -1097,7 +1099,6 @@ def traitement_saisie(textes, action):
 
 
 def initialiser_projet(mode_test=False):
-
     # DEBUG - MODE TEST NON BLOQUANT
     if mode_test:
         infos = {
@@ -1169,7 +1170,9 @@ def initialiser_projet(mode_test=False):
 
     sauvegarder_configuration(infos, temoins_collectes)
 
-    demander_mode_saisie_post_initialisation()
+    # DEBUG
+    # Supprimer parce que intrusif. Accessible par menu
+    # demander_mode_saisie_post_initialisation()
 
 
 def demander_mode_saisie_post_initialisation():
@@ -1485,6 +1488,10 @@ def charger_configuration():
     editer_config_apres_chargement(config)
 
     messagebox.showinfo("Chargement réussi", f"Configuration '{os.path.basename(chemin_fichier)}' chargée avec succès.")
+    print("[DEBUG] Fonction charger_configuration appelée")
+    print(f"[DEBUG] Configuration chargée depuis {chemin_fichier}")
+    print(f"[DEBUG] Nombre de témoins (prévu) : {nombre_temoins_predefini}")
+    print(f"[DEBUG] Témoins collectés : {temoins_collectes}")
 
 
 def editer_config_courant():
@@ -1698,6 +1705,7 @@ def charger_texte_zone_saisie():
             with open(chemin_config, "r", encoding="utf-8") as f_config:
                 config = json.load(f_config)
                 config_en_cours = config.copy()  # ← on garde une copie utilisable ailleurs
+                editer_config_apres_chargement(config)
             print(f"✅ Configuration chargée : {chemin_config}")
             messagebox.showinfo(
                 "Configuration associée chargée",
@@ -1712,6 +1720,9 @@ def charger_texte_zone_saisie():
 
         # Message de succès
         messagebox.showinfo("Chargement réussi", f"Le texte '{os.path.basename(chemin_fichier)}' a été chargé.")
+        print(f"[DEBUG] Configuration chargée depuis {chemin_fichier}")
+        print(f"[DEBUG] Nombre de témoins (prévu) : {nombre_temoins_predefini}")
+        print(f"[DEBUG] Témoins collectés : {temoins_collectes}")
 
     except Exception as e:
         messagebox.showerror("Erreur", f"Erreur lors du chargement : {e}")
@@ -1720,9 +1731,46 @@ def charger_texte_zone_saisie():
 def normaliser_bloc(bloc):
     return "\n".join([l for l in bloc.strip().splitlines() if l.strip()])
 
+
 def valider_structure_amelioree():
     texte = zone_saisie.get("1.0", "end-1c")
     lignes = texte.split("\n")
+
+    # Interdiction stricte des doubles sauts de ligne (lignes vides consécutives)
+    # Détection des doubles sauts de ligne
+    indices_doubles_sauts = []
+    for i in range(len(lignes) - 1):
+        if lignes[i].strip() == "" and lignes[i + 1].strip() == "":
+            indices_doubles_sauts.append(i + 1)
+
+    if indices_doubles_sauts:
+        reponse = messagebox.askyesno(
+            "Sauts de ligne excessifs",
+            f"{len(indices_doubles_sauts)} double(s) saut(s) de ligne détecté(s).\nSouhaitez-vous les supprimer automatiquement ?"
+        )
+        if reponse:
+            # Nettoyage automatique : on supprime toutes les lignes vides consécutives à une autre vide
+            nouvelles_lignes = []
+            saut_precedent = False
+            for ligne in lignes:
+                if ligne.strip() == "":
+                    if not saut_precedent:
+                        nouvelles_lignes.append("")  # on garde un saut
+                        saut_precedent = True
+                    # sinon, on le saute (deuxième saut consécutif)
+                else:
+                    nouvelles_lignes.append(ligne)
+                    saut_precedent = False
+
+            # Mise à jour du texte dans la zone
+            texte_nettoye = "\n".join(nouvelles_lignes)
+            zone_saisie.delete("1.0", tk.END)
+            zone_saisie.insert("1.0", texte_nettoye)
+
+            # Re-split le texte nettoyé
+            lignes = texte_nettoye.split("\n")
+
+
     zone_saisie.tag_remove("erreur", "1.0", tk.END)
     zone_saisie.tag_remove("valide", "1.0", tk.END)
 
@@ -1887,8 +1935,10 @@ def valider_structure_amelioree():
         )
         return True
 
+
 # Remplacement automatique
 valider_structure = valider_structure_amelioree
+
 
 # Fonction ci-dessous à débugger...
 def valider_tei_bien_forme(tei_text):
@@ -1897,7 +1947,6 @@ def valider_tei_bien_forme(tei_text):
         messagebox.showinfo("Validation TEI", "Le document TEI est bien formé (XML valide)!")
     except Exception as e:
         messagebox.showerror("Erreur TEI", f"Erreur XML: {e}")
-
 
 
 # Ajouter ce bouton à l’interface existante
@@ -1929,10 +1978,11 @@ def echapper_caracteres_ekdosis(texte):
     # ~   → ~ (espace insécable LaTeX)
     # ~~  → \enspace
     # ~~~ → \quad
-    #~~~~ → \qquad
+    # ~~~~ → \qquad
     # >4  → \hspace*{Nx1em}
     #
     texte = texte.replace("&", r"\&")
+
     # Remplace les séries de ~ par l’espace adapté
     def replace_tildes(match):
         n = len(match.group(0))
@@ -1946,6 +1996,7 @@ def echapper_caracteres_ekdosis(texte):
             return r"\qquad"
         else:
             return r"\hspace*{" + str(n) + "em}"
+
     return re.sub(r'~+', replace_tildes, texte)
 
 
@@ -1958,7 +2009,6 @@ def encoder_caracteres_tei(texte):
 
     # Remplace les ~ successifs par des espaces insécables
     return re.sub(r'~+', lambda m: "&#160;" * len(m.group(0)), texte)
-
 
 
 def rechercher(zone):
@@ -1984,6 +2034,7 @@ def rechercher(zone):
                 found_any = True
             start_pos = end_pos
         zone.tag_config("found", background="yellow")
+
 
 def remplacer_avance(zone):
     terme = simpledialog.askstring("Remplacer", "Mot à rechercher :")
@@ -2276,9 +2327,11 @@ def enregistrer_saisie():
 
         messagebox.showinfo("Succès", "Saisie enregistrée.")
 
+
 import os
 import tkinter as tk
 from tkinter import filedialog as fd, messagebox
+
 
 def enregistrer_preview(html_result):
     fichier_html = fd.asksaveasfilename(
@@ -2302,6 +2355,7 @@ def enregistrer_preview(html_result):
             messagebox.showinfo("Succès", f"Preview HTML enregistré sous:\n{fichier_html}")
         except Exception as e:
             messagebox.showerror("Erreur", f"Impossible d’enregistrer le fichier: {e}")
+
 
 def enregistrer_triple():
     global html_result
@@ -2350,29 +2404,31 @@ def enregistrer_triple():
         return
 
     # 4. Noms par défaut
-    default_txt  = nom_fichier("saisie",  "txt")
-    default_xml  = nom_fichier("tei",     "xml")
+    default_txt = nom_fichier("saisie", "txt")
+    default_xml = nom_fichier("tei", "xml")
     default_html = nom_fichier("preview", "html")
     default_ekdosis = nom_fichier("ekdosis", "tex")
 
     # 5. Confirmation / modification des basenames
-    txt_name  = simpledialog.askstring("Nom fichier texte", "Nom du fichier de transcription (.txt) :", initialvalue=default_txt)
+    txt_name = simpledialog.askstring("Nom fichier texte", "Nom du fichier de transcription (.txt) :",
+                                      initialvalue=default_txt)
     if txt_name is None: return
 
-    xml_name  = simpledialog.askstring("Nom fichier TEI", "Nom du fichier TEI (.xml) :", initialvalue=default_xml)
+    xml_name = simpledialog.askstring("Nom fichier TEI", "Nom du fichier TEI (.xml) :", initialvalue=default_xml)
     if xml_name is None: return
 
     html_name = simpledialog.askstring("Nom fichier HTML", "Nom du fichier HTML (.html) :", initialvalue=default_html)
     if html_name is None: return
 
-    ekdosis_name = simpledialog.askstring("Nom fichier Ekdosis", "Nom du fichier Ekdosis (.tex) :", initialvalue=default_ekdosis)
+    ekdosis_name = simpledialog.askstring("Nom fichier Ekdosis", "Nom du fichier Ekdosis (.tex) :",
+                                          initialvalue=default_ekdosis)
     if ekdosis_name is None: return
 
     # 6. Construction des chemins et création des dossiers
     chemins = {
         "Saisie": os.path.join(root_dir, "transcriptions", txt_name),
-        "TEI"   : os.path.join(root_dir, "xml-tei",      xml_name),
-        "HTML"  : os.path.join(root_dir, "html", "fichiers-originaux", html_name),
+        "TEI": os.path.join(root_dir, "xml-tei", xml_name),
+        "HTML": os.path.join(root_dir, "html", "fichiers-originaux", html_name),
         "Ekdosis": os.path.join(root_dir, "ekdosis", ekdosis_name),
     }
     for path in chemins.values():
@@ -2383,8 +2439,8 @@ def enregistrer_triple():
     if existants:
         liste = "\n".join(os.path.basename(p) for p in existants)
         if not messagebox.askyesno(
-            "Fichiers existants",
-            f"Les fichiers suivants existent déjà :\n\n{liste}\n\nVoulez-vous les écraser ?"
+                "Fichiers existants",
+                f"Les fichiers suivants existent déjà :\n\n{liste}\n\nVoulez-vous les écraser ?"
         ):
             return
 
@@ -2473,12 +2529,12 @@ def enregistrer_triple():
         fin_doc = "\n\\end{ekdosis}\n\\end{document}\n"
 
         ekdosis_full = (
-            preamble +
-            declarations_temoins + "\n" +
-            debut_doc +
-            titlepage_bloc + "\n" +
-            ekdosis_body + "\n" +
-            fin_doc
+                preamble +
+                declarations_temoins + "\n" +
+                debut_doc +
+                titlepage_bloc + "\n" +
+                ekdosis_body + "\n" +
+                fin_doc
         )
 
         # --- D. Écriture des fichiers
@@ -2497,9 +2553,11 @@ def enregistrer_triple():
     msg = "\n".join(f"{clé} → {chemin}" for clé, chemin in chemins.items())
     messagebox.showinfo("Succès", "Fichiers enregistrés :\n\n" + msg)
 
+
 import os
 from tkinter import filedialog, messagebox
 from bs4 import BeautifulSoup
+
 
 def corriger_vers_partage_3():
     # 1) Ouvrir un fichier TEI
@@ -2561,7 +2619,7 @@ def corriger_vers_partage_3():
         app = stage.find("app")
         if app:
             extrait_app = app.extract()  # on détache de <stage>
-            l3.append(extrait_app)       # on réinsère dans <l>
+            l3.append(extrait_app)  # on réinsère dans <l>
             text3 = extrait_app.get_text().strip()
         else:
             # au cas (rare) où il n’y aurait pas de <app>
@@ -2585,8 +2643,8 @@ def corriger_vers_partage_3():
 
     # 5) Demande d’enregistrement (une seule fois)
     if messagebox.askyesno(
-        "Enregistrer",
-        f"Voulez-vous écraser le fichier original ?\n\n{chemin}"
+            "Enregistrer",
+            f"Voulez-vous écraser le fichier original ?\n\n{chemin}"
     ):
         cible = chemin
     else:
@@ -2622,6 +2680,7 @@ def corriger_vers_partage_3():
         f"{len(modifications)} vers partagé(s) corrigé(s) :\n\n"
         + "\n".join(lignes_bilan)
     )
+
 
 def nettoyer_html_unique():
     try:
@@ -2797,8 +2856,8 @@ def nettoyer_html_unique():
     if dernier_num_vers is not None:
         messagebox.showinfo("Dernier vers", f"Dernier vers numéroté : {dernier_num_vers}")
 
-def fusionner_html():
 
+def fusionner_html():
     html_files = filedialog.askopenfilenames(
         title="Sélectionnez les fichiers HTML à fusionner",
         filetypes=[("Fichiers HTML", "*.html *.htm")]
@@ -2865,11 +2924,12 @@ def fusionner_html():
             merged.append(pre_body)
 
             body_inside = parts[2]
-            body_inside = re.sub(r'<link rel="stylesheet" href="../../../css/edition.css">', '', body_inside, flags=re.IGNORECASE)
+            body_inside = re.sub(r'<link rel="stylesheet" href="../../../css/edition.css">', '', body_inside,
+                                 flags=re.IGNORECASE)
             body_inside = '<link rel="stylesheet" href="../../../css/edition.css">\n' + body_inside
             lines = body_inside.splitlines()
             filtered = [line for line in lines if not (
-                'bloc-credit' in line or 'logo-credit' in line or 'credit-line' in line
+                    'bloc-credit' in line or 'logo-credit' in line or 'credit-line' in line
             )]
             merged.append(bloc_credit_perso + "\n" + "\n".join(filtered))
         else:
@@ -2877,7 +2937,7 @@ def fusionner_html():
             content = re.sub(r'<\/?html[^>]*>', '', content, flags=re.IGNORECASE)
             lines = content.splitlines()
             filtered = [line for line in lines if not (
-                'bloc-credit' in line or 'logo-credit' in line or 'credit-line' in line
+                    'bloc-credit' in line or 'logo-credit' in line or 'credit-line' in line
             )]
             merged.append("\n".join(filtered))
 
@@ -2886,6 +2946,7 @@ def fusionner_html():
         f.write("".join(merged))
 
     messagebox.showinfo("Succès", f"Acte HTML fusionné enregistré :\n{save_path}")
+
 
 def fusionner_markdown():
     import os
@@ -2917,6 +2978,7 @@ def fusionner_markdown():
         f.write('\n\n'.join(merged))
 
     messagebox.showinfo("Succès", f"Fichier Markdown fusionné enregistré :\n{save_path}")
+
 
 def fusionner_tei():
     import os, re
@@ -2980,6 +3042,7 @@ def fusionner_tei():
         return
 
     messagebox.showinfo("Succès", f"TEI fusionné enregistré :\n{save_path}")
+
 
 def fusionner_ekdosis():
     import os
@@ -3207,7 +3270,8 @@ def previsualiser_html():
 
                     # Ligne 6 : date
                     LET.SubElement(bloc,
-                                   "{http://www.tei-c.org/ns/1.0}credit").text = "Document généré le " + french_date(date.today())
+                                   "{http://www.tei-c.org/ns/1.0}credit").text = "Document généré le " + french_date(
+                        date.today())
 
                     # Insertion en tête
                     tei_xml.insert(0, bloc)
@@ -3251,7 +3315,7 @@ def previsualiser_html():
   </div>
 </xsl:template>
 
-  
+
   <xsl:template match="/tei:TEI">
     <html lang="fr">
       <head>
@@ -3878,6 +3942,7 @@ Laissez une ligne vide avant et après les **didascalies**
 """
     messagebox.showinfo("Aide à la transcription", exemple)
 
+
 def mettre_a_jour_numeros(*args):
     numeros_lignes.configure(state="normal")
     numeros_lignes.delete("1.0", "end")
@@ -3886,13 +3951,16 @@ def mettre_a_jour_numeros(*args):
     numeros_lignes.insert("1.0", lignes)
     numeros_lignes.configure(state="disabled")
 
+
 def synchroniser_scroll(*args):
     zone_saisie.yview(*args)
     numeros_lignes.yview(*args)
 
+
 def mettre_a_jour_scroll(*args):
     scroll.set(*args)
     numeros_lignes.yview_moveto(args[0])
+
 
 def ajouter_espace_si_necessaire(mot):
     if not mot:
@@ -3900,6 +3968,7 @@ def ajouter_espace_si_necessaire(mot):
     if re.match(r".*[\.\,\;\:\!\?\)\]]$", mot):
         return mot + " "
     return mot + " "
+
 
 def extraire_blocs_et_dialogue(lignes, nb_temoins):
     def detecter_bloc(prefix, n):
@@ -3987,6 +4056,7 @@ def extraire_blocs_et_dialogue(lignes, nb_temoins):
         dialogues
     )
 
+
 def encoder_balise_complete(texte):
     """
     Applique encoder_caracteres_tei à l’intérieur d’une balise complète <...>...</...>,
@@ -4001,11 +4071,14 @@ def encoder_balise_complete(texte):
         # Si ce n’est pas une balise complète, encoder normalement
         return encoder_caracteres_tei(texte)
 
+
 def est_balise_complete(token):
     return bool(re.match(r'^<[^>]+>.*?</[^>]+>$', token))
 
+
 def remplacer_tildes_par_espaces_insecables(texte):
     return texte.replace("~", "&#160;")
+
 
 def aligner_variantes_par_mot(tokens, temoins, ref_index):
     ligne_tei = []
@@ -4069,6 +4142,7 @@ def aligner_variantes_par_mot(tokens, temoins, ref_index):
 
     return ligne_tei, ligne_ekdosis
 
+
 def speaker_aligned_output(speaker_list, temoins, ref_index, aligner_fonction):
     #
     # Retourne la bonne chaîne <speaker> ou \speaker pour la liste de locuteurs,
@@ -4083,8 +4157,8 @@ def speaker_aligned_output(speaker_list, temoins, ref_index, aligner_fonction):
         ligne_tei, ligne_ekdosis = aligner_fonction(tokens, temoins, ref_index)
         return "".join(ligne_tei).strip(), "".join(ligne_ekdosis).strip()
 
-def verifier_et_comparer():
 
+def verifier_et_comparer():
     global config_en_cours
     print(config_en_cours)
     if "config_en_cours" not in globals() or not config_en_cours:
@@ -4109,7 +4183,6 @@ def verifier_et_comparer():
 def tokenizer_avec_balises(texte):
     # Capture tout bloc <balise>…</balise> comme unité indivisible
     return re.findall(r'<[^>]+>.*?</[^>]+>|\S+', texte)
-
 
 
 def comparer_etats():
@@ -4324,7 +4397,6 @@ def comparer_etats():
                 resultat_tei.append('      </stage>')
                 stage_implicite_type = None
                 continue
-
 
             # Didascalies
             if all(l.startswith('**') for l in lignes) and len(lignes):
@@ -4652,8 +4724,8 @@ fenetre.title("Comparateur avec scènes, personnages et locuteurs")
 fenetre.update_idletasks()
 fenetre.minsize(1000, fenetre.winfo_reqheight())
 fenetre.bind_all("<Control-s>", lambda event: enregistrer_saisie())
-#fenetre.bind("<Control-f>", lambda e: rechercher())
-#fenetre.bind("<Control-h>", lambda e: remplacer_avance())
+# fenetre.bind("<Control-f>", lambda e: rechercher())
+# fenetre.bind("<Control-h>", lambda e: remplacer_avance())
 
 afficher_nagscreen()
 
@@ -4687,7 +4759,8 @@ frame_saisie.pack(fill="both", expand=True)
 zone_saisie.bind('<Control-f>', lambda e: rechercher(zone_saisie))
 menu_edit.add_command(label="Remplacement avancé dans la saisie", command=lambda: remplacer_avance(zone_saisie))
 zone_saisie.bind("<KeyRelease>", mettre_a_jour_numeros)
-zone_saisie.bind("<MouseWheel>", lambda e: (zone_saisie.yview_scroll(int(-1*(e.delta/120)), "units"), mettre_a_jour_numeros()))
+zone_saisie.bind("<MouseWheel>",
+                 lambda e: (zone_saisie.yview_scroll(int(-1 * (e.delta / 120)), "units"), mettre_a_jour_numeros()))
 zone_saisie.bind("<Button-1>", lambda e: zone_saisie.after(10, mettre_a_jour_numeros))
 
 # Mise à jour initiale
@@ -4700,6 +4773,7 @@ try:
             zone_saisie.insert("1.0", f.read())
 except Exception as e:
     print(f"[autosave] Impossible de charger le fichier : {e}")
+
 
 def boite_initialisation_parchemin():
     champs_def = [
