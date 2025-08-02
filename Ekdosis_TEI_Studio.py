@@ -1,6 +1,6 @@
 # ==============================================================================
 # Ekdosis-TEI Studio
-# Version 1.5.1
+# Version 1.5.2
 #
 # Un outil d'encodage inspiré du markdown
 # pour encoder des variantes dans le théâtre classique
@@ -35,6 +35,32 @@ from datetime import date
 import locale
 import json
 from bs4 import BeautifulSoup
+from bs4 import NavigableString
+
+# Initialisation de toutes les variables globales importantes
+config_en_cours = None
+chemin_texte_saisi = None
+
+prenom_auteur = ""
+nom_auteur = ""
+auteur_nom_complet = ""
+
+titre_piece = ""
+numero_acte = ""
+numero_scene = ""
+nombre_scenes = 0
+vers_num = 1
+numero_vers = 1
+
+noms_persos = ""
+nombre_temoins = 0
+nombre_temoins_predefini = 0
+
+nom_editeur = ""
+prenom_editeur = ""
+editeur_nom_complet = ""
+
+temoins_collectes = []
 
 # 1. Le mapping mois → nom français
 MOIS_FR = {
@@ -576,17 +602,33 @@ def reset_application():
     confirmation = messagebox.askyesno("Confirmation", "Voulez-vous vraiment réinitialiser l'application ?")
     if not confirmation:
         return
-    global titre_piece, numero_acte, numero_scene, nombre_scenes
-    global auteur_nom_complet, editeur_nom_complet
-    global vers_num
+    global config_en_cours, chemin_texte_saisi
+    global prenom_auteur, nom_auteur, auteur_nom_complet
+    global titre_piece, numero_acte, numero_scene
+    global nombre_scenes, vers_num, numero_vers
+    global noms_persos, nombre_temoins, nombre_temoins_predefini
+    global nom_editeur, prenom_editeur, editeur_nom_complet
+    global temoins_collectes
 
-    # Réinitialisation des variables globales
+    config_en_cours = None
+    chemin_texte_saisi = None
+
+    prenom_auteur = ""
+    nom_auteur = ""
+    auteur_nom_complet = ""
     titre_piece = ""
     numero_acte = ""
     numero_scene = ""
-    nombre_scenes = ""
-    auteur_nom_complet = ""
+    nombre_scenes = 0
+    vers_num = 1
+    numero_vers = 1
+    noms_persos = ""
+    nombre_temoins = 0
+    nombre_temoins_predefini = 0
+    nom_editeur = ""
+    prenom_editeur = ""
     editeur_nom_complet = ""
+    temoins_collectes = []
 
     # Effacer le contenu des zones de texte
     zone_saisie.delete("1.0", tk.END)
@@ -1055,6 +1097,7 @@ def traitement_saisie(textes, action):
 
 
 def initialiser_projet(mode_test=False):
+
     # DEBUG - MODE TEST NON BLOQUANT
     if mode_test:
         infos = {
@@ -1081,22 +1124,32 @@ def initialiser_projet(mode_test=False):
     global vers_num, numero_vers, noms_persos
     global temoins_collectes
     #
-    prenom_auteur = infos["Prénom de l'auteur"]
-    nom_auteur = infos["Nom de l'auteur"]
-    titre_piece = infos["Titre de la pièce"]
-    numero_acte = infos["Numéro de l'acte"]
-    numero_scene = infos["Numéro de la scène"]
-    nombre_scenes = infos["Nombre de scènes dans l'acte"]
-    vers_num = infos["Numéro du vers de départ"]
-    vers_num = int(vers_num)
-    entree_vers.delete(0, tk.END)  # combobox
+    prenom_auteur = infos.get("Nom de l'auteur", "")
+    nom_auteur = infos.get("Nom de l'auteur", "")
+    titre_piece = infos.get("Titre de la pièce", "")
+    numero_acte = infos.get("Numéro de l'acte", "")
+    numero_scene = infos.get("Numéro de la scène", "")
+    nombre_scenes = infos.get("Nombre de scènes dans l'acte", 0)
+
+    vers_num = infos.get("Numéro du vers de départ", 1)
+    try:
+        vers_num = int(vers_num)
+    except ValueError:
+        vers_num = 1  # valeur de repli
+
+    entree_vers.delete(0, tk.END)
     entree_vers.insert(0, str(vers_num))
-    numero_vers = vers_num  # pour utilisation locale dans les boîtes de saisie
-    noms_persos = infos["Noms des personnages (séparés par virgule)"]
-    nombre_temoins = infos["Nombre de témoins"]
-    nombre_temoins_predefini = int(nombre_temoins)
-    nom_editeur = infos["Nom de l'éditeur (vous)"]
-    prenom_editeur = infos["Prénom de l'éditeur"]
+    numero_vers = vers_num
+
+    noms_persos = infos.get("Noms des personnages (séparés par virgule)", "")
+    nombre_temoins = infos.get("Nombre de témoins", 0)
+    try:
+        nombre_temoins_predefini = int(nombre_temoins)
+    except ValueError:
+        nombre_temoins_predefini = 0
+
+    nom_editeur = infos.get("Nom de l'éditeur (vous)", "")
+    prenom_editeur = infos.get("Prénom de l'éditeur", "")
 
     auteur_nom_complet = f"{prenom_auteur} {nom_auteur}"
     editeur_nom_complet = f"{prenom_editeur} {nom_editeur}"
@@ -1273,7 +1326,7 @@ def nom_fichier(base, extension):
 
 def sauvegarder_configuration(infos, temoins_collectes):
     if not infos or not temoins_collectes:
-        messagebox.showerror("Erreur", "Impossible de sauvegarder : informations incomplètes.")
+        messagebox.showwarning("Erreur", "Pensez à charger ou créer les métadonnées!.")
         return
 
     config = infos.copy()  # Copie des infos de base
@@ -1605,6 +1658,7 @@ def editer_config_apres_chargement(config):
 
 
 def charger_texte_zone_saisie():
+    global config_en_cours
     chemin_fichier = filedialog.askopenfilename(
         title="Charger un texte saisi",
         filetypes=[("Fichiers texte", "*.txt"), ("Tous les fichiers", "*.*")]
@@ -1620,51 +1674,47 @@ def charger_texte_zone_saisie():
         zone_saisie.delete("1.0", tk.END)
         zone_saisie.insert("1.0", contenu)
 
-        # ➔ Nouveau traitement du nom de base
+        # === Construction du nom de config ===
         nom_fichier_base = os.path.splitext(os.path.basename(chemin_fichier))[0]
 
-        # Enlever la fin _saisie si présente
+        # Étape 1 : retirer le suffixe _saisie s’il est là
         if nom_fichier_base.endswith("_saisie"):
-            nom_fichier_base_sans_saisie = nom_fichier_base[:-7]  # on enlève "_saisie"
+            nom_fichier_base = nom_fichier_base[:-7]
+
+        # Étape 2 : retirer le _ devant of (ex : _of8 → of8)
+        nom_fichier_config_base = nom_fichier_base.replace("_of", "of")
+
+        # Ajouter suffixe _config.json
+        nom_fichier_config = nom_fichier_config_base + "_config.json"
+
+        # === Construire le chemin dans le dossier frère "configuration" ===
+        dossier_transcription = os.path.dirname(chemin_fichier)
+        dossier_parent = os.path.dirname(dossier_transcription)
+        dossier_configuration = os.path.join(dossier_parent, "configuration")
+        chemin_config = os.path.join(dossier_configuration, nom_fichier_config)
+
+        # === Vérification et chargement de la config ===
+        if os.path.exists(chemin_config):
+            with open(chemin_config, "r", encoding="utf-8") as f_config:
+                config = json.load(f_config)
+                config_en_cours = config.copy()  # ← on garde une copie utilisable ailleurs
+            print(f"✅ Configuration chargée : {chemin_config}")
+            messagebox.showinfo(
+                "Configuration associée chargée",
+                f"Configuration trouvée et chargée avec succès :\n\n{os.path.basename(chemin_config)}"
+            )
         else:
-            nom_fichier_base_sans_saisie = nom_fichier_base
+            messagebox.showwarning(
+                "Configuration absente",
+                f"Fichier de configuration introuvable :\n{chemin_config}"
+            )
+            return
 
-        # Corriger le format _of6 ➔ of6
-        nom_fichier_config_base = nom_fichier_base_sans_saisie.replace("_of", "of")
-
-        # Construire le chemin du fichier de config
-        dossier_base = os.path.dirname(chemin_fichier)
-        chemin_config = os.path.join(dossier_base, nom_fichier_config_base + "_config.json")
-
-        # Message de confirmation
+        # Message de succès
         messagebox.showinfo("Chargement réussi", f"Le texte '{os.path.basename(chemin_fichier)}' a été chargé.")
 
-        # Vérifier la config associée
-        if not os.path.exists(chemin_config):
-            # on cherche dans le dossier frère (remonter d’un niveau puis descendre)
-            sibling = os.path.normpath(
-                os.path.join(
-                    os.path.dirname(chemin_config),  # dossier actuel
-                    os.pardir,  # ../
-                    "<nom_du_dossier_frere>",  # remplacer par le nom du dossier cible
-                    os.path.basename(chemin_config)  # même fichier
-                )
-            )
-            if os.path.exists(sibling):
-                chemin_config = sibling
-            else:
-                messagebox.showwarning(
-                    "Configuration absente",
-                    f"Aucun fichier de configuration '{nom_fichier_config_base}_config.json' trouvé.\n\n"
-                    f"Recherché ici :\n"
-                    f" • {chemin_config}\n"
-                    f" • {sibling}"
-                )
-                return
-
-
     except Exception as e:
-        messagebox.showerror("Erreur", f"Erreur lors du chargement du texte : {e}")
+        messagebox.showerror("Erreur", f"Erreur lors du chargement : {e}")
 
 
 def normaliser_bloc(bloc):
@@ -2505,7 +2555,7 @@ def corriger_vers_partage_3():
         l3 = soup.new_tag("l", n=n3)
 
         # 3e) Vingt espaces insécables pour le décalage
-        l3.append("\u00A0" * 20)
+        l3.append("\u00A0" * 40)
 
         # 3f) Transférer l’appareil <app> (avec lem/rdg) **tel quel**
         app = stage.find("app")
@@ -2558,8 +2608,10 @@ def corriger_vers_partage_3():
             return
 
     # 7) Écrire le fichier
+    xml_text = soup.prettify()
+    xml_text = xml_text.replace("\u00A0", "&#160;")
     with open(cible, "w", encoding="utf-8") as f:
-        f.write(soup.prettify())
+        f.write(xml_text)
 
     # 8) Afficher le bilan
     lignes_bilan = []
@@ -4032,6 +4084,16 @@ def speaker_aligned_output(speaker_list, temoins, ref_index, aligner_fonction):
         return "".join(ligne_tei).strip(), "".join(ligne_ekdosis).strip()
 
 def verifier_et_comparer():
+
+    global config_en_cours
+    print(config_en_cours)
+    if "config_en_cours" not in globals() or not config_en_cours:
+        messagebox.showwarning(
+            "Configuration manquante",
+            "Veuillez d'abord charger un fichier de configuration avant de lancer la comparaison."
+        )
+        return
+
     if valider_structure():
         comparer_etats()
     else:
@@ -4051,6 +4113,8 @@ def tokenizer_avec_balises(texte):
 
 
 def comparer_etats():
+    # Refus de lancer l'édition de la TEI en l'absence d'un fichier de config chargé
+
     stage_implicite_type = None
     implicit_counter = 0
     texte = zone_saisie.get("1.0", tk.END).strip()
@@ -4492,6 +4556,14 @@ def comparer_etats():
 
 # Interface Tkinter
 fenetre = tk.Tk()
+
+# → on autorise le redimensionnement horizontal ET vertical
+fenetre.resizable(True, True)
+
+# Optionnel : donner une dimension initiale et une taille mini
+fenetre.geometry("800x800")
+fenetre.minsize(600, 600)
+
 # --- Menu principal ---
 menu_bar = tk.Menu(fenetre)
 fenetre.config(menu=menu_bar)
@@ -4541,7 +4613,7 @@ menu_bar.add_cascade(label="Outils", menu=menu_outils)
 
 menu_outils.add_command(label="Lancer l’assistant de saisie", command=lancer_saisie_assistee_par_menu)
 menu_outils.add_command(label="Valider la structure", command=valider_structure)
-menu_outils.add_command(label="Comparer les états", command=comparer_etats)
+menu_outils.add_command(label="Comparer les états", command=verifier_et_comparer)
 menu_edit.add_separator()
 menu_outils.add_command(label="Nettoyer les vers partagés en trois", command=corriger_vers_partage_3)
 menu_edit.add_separator()
@@ -4706,16 +4778,16 @@ frame_params.pack(fill=tk.X, padx=10, pady=10)
 frame_bas = tk.Frame(fenetre)
 frame_bas.pack(pady=10)
 
-btn_comparer = tk.Button(frame_bas, text="Générer code", command=verifier_et_comparer)
+btn_comparer = tk.Button(frame_bas, text="Générer code (alt+G)", command=verifier_et_comparer)
 btn_comparer.pack(side=tk.LEFT, padx=10)
 
-btn_export_tei = tk.Button(frame_bas, text="💾 Exporter TEI", command=exporter_tei)
+btn_export_tei = tk.Button(frame_bas, text="💾 Export TEI", command=exporter_tei)
 btn_export_tei.pack(side=tk.LEFT, padx=10)
 
-btn_export_ekdosis = tk.Button(frame_bas, text="💾 Exporter ekdosis", command=exporter_ekdosis)
+btn_export_ekdosis = tk.Button(frame_bas, text="💾 Export ekdosis", command=exporter_ekdosis)
 btn_export_ekdosis.pack(side=tk.LEFT, padx=10)
 
-btn_sauver_saisie = tk.Button(frame_bas, text="💾 Export saisie brute", command=enregistrer_saisie)
+btn_sauver_saisie = tk.Button(frame_bas, text="💾 Export saisie", command=enregistrer_saisie)
 btn_sauver_saisie.pack(side=tk.LEFT, padx=10)
 
 btn_remplacer = tk.Button(frame_bas, text="💾 Export complet", command=enregistrer_triple)
@@ -4790,6 +4862,8 @@ appliquer_style_parchemin(fenetre)
 # --- Raccourcis clavier globaux ---
 zone_saisie.bind("<Control-f>", lambda e: rechercher(zone_saisie))
 zone_resultat_tei.bind("<Control-f>", lambda e: rechercher(zone_resultat_tei))
+
+fenetre.bind_all("<Alt-g>", lambda event: verifier_et_comparer())
 
 # Sans doute à effacer tous
 fenetre.bind_all("<Control-a>", lambda event: fenetre.focus_get().event_generate('<<SelectAll>>'))
