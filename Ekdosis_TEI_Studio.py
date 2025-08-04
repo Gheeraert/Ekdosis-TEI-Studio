@@ -1,6 +1,6 @@
 # ==============================================================================
 # Ekdosis-TEI Studio
-# Version 1.5.4
+# Version 1.5.5
 #
 # Un outil d'encodage inspiré du markdown
 # pour encoder des variantes dans le théâtre classique
@@ -1764,7 +1764,6 @@ def valider_tei_avec_schema():
     except Exception as e:
         messagebox.showerror("Erreur", f"Une erreur est survenue :\n{str(e)}")
 
-
 def valider_structure_amelioree():
     texte = zone_saisie.get("1.0", "end-1c")
     lignes = texte.split("\n")
@@ -1803,6 +1802,76 @@ def valider_structure_amelioree():
             # Re-split le texte nettoyé
             lignes = texte_nettoye.split("\n")
 
+        # --- 2) Suppression des espaces doubles dans chaque vers ---
+        lignes_modifiees = []
+        lignes_espaces_doubles = []
+        for idx, ligne in enumerate(lignes, start=1):
+            if "  " in ligne:  # au moins deux espaces consécutifs
+                lignes_espaces_doubles.append(idx)
+                ligne = re.sub(r"\s{2,}", " ", ligne)
+            lignes_modifiees.append(ligne)
+        if lignes_espaces_doubles:
+            reponse = messagebox.askyesno(
+                "Espaces multiples détectés",
+                f"Des espaces multiples ont été trouvés dans {len(lignes_espaces_doubles)} ligne(s).\n"
+                "Voulez-vous les remplacer par un espace simple ?"
+            )
+            if reponse:
+                lignes = lignes_modifiees
+
+        # --- 3) Remplacement des guillemets typographiques par des droits ---
+        lignes_modifiees = []
+        lignes_guillemets = []
+        for idx, ligne in enumerate(lignes, start=1):
+            if any(g in ligne for g in ['«', '»', '“', '”']):
+                lignes_guillemets.append(idx)
+                ligne = ligne.replace("«", '"').replace("»", '"') \
+                    .replace("“", '"').replace("”", '"')
+            lignes_modifiees.append(ligne)
+        if lignes_guillemets:
+            reponse = messagebox.askyesno(
+                "Guillemets typographiques détectés",
+                f"Des guillemets typographiques ont été trouvés dans {len(lignes_guillemets)} ligne(s).\n"
+                "Voulez-vous les remplacer par des guillemets droits ?"
+            )
+            if reponse:
+                lignes = lignes_modifiees
+
+        # --- 4) Contrôle des blocs à dièse (#####) ---
+        erreurs_blocs_diese = []
+        i = 0
+        while i < len(lignes):
+            ligne = lignes[i].rstrip()
+            if ligne.startswith("#####"):
+                bloc = []
+                while i < len(lignes) and lignes[i].startswith("#####"):
+                    bloc.append(lignes[i])
+                    i += 1
+
+                # 1) Vérif du nombre de lignes dans le bloc
+                if len(bloc) != nombre_temoins_predefini:
+                    erreurs_blocs_diese.append(
+                        f"Bloc à dièse commençant ligne {i - len(bloc) + 1} : "
+                        f"{len(bloc)} lignes trouvées, {nombre_temoins_predefini} attendues."
+                    )
+
+                # 2) Vérif que toutes les lignes commencent bien par "##### "
+                for idx_bloc, contenu in enumerate(bloc):
+                    if not re.match(r"^#####\s.+", contenu):
+                        erreurs_blocs_diese.append(
+                            f"Ligne {i - len(bloc) + idx_bloc + 1} : "
+                            "ligne de bloc à dièse mal formée (doit commencer par '##### ')."
+                        )
+            else:
+                i += 1
+
+        # Si erreurs détectées sur blocs à dièse
+        if erreurs_blocs_diese:
+            messagebox.showerror(
+                "Problèmes dans les blocs à dièse",
+                "\n".join(erreurs_blocs_diese)
+            )
+            return False
 
     zone_saisie.tag_remove("erreur", "1.0", tk.END)
     zone_saisie.tag_remove("valide", "1.0", tk.END)
