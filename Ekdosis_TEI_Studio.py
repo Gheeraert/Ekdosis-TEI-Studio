@@ -1,6 +1,6 @@
 # ==============================================================================
 # Ekdosis-TEI Studio
-# Version 1.5.5
+# Version 1.5.6
 #
 # Un outil d'encodage inspiré du markdown
 # pour encoder des variantes dans le théâtre classique
@@ -1376,6 +1376,7 @@ def sauvegarder_config(chemin_fichier):
         "Nom de l'éditeur (vous)": nom_editeur,
         "Prénom de l'éditeur": prenom_editeur,
         "Temoins": temoins_collectes
+        "Numéro du témoin de référence": index_ref
     }
 
     try:
@@ -1430,6 +1431,7 @@ def sauvegarder_config_sous():
         "Nom de l'éditeur (vous)": nom_editeur,
         "Prénom de l'éditeur": prenom_editeur,
         "Temoins": temoins_collectes
+        "Numéro du témoin de référence": index_ref
     }
 
     try:
@@ -1444,7 +1446,7 @@ def charger_configuration():
     global prenom_auteur, nom_auteur, auteur_nom_complet, titre_piece, numero_acte
     global numero_scene, nombre_scenes, nombre_temoins, nombre_temoins_predefini
     global nom_editeur, prenom_editeur, editeur_nom_complet, noms_persos
-    global vers_num, numero_vers, temoins_collectes
+    global vers_num, numero_vers, temoins_collectes, index_ref
     global config_en_cours
 
     chemin_fichier = filedialog.askopenfilename(
@@ -1483,6 +1485,7 @@ def charger_configuration():
     editeur_nom_complet = f"{prenom_editeur} {nom_editeur}"
 
     temoins_collectes = config.get("Temoins", [])
+    index_ref = int(config.get("index_ref", 0))
 
     config_en_cours = config.copy()
 
@@ -1507,7 +1510,7 @@ def editer_config_apres_chargement(config):
     global nombre_scenes, vers_num, numero_vers, noms_persos
     global nombre_temoins, nombre_temoins_predefini
     global nom_editeur, prenom_editeur, auteur_nom_complet, editeur_nom_complet
-    global temoins_collectes
+    global temoins_collectes, index_ref
     global config_en_cours
 
     fenetre = tk.Toplevel()
@@ -1526,6 +1529,7 @@ def editer_config_apres_chargement(config):
         "Nombre de témoins": config.get("Nombre de témoins", ""),
         "Nom de l'éditeur (vous)": config.get("Nom de l'éditeur (vous)", ""),
         "Prénom de l'éditeur": config.get("Prénom de l'éditeur", "")
+        "Numéro du témoin de référence": config.get("index_ref", 0)
     }
 
     entrees = {}
@@ -1586,9 +1590,11 @@ def editer_config_apres_chargement(config):
         nombre_temoins_predefini = int(nombre_temoins)
         nom_editeur = nouveau_config["Nom de l'éditeur (vous)"]
         prenom_editeur = nouveau_config["Prénom de l'éditeur"]
+        index_ref = int(nouveau_config["Numéro du témoin de référence"])
 
         auteur_nom_complet = f"{prenom_auteur} {nom_auteur}"
         editeur_nom_complet = f"{prenom_editeur} {nom_editeur}"
+
 
         # === Zone de texte regénérée - à SUPPRIMER ! Ne pas tout effacer!!
         # zone_saisie.delete("1.0", tk.END)
@@ -1636,6 +1642,7 @@ def editer_config_apres_chargement(config):
             "Nom de l'éditeur (vous)": nom_editeur,
             "Prénom de l'éditeur": prenom_editeur,
             "Temoins": temoins_collectes
+            "Numéro du témoin de référence": index_ref
         })
 
         globals()["prenom_auteur"] = prenom_auteur
@@ -1654,6 +1661,7 @@ def editer_config_apres_chargement(config):
         globals()["auteur_nom_complet"] = auteur_nom_complet
         globals()["editeur_nom_complet"] = editeur_nom_complet
         globals()["temoins_collectes"] = temoins_collectes
+        globals()["index_ref"] = index_ref
 
         fenetre.destroy()
 
