@@ -1,6 +1,6 @@
 # ==============================================================================
 # Ekdosis-TEI Studio
-# Version 1.5.6
+# Version 1.5.7
 #
 # Un outil d'encodage inspiré du markdown
 # pour encoder des variantes dans le théâtre classique
@@ -62,6 +62,8 @@ prenom_editeur = ""
 editeur_nom_complet = ""
 
 temoins_collectes = []
+
+index_ref = 0
 
 # 1. Le mapping mois → nom français
 MOIS_FR = {
@@ -1353,7 +1355,7 @@ def sauvegarder_config(chemin_fichier):
     global prenom_auteur, nom_auteur, titre_piece, numero_acte, numero_scene
     global nombre_scenes, vers_num, noms_persos
     global nombre_temoins_predefini, nom_editeur, prenom_editeur
-    global temoins_collectes
+    global temoins_collectes, index_ref
 
     if os.path.exists(chemin_fichier):
         reponse = messagebox.askyesno(
@@ -1375,7 +1377,7 @@ def sauvegarder_config(chemin_fichier):
         "Nombre de témoins": nombre_temoins_predefini,
         "Nom de l'éditeur (vous)": nom_editeur,
         "Prénom de l'éditeur": prenom_editeur,
-        "Temoins": temoins_collectes
+        "Temoins": temoins_collectes,
         "Numéro du témoin de référence": index_ref
     }
 
@@ -1430,7 +1432,7 @@ def sauvegarder_config_sous():
         "Nombre de témoins": nombre_temoins_predefini,
         "Nom de l'éditeur (vous)": nom_editeur,
         "Prénom de l'éditeur": prenom_editeur,
-        "Temoins": temoins_collectes
+        "Temoins": temoins_collectes,
         "Numéro du témoin de référence": index_ref
     }
 
@@ -1504,13 +1506,21 @@ def editer_config_courant():
         return
     editer_config_apres_chargement(config_en_cours)
 
+def maj_combobox_temoins():
+    global menu_ref, temoins_collectes, index_ref
+    noms_abbr = sorted([t["abbr"] for t in temoins_collectes if "abbr" in t])
+    menu_ref['values'] = noms_abbr
+    if 0 <= index_ref < len(noms_abbr):
+        menu_ref.set(noms_abbr[index_ref])
+    elif noms_abbr:
+        menu_ref.set(noms_abbr[0])
 
 def editer_config_apres_chargement(config):
     global prenom_auteur, nom_auteur, titre_piece, numero_acte, numero_scene
     global nombre_scenes, vers_num, numero_vers, noms_persos
     global nombre_temoins, nombre_temoins_predefini
     global nom_editeur, prenom_editeur, auteur_nom_complet, editeur_nom_complet
-    global temoins_collectes, index_ref
+    global temoins_collectes, index_ref, menu_ref
     global config_en_cours
 
     fenetre = tk.Toplevel()
@@ -1528,9 +1538,11 @@ def editer_config_apres_chargement(config):
         "Noms des personnages (séparés par virgule)": config.get("Noms des personnages (séparés par virgule)", ""),
         "Nombre de témoins": config.get("Nombre de témoins", ""),
         "Nom de l'éditeur (vous)": config.get("Nom de l'éditeur (vous)", ""),
-        "Prénom de l'éditeur": config.get("Prénom de l'éditeur", "")
-        "Numéro du témoin de référence": config.get("index_ref", 0)
+        "Prénom de l'éditeur": config.get("Prénom de l'éditeur", ""),
+        "Numéro du témoin de référence": config.get("Numéro du témoin de référence", 0)
     }
+    #DEBUG
+    print("DEBUG - index ref", config.get("index_ref", 0))
 
     entrees = {}
     for i, (label, valeur) in enumerate(champs.items()):
@@ -1641,7 +1653,7 @@ def editer_config_apres_chargement(config):
             "Nombre de témoins": nombre_temoins,
             "Nom de l'éditeur (vous)": nom_editeur,
             "Prénom de l'éditeur": prenom_editeur,
-            "Temoins": temoins_collectes
+            "Temoins": temoins_collectes,
             "Numéro du témoin de référence": index_ref
         })
 
@@ -1664,6 +1676,8 @@ def editer_config_apres_chargement(config):
         globals()["index_ref"] = index_ref
 
         fenetre.destroy()
+
+        maj_combobox_temoins()
 
     bouton_valider = tk.Button(fenetre, text="Valider", font=("Garamond", 12, "bold"), command=valider_modifications)
     bouton_valider.grid(row=len(champs) + 1, column=0, columnspan=2, pady=15)
@@ -4952,6 +4966,7 @@ except Exception as e:
 
 
 def boite_initialisation_parchemin():
+
     champs_def = [
         ("Nom de l'auteur", ""),
         ("Prénom de l'auteur", ""),
@@ -5018,6 +5033,7 @@ def autosave(event=None):
     except Exception as e:
         print(f"[autosave] Erreur d'enregistrement : {e}")
 
+print("debug du try -", index_ref)
 
 zone_saisie.bind("<KeyRelease>", autosave)
 zone_saisie.bind("<KeyRelease>", mettre_a_jour_menu)
@@ -5061,10 +5077,11 @@ label_ref.pack(side=tk.LEFT)
 
 menu_ref = ttk.Combobox(frame_ref, state="readonly", width=5)
 menu_ref.pack(side=tk.LEFT)
-temoins = ["B", "A", "C"]  # exemple
+temoins = ["B", "A", "C", "D", "E", "F", "G", "H"]  # exemple
 temoins.sort()  # tri alphabétique
 menu_ref['values'] = temoins
-menu_ref.set(temoins[0])  # sélection par défaut
+menu_ref.set(temoins[index_ref])  # sélection par défaut
+
 liste_ref = menu_ref
 
 frame_vers = tk.Frame(frame_params, bg="#f4f4f4")
