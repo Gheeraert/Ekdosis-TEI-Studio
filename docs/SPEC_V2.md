@@ -196,6 +196,10 @@ Collation must happen only on already-identified textual units.
 
 The reference witness is the lemma witness.
 
+In ordinary parallel witness blocks, token counts must be strictly identical across witnesses. Validation must fail otherwise.
+
+Whole-line variants must be triggered only by the explicit `#####` marker and must not rely on heuristic rewriting of marker syntax.
+
 ### 6.2 Minimal first implementation
 
 A first implementation may provide:

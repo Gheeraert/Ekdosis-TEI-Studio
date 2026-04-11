@@ -14,6 +14,9 @@ The project converts a structured plain-text transcription format for **classica
 The current objective is **not** to repair the legacy monolithic application.  
 The objective is to build a **new modular core**.
 
+## Critical collation engine
+The critical collation engine must operate token by token across synchronized witness columns. Do not use line-level diffs as the main algorithm.
+
 ## Priority order of truth sources
 
 When making decisions, use these sources in this order:
