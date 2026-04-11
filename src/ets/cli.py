@@ -15,7 +15,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--reference-witness",
         type=int,
         default=None,
-        help="Optional zero-based reference witness index (defaults to last witness).",
+        help="Optional zero-based reference witness index (overrides config value).",
     )
     return parser
 

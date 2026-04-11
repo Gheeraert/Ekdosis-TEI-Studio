@@ -14,6 +14,47 @@ def _pick(data: dict[str, Any], keys: list[str], default: Any = "") -> Any:
     return default
 
 
+def _resolve_reference_witness(raw: dict[str, Any], witnesses: list[Witness], reference_override: int | None) -> int:
+    if reference_override is not None:
+        return reference_override
+
+    canonical_keys = [
+        "Témoin de référence",
+        "Temoin de référence",
+        "Temoin de reference",
+        "Reference witness",
+        "reference_witness",
+    ]
+    legacy_keys = [
+        "Témoin de base",
+        "Temoin de base",
+        "Témoin lemme",
+        "Temoin lemme",
+        "Lemme",
+        "Lemme témoin",
+    ]
+    raw_value = _pick(raw, canonical_keys + legacy_keys, default=None)
+    if raw_value is None or str(raw_value).strip() == "":
+        # Final fallback only when there is no reference information in config.
+        return len(witnesses) - 1
+
+    sigla = [witness.siglum for witness in witnesses]
+    raw_text = str(raw_value).strip()
+    if raw_text in sigla:
+        return sigla.index(raw_text)
+
+    try:
+        raw_index = int(raw_text)
+    except ValueError as exc:
+        raise ValueError(f"Invalid reference witness value: {raw_value!r}") from exc
+
+    if 0 <= raw_index < len(witnesses):
+        return raw_index
+    if 1 <= raw_index <= len(witnesses):
+        return raw_index - 1
+    raise ValueError(f"reference_witness is out of range: {raw_index}")
+
+
 def load_config(path: str | Path, reference_override: int | None = None) -> EditionConfig:
     config_path = Path(path)
     raw = json.loads(config_path.read_text(encoding="utf-8"))
@@ -39,10 +80,7 @@ def load_config(path: str | Path, reference_override: int | None = None) -> Edit
     if not witnesses:
         raise ValueError("No witnesses found in config.")
 
-    if reference_override is not None:
-        reference_witness = reference_override
-    else:
-        reference_witness = len(witnesses) - 1
+    reference_witness = _resolve_reference_witness(raw, witnesses, reference_override)
 
     if not 0 <= reference_witness < len(witnesses):
         raise ValueError("reference_witness is out of range.")

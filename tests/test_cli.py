@@ -8,7 +8,7 @@ from ets.cli import main
 
 def test_cli_writes_output_file() -> None:
     root = Path(__file__).resolve().parents[1]
-    output_dir = root / "out"
+    output_dir = root / "tests" / "_runtime"
     output_dir.mkdir(exist_ok=True)
     output_path = output_dir / "cli_test_output.xml"
 
