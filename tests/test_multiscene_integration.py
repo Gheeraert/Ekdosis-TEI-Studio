@@ -59,3 +59,8 @@ def test_pipeline_handles_two_successive_scenes_in_same_act() -> None:
     assert lines_scene_1 and lines_scene_2
     assert lines_scene_1[-1].get("n") != lines_scene_2[0].get("n")
     assert lines_scene_2[0].get("n") != "1"
+
+    # Stable file-wide numbering policy: monotonically increasing by verse base number.
+    all_numbers = [line.get("n", "") for line in root_xml.findall(".//tei:l", NS)]
+    bases = [int(number.split(".")[0]) for number in all_numbers]
+    assert bases == sorted(bases)

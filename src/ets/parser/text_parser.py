@@ -78,6 +78,7 @@ def parse_play(text: str, config: EditionConfig) -> Play:
     line_number = config.start_line_number
     shared_base: int | None = None
     shared_part = 0
+    shared_carried_across_scene = False
 
     for block_index, block in enumerate(blocks):
         first = block[0].strip()
@@ -89,6 +90,7 @@ def parse_play(text: str, config: EditionConfig) -> Play:
             current_speech = None
             shared_base = None
             shared_part = 0
+            shared_carried_across_scene = False
             continue
 
         if _SCENE_RE.match(first) and not first.startswith("####"):
@@ -99,8 +101,15 @@ def parse_play(text: str, config: EditionConfig) -> Play:
             current_scene = Scene(head_readings=_extract_wrapped(block, _SCENE_RE), head_block_index=block_index, cast_readings=[])
             current_act.scenes.append(current_scene)
             current_speech = None
-            # Keep an open shared-verse state across successive scene boundaries.
-            # It will be closed deterministically on the next verse if no `***` continuation appears.
+            # Keep an open shared-verse state only for the immediately following scene.
+            # If another scene starts before a continuation is consumed, close it.
+            if shared_base is not None:
+                if shared_carried_across_scene:
+                    shared_base = None
+                    shared_part = 0
+                    shared_carried_across_scene = False
+                else:
+                    shared_carried_across_scene = True
             continue
 
         if first.startswith("##") and not first.startswith("###") and _CAST_RE.search(first):
@@ -145,10 +154,12 @@ def parse_play(text: str, config: EditionConfig) -> Play:
         if shared_base is not None and split_continues:
             shared_part += 1
             number = f"{shared_base}.{shared_part}"
+            shared_carried_across_scene = False
         else:
             if shared_base is not None and not split_continues:
                 shared_base = None
                 shared_part = 0
+            shared_carried_across_scene = False
             base = line_number
             line_number += 1
             if split_starts:
