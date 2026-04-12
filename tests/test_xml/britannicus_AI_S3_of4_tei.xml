@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0">
+  <teiHeader>
+    <fileDesc>
+      <titleStmt>
+        <title>Britannicus</title>
+        <author>Jean Racine</author>
+        <editor>Caroline Labrune</editor>
+      </titleStmt>
+      <publicationStmt>
+        <publisher>Presses de l'Université de Rouen et du Havre</publisher>
+        <pubPlace>Rouen</pubPlace>
+       <date>30 juillet 2025</date>
+      </publicationStmt>
+      <sourceDesc>
+        <p>généré par Ekdosis-TEI Studio – Acte I, Scène 3</p>
+      </sourceDesc>
+    </fileDesc>
+  </teiHeader>
+  <text>
+    <body>
+  <div type="scene" n="3">
+    <head><app>
+        <lem wit="#A #C #D #E">SCENE III. </lem>
+        <rdg wit="#B">SCENE. III. </rdg>
+      </app></head>
+    <stage type='personnages'><app>
+        <lem wit="#B #C #D #E">AGRIPPINE, BRITANNICUS, NARCISSE, ALBINE. </lem>
+        <rdg wit="#A">AGRIPPINE, BRITANNICUS NARCISSE, ALBINE. </rdg>
+      </app></stage>
+    <sp>
+      <speaker>AGRIPPINE.</speaker>
+<l n="287">
+AH Prince&#160;! où 
+      <app>
+        <lem wit="#A #B #D #E">courez-vous&#160;? </lem>
+        <rdg wit="#C">courés-vous&#160;? </rdg>
+      </app>
+Quelle ardeur inquiete </l>
+
+<l n="288">
+
+      <app>
+        <lem wit="#A #B #E">Parmy </lem>
+        <rdg wit="#C #D">Parmi </rdg>
+      </app>
+vos ennemis en aveugle vous jette&#160;? </l>
+
+<l n="289.1">
+Que 
+      <app>
+        <lem wit="#A #B #D #E">venez-vous </lem>
+        <rdg wit="#C">venés-vous </rdg>
+      </app>
+chercher&#160;? </l>
+    </sp>
+    <sp>
+      <speaker>BRITANNICUS.</speaker>
+<l n="289.2">
+Ce que je cherche&#160;? Ah Dieux&#160;! </l>
+<l n="290">
+Tout ce que 
+      <app>
+        <lem wit="#A #B #D #E">j’ay </lem>
+        <rdg wit="#C">j’ai </rdg>
+      </app>
+perdu, Madame, est en ces lieux. </l>
+
+<l n="291">
+De mille affreux Soldats Junie environnée </l>
+
+<l n="292">
+S’est veuë en ce Palais indignement 
+      <app>
+        <lem wit="#A #B #E">traisnée. </lem>
+        <rdg wit="#C #D">traînée. </rdg>
+      </app>
+</l>
+
+<l n="293">
+Helas&#160;! de quelle horreur ses timides esprits </l>
+
+<l n="294">
+A ce nouveau spectacle auront esté 
+      <app>
+        <lem wit="#A #B #D #E">surpris&#160;! </lem>
+        <rdg wit="#C">surpris&#160;? </rdg>
+      </app>
+</l>
+
+<l n="295">
+Enfin on me l’enleve. Une 
+      <app>
+        <lem wit="#A #B #D #E">loy </lem>
+        <rdg wit="#C">loi </rdg>
+      </app>
+trop severe </l>
+
+<l n="296">
+Va separer deux 
+      <app>
+        <lem wit="#A #E">cœurs, </lem>
+        <rdg wit="#B #C #D">cœurs </rdg>
+      </app>
+qu’assembloit leur misere. </l>
+
+<l n="297">
+Sans doute on ne veut pas que mêlant nos douleurs </l>
+
+<l n="298">
+Nous nous 
+      <app>
+        <lem wit="#B #C #D #E">aidions </lem>
+        <rdg wit="#A">aidiõs </rdg>
+      </app>
+l’un l’autre à porter nos 
+      <app>
+        <lem wit="#A #D #E">malheurs. </lem>
+        <rdg wit="#B #C">mal-heurs. </rdg>
+      </app>
+</l>
+
+    </sp>
+    <sp>
+      <speaker>AGRIPPINE.</speaker>
+<l n="299">
+Il suffit. Comme vous je ressens vos injures. </l>
+
+<l n="300">
+Mes plaintes ont déja precedé vos murmures. </l>
+
+<l n="301">
+Mais je ne pretens pas qu’un impuissant 
+      <app>
+        <lem wit="#A #B #C #E">courroux </lem>
+        <rdg wit="#D">couroux </rdg>
+      </app>
+</l>
+
+<l n="302">
+Dégage ma parole, &amp; m’acquitte envers vous. </l>
+
+<l n="303">
+Je ne m’explique point. Si vous 
+      <app>
+        <lem wit="#A #B #D #E">voulez </lem>
+        <rdg wit="#C">voulés </rdg>
+      </app>
+m’entendre, </l>
+
+<l n="304">
+
+      <app>
+        <lem wit="#A #B #E">Suivez-moy </lem>
+        <rdg wit="#C">Suivés-moi </rdg>
+        <rdg wit="#D">Suivez-moi </rdg>
+      </app>
+
+      <app>
+        <lem wit="#A #B #D #E">chez </lem>
+        <rdg wit="#C">chés </rdg>
+      </app>
+Pallas, où je vais vous attendre. </l>
+
+</sp>
+</div>
+</body></text>
+</TEI>
