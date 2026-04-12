@@ -1,0 +1,50 @@
+# Sorties HTML V2
+
+## Objectif
+
+La V2 fournit deux sorties HTML distinctes a partir du meme TEI :
+
+1. **Preview HTML rapide**
+2. **Export HTML publiable (base)**
+
+Cette separation permet de garder un rendu editeur immediat, tout en preparant une sortie plus stable pour la publication.
+
+## Preview HTML rapide
+
+- Fonction : `render_html_preview_from_tei(tei_xml: str) -> str`
+- Module : `src/ets/html/transform.py`
+- Mecanisme : transformation XSLT via fichier externe `tei-vers-html.xsl`
+- But : affichage direct des elements editoriaux principaux (acte/scene, locuteurs, vers, variantes, didascalies)
+
+La preview doit rester simple et robuste, sans habillage portail complexe.
+
+## Export HTML publiable (base)
+
+- Fonction : `render_html_export_from_tei(tei_xml: str, xml_href: str | None = None) -> str`
+- Module : `src/ets/html/render.py`
+- Mecanisme :
+  - reutilise la preview XSLT comme couche de rendu du texte
+  - ajoute un habillage HTML complet et un bloc de credits
+  - permet d'ajouter un lien vers le XML source (`xml_href`)
+
+Cette sortie est une base publiable et extensible. Elle n'est pas encore un clone du portail editorial final.
+Elle ne cherche pas, a ce stade, a reproduire la structure complete de `fixtures/html_reference/britannicus_AI_S1_of4.html`.
+
+## Role de `tei-vers-html.xsl`
+
+- `tei-vers-html.xsl` est la feuille de transformation principale pour le rendu TEI -> HTML.
+- Elle est chargee depuis le fichier du depot (pas de XSLT embarquee en chaine Python).
+- Les evolutions doivent privilegier de petits ajustements compatibles avec le TEI reel produit par le moteur.
+
+## Statut de `fixtures/html_reference/britannicus_AI_S1_of4.html`
+
+Le fichier `fixtures/html_reference/britannicus_AI_S1_of4.html` est une **reference de structure**.
+
+- Ce n'est pas une golden fixture a reproduire au caractere pres.
+- Les tests HTML verifient des proprietes structurelles et semantiques (presence d'elements/classes/contenu utile), pas une stricte egalite textuelle.
+
+## `teiHeader` vs `metadonnees`
+
+- Le **header canonique** reste `teiHeader`.
+- Le bloc optionnel `metadonnees` est un support de presentation HTML.
+- Cette distinction doit rester explicite dans le code et la documentation.

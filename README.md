@@ -134,6 +134,15 @@ The current core supports simple implicit stage direction spans:
 
 These cases are covered by regression fixtures in `fixtures/implied_stage_directions/`.
 
+## HTML outputs
+
+The core now exposes two HTML outputs from generated TEI:
+
+- a fast preview HTML (XSLT-based) for immediate editor rendering
+- a publication-ready HTML base with credits and optional XML link
+
+See `docs/HTML_OUTPUTS.md` for the architecture and scope.
+
 ## Design principles
 
 - explicit domain model
