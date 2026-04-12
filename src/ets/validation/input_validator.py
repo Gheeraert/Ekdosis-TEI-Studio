@@ -4,6 +4,8 @@ from dataclasses import dataclass
 from enum import Enum
 import re
 
+from ets.collation import token_counts_for_readings
+
 
 class DiagnosticLevel(str, Enum):
     ERROR = "ERROR"
@@ -21,6 +23,10 @@ class ValidationDiagnostic:
     scene: str | None = None
     speaker: str | None = None
     excerpt: str | None = None
+    block_type: str | None = None
+    token_counts: list[int] | None = None
+    witness_labels: list[str] | None = None
+    block_lines: list[str] | None = None
 
 
 @dataclass(frozen=True)
@@ -107,6 +113,10 @@ def _append_error(
     scene: str | None,
     speaker: str | None,
     excerpt: str | None = None,
+    block_type: str | None = None,
+    token_counts: list[int] | None = None,
+    witness_labels: list[str] | None = None,
+    block_lines: list[str] | None = None,
 ) -> None:
     diagnostics.append(
         ValidationDiagnostic(
@@ -119,6 +129,10 @@ def _append_error(
             scene=scene,
             speaker=speaker,
             excerpt=excerpt,
+            block_type=block_type,
+            token_counts=token_counts,
+            witness_labels=witness_labels,
+            block_lines=block_lines,
         )
     )
 
@@ -134,6 +148,10 @@ def _append_warning(
     scene: str | None,
     speaker: str | None,
     excerpt: str | None = None,
+    block_type: str | None = None,
+    token_counts: list[int] | None = None,
+    witness_labels: list[str] | None = None,
+    block_lines: list[str] | None = None,
 ) -> None:
     diagnostics.append(
         ValidationDiagnostic(
@@ -146,13 +164,71 @@ def _append_warning(
             scene=scene,
             speaker=speaker,
             excerpt=excerpt,
+            block_type=block_type,
+            token_counts=token_counts,
+            witness_labels=witness_labels,
+            block_lines=block_lines,
         )
     )
 
 
-def validate_input_text(text: str, witness_count: int) -> ValidationReport:
+def _clean_verse_for_collation(raw: str) -> tuple[str, bool]:
+    text = raw.strip()
+    split_continue = text.startswith("***")
+    split_start = text.endswith("***")
+    whole_line_variant = text.startswith("#####")
+    if split_continue:
+        text = text[3:]
+    if split_start:
+        text = text[:-3]
+    if whole_line_variant:
+        text = text[5:]
+    return text.strip().replace("~", "\u00A0"), whole_line_variant
+
+
+def _validate_token_count_consistency(
+    diagnostics: list[ValidationDiagnostic],
+    *,
+    normalized_readings: list[str],
+    witness_labels: list[str],
+    block_type: str,
+    line_number: int,
+    block_index: int,
+    act: str | None,
+    scene: str | None,
+    speaker: str | None,
+    block_lines: list[str],
+) -> None:
+    counts = token_counts_for_readings(normalized_readings)
+    if len(set(counts)) == 1:
+        return
+    counts_display = ", ".join(f"{label}:{count}" for label, count in zip(witness_labels, counts))
+    _append_error(
+        diagnostics,
+        code="E_TOKEN_COUNT_MISMATCH",
+        message=(
+            f"Token count mismatch in collatable parallel block "
+            f"(type={block_type}, block={block_index}, counts=[{counts_display}])."
+        ),
+        line_number=line_number,
+        block_index=block_index,
+        act=act,
+        scene=scene,
+        speaker=speaker,
+        excerpt=block_lines[0].strip() if block_lines else None,
+        block_type=block_type,
+        token_counts=counts,
+        witness_labels=witness_labels,
+        block_lines=block_lines,
+    )
+
+
+def validate_input_text(text: str, witness_count: int, witness_sigla: list[str] | None = None) -> ValidationReport:
     diagnostics: list[ValidationDiagnostic] = []
     blocks = _split_parallel_blocks(text)
+    labels = witness_sigla if witness_sigla is not None and len(witness_sigla) == witness_count else [
+        f"W{i + 1}" for i in range(witness_count)
+    ]
 
     current_act: str | None = None
     current_scene: str | None = None
@@ -196,8 +272,11 @@ def validate_input_text(text: str, witness_count: int) -> ValidationReport:
         }
 
         if kinds["act"]:
+            normalized_act: list[str] = []
+            malformed = False
             for idx, raw in enumerate(block.lines):
-                if _ACT_RE.match(raw.strip()) is None:
+                match = _ACT_RE.match(raw.strip())
+                if match is None:
                     _append_error(
                         diagnostics,
                         code="E_ACT_MARKER_MALFORMED",
@@ -209,6 +288,22 @@ def validate_input_text(text: str, witness_count: int) -> ValidationReport:
                         speaker=current_speaker,
                         excerpt=raw.strip(),
                     )
+                    malformed = True
+                else:
+                    normalized_act.append(match.group(1).strip())
+            if not malformed:
+                _validate_token_count_consistency(
+                    diagnostics,
+                    normalized_readings=normalized_act,
+                    witness_labels=labels,
+                    block_type="act_head",
+                    line_number=line,
+                    block_index=block.index,
+                    act=current_act,
+                    scene=current_scene,
+                    speaker=current_speaker,
+                    block_lines=block.lines,
+                )
             if implicit_open:
                 _append_error(
                     diagnostics,
@@ -230,8 +325,11 @@ def validate_input_text(text: str, witness_count: int) -> ValidationReport:
             continue
 
         if kinds["scene"]:
+            normalized_scene: list[str] = []
+            malformed = False
             for idx, raw in enumerate(block.lines):
-                if _SCENE_RE.match(raw.strip()) is None:
+                match = _SCENE_RE.match(raw.strip())
+                if match is None:
                     _append_error(
                         diagnostics,
                         code="E_SCENE_MARKER_MALFORMED",
@@ -243,6 +341,22 @@ def validate_input_text(text: str, witness_count: int) -> ValidationReport:
                         speaker=current_speaker,
                         excerpt=raw.strip(),
                     )
+                    malformed = True
+                else:
+                    normalized_scene.append(match.group(1).strip())
+            if not malformed:
+                _validate_token_count_consistency(
+                    diagnostics,
+                    normalized_readings=normalized_scene,
+                    witness_labels=labels,
+                    block_type="scene_head",
+                    line_number=line,
+                    block_index=block.index,
+                    act=current_act,
+                    scene=current_scene,
+                    speaker=current_speaker,
+                    block_lines=block.lines,
+                )
             if implicit_open:
                 _append_error(
                     diagnostics,
@@ -281,6 +395,8 @@ def validate_input_text(text: str, witness_count: int) -> ValidationReport:
             continue
 
         if kinds["cast"]:
+            normalized_cast: list[str] = []
+            malformed = False
             for idx, raw in enumerate(block.lines):
                 stripped = raw.strip()
                 if _CAST_LINE_RE.match(stripped) is None:
@@ -295,6 +411,22 @@ def validate_input_text(text: str, witness_count: int) -> ValidationReport:
                         speaker=current_speaker,
                         excerpt=stripped,
                     )
+                    malformed = True
+                names = [part.strip() for part in _CAST_TOKEN_RE.findall(raw)]
+                normalized_cast.append(" ".join(name for name in names if name))
+            if not malformed:
+                _validate_token_count_consistency(
+                    diagnostics,
+                    normalized_readings=normalized_cast,
+                    witness_labels=labels,
+                    block_type="cast",
+                    line_number=line,
+                    block_index=block.index,
+                    act=current_act,
+                    scene=current_scene,
+                    speaker=current_speaker,
+                    block_lines=block.lines,
+                )
             if implicit_open:
                 _append_error(
                     diagnostics,
@@ -323,8 +455,11 @@ def validate_input_text(text: str, witness_count: int) -> ValidationReport:
             continue
 
         if kinds["speaker"]:
+            normalized_speaker: list[str] = []
+            malformed = False
             for idx, raw in enumerate(block.lines):
-                if _SPEAKER_RE.match(raw.strip()) is None or raw.strip().startswith("##"):
+                match = _SPEAKER_RE.match(raw.strip())
+                if match is None or raw.strip().startswith("##"):
                     _append_error(
                         diagnostics,
                         code="E_SPEAKER_MARKER_MALFORMED",
@@ -336,6 +471,22 @@ def validate_input_text(text: str, witness_count: int) -> ValidationReport:
                         speaker=current_speaker,
                         excerpt=raw.strip(),
                     )
+                    malformed = True
+                else:
+                    normalized_speaker.append(match.group(1).strip())
+            if not malformed:
+                _validate_token_count_consistency(
+                    diagnostics,
+                    normalized_readings=normalized_speaker,
+                    witness_labels=labels,
+                    block_type="speaker",
+                    line_number=line,
+                    block_index=block.index,
+                    act=current_act,
+                    scene=current_scene,
+                    speaker=current_speaker,
+                    block_lines=block.lines,
+                )
             if implicit_open:
                 _append_error(
                     diagnostics,
@@ -366,8 +517,11 @@ def validate_input_text(text: str, witness_count: int) -> ValidationReport:
             continue
 
         if kinds["stage"]:
+            normalized_stage: list[str] = []
+            malformed = False
             for idx, raw in enumerate(block.lines):
-                if _STAGE_RE.match(raw.strip()) is None:
+                match = _STAGE_RE.match(raw.strip())
+                if match is None:
                     _append_error(
                         diagnostics,
                         code="E_STAGE_MARKER_MALFORMED",
@@ -379,6 +533,22 @@ def validate_input_text(text: str, witness_count: int) -> ValidationReport:
                         speaker=current_speaker,
                         excerpt=raw.strip(),
                     )
+                    malformed = True
+                else:
+                    normalized_stage.append(match.group(1).strip())
+            if not malformed:
+                _validate_token_count_consistency(
+                    diagnostics,
+                    normalized_readings=normalized_stage,
+                    witness_labels=labels,
+                    block_type="stage_direction",
+                    line_number=line,
+                    block_index=block.index,
+                    act=current_act,
+                    scene=current_scene,
+                    speaker=current_speaker,
+                    block_lines=block.lines,
+                )
             if current_scene is None:
                 _append_error(
                     diagnostics,
@@ -509,6 +679,26 @@ def validate_input_text(text: str, witness_count: int) -> ValidationReport:
                 excerpt=first,
             )
             continue
+
+        normalized_verse: list[str] = []
+        whole_line_variant_any = False
+        for raw in block.lines:
+            cleaned, whole_line_variant = _clean_verse_for_collation(raw)
+            normalized_verse.append(cleaned)
+            whole_line_variant_any = whole_line_variant_any or whole_line_variant
+        if not whole_line_variant_any:
+            _validate_token_count_consistency(
+                diagnostics,
+                normalized_readings=normalized_verse,
+                witness_labels=labels,
+                block_type="verse",
+                line_number=line,
+                block_index=block.index,
+                act=current_act,
+                scene=current_scene,
+                speaker=current_speaker,
+                block_lines=block.lines,
+            )
 
         starts = [raw.strip().endswith("***") for raw in block.lines]
         continues = [raw.strip().startswith("***") for raw in block.lines]

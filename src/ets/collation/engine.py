@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from collections import defaultdict
 
-from ets.collation.tokenizer import tokenize_editorial_text
+from ets.collation.tokenizer import tokenize_parallel_readings
 from ets.domain import (
     ApparatusTokenSegment,
     CollatedAct,
@@ -129,7 +129,7 @@ def collate_parallel_text(
         rdgs = [item for item in grouped if item.text != lemma_text]
         return CollatedText(segments=[ApparatusTokenSegment(lemma=lemma, readings=rdgs)])
 
-    token_matrix = [tokenize_editorial_text(text) for text in readings]
+    token_matrix = tokenize_parallel_readings(readings)
     validate_token_matrix(
         token_matrix=token_matrix,
         witness_sigla=witness_sigla,

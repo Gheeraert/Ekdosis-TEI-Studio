@@ -11,7 +11,11 @@ from ets.validation import InputValidationError, validate_input_text, validate_p
 def run_pipeline(input_path: str | Path, config_path: str | Path, reference_witness: int | None = None) -> str:
     config = load_config(config_path, reference_override=reference_witness)
     input_text = Path(input_path).read_text(encoding="utf-8")
-    report = validate_input_text(input_text, len(config.witnesses))
+    report = validate_input_text(
+        input_text,
+        len(config.witnesses),
+        witness_sigla=[w.siglum for w in config.witnesses],
+    )
     if report.has_errors:
         raise InputValidationError(report.diagnostics)
     parsed = parse_play(input_text, config)

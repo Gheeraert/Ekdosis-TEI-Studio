@@ -59,7 +59,7 @@ def test_strict_validation_blocks_on_act_head_token_mismatch() -> None:
             ]
         ),
     )
-    with pytest.raises(ValueError, match=r"Token count mismatch .*scene=N/A.*block=0"):
+    with pytest.raises(ValueError, match=r"Token count mismatch in collatable parallel block .*type=act_head.*block=0"):
         run_pipeline(input_path=input_path, config_path=config_path)
 
 
@@ -90,5 +90,5 @@ def test_strict_validation_blocks_on_cast_token_mismatch() -> None:
             ]
         ),
     )
-    with pytest.raises(ValueError, match=r"Token count mismatch .*scene=1.*block=2"):
+    with pytest.raises(ValueError, match=r"Token count mismatch in collatable parallel block .*type=cast.*block=2"):
         run_pipeline(input_path=input_path, config_path=config_path)
