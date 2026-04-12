@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0">
+  <teiHeader>
+    <fileDesc>
+      <titleStmt>
+        <title>Andromaque</title>
+        <author>Jean Racine</author>
+        <editor>Clémentine Gheeraert</editor>
+      </titleStmt>
+      <publicationStmt>
+        <publisher>Presses de l'Université de Rouen et du Havre</publisher>
+        <pubPlace>Rouen</pubPlace>
+        <date>19 juillet 2025</date>
+      </publicationStmt>
+      <sourceDesc>
+        <p>généré par Ekdosis-TEI Studio – Acte 1, Scène 1</p>
+      </sourceDesc>
+    </fileDesc>
+  </teiHeader>
+  <metadonnees>
+    <credit>Texte généré par Ekdosis-TEI Studio</credit>
+    <credit>Chaire d'excellence en Éditions numériques</credit>
+    <credit>Université de Rouen Normandie - Région Normandie</credit>
+    <credit>Jean Racine – <hi rend="italic">Andromaque</hi>, Acte 1, Scène 1</credit>
+    <credit>Édition critique par Clémentine Gheeraert</credit>
+    <credit>Document généré le 19 juillet 2025</credit>
+  </metadonnees>
+  <text>
+    <body/>
+  </text>
+</TEI>
