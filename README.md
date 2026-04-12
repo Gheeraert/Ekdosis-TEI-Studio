@@ -97,6 +97,28 @@ They provide:
 
 The stable fixture should be the first development target.
 
+The directory `fixtures/variant_head_and_cast/` contains real-world regression cases
+for textual variation in:
+
+- act headers
+- scene headers
+- cast lists
+
+These fixtures ensure that the collation engine correctly handles variation
+in all structural textual elements, not only verse lines.
+
+## Fixtures
+
+The directory `fixtures/variant_head_and_cast/` contains real-world regression cases
+for textual variation in:
+
+- act headers
+- scene headers
+- cast lists
+
+These fixtures ensure that the collation engine correctly handles variation
+in all structural textual elements, not only verse lines.
+
 ## Design principles
 
 - explicit domain model

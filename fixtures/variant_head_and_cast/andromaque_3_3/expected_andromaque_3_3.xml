@@ -1,0 +1,377 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0">
+  <teiHeader>
+    <fileDesc>
+      <titleStmt>
+        <title>Andromaque</title>
+        <author>Jean Racine</author>
+        <editor>Clémentine Gheeraert</editor>
+      </titleStmt>
+      <publicationStmt>
+        <publisher>Presses de l'Université de Rouen et du Havre</publisher>
+        <pubPlace>Rouen</pubPlace>
+       <date>20 août 2025</date>
+      </publicationStmt>
+      <sourceDesc>
+        <p>généré par Ekdosis-TEI Studio – Acte 3, Scène 3</p>
+      </sourceDesc>
+    </fileDesc>
+  </teiHeader>
+  <text>
+    <body>
+  <div type="scene" n="3">
+    <head>SCENE III.</head>
+    <stage type='personnages'><app>
+        <lem wit="#A #B #F">HERMIONNE, CLEONNE. </lem>
+        <rdg wit="#C #D #E">HERMIONE, CLEONE. </rdg>
+      </app></stage>
+    <sp>
+      <speaker><app>
+        <lem wit="#A #B #F">HERMIONNE. </lem>
+        <rdg wit="#C #D #E">HERMIONE. </rdg>
+      </app></speaker>
+<l n="837">
+ATtendois-tu, 
+      <app>
+        <lem wit="#A #B #F">Cleonne, </lem>
+        <rdg wit="#C #D #E">Cleone, </rdg>
+      </app>
+
+      <app>
+        <lem wit="#C #D #E #F">un </lem>
+        <rdg wit="#A #B">vn </rdg>
+      </app>
+
+      <app>
+        <lem wit="#A #B #C #D #F">courroux </lem>
+        <rdg wit="#E">couroux </rdg>
+      </app>
+si modeste&#160;? </l>
+
+    </sp>
+    <sp>
+      <speaker><app>
+        <lem wit="#A #B #F">CLEONNE. </lem>
+        <rdg wit="#C #D #E">CLEONE. </rdg>
+      </app></speaker>
+<l n="838">
+La douleur qui se 
+      <app>
+        <lem wit="#A #B #C #F">taist </lem>
+        <rdg wit="#D #E">taît </rdg>
+      </app>
+n'en est que plus funeste. </l>
+
+<l n="839">
+
+      <app>
+        <lem wit="#C #D #E #F">Je </lem>
+        <rdg wit="#A #B">Ie </rdg>
+      </app>
+le plains. D'autant plus 
+      <app>
+        <lem wit="#A #B #C #D #F">qu'Auteur </lem>
+        <rdg wit="#E">qu'auteur </rdg>
+      </app>
+de son 
+      <app>
+        <lem wit="#A #B #C #F">ennuy, </lem>
+        <rdg wit="#D #E">ennui, </rdg>
+      </app>
+</l>
+
+<l n="840">
+Le coup qui l'a perdu n'est 
+      <app>
+        <lem wit="#A #B #C #F">party </lem>
+        <rdg wit="#D #E">parti </rdg>
+      </app>
+que de 
+      <app>
+        <lem wit="#A #B #C #E #F">luy. </lem>
+        <rdg wit="#D">lui. </rdg>
+      </app>
+</l>
+
+<l n="841">
+
+      <app>
+        <lem wit="#A #B #F">Contez, </lem>
+        <rdg wit="#C">Contez </rdg>
+        <rdg wit="#D">Comptés </rdg>
+        <rdg wit="#E">Comptez </rdg>
+      </app>
+depuis quel 
+      <app>
+        <lem wit="#A #F">tẽps </lem>
+        <rdg wit="#B #C #D #E">temps </rdg>
+      </app>
+
+      <app>
+        <lem wit="#A #B #C #E #F">vostre </lem>
+        <rdg wit="#D">vôtre </rdg>
+      </app>
+hymen se 
+      <app>
+        <lem wit="#A #B #C #F">prépare. </lem>
+        <rdg wit="#D #E">prepare. </rdg>
+      </app>
+</l>
+
+<l n="842">
+Il a parlé, Madame, &amp; Pyrrhus se 
+      <app>
+        <lem wit="#A #B #C #D #F">déclare. </lem>
+        <rdg wit="#E">declare. </rdg>
+      </app>
+</l>
+
+    </sp>
+    <sp>
+      <speaker><app>
+        <lem wit="#A #B #F">HERMIONNE. </lem>
+        <rdg wit="#C #D #E">HERMIONE. </rdg>
+      </app></speaker>
+<l n="843">
+Tu crois que Pyrrhus craint&#160;? Et que craint-il encor&#160;? </l>
+
+<l n="844">
+Des Peuples, qui dix ans ont 
+      <app>
+        <lem wit="#A #B #C #F">fuy </lem>
+        <rdg wit="#D #E">fui </rdg>
+      </app>
+
+      <app>
+        <lem wit="#C #D #E #F">devant </lem>
+        <rdg wit="#A #B">deuant </rdg>
+      </app>
+Hector&#160;? </l>
+
+<l n="845">
+Qui cent fois 
+      <app>
+        <lem wit="#A #B #C #E #F">effrayez </lem>
+        <rdg wit="#D">effraiés </rdg>
+      </app>
+de l'absence 
+      <app>
+        <lem wit="#A #C #D #E #F">d'Achille, </lem>
+        <rdg wit="#B">d'Achile, </rdg>
+      </app>
+</l>
+
+<l n="846">
+Dans leurs vaisseaux 
+      <app>
+        <lem wit="#A #B #C #F">brulans </lem>
+        <rdg wit="#D #E">brûlans </rdg>
+      </app>
+ont cherché leur azile, </l>
+
+<l n="847">
+Et qu'on verroit encor, sans 
+      <app>
+        <lem wit="#A #B #C #E #F">l'appuy </lem>
+        <rdg wit="#D">l'appui </rdg>
+      </app>
+de son Fils, </l>
+
+<l n="848">
+Redemander Helene aux Troyens 
+      <app>
+        <lem wit="#A #B #C #F">impunis&#160;? </lem>
+        <rdg wit="#D #E">impunis. </rdg>
+      </app>
+</l>
+
+<l n="849">
+Non, 
+      <app>
+        <lem wit="#A #B #F">Cleonne, </lem>
+        <rdg wit="#C #D #E">Cleone, </rdg>
+      </app>
+il n'est point 
+      <app>
+        <lem wit="#A #B #F">Ennemy </lem>
+        <rdg wit="#C #D #E">Ennemi </rdg>
+      </app>
+de 
+      <app>
+        <lem wit="#A #B #F">luy-mesme, </lem>
+        <rdg wit="#C">lui-mesme, </rdg>
+        <rdg wit="#D">lui-même, </rdg>
+        <rdg wit="#E">luy-même, </rdg>
+      </app>
+</l>
+
+<l n="850">
+Il veut tout ce qu'il fait, &amp; s'il 
+      <app>
+        <lem wit="#A #F">m'espouse, </lem>
+        <rdg wit="#B #C #D #E">m'épouse, </rdg>
+      </app>
+il m'aime. </l>
+
+<l n="851">
+Mais qu'Oreste à son gré m'impute ses douleurs. </l>
+
+<l n="852">
+
+      <app>
+        <lem wit="#C #E #F">N'avons-nous </lem>
+        <rdg wit="#A #B">N'auons-nous </rdg>
+        <rdg wit="#D">N'avons&#160;nous </rdg>
+      </app>
+d'entretien que 
+      <app>
+        <lem wit="#A #B #E #F">celuy </lem>
+        <rdg wit="#C #D">celui </rdg>
+      </app>
+de ses pleurs&#160;? </l>
+
+<l n="853">
+Pyrrhus 
+      <app>
+        <lem wit="#C #D #E #F">revient </lem>
+        <rdg wit="#A #B">reuient </rdg>
+      </app>
+à nous. Hé bien, chere 
+      <app>
+        <lem wit="#A #B #F">Cleonne, </lem>
+        <rdg wit="#C">Cleone, </rdg>
+        <rdg wit="#D #E">Cleone. </rdg>
+      </app>
+</l>
+
+<l n="854">
+Conçois-tu les transports de l'heureuse 
+      <app>
+        <lem wit="#B #F">Hermionne&#160;? </lem>
+        <rdg wit="#A">Hermiõne&#160;? </rdg>
+        <rdg wit="#C #D #E">Hermione&#160;? </rdg>
+      </app>
+</l>
+
+<l n="855">
+Sçais-tu quel est Pyrrhus&#160;? 
+      <app>
+        <lem wit="#A #B #F">T'és-tu </lem>
+        <rdg wit="#C #D #E">T'es-tu </rdg>
+      </app>
+fait raconter </l>
+
+<l n="856">
+Le nombre des 
+      <app>
+        <lem wit="#A #B #F">Exploits... </lem>
+        <rdg wit="#C #D">Exploits.. </rdg>
+        <rdg wit="#E">exploits.. </rdg>
+      </app>
+Mais qui les peut 
+      <app>
+        <lem wit="#A #B #C #F">conter&#160;? </lem>
+        <rdg wit="#D #E">compter&#160;? </rdg>
+      </app>
+</l>
+
+<l n="857">
+Intrepide, &amp; par tout 
+      <app>
+        <lem wit="#F">suivy </lem>
+        <rdg wit="#A #B">suiuy </rdg>
+        <rdg wit="#C #D #E">suivi </rdg>
+      </app>
+de la 
+      <app>
+        <lem wit="#A #B #C #F">Victoire, </lem>
+        <rdg wit="#D #E">victoire, </rdg>
+      </app>
+</l>
+
+<l n="858">
+Charmant, 
+      <app>
+        <lem wit="#A #B #C #D #F">Fidelle </lem>
+        <rdg wit="#E">fidelle, </rdg>
+      </app>
+enfin, rien 
+      <app>
+        <lem wit="#A #B #F">de </lem>
+        <rdg wit="#C #D #E">ne </rdg>
+      </app>
+
+      <app>
+        <lem wit="#B #C #D #E #F">manque </lem>
+        <rdg wit="#A">mãque </rdg>
+      </app>
+à sa 
+      <app>
+        <lem wit="#A #B #C #D #F">Gloire. </lem>
+        <rdg wit="#E">gloire. </rdg>
+      </app>
+</l>
+
+<l n="859.1">
+
+      <app>
+        <lem wit="#A #B #C #D #F">Songe.... </lem>
+        <rdg wit="#E">Songe... </rdg>
+      </app>
+</l>
+    </sp>
+    <sp>
+      <speaker><app>
+        <lem wit="#A #B #F">CLEONNE. </lem>
+        <rdg wit="#C #D #E">CLEONE. </rdg>
+      </app></speaker>
+<l n="859.2">
+
+      <app>
+        <lem wit="#A #B #C #E #F">Dissimulez. </lem>
+        <rdg wit="#D">Dissimulés. </rdg>
+      </app>
+
+      <app>
+        <lem wit="#A #B #C #E #F">Vostre </lem>
+        <rdg wit="#D">Vôtre </rdg>
+      </app>
+
+      <app>
+        <lem wit="#C #D #E #F">Rivale </lem>
+        <rdg wit="#A #B">Riuale </rdg>
+      </app>
+en pleurs, </l>
+<l n="860">
+Vient à vos 
+      <app>
+        <lem wit="#A #B #D #E #F">pieds </lem>
+        <rdg wit="#C">piez </rdg>
+      </app>
+sans doute apporter ses douleurs. </l>
+
+    </sp>
+    <sp>
+      <speaker><app>
+        <lem wit="#A #B #F">HERMIONNE. </lem>
+        <rdg wit="#C #D #E">HERMIONE. </rdg>
+      </app></speaker>
+<l n="861">
+Dieux&#160;! Ne puis-je à ma 
+      <app>
+        <lem wit="#A #B #C #E #F">joye </lem>
+        <rdg wit="#D">joie </rdg>
+      </app>
+abandonner mon ame&#160;? </l>
+
+<l n="862.1">
+Sortons. Que 
+      <app>
+        <lem wit="#A #B #E #F">luy </lem>
+        <rdg wit="#C #D">lui </rdg>
+      </app>
+dirois-je&#160;? </l>
+</sp>
+</div>
+</body></text>
+</TEI>

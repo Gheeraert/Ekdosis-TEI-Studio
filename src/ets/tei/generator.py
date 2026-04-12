@@ -8,6 +8,7 @@ from ets.domain import (
     CollatedPlay,
     CollatedReading,
     CollatedStageDirection,
+    CollatedText,
     EditionConfig,
     LiteralLine,
     LiteralTokenSegment,
@@ -40,20 +41,24 @@ def _append_text(container: ET.Element, last_child: ET.Element | None, text: str
         last_child.tail = (last_child.tail or "") + text
 
 
+def _append_collated_text(parent: ET.Element, text: CollatedText) -> None:
+    last_child: ET.Element | None = None
+    for segment in text.segments:
+        if isinstance(segment, LiteralTokenSegment):
+            _append_text(parent, last_child, segment.text)
+            continue
+        if isinstance(segment, ApparatusTokenSegment):
+            app = ET.SubElement(parent, _tei("app"))
+            _append_reading(app, "lem", segment.lemma)
+            for rdg in segment.readings:
+                _append_reading(app, "rdg", rdg)
+            last_child = app
+
+
 def _append_collated_line(parent: ET.Element, line: LiteralLine | ApparatusLine | TokenCollatedLine) -> None:
     l_element = ET.SubElement(parent, _tei("l"), {"n": line.number})
     if isinstance(line, TokenCollatedLine):
-        last_child: ET.Element | None = None
-        for segment in line.segments:
-            if isinstance(segment, LiteralTokenSegment):
-                _append_text(l_element, last_child, segment.text)
-                continue
-            if isinstance(segment, ApparatusTokenSegment):
-                app = ET.SubElement(l_element, _tei("app"))
-                _append_reading(app, "lem", segment.lemma)
-                for rdg in segment.readings:
-                    _append_reading(app, "rdg", rdg)
-                last_child = app
+        _append_collated_text(l_element, line.text)
         return
 
     if isinstance(line, LiteralLine):
@@ -92,33 +97,28 @@ def generate_tei_xml(collated: CollatedPlay, config: EditionConfig) -> str:
         act_n = config.act_number if len(collated.acts) == 1 else str(act_index)
         act_div = ET.SubElement(body, _tei("div"), {"type": "act", "n": act_n})
         head = ET.SubElement(act_div, _tei("head"))
-        if len(act.head_readings) == 1:
-            head.text = act.head_readings[0].text
-        else:
-            app = ET.SubElement(head, _tei("app"))
-            lemma_text = act.reference_head
-            lemma = next(item for item in act.head_readings if item.text == lemma_text)
-            _append_reading(app, "lem", lemma)
-            for rdg in act.head_readings:
-                if rdg.text != lemma.text:
-                    _append_reading(app, "rdg", rdg)
+        _append_collated_text(head, act.head)
 
         for scene_index, scene in enumerate(act.scenes, start=1):
             scene_n = config.scene_number if len(act.scenes) == 1 else str(scene_index)
             scene_div = ET.SubElement(act_div, _tei("div"), {"type": "scene", "n": scene_n})
-            ET.SubElement(scene_div, _tei("head")).text = scene.head
+            scene_head = ET.SubElement(scene_div, _tei("head"))
+            _append_collated_text(scene_head, scene.head)
             if scene.cast:
-                ET.SubElement(scene_div, _tei("stage"), {"type": "personnages"}).text = scene.cast
+                stage_cast = ET.SubElement(scene_div, _tei("stage"), {"type": "personnages"})
+                _append_collated_text(stage_cast, scene.cast)
             for stage in scene.stage_directions:
-                ET.SubElement(scene_div, _tei("stage")).text = stage.text
+                stage_el = ET.SubElement(scene_div, _tei("stage"))
+                _append_collated_text(stage_el, stage.text)
 
             for speech in scene.speeches:
                 sp = ET.SubElement(scene_div, _tei("sp"))
-                if speech.speaker:
-                    ET.SubElement(sp, _tei("speaker")).text = speech.speaker
+                speaker = ET.SubElement(sp, _tei("speaker"))
+                _append_collated_text(speaker, speech.speaker)
                 for element in speech.elements:
                     if isinstance(element, CollatedStageDirection):
-                        ET.SubElement(sp, _tei("stage")).text = element.text
+                        stage_el = ET.SubElement(sp, _tei("stage"))
+                        _append_collated_text(stage_el, element.text)
                     else:
                         _append_collated_line(sp, element)
 

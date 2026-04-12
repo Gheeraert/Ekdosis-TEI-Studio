@@ -1,0 +1,45 @@
+{
+    "Prénom de l'auteur": "Jean",
+    "Nom de l'auteur": "Racine",
+    "Titre de la pièce": "Andromaque",
+    "Numéro de l'acte": "3",
+    "Numéro de la scène": "3",
+    "Nombre de scènes dans l'acte": "8",
+    "Numéro du vers de départ": 1,
+    "Noms des personnages (séparés par virgule)": "",
+    "Nombre de témoins": 6,
+    "Nom de l'éditeur (vous)": "Gheeraert",
+    "Prénom de l'éditeur": "Clémentine",
+    "Temoins": [
+        {
+            "abbr": "A",
+            "year": "1667",
+            "desc": "Edition princeps"
+        },
+        {
+            "abbr": "B",
+            "year": "1671",
+            "desc": "Réédition de 1671"
+        },
+        {
+            "abbr": "C",
+            "year": "1676",
+            "desc": "Collective de 1676"
+        },
+        {
+            "abbr": "D",
+            "year": "1687",
+            "desc": "Collective de 1687"
+        },
+        {
+            "abbr": "E",
+            "year": "1697",
+            "desc": "Dernière du vivant de l'auteur"
+        },
+        {
+            "abbr": "F",
+            "year": "2025",
+            "desc": "Régularisée"
+        }
+    ]
+}

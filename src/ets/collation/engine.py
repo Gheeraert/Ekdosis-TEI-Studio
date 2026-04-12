@@ -4,7 +4,6 @@ from collections import defaultdict
 
 from ets.collation.tokenizer import tokenize_editorial_text
 from ets.domain import (
-    ApparatusLine,
     ApparatusTokenSegment,
     CollatedAct,
     CollatedLine,
@@ -13,7 +12,7 @@ from ets.domain import (
     CollatedScene,
     CollatedSpeech,
     CollatedStageDirection,
-    LiteralLine,
+    CollatedText,
     LiteralTokenSegment,
     Play,
     StageDirection,
@@ -62,25 +61,24 @@ def align_variants_by_token(
     max_len = max(len(tokens) for tokens in token_matrix)
     aligned: list[tuple[CollatedReading, list[CollatedReading], bool]] = []
     for i in range(max_len):
-        mots_colonne: defaultdict[str, list[str]] = defaultdict(list)
+        tokens_by_column: defaultdict[str, list[str]] = defaultdict(list)
         order: list[str] = []
         for j, line in enumerate(token_matrix):
             token = line[i] if i < len(line) else ""
-            if token not in mots_colonne:
+            if token not in tokens_by_column:
                 order.append(token)
-            mots_colonne[token].append(witness_sigla[j])
+            tokens_by_column[token].append(witness_sigla[j])
 
         lemma_token = token_matrix[ref_index][i] if i < len(token_matrix[ref_index]) else ""
         non_empty_order = [token for token in order if token != ""]
-
         if lemma_token == "":
             if not non_empty_order:
                 continue
             lemma_token = non_empty_order[0]
 
-        lemma = CollatedReading(text=lemma_token, witness_sigla=mots_colonne[lemma_token])
+        lemma = CollatedReading(text=lemma_token, witness_sigla=tokens_by_column[lemma_token])
         readings = [
-            CollatedReading(text=token, witness_sigla=mots_colonne[token])
+            CollatedReading(text=token, witness_sigla=tokens_by_column[token])
             for token in non_empty_order
             if token != lemma_token
         ]
@@ -89,9 +87,7 @@ def align_variants_by_token(
     return aligned
 
 
-def build_apparatus_from_alignment(
-    number: str, alignment: list[tuple[CollatedReading, list[CollatedReading], bool]]
-) -> TokenCollatedLine:
+def build_apparatus_from_alignment(alignment: list[tuple[CollatedReading, list[CollatedReading], bool]]) -> CollatedText:
     segments: list[LiteralTokenSegment | ApparatusTokenSegment] = []
     for index, (lemma, readings, is_literal) in enumerate(alignment):
         suffix = " " if index < len(alignment) - 1 else ""
@@ -107,7 +103,42 @@ def build_apparatus_from_alignment(
                     ],
                 )
             )
-    return TokenCollatedLine(number=number, segments=segments)
+    return CollatedText(segments=segments)
+
+
+def collate_parallel_text(
+    readings: list[str],
+    witness_sigla: list[str],
+    ref_index: int,
+    *,
+    whole_line_variant: bool = False,
+    strict_validation: bool = False,
+    act_label: str = "N/A",
+    scene_label: str = "N/A",
+    speaker_label: str | None = None,
+    block_index: int = -1,
+) -> CollatedText:
+    if whole_line_variant:
+        grouped = _group_readings(readings, witness_sigla)
+        if len(grouped) == 1:
+            return CollatedText(segments=[LiteralTokenSegment(text=grouped[0].text)])
+        lemma_text = readings[ref_index]
+        lemma = next(item for item in grouped if item.text == lemma_text)
+        rdgs = [item for item in grouped if item.text != lemma_text]
+        return CollatedText(segments=[ApparatusTokenSegment(lemma=lemma, readings=rdgs)])
+
+    token_matrix = [tokenize_editorial_text(text) for text in readings]
+    validate_token_matrix(
+        token_matrix=token_matrix,
+        witness_sigla=witness_sigla,
+        act_label=act_label,
+        scene_label=scene_label,
+        speaker_label=speaker_label,
+        block_index=block_index,
+        allow_unbalanced=not strict_validation,
+    )
+    alignment = align_variants_by_token(token_matrix, witness_sigla, ref_index)
+    return build_apparatus_from_alignment(alignment=alignment)
 
 
 def collate_parallel_verse(
@@ -121,57 +152,113 @@ def collate_parallel_verse(
     speaker_label: str | None,
     block_index: int,
 ) -> CollatedLine:
-    if whole_line_variant:
-        grouped = _group_readings(readings, witness_sigla)
-        if len(grouped) == 1:
-            return LiteralLine(number=number, text=grouped[0].text)
-        lemma_text = readings[ref_index]
-        lemma = next(item for item in grouped if item.text == lemma_text)
-        rdgs = [item for item in grouped if item.text != lemma_text]
-        return ApparatusLine(number=number, lemma=lemma, readings=rdgs)
-
-    token_matrix = [tokenize_editorial_text(text) for text in readings]
-    validate_token_matrix(
-        token_matrix=token_matrix,
-        witness_sigla=witness_sigla,
-        act_label=act_label,
-        scene_label=scene_label,
-        speaker_label=speaker_label,
-        block_index=block_index,
-        allow_unbalanced=False,
+    return TokenCollatedLine(
+        number=number,
+        text=collate_parallel_text(
+            readings=readings,
+            witness_sigla=witness_sigla,
+            ref_index=ref_index,
+            whole_line_variant=whole_line_variant,
+            strict_validation=not whole_line_variant,
+            act_label=act_label,
+            scene_label=scene_label,
+            speaker_label=speaker_label,
+            block_index=block_index,
+        ),
     )
-    alignment = align_variants_by_token(token_matrix, witness_sigla, ref_index)
-    return build_apparatus_from_alignment(number=number, alignment=alignment)
 
 
 def collate_play(play: Play, witness_sigla: list[str], reference_witness: int) -> CollatedPlay:
     collated = CollatedPlay()
     for act_index, act in enumerate(play.acts, start=1):
         act_label = str(act_index)
-        act_head = _group_readings(act.head_readings, witness_sigla)
-        collated_act = CollatedAct(head_readings=act_head, reference_head=act.head_readings[reference_witness])
+        collated_act = CollatedAct(
+            head=collate_parallel_text(
+                readings=act.head_readings,
+                witness_sigla=witness_sigla,
+                ref_index=reference_witness,
+                strict_validation=True,
+                act_label=act_label,
+                scene_label="N/A",
+                speaker_label=None,
+                block_index=act.head_block_index,
+            )
+        )
         collated.acts.append(collated_act)
 
         for scene_index, scene in enumerate(act.scenes, start=1):
             scene_label = str(scene_index)
             collated_scene = CollatedScene(
-                head=scene.head_readings[reference_witness],
-                cast=scene.cast_readings[reference_witness] if scene.cast_readings else "",
+                head=collate_parallel_text(
+                    readings=scene.head_readings,
+                    witness_sigla=witness_sigla,
+                    ref_index=reference_witness,
+                    strict_validation=True,
+                    act_label=act_label,
+                    scene_label=scene_label,
+                    speaker_label=None,
+                    block_index=scene.head_block_index,
+                ),
+                cast=collate_parallel_text(
+                    readings=scene.cast_readings,
+                    witness_sigla=witness_sigla,
+                    ref_index=reference_witness,
+                    strict_validation=True,
+                    act_label=act_label,
+                    scene_label=scene_label,
+                    speaker_label=None,
+                    block_index=scene.cast_block_index if scene.cast_block_index is not None else -1,
+                )
+                if scene.cast_readings
+                else None,
             )
             collated_act.scenes.append(collated_scene)
 
             for scene_stage in scene.stage_directions:
                 collated_scene.stage_directions.append(
-                    CollatedStageDirection(text=scene_stage.readings[reference_witness])
+                    CollatedStageDirection(
+                        text=collate_parallel_text(
+                            readings=scene_stage.readings,
+                            witness_sigla=witness_sigla,
+                            ref_index=reference_witness,
+                            strict_validation=True,
+                            act_label=act_label,
+                            scene_label=scene_label,
+                            speaker_label=None,
+                            block_index=scene_stage.block_index,
+                        )
+                    )
                 )
 
             for speech in scene.speeches:
-                collated_speech = CollatedSpeech(speaker=speech.speaker_readings[reference_witness])
+                collated_speech = CollatedSpeech(
+                    speaker=collate_parallel_text(
+                        readings=speech.speaker_readings,
+                        witness_sigla=witness_sigla,
+                        ref_index=reference_witness,
+                        strict_validation=True,
+                        act_label=act_label,
+                        scene_label=scene_label,
+                        speaker_label=None,
+                        block_index=speech.speaker_block_index,
+                    )
+                )
                 collated_scene.speeches.append(collated_speech)
                 for element in speech.elements:
                     if isinstance(element, StageDirection):
                         collated_speech.elements.append(
-                            CollatedStageDirection(text=element.readings[reference_witness])
+                            CollatedStageDirection(
+                                text=collate_parallel_text(
+                                    readings=element.readings,
+                                    witness_sigla=witness_sigla,
+                                    ref_index=reference_witness,
+                                    strict_validation=True,
+                                    act_label=act_label,
+                                    scene_label=scene_label,
+                                    speaker_label=speech.speaker_readings[reference_witness],
+                                    block_index=element.block_index,
+                                )
+                            )
                         )
                         continue
                     if not isinstance(element, VerseLine):
@@ -185,7 +272,7 @@ def collate_play(play: Play, witness_sigla: list[str], reference_witness: int) -
                             whole_line_variant=element.whole_line_variant,
                             act_label=act_label,
                             scene_label=scene_label,
-                            speaker_label=collated_speech.speaker,
+                            speaker_label=speech.speaker_readings[reference_witness],
                             block_index=element.block_index,
                         )
                     )

@@ -3,7 +3,7 @@ from __future__ import annotations
 import pytest
 
 from ets.collation import collate_parallel_verse
-from ets.domain import ApparatusLine, ApparatusTokenSegment, TokenCollatedLine
+from ets.domain import ApparatusTokenSegment, TokenCollatedLine
 
 
 def test_collation_is_token_based_not_whole_line_based() -> None:
@@ -25,7 +25,7 @@ def test_collation_is_token_based_not_whole_line_based() -> None:
     )
     assert isinstance(line, TokenCollatedLine)
 
-    apps = [segment for segment in line.segments if isinstance(segment, ApparatusTokenSegment)]
+    apps = [segment for segment in line.text.segments if isinstance(segment, ApparatusTokenSegment)]
     assert len(apps) >= 3
     assert apps[0].lemma.text.strip() == "OUY,"
     assert any(rdg.text.strip() == "OVY," for rdg in apps[0].readings)
@@ -48,9 +48,11 @@ def test_whole_line_marker_uses_explicit_whole_line_apparatus() -> None:
         speaker_label="ORESTE.",
         block_index=124,
     )
-    assert isinstance(line, ApparatusLine)
-    assert line.lemma.text.startswith("#Ses attraits")
-    assert len(line.readings) == 2
+    assert isinstance(line, TokenCollatedLine)
+    apps = [segment for segment in line.text.segments if isinstance(segment, ApparatusTokenSegment)]
+    assert len(apps) == 1
+    assert apps[0].lemma.text.startswith("#Ses attraits")
+    assert len(apps[0].readings) == 2
 
 
 def test_collation_rejects_token_spread_when_not_special() -> None:

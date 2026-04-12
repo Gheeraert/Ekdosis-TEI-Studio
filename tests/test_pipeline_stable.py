@@ -17,7 +17,7 @@ def _line_numbers(root: ET.Element) -> list[str]:
 
 
 def _speakers(root: ET.Element) -> list[str]:
-    return [el.text or "" for el in root.findall(".//tei:speaker", NS)]
+    return ["".join(el.itertext()).strip() for el in root.findall(".//tei:speaker", NS)]
 
 
 def _line(root: ET.Element, n: str) -> ET.Element:

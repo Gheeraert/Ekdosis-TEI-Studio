@@ -42,6 +42,7 @@ SpeechElement = VerseLine | StageDirection
 @dataclass
 class Speech:
     speaker_readings: list[str]
+    speaker_block_index: int
     elements: list[SpeechElement] = field(default_factory=list)
 
     @property
@@ -56,7 +57,9 @@ class Speech:
 @dataclass
 class Scene:
     head_readings: list[str]
+    head_block_index: int
     cast_readings: list[str]
+    cast_block_index: int | None = None
     speeches: list[Speech] = field(default_factory=list)
     stage_directions: list[StageDirection] = field(default_factory=list)
 
@@ -64,6 +67,7 @@ class Scene:
 @dataclass
 class Act:
     head_readings: list[str]
+    head_block_index: int
     scenes: list[Scene] = field(default_factory=list)
 
 
@@ -99,9 +103,14 @@ CollatedTokenSegment = LiteralTokenSegment | ApparatusTokenSegment
 
 
 @dataclass(frozen=True)
+class CollatedText:
+    segments: list[CollatedTokenSegment]
+
+
+@dataclass(frozen=True)
 class TokenCollatedLine:
     number: str
-    segments: list[CollatedTokenSegment]
+    text: CollatedText
 
 
 @dataclass(frozen=True)
@@ -116,7 +125,7 @@ CollatedLine = TokenCollatedLine | ApparatusLine | LiteralLine
 
 @dataclass
 class CollatedSpeech:
-    speaker: str
+    speaker: CollatedText
     elements: list[CollatedLine | "CollatedStageDirection"] = field(default_factory=list)
 
     @property
@@ -126,21 +135,20 @@ class CollatedSpeech:
 
 @dataclass(frozen=True)
 class CollatedStageDirection:
-    text: str
+    text: CollatedText
 
 
 @dataclass
 class CollatedScene:
-    head: str
-    cast: str
+    head: CollatedText
+    cast: CollatedText | None = None
     stage_directions: list["CollatedStageDirection"] = field(default_factory=list)
     speeches: list[CollatedSpeech] = field(default_factory=list)
 
 
 @dataclass
 class CollatedAct:
-    head_readings: list[CollatedReading]
-    reference_head: str
+    head: CollatedText
     scenes: list[CollatedScene] = field(default_factory=list)
 
 

@@ -83,30 +83,37 @@ def parse_play(text: str, config: EditionConfig) -> Play:
         first = block[0].strip()
 
         if _ACT_RE.match(first):
-            current_act = Act(head_readings=_extract_wrapped(block, _ACT_RE))
+            current_act = Act(head_readings=_extract_wrapped(block, _ACT_RE), head_block_index=block_index)
             play.acts.append(current_act)
             current_scene = None
             current_speech = None
+            shared_base = None
+            shared_part = 0
             continue
 
         if _SCENE_RE.match(first) and not first.startswith("####"):
             if current_act is None:
-                raise ValueError("Scene found before act.")
-            current_scene = Scene(head_readings=_extract_wrapped(block, _SCENE_RE), cast_readings=[])
+                implicit_head = [f"ACTE {config.act_number}" for _ in config.witnesses]
+                current_act = Act(head_readings=implicit_head, head_block_index=-1)
+                play.acts.append(current_act)
+            current_scene = Scene(head_readings=_extract_wrapped(block, _SCENE_RE), head_block_index=block_index, cast_readings=[])
             current_act.scenes.append(current_scene)
             current_speech = None
+            shared_base = None
+            shared_part = 0
             continue
 
         if first.startswith("##") and not first.startswith("###") and _CAST_RE.search(first):
             if current_scene is None:
                 raise ValueError("Cast found before scene.")
             current_scene.cast_readings = _extract_cast(block)
+            current_scene.cast_block_index = block_index
             continue
 
         if _SPEAKER_RE.match(first) and not first.startswith("##"):
             if current_scene is None:
                 raise ValueError("Speaker found before scene.")
-            current_speech = Speech(speaker_readings=_extract_wrapped(block, _SPEAKER_RE))
+            current_speech = Speech(speaker_readings=_extract_wrapped(block, _SPEAKER_RE), speaker_block_index=block_index)
             current_scene.speeches.append(current_speech)
             continue
 

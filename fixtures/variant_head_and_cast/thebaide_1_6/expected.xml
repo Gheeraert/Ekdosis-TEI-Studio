@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0">
+  <teiHeader>
+    <fileDesc>
+      <titleStmt>
+        <title>La Thébaïde ou les frères ennemis</title>
+        <author>Jean Racine</author>
+        <editor>Claire Fourquet-Gracieux</editor>
+      </titleStmt>
+      <publicationStmt>
+        <publisher>Presses de l'Université de Rouen et du Havre</publisher>
+        <pubPlace>Rouen</pubPlace>
+       <date>13 juillet 2025</date>
+      </publicationStmt>
+      <sourceDesc>
+        <p>généré par Ekdosis-TEI Studio – Acte 1, Scène 6</p>
+      </sourceDesc>
+    </fileDesc>
+  </teiHeader>
+  <text>
+    <body>
+  <div type="scene" n="1">
+    <head><app>
+        <lem wit="#A #C #D #E">SCENE VI. </lem>
+        <rdg wit="#B">SCENE X. </rdg>
+      </app></head>
+    <stage type='personnages'><app>
+        <lem wit="#C #D #E">JOCASTE, ANTIGONE, OLYMPE. </lem>
+        <rdg wit="#A #B">IOCASTE, ANTIGONE, OLYMPE. </rdg>
+      </app></stage>
+    <sp>
+      <speaker>ANTIGONE.</speaker>
+<l n="327">
+LE perfide, à quel point son insolence monte&#160;! </l>
+
+    </sp>
+    <sp>
+      <speaker><app>
+        <lem wit="#C #D #E">JOCASTE. </lem>
+        <rdg wit="#A #B">IOCASTE. </rdg>
+      </app></speaker>
+<l n="328">
+Ses superbes discours tourneront à sa 
+      <app>
+        <lem wit="#A #B #E">honte, </lem>
+        <rdg wit="#C #D">honte. </rdg>
+      </app>
+</l>
+
+<l n="329">
+Bien-tost si nos desirs sont exaucez des Cieux, </l>
+
+<l n="330">
+La Paix nous vangera de 
+      <app>
+        <lem wit="#A #E">ces </lem>
+        <rdg wit="#B #C #D">cet </rdg>
+      </app>
+ambitieux. </l>
+
+<l n="331">
+Mais il faut se haster, chaque heure nous est chere, </l>
+
+<l n="332">
+
+      <app>
+        <lem wit="#A #E">Appellons&#160;au&#160;plus&#160;viste </lem>
+        <rdg wit="#B #C #D">Appellons&#160;promptement </rdg>
+      </app>
+
+      <app>
+        <lem wit="#A #E">Hemon </lem>
+        <rdg wit="#B #C #D">Hémon </rdg>
+      </app>
+&amp; vostre Frere&#160;; </l>
+
+<l n="333">
+
+      <app>
+        <lem wit="#B #C #D #E">Je </lem>
+        <rdg wit="#A">Ie </rdg>
+      </app>
+suis pour ce dessein preste à leur 
+      <app>
+        <lem wit="#A #B #E">accorder, </lem>
+        <rdg wit="#C #D">accorder </rdg>
+      </app>
+</l>
+
+<l n="334">
+Toutes les 
+      <app>
+        <lem wit="#A #E">seûretez </lem>
+        <rdg wit="#B #C #D">seuretez </rdg>
+      </app>
+qu’ils pourront demander. </l>
+
+<l n="335">
+Et 
+      <app>
+        <lem wit="#A #B #E">toy, </lem>
+        <rdg wit="#C #D">toi, </rdg>
+      </app>
+si mes 
+      <app>
+        <lem wit="#A #E">mal-heurs </lem>
+        <rdg wit="#B #C #D">malheurs </rdg>
+      </app>
+ont lassé ta justice, </l>
+
+<l n="336">
+Ciel, dispose à la Paix le cœur de Polinice, </l>
+
+<l n="337">
+Seconde mes soûpirs, donne force à mes pleurs, </l>
+
+<l n="338">
+Et comme il faut enfin, 
+      <app>
+        <lem wit="#A #B #C #E">fais </lem>
+        <rdg wit="#D">fai </rdg>
+      </app>
+parler mes douleurs. </l>
+
+    </sp>
+    <sp>
+      <speaker>ANTIGONE,</speaker>
+      <stage type="stage-direction">
+
+      <app>
+        <lem wit="#B #C #D #E">demeurant un peu aprés sa Mere. </lem>
+        <rdg wit="#A">demeurant vn peu aprés sa Mere. </rdg>
+      </app>
+      </stage>
+
+<l n="339">
+Et si tu prens pitié 
+      <app>
+        <lem wit="#B #C #D #E">d’une </lem>
+        <rdg wit="#A">d’vne </rdg>
+      </app>
+
+      <app>
+        <lem wit="#A #B #C #E">flamme </lem>
+        <rdg wit="#D">flâme </rdg>
+      </app>
+innocente, </l>
+
+<l n="340">
+O 
+      <app>
+        <lem wit="#A #B #C #E">Ciel&#160;! </lem>
+        <rdg wit="#D">ciel&#160;! </rdg>
+      </app>
+en ramenant 
+      <app>
+        <lem wit="#A #E">Hemon </lem>
+        <rdg wit="#B #C #D">Hémon </rdg>
+      </app>
+à son Amante, </l>
+
+<l n="341">
+
+      <app>
+        <lem wit="#A #E">Ramene&#160;le </lem>
+        <rdg wit="#B #C #D">Ramene-le </rdg>
+      </app>
+fidelle, &amp; permets en ce 
+      <app>
+        <lem wit="#B #C #D #E">jour, </lem>
+        <rdg wit="#A">iour, </rdg>
+      </app>
+</l>
+
+<l n="342">
+Qu’en 
+      <app>
+        <lem wit="#B #C #D #E">retrouvant </lem>
+        <rdg wit="#A">retrouuant </rdg>
+      </app>
+l’Amant 
+      <app>
+        <lem wit="#B #C #D #E">je </lem>
+        <rdg wit="#A">ie </rdg>
+      </app>
+
+      <app>
+        <lem wit="#B #C #D #E">retrouve </lem>
+        <rdg wit="#A">retrouue </rdg>
+      </app>
+l’Amour. </l>
+
+      <stage type="stage-direction">
+Fin du premier Acte.       </stage>
+
+</sp>
+</div>
+</body></text>
+</TEI>

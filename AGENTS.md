@@ -108,7 +108,22 @@ At minimum, support:
 - stage directions
 - critical apparatus using lemma + readings
 
-The reference witness is the lemma witness.
+Important:
+- The reference witness is the lemma witness.
+- Do not restrict collation to verse lines.
+- Any textual block produced from parallel witness lines must support `CollatedText`.
+This includes:
+  - act headers
+  - scene headers
+  - cast lists
+  - speakers
+  - stage directions
+  - verse lines
+- Use `fixtures/variant_head_and_cast/` as regression fixtures for this behavior.
+- Do not implement special-case logic for heads or cast lists.
+  The collation model must remain generic.
+- Core principle:
+  the system models "collatable text", not "variant verse".
 
 ## Legacy code policy
 

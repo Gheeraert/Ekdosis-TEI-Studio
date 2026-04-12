@@ -1,4 +1,4 @@
-# SPECS_V2.md
+# SPEC_V2.md
 
 ## 1. Purpose
 
@@ -24,6 +24,7 @@ The user must be able to:
 - encode a dramatic text in a lightweight syntax
 - process one scene, multiple scenes, or eventually an entire act
 - generate TEI reliably
+
 
 ## 3. Input model
 
@@ -179,6 +180,9 @@ The parser must:
 - identify transitions between acts and scenes
 - support multi-scene inputs
 - support eventual act-level inputs
+- Any textual element derived from parallel witness lines must be treated as potentially variant-bearing.
+- The collation model must not be limited to verse lines. Act headers, scene headers, cast lists, speakers, stage directions, and verse lines must all be able to contain a `CollatedText` structure rendered as literal text or inline TEI apparatus (`app`, `lem`, `rdg`).
+- The core abstraction is therefore not “variant verse” but “collatable text”.
 
 ### 5.3 Parser non-responsibilities
 
@@ -224,7 +228,23 @@ build_apparatus_from_alignment(...) -> CollatedText
 collate_parallel_verse(...) -> CollatedText
 ```
 
-### 6.4 Future needs
+### 6.4 Variant-bearing dramatic headings
+
+Act headers, scene headers, and scene cast lists are textual units that may carry variants.
+
+They must not be reduced to plain strings during parsing.
+
+The following elements must support the same token-based collation model as verse lines:
+
+- act headers: `####...####`
+- scene headers: `###...###`
+- scene cast lists: `##...##`
+
+If variants are present, the TEI output must render an inline apparatus with `<app>`, `<lem>`, and `<rdg>`.
+
+The fixture `fixtures/variant_head_and_cast/` documents this requirement.
+
+### 6.5 Future needs
 
 The design must leave room for:
 - whole-line variant mode
