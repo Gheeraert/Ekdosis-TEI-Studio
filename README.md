@@ -132,6 +132,18 @@ in all structural textual elements, not only verse lines.
 
 `fixtures/implied_stage_directions/` contains regression cases for implicit stage directions (`$$TYPE$$ ... $$fin$$`).
 
+## Current guaranteed implicit stage direction cases
+
+The current core supports simple implicit stage direction spans:
+
+- `$$TYPE$$` opens a span
+- `$$fin$$` closes it
+- the span remains inside the current speech
+- the span contains one or more normally collated and numbered verse lines
+- TEI output uses `<stage xml:id="impliciteN" type="DI" ana="#TYPE">`
+
+These cases are covered by regression fixtures in `fixtures/implied_stage_directions/`.
+
 ## Design principles
 
 - explicit domain model

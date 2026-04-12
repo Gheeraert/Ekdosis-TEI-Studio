@@ -5,6 +5,7 @@ import xml.etree.ElementTree as ET
 from ets.domain import (
     ApparatusLine,
     ApparatusTokenSegment,
+    CollatedImplicitStageSpan,
     CollatedPlay,
     CollatedReading,
     CollatedStageDirection,
@@ -92,6 +93,7 @@ def generate_tei_xml(collated: CollatedPlay, config: EditionConfig) -> str:
 
     text = ET.SubElement(tei, _tei("text"))
     body = ET.SubElement(text, _tei("body"))
+    implicit_counter = 0
 
     for act_index, act in enumerate(collated.acts, start=1):
         act_n = config.act_number if len(collated.acts) == 1 else str(act_index)
@@ -119,6 +121,19 @@ def generate_tei_xml(collated: CollatedPlay, config: EditionConfig) -> str:
                     if isinstance(element, CollatedStageDirection):
                         stage_el = ET.SubElement(sp, _tei("stage"))
                         _append_collated_text(stage_el, element.text)
+                    elif isinstance(element, CollatedImplicitStageSpan):
+                        implicit_counter += 1
+                        span = ET.SubElement(
+                            sp,
+                            _tei("stage"),
+                            {
+                                "xml:id": f"implicite{implicit_counter}",
+                                "type": "DI",
+                                "ana": f"#{element.category}",
+                            },
+                        )
+                        for span_line in element.lines:
+                            _append_collated_line(span, span_line)
                     else:
                         _append_collated_line(sp, element)
 

@@ -6,6 +6,7 @@ from ets.collation.tokenizer import tokenize_editorial_text
 from ets.domain import (
     ApparatusTokenSegment,
     CollatedAct,
+    CollatedImplicitStageSpan,
     CollatedLine,
     CollatedPlay,
     CollatedReading,
@@ -13,6 +14,7 @@ from ets.domain import (
     CollatedSpeech,
     CollatedStageDirection,
     CollatedText,
+    ImplicitStageSpan,
     LiteralTokenSegment,
     Play,
     StageDirection,
@@ -258,6 +260,29 @@ def collate_play(play: Play, witness_sigla: list[str], reference_witness: int) -
                                     speaker_label=speech.speaker_readings[reference_witness],
                                     block_index=element.block_index,
                                 )
+                            )
+                        )
+                        continue
+                    if isinstance(element, ImplicitStageSpan):
+                        span_lines: list[CollatedLine] = []
+                        for verse in element.lines:
+                            span_lines.append(
+                                collate_parallel_verse(
+                                    readings=verse.readings,
+                                    witness_sigla=witness_sigla,
+                                    ref_index=reference_witness,
+                                    number=verse.number,
+                                    whole_line_variant=verse.whole_line_variant,
+                                    act_label=act_label,
+                                    scene_label=scene_label,
+                                    speaker_label=speech.speaker_readings[reference_witness],
+                                    block_index=verse.block_index,
+                                )
+                            )
+                        collated_speech.elements.append(
+                            CollatedImplicitStageSpan(
+                                category=element.category,
+                                lines=span_lines,
                             )
                         )
                         continue

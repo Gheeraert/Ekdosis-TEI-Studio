@@ -2,13 +2,15 @@ from __future__ import annotations
 
 import re
 
-from ets.domain import Act, EditionConfig, Play, Scene, Speech, StageDirection, VerseLine
+from ets.domain import Act, EditionConfig, ImplicitStageSpan, Play, Scene, Speech, StageDirection, VerseLine
 
 _ACT_RE = re.compile(r"^####(.+?)####$")
 _SCENE_RE = re.compile(r"^###(.+?)###$")
 _SPEAKER_RE = re.compile(r"^#(.+?)#$")
 _CAST_RE = re.compile(r"##(.*?)##")
 _STAGE_RE = re.compile(r"^\*\*(?!\*)(.+?)(?<!\*)\*\*$")
+_IMPLICIT_OPEN_RE = re.compile(r"^\$\$([A-Za-z][A-Za-z0-9_-]*)\$\$$")
+_IMPLICIT_CLOSE_RE = re.compile(r"^\$\$fin\$\$$", re.IGNORECASE)
 
 
 def _split_parallel_blocks(text: str, witness_count: int) -> list[list[str]]:
@@ -68,12 +70,35 @@ def _clean_verse_reading(raw: str) -> tuple[str, bool, bool, bool]:
     return text, split_start, split_continue, whole_line_variant
 
 
+def _extract_implicit_open_category(block: list[str]) -> str:
+    categories: list[str] = []
+    for line in block:
+        stripped = line.strip()
+        close_match = _IMPLICIT_CLOSE_RE.match(stripped)
+        if close_match:
+            raise ValueError("Unexpected $$fin$$ where implicit stage opening marker was expected.")
+        match = _IMPLICIT_OPEN_RE.match(stripped)
+        if not match:
+            raise ValueError(f"Malformed implicit stage opening marker: {line}")
+        categories.append(match.group(1))
+    if len(set(categories)) != 1:
+        raise ValueError("Implicit stage opening marker variation between witnesses is unsupported.")
+    return categories[0]
+
+
+def _validate_implicit_close_block(block: list[str]) -> None:
+    for line in block:
+        if not _IMPLICIT_CLOSE_RE.match(line.strip()):
+            raise ValueError(f"Malformed implicit stage closing marker: {line}")
+
+
 def parse_play(text: str, config: EditionConfig) -> Play:
     blocks = _split_parallel_blocks(text, len(config.witnesses))
     play = Play()
     current_act: Act | None = None
     current_scene: Scene | None = None
     current_speech: Speech | None = None
+    current_implicit_span: ImplicitStageSpan | None = None
 
     line_number = config.start_line_number
     shared_base: int | None = None
@@ -84,6 +109,8 @@ def parse_play(text: str, config: EditionConfig) -> Play:
         first = block[0].strip()
 
         if _ACT_RE.match(first):
+            if current_implicit_span is not None:
+                raise ValueError("Unclosed implicit stage span before act boundary.")
             current_act = Act(head_readings=_extract_wrapped(block, _ACT_RE), head_block_index=block_index)
             play.acts.append(current_act)
             current_scene = None
@@ -94,6 +121,8 @@ def parse_play(text: str, config: EditionConfig) -> Play:
             continue
 
         if _SCENE_RE.match(first) and not first.startswith("####"):
+            if current_implicit_span is not None:
+                raise ValueError("Unclosed implicit stage span before scene boundary.")
             if current_act is None:
                 implicit_head = [f"ACTE {config.act_number}" for _ in config.witnesses]
                 current_act = Act(head_readings=implicit_head, head_block_index=-1)
@@ -113,6 +142,8 @@ def parse_play(text: str, config: EditionConfig) -> Play:
             continue
 
         if first.startswith("##") and not first.startswith("###") and _CAST_RE.search(first):
+            if current_implicit_span is not None:
+                raise ValueError("Unclosed implicit stage span before cast block.")
             if current_scene is None:
                 raise ValueError("Cast found before scene.")
             current_scene.cast_readings = _extract_cast(block)
@@ -120,6 +151,8 @@ def parse_play(text: str, config: EditionConfig) -> Play:
             continue
 
         if _SPEAKER_RE.match(first) and not first.startswith("##"):
+            if current_implicit_span is not None:
+                raise ValueError("Unclosed implicit stage span before speaker change.")
             if current_scene is None:
                 raise ValueError("Speaker found before scene.")
             current_speech = Speech(speaker_readings=_extract_wrapped(block, _SPEAKER_RE), speaker_block_index=block_index)
@@ -127,6 +160,8 @@ def parse_play(text: str, config: EditionConfig) -> Play:
             continue
 
         if _STAGE_RE.match(first):
+            if current_implicit_span is not None:
+                raise ValueError("Explicit stage directions inside implicit stage span are unsupported.")
             if current_scene is None:
                 raise ValueError("Stage direction found before scene.")
             readings = _extract_wrapped(block, _STAGE_RE)
@@ -135,6 +170,25 @@ def parse_play(text: str, config: EditionConfig) -> Play:
                 current_speech.elements.append(direction)
             else:
                 current_scene.stage_directions.append(direction)
+            continue
+
+        if _IMPLICIT_CLOSE_RE.match(first):
+            if current_implicit_span is None:
+                raise ValueError("Unexpected $$fin$$ without open implicit stage span.")
+            if current_speech is None:
+                raise ValueError("Implicit stage span must be inside a speech.")
+            _validate_implicit_close_block(block)
+            current_speech.elements.append(current_implicit_span)
+            current_implicit_span = None
+            continue
+
+        if _IMPLICIT_OPEN_RE.match(first):
+            if current_speech is None:
+                raise ValueError("Implicit stage span opening marker found before speaker.")
+            if current_implicit_span is not None:
+                raise ValueError("Nested implicit stage spans are unsupported.")
+            category = _extract_implicit_open_category(block)
+            current_implicit_span = ImplicitStageSpan(category=category, block_index_open=block_index)
             continue
 
         if current_speech is None:
@@ -175,13 +229,18 @@ def parse_play(text: str, config: EditionConfig) -> Play:
             shared_base = None
             shared_part = 0
 
-        current_speech.elements.append(
-            VerseLine(
-                number=number,
-                readings=cleaned,
-                block_index=block_index,
-                whole_line_variant=whole_line_variant,
-            )
+        verse = VerseLine(
+            number=number,
+            readings=cleaned,
+            block_index=block_index,
+            whole_line_variant=whole_line_variant,
         )
+        if current_implicit_span is not None:
+            current_implicit_span.lines.append(verse)
+        else:
+            current_speech.elements.append(verse)
+
+    if current_implicit_span is not None:
+        raise ValueError("Unclosed implicit stage span at end of input.")
 
     return play

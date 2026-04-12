@@ -36,7 +36,14 @@ class StageDirection:
     block_index: int
 
 
-SpeechElement = VerseLine | StageDirection
+@dataclass
+class ImplicitStageSpan:
+    category: str
+    block_index_open: int
+    lines: list[VerseLine] = field(default_factory=list)
+
+
+SpeechElement = VerseLine | StageDirection | ImplicitStageSpan
 
 
 @dataclass
@@ -47,7 +54,13 @@ class Speech:
 
     @property
     def verses(self) -> list[VerseLine]:
-        return [element for element in self.elements if isinstance(element, VerseLine)]
+        verses: list[VerseLine] = []
+        for element in self.elements:
+            if isinstance(element, VerseLine):
+                verses.append(element)
+            elif isinstance(element, ImplicitStageSpan):
+                verses.extend(element.lines)
+        return verses
 
     @property
     def stage_directions(self) -> list[StageDirection]:
@@ -126,16 +139,22 @@ CollatedLine = TokenCollatedLine | ApparatusLine | LiteralLine
 @dataclass
 class CollatedSpeech:
     speaker: CollatedText
-    elements: list[CollatedLine | "CollatedStageDirection"] = field(default_factory=list)
+    elements: list[CollatedLine | "CollatedStageDirection" | "CollatedImplicitStageSpan"] = field(default_factory=list)
 
     @property
     def lines(self) -> list[CollatedLine]:
-        return [element for element in self.elements if not isinstance(element, CollatedStageDirection)]
+        return [element for element in self.elements if isinstance(element, (TokenCollatedLine, ApparatusLine, LiteralLine))]
 
 
 @dataclass(frozen=True)
 class CollatedStageDirection:
     text: CollatedText
+
+
+@dataclass(frozen=True)
+class CollatedImplicitStageSpan:
+    category: str
+    lines: list[CollatedLine]
 
 
 @dataclass
