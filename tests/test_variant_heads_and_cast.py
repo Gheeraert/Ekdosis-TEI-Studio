@@ -10,7 +10,7 @@ NS = {"tei": "http://www.tei-c.org/ns/1.0"}
 
 def test_variant_fixture_collates_scene_head_cast_and_speaker_text_blocks() -> None:
     root = Path(__file__).resolve().parents[1]
-    fixture_dir = root / "fixtures" / "variant_head_and_cast"
+    fixture_dir = root / "fixtures" / "variant_head_and_cast" / "andromaque_3_3"
     xml_text = run_pipeline(
         input_path=fixture_dir / "input_andromaque_3_3.txt",
         config_path=fixture_dir / "config_andromaque_3_3.json",

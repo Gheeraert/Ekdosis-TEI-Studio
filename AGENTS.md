@@ -124,6 +124,9 @@ This includes:
   The collation model must remain generic.
 - Core principle:
   the system models "collatable text", not "variant verse".
+- Shared-verse support must be regression-tested against real fixtures in `fixtures/shared_verses/`. Current priority cases are:
+  - three-segment shared verse in a single scene
+  - two-segment shared verse across two successive scenes
 
 ## Legacy code policy
 

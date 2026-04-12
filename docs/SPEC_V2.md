@@ -272,6 +272,9 @@ A `SharedVerse` should contain:
 
 This is essential for future robustness.
 
+Current deterministic rule for the sprint-level parser:
+- an open shared verse (`...***`) may continue across an immediate scene boundary only if the next verse segment begins with `***`; otherwise the shared verse is closed at the boundary.
+
 ## 8. TEI generation requirements
 
 ### 8.1 First milestone TEI

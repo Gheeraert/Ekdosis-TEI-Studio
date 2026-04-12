@@ -119,6 +119,8 @@ for textual variation in:
 These fixtures ensure that the collation engine correctly handles variation
 in all structural textual elements, not only verse lines.
 
+`fixtures/shared_verses/` contains regression cases for prioritized shared-verse patterns.
+
 ## Design principles
 
 - explicit domain model

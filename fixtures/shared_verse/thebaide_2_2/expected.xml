@@ -1,0 +1,1501 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0">
+ <teiHeader>
+  <fileDesc>
+   <titleStmt>
+    <title>
+     La Thébaïde ou les frères ennemis
+    </title>
+    <author>
+     Jean Racine
+    </author>
+    <editor>
+     Claire Fourquet-Gracieux
+    </editor>
+   </titleStmt>
+   <publicationStmt>
+    <publisher>
+     Presses de l'Université de Rouen et du Havre
+    </publisher>
+    <pubPlace>
+     Rouen
+    </pubPlace>
+    <date>
+     02 août 2025
+    </date>
+   </publicationStmt>
+   <sourceDesc>
+    <p>
+     généré par Ekdosis-TEI Studio – Acte 2, Scène 2
+    </p>
+   </sourceDesc>
+  </fileDesc>
+ </teiHeader>
+ <text>
+  <body>
+   <div n="2" type="scene">
+    <head>
+     SCENE II.
+    </head>
+    <stage type="personnages">
+     ANTIGONE, HEMON, OLYMPE.
+    </stage>
+    <sp>
+     <speaker>
+      ANTIGONE.
+     </speaker>
+     <l n="440">
+      HE bien
+      <app>
+       <lem wit="#A #B #E">
+        apprendrons&#160;nous
+       </lem>
+       <rdg wit="#C #D">
+        apprendrons-nous
+       </rdg>
+      </app>
+      ce qu’ont dit les Oracles&#160;?
+     </l>
+     <l n="441.1">
+      Que
+      <app>
+       <lem wit="#A #E">
+        faut&#160;il
+       </lem>
+       <rdg wit="#B #C #D">
+        faut-il
+       </rdg>
+      </app>
+      faire&#160;?
+     </l>
+    </sp>
+    <sp>
+     <speaker>
+      OLYMPE.
+     </speaker>
+     <l n="441.2">
+      Helas&#160;!
+     </l>
+    </sp>
+    <sp>
+     <speaker>
+      ANTIGONE.
+     </speaker>
+     <l n="441.3">
+      <app>
+       <lem wit="#A #E">
+        Quoy&#160;? Qu’en a&#160;t’on appris&#160;?
+       </lem>
+       <rdg wit="#B #D">
+        Quoy&#160;? Qu’en a-t-on appris&#160;?
+       </rdg>
+       <rdg wit="#C">
+        Quoi&#160;? Qu’en a-t-on appris&#160;?
+       </rdg>
+      </app>
+     </l>
+     <l n="442.1">
+      Est-ce la
+      <app>
+       <lem wit="#A #C #E">
+        Guerre&#160;?
+       </lem>
+       <rdg wit="#B #D">
+        Guerre,
+       </rdg>
+      </app>
+      Olympe&#160;?
+     </l>
+    </sp>
+    <sp>
+     <speaker>
+      OLYMPE.
+     </speaker>
+     <l n="442.2">
+      Ah&#160;! c’est encore pis.
+     </l>
+    </sp>
+    <sp>
+     <speaker>
+      HEMON.
+     </speaker>
+     <l n="443">
+      Quel est donc ce grand mal que leur
+      <app>
+       <lem wit="#A #E">
+        courroux
+       </lem>
+       <rdg wit="#B #C #D">
+        couroux
+       </rdg>
+      </app>
+      <app>
+       <lem wit="#A #E">
+        annonce&#160;?
+       </lem>
+       <rdg wit="#B #C #D">
+        annõce&#160;?
+       </rdg>
+      </app>
+     </l>
+    </sp>
+    <sp>
+     <speaker>
+      OLYMPE.
+     </speaker>
+     <l n="444">
+      <app>
+       <lem wit="#E">
+        Prince,
+       </lem>
+       <rdg wit="#A #B #C #D">
+        Prince
+       </rdg>
+      </app>
+      pour en juger écoutez leur
+      <app>
+       <lem wit="#A #E">
+        responce.
+       </lem>
+       <rdg wit="#B #C #D">
+        réponce.
+       </rdg>
+      </app>
+     </l>
+     <l n="445">
+      Thebains pour
+      <app>
+       <lem wit="#B #C #D #E">
+        n’avoir
+       </lem>
+       <rdg wit="#A">
+        n’auoir
+       </rdg>
+      </app>
+      plus de guerres,
+     </l>
+     <l n="446">
+      Il faut par
+      <app>
+       <lem wit="#B #C #D #E">
+        un
+       </lem>
+       <rdg wit="#A">
+        vn
+       </rdg>
+      </app>
+      ordre fatal,
+     </l>
+     <l n="447">
+      Que le dernier du sang Royal,
+     </l>
+     <l n="448">
+      Par son trépas ensanglante vos terres.
+     </l>
+    </sp>
+    <sp>
+     <speaker>
+      ANTIGONE.
+     </speaker>
+     <l n="449">
+      O
+      <app>
+       <lem wit="#A #B #D #E">
+        Dieux&#160;!
+       </lem>
+       <rdg wit="#C">
+        Dieu&#160;!
+       </rdg>
+      </app>
+      <app>
+       <lem wit="#A #E">
+        que
+       </lem>
+       <rdg wit="#B #C #D">
+        Que
+       </rdg>
+      </app>
+      vous a fait ce sang infortuné,
+     </l>
+     <l n="450">
+      Et
+      <app>
+       <lem wit="#A #B #D #E">
+        pourquoy
+       </lem>
+       <rdg wit="#C">
+        pourquoi
+       </rdg>
+      </app>
+      tout entier
+      <app>
+       <lem wit="#E">
+        l’avez&#160;vous
+       </lem>
+       <rdg wit="#A">
+        l’auez&#160;vous
+       </rdg>
+       <rdg wit="#B #C #D">
+        l’avez-vous
+       </rdg>
+      </app>
+      <app>
+       <lem wit="#A #E">
+        condamné&#160;!
+       </lem>
+       <rdg wit="#B #C #D">
+        condamné&#160;?
+       </rdg>
+      </app>
+     </l>
+     <l n="451">
+      N’estes-vous pas contens de la mort de mon
+      <app>
+       <lem wit="#A #E">
+        Père,
+       </lem>
+       <rdg wit="#B #C #D">
+        Pere&#160;?
+       </rdg>
+      </app>
+     </l>
+     <l n="452">
+      Tout nostre sang doit-il
+      <app>
+       <lem wit="#A #B #C #E">
+        subir
+       </lem>
+       <rdg wit="#D">
+        sentir
+       </rdg>
+      </app>
+      vostre colere&#160;?
+     </l>
+    </sp>
+    <sp>
+     <speaker>
+      HEMON.
+     </speaker>
+     <l n="453">
+      Madame,
+      <app>
+       <lem wit="#A #B #C #E">
+        cét
+       </lem>
+       <rdg wit="#D">
+        cet
+       </rdg>
+      </app>
+      Arrest ne vous regarde
+      <app>
+       <lem wit="#A #B #C #E">
+        pas,
+       </lem>
+       <rdg wit="#D">
+        pas.
+       </rdg>
+      </app>
+     </l>
+     <l n="454">
+      Vostre vertu vous met
+      <app>
+       <lem wit="#A #E">
+        a
+       </lem>
+       <rdg wit="#B #C #D">
+        à
+       </rdg>
+      </app>
+      <app>
+       <lem wit="#B #C #D #E">
+        couvert
+       </lem>
+       <rdg wit="#A">
+        couuert
+       </rdg>
+      </app>
+      du trépas.
+     </l>
+     <l n="455">
+      Les Dieux
+      <app>
+       <lem wit="#B #C #D #E">
+        sçavent
+       </lem>
+       <rdg wit="#A">
+        sçauent
+       </rdg>
+      </app>
+      trop bien connoistre
+      <app>
+       <lem wit="#A #C #D #E">
+        l’innocence.
+       </lem>
+       <rdg wit="#B">
+        l’innocence,
+       </rdg>
+      </app>
+     </l>
+    </sp>
+    <sp>
+     <speaker>
+      ANTIGONE.
+     </speaker>
+     <l n="456">
+      Et ce n’est pas pour
+      <app>
+       <lem wit="#A #B #D #E">
+        moy
+       </lem>
+       <rdg wit="#C">
+        moi
+       </rdg>
+      </app>
+      que je crains leur
+      <app>
+       <lem wit="#A #E">
+        vangeance,
+       </lem>
+       <rdg wit="#B #C">
+        vangeance.
+       </rdg>
+       <rdg wit="#D">
+        vengeãce.
+       </rdg>
+      </app>
+     </l>
+     <l n="457">
+      Mon innocence, Hémon, seroit
+      <app>
+       <lem wit="#B #C #D #E">
+        un
+       </lem>
+       <rdg wit="#A">
+        vn
+       </rdg>
+      </app>
+      foible
+      <app>
+       <lem wit="#A #B #D #E">
+        appuy,
+       </lem>
+       <rdg wit="#C">
+        appui,
+       </rdg>
+      </app>
+     </l>
+     <l n="458">
+      Fille d’Oedipe, il faut que je meure pour
+      <app>
+       <lem wit="#A #B #D #E">
+        luy.
+       </lem>
+       <rdg wit="#C">
+        lui.
+       </rdg>
+      </app>
+     </l>
+     <l n="459">
+      <app>
+       <lem wit="#B #C #D #E">
+        Je
+       </lem>
+       <rdg wit="#A">
+        Ie
+       </rdg>
+      </app>
+      <app>
+       <lem wit="#A #E">
+        l’attens
+       </lem>
+       <rdg wit="#B #C #D">
+        l’attens,
+       </rdg>
+      </app>
+      cette mort, &amp;
+      <app>
+       <lem wit="#B #C #D #E">
+        je
+       </lem>
+       <rdg wit="#A">
+        ie
+       </rdg>
+      </app>
+      l’attens sans
+      <app>
+       <lem wit="#A #E">
+        plaintes,
+       </lem>
+       <rdg wit="#B">
+        plaintes.
+       </rdg>
+       <rdg wit="#C #D">
+        plainte.
+       </rdg>
+      </app>
+     </l>
+     <l n="460">
+      Et s’il faut
+      <app>
+       <lem wit="#B #C #E">
+        avoüer
+       </lem>
+       <rdg wit="#A">
+        auoüer
+       </rdg>
+       <rdg wit="#D">
+        avouer
+       </rdg>
+      </app>
+      le sujet de
+      <app>
+       <lem wit="#A #B #E">
+        mes
+       </lem>
+       <rdg wit="#C #D">
+        ma
+       </rdg>
+      </app>
+      <app>
+       <lem wit="#A #B #E">
+        craintes,
+       </lem>
+       <rdg wit="#C #D">
+        crainte,
+       </rdg>
+      </app>
+     </l>
+     <l n="461">
+      C’est pour vous que je crains.
+      <app>
+       <lem wit="#A #B #E">
+        Oüy,
+       </lem>
+       <rdg wit="#C">
+        Oüi,
+       </rdg>
+       <rdg wit="#D">
+        Ouy,
+       </rdg>
+      </app>
+      cher
+      <app>
+       <lem wit="#A #B #E">
+        Hemon,
+       </lem>
+       <rdg wit="#C #D">
+        Hémon,
+       </rdg>
+      </app>
+      pour
+      <app>
+       <lem wit="#A #E">
+        vous,
+       </lem>
+       <rdg wit="#B #C #D">
+        vous.
+       </rdg>
+      </app>
+     </l>
+     <l n="462">
+      De ce sang
+      <app>
+       <lem wit="#A #B #C #E">
+        mal-heureux
+       </lem>
+       <rdg wit="#D">
+        malheureux
+       </rdg>
+      </app>
+      vous sortez comme nous&#160;;
+     </l>
+     <l n="463">
+      Et
+      <app>
+       <lem wit="#B #C #D #E">
+        je
+       </lem>
+       <rdg wit="#A">
+        ie
+       </rdg>
+      </app>
+      ne vois que trop que le
+      <app>
+       <lem wit="#A #B #C #E">
+        courroux
+       </lem>
+       <rdg wit="#D">
+        couroux
+       </rdg>
+      </app>
+      <app>
+       <lem wit="#A #B #E">
+        celeste,
+       </lem>
+       <rdg wit="#C #D">
+        celeste
+       </rdg>
+      </app>
+     </l>
+     <l n="464">
+      Vous rendra comme
+      <app>
+       <lem wit="#B #C #D #E">
+        à
+       </lem>
+       <rdg wit="#A">
+        a
+       </rdg>
+      </app>
+      nous
+      <app>
+       <lem wit="#A #B #C #E">
+        cét
+       </lem>
+       <rdg wit="#D">
+        cet
+       </rdg>
+      </app>
+      honneur bien funeste,
+     </l>
+     <l n="465">
+      Et fera
+      <app>
+       <lem wit="#A #E">
+        regreter
+       </lem>
+       <rdg wit="#B #C #D">
+        regretter
+       </rdg>
+      </app>
+      aux Princes des Thebains,
+     </l>
+     <l n="466">
+      De n’estre pas sortis du dernier des humains.
+     </l>
+    </sp>
+    <sp>
+     <speaker>
+      HEMON.
+     </speaker>
+     <l n="467">
+      Peut-on se repentir
+      <app>
+       <lem wit="#B #C #D #E">
+        d’un
+       </lem>
+       <rdg wit="#A">
+        d’vn
+       </rdg>
+      </app>
+      si grand
+      <app>
+       <lem wit="#B #C #D #E">
+        avantage&#160;?
+       </lem>
+       <rdg wit="#A">
+        auantage&#160;?
+       </rdg>
+      </app>
+     </l>
+     <l n="468">
+      <app>
+       <lem wit="#B #C #D #E">
+        Un
+       </lem>
+       <rdg wit="#A">
+        Vn
+       </rdg>
+      </app>
+      si noble trépas
+      <app>
+       <lem wit="#A #E">
+        flate
+       </lem>
+       <rdg wit="#B #C #D">
+        flatte
+       </rdg>
+      </app>
+      trop mon courage,
+     </l>
+     <l n="469">
+      Et du sang de ses
+      <app>
+       <lem wit="#A #E">
+        Roys
+       </lem>
+       <rdg wit="#B #C #D">
+        Rois
+       </rdg>
+      </app>
+      il est beau d’estre issu,
+     </l>
+     <l n="470">
+      Dût-on rendre ce sang si-tost qu’on l’a receu.
+     </l>
+    </sp>
+    <sp>
+     <speaker>
+      ANTIGONE.
+     </speaker>
+     <l n="471">
+      Et
+      <app>
+       <lem wit="#A #D #E">
+        quoy
+       </lem>
+       <rdg wit="#B #C">
+        quoi
+       </rdg>
+      </app>
+      si
+      <app>
+       <lem wit="#E">
+        parmy
+       </lem>
+       <rdg wit="#A #B #C #D">
+        parmi
+       </rdg>
+      </app>
+      nous on a fait quelque
+      <app>
+       <lem wit="#A #B #D #E">
+        offence,
+       </lem>
+       <rdg wit="#C">
+        offense,
+       </rdg>
+      </app>
+     </l>
+     <l n="472">
+      Le Ciel doit-il sur vous en prendre la
+      <app>
+       <lem wit="#A #B #C #E">
+        vangeance,
+       </lem>
+       <rdg wit="#D">
+        vengeance,
+       </rdg>
+      </app>
+     </l>
+     <l n="473">
+      Et n’est-ce pas assez du Pere &amp; des
+      <app>
+       <lem wit="#A #E">
+        enfans,
+       </lem>
+       <rdg wit="#B #C #D">
+        Enfans,
+       </rdg>
+      </app>
+     </l>
+     <l n="474">
+      Sans qu’il aille plus loin chercher des innocens&#160;?
+     </l>
+     <l n="475">
+      C’est à nous à payer pour les crimes des nostres,
+     </l>
+     <l n="476">
+      <app>
+       <lem wit="#A #E">
+        Punissez-nous
+       </lem>
+       <rdg wit="#B #C #D">
+        Punissez-nous,
+       </rdg>
+      </app>
+      <app>
+       <lem wit="#A #B #C #E">
+        grands
+       </lem>
+       <rdg wit="#D">
+        grãds
+       </rdg>
+      </app>
+      Dieux, mais
+      <app>
+       <lem wit="#A #E">
+        espargnez
+       </lem>
+       <rdg wit="#B #C #D">
+        épargnez
+       </rdg>
+      </app>
+      les autres.
+     </l>
+     <l n="477">
+      Mon Pere, cher
+      <app>
+       <lem wit="#A #E">
+        Hemon,
+       </lem>
+       <rdg wit="#B #C #D">
+        Hémon,
+       </rdg>
+      </app>
+      vous va perdre
+      <app>
+       <lem wit="#A #E">
+        aujourd’huy,
+       </lem>
+       <rdg wit="#B">
+        aujourd’huy.
+       </rdg>
+       <rdg wit="#C">
+        aujourd’hui.
+       </rdg>
+       <rdg wit="#D">
+        aujourd’huy
+       </rdg>
+      </app>
+     </l>
+     <l n="478">
+      Et je vous pers peut-estre encore plus que
+      <app>
+       <lem wit="#A #B #D #E">
+        luy.
+       </lem>
+       <rdg wit="#C">
+        lui.
+       </rdg>
+      </app>
+     </l>
+     <l n="479">
+      Le Ciel punit sur vous, &amp; sur vostre famille,
+     </l>
+     <l n="480">
+      Et les crimes du Pere &amp; l’amour de la Fille,
+     </l>
+     <l n="481">
+      Et ce funeste amour vous nuit encore plus,
+     </l>
+     <l n="482">
+      Que les crimes d’Oedipe &amp; le sang de
+      <app>
+       <lem wit="#A #E">
+        Laius.
+       </lem>
+       <rdg wit="#B #C #D">
+        Lajus.
+       </rdg>
+      </app>
+     </l>
+    </sp>
+    <sp>
+     <speaker>
+      HEMON.
+     </speaker>
+     <l n="483">
+      Quoy mon amour, Madame&#160;? Et qu’a-t-il de funeste&#160;?
+     </l>
+     <l n="484">
+      Est-ce
+      <app>
+       <lem wit="#B #C #D #E">
+        un
+       </lem>
+       <rdg wit="#A">
+        vn
+       </rdg>
+      </app>
+      crime qu’aimer
+      <app>
+       <lem wit="#B #C #D #E">
+        une
+       </lem>
+       <rdg wit="#A">
+        vne
+       </rdg>
+      </app>
+      beauté celeste&#160;?
+     </l>
+     <l n="485">
+      Et puisque sans colere il est receu de vous,
+     </l>
+     <l n="486">
+      En
+      <app>
+       <lem wit="#A #C #D #E">
+        quoy
+       </lem>
+       <rdg wit="#B">
+        quoi
+       </rdg>
+      </app>
+      peut-il du Ciel meriter le
+      <app>
+       <lem wit="#A #D #E">
+        couroux&#160;?
+       </lem>
+       <rdg wit="#B #C">
+        courroux&#160;?
+       </rdg>
+      </app>
+     </l>
+     <l n="487">
+      Vous seule en mes
+      <app>
+       <lem wit="#A #E">
+        souspirs
+       </lem>
+       <rdg wit="#B #C #D">
+        soûpirs
+       </rdg>
+      </app>
+      estes interessée,
+     </l>
+     <l n="488">
+      C’est à vous à juger
+      <app>
+       <lem wit="#B #C #D #E">
+        s’ils
+       </lem>
+       <rdg wit="#A">
+        s’il
+       </rdg>
+      </app>
+      vous ont offensée,
+     </l>
+     <l n="489">
+      Tels que seront pour eux vos Arrests tout-puissans,
+     </l>
+     <l n="490">
+      Ils seront criminels ou seront innocens.
+     </l>
+     <l n="491">
+      <app>
+       <lem wit="#E">
+        Aussi quand jusqu’à vous j’osay porter ma flamme,
+       </lem>
+       <rdg wit="#A">
+        Aussi quand iusqu’à vous i’osay porter ma flamme,
+       </rdg>
+       <rdg wit="#B">
+        Aussi quand jusqu’à vous j’osay porter ma flamme,
+       </rdg>
+       <rdg wit="#C">
+        Aussi quand jusqu’à vous j’osay porter ma flamme,
+       </rdg>
+       <rdg wit="#D">
+        (lacune)
+       </rdg>
+      </app>
+     </l>
+     <l n="492">
+      <app>
+       <lem wit="#E">
+        Vos yeux seuls imprimoient la terreur dans mon ame,
+       </lem>
+       <rdg wit="#A">
+        Vos yeux seuls imprimoient la terreur dans mon ame,
+       </rdg>
+       <rdg wit="#B">
+        Vos yeux seuls imprimoient la terreur dans mon ame,
+       </rdg>
+       <rdg wit="#C">
+        Vos yeux seuls imprimoient la terreur dans mon ame,
+       </rdg>
+       <rdg wit="#D">
+        (lacune)
+       </rdg>
+      </app>
+     </l>
+     <l n="493">
+      <app>
+       <lem wit="#E">
+        Et je craignois bien plus d’offenser vos appas,
+       </lem>
+       <rdg wit="#A">
+        Et ie craignois bien plus d’offenser vos appas,
+       </rdg>
+       <rdg wit="#B">
+        Et je craignois bien plus d’offenser vos appas,
+       </rdg>
+       <rdg wit="#C">
+        Et je craignois bien plus d’offenser vos appas,
+       </rdg>
+       <rdg wit="#D">
+        (lacune)
+       </rdg>
+      </app>
+     </l>
+     <l n="494">
+      <app>
+       <lem wit="#E">
+        Que le couroux des Dieux que je n’offensois pas.
+       </lem>
+       <rdg wit="#A">
+        Que le couroux des Dieux que ie n’offensois pas.
+       </rdg>
+       <rdg wit="#B">
+        Que le courroux des Dieux que je n’offensois pas.
+       </rdg>
+       <rdg wit="#C">
+        Que le courroux des Dieux que je n’offensois pas.
+       </rdg>
+       <rdg wit="#D">
+        (lacune)
+       </rdg>
+      </app>
+     </l>
+    </sp>
+    <sp>
+     <speaker>
+      <app>
+       <lem wit="#A #E">
+        ANTIGONE.
+       </lem>
+       <rdg wit="#B #C #D">
+        (lacune)
+       </rdg>
+      </app>
+     </speaker>
+     <l n="495">
+      <app>
+       <lem wit="#E">
+        Autant que vostre amour vostre erreur est extrême,
+       </lem>
+       <rdg wit="#A">
+        Autant que vostre amour vostre erreur est extrême,
+       </rdg>
+       <rdg wit="#B">
+        (lacune)
+       </rdg>
+       <rdg wit="#C">
+        (lacune)
+       </rdg>
+       <rdg wit="#D">
+        (lacune)
+       </rdg>
+      </app>
+     </l>
+     <l n="496">
+      <app>
+       <lem wit="#E">
+        Et vous les offensiez beaucoup plus que moy-mesme&#160;;
+       </lem>
+       <rdg wit="#A">
+        Et vous les offensiez beaucoup plus que moy-mesme&#160;;
+       </rdg>
+       <rdg wit="#B">
+        (lacune)
+       </rdg>
+       <rdg wit="#C">
+        (lacune)
+       </rdg>
+       <rdg wit="#D">
+        (lacune)
+       </rdg>
+      </app>
+     </l>
+     <l n="497">
+      <app>
+       <lem wit="#E">
+        Quelque rigueur pour vous qui parust en mes yeux,
+       </lem>
+       <rdg wit="#A">
+        Quelque rigueur pour vous qui parust en mes yeux,
+       </rdg>
+       <rdg wit="#B">
+        (lacune)
+       </rdg>
+       <rdg wit="#C">
+        (lacune)
+       </rdg>
+       <rdg wit="#D">
+        (lacune)
+       </rdg>
+      </app>
+     </l>
+     <l n="498">
+      <app>
+       <lem wit="#E">
+        Helas&#160;! ils approuvoient ce qui faschoit les Dieux.
+       </lem>
+       <rdg wit="#A">
+        Helas&#160;! ils approuuoient ce qui faschoit les Dieux.
+       </rdg>
+       <rdg wit="#B">
+        (lacune)
+       </rdg>
+       <rdg wit="#C">
+        (lacune)
+       </rdg>
+       <rdg wit="#D">
+        (lacune)
+       </rdg>
+      </app>
+     </l>
+     <l n="499">
+      <app>
+       <lem wit="#E">
+        Oüy, ces Dieux ennemis de toute ma famille,
+       </lem>
+       <rdg wit="#A">
+        Oüy, ces Dieux ennemis de toute ma famille,
+       </rdg>
+       <rdg wit="#B">
+        (lacune)
+       </rdg>
+       <rdg wit="#C">
+        (lacune)
+       </rdg>
+       <rdg wit="#D">
+        (lacune)
+       </rdg>
+      </app>
+     </l>
+     <l n="500">
+      <app>
+       <lem wit="#E">
+        Aussi bien que le Pere en detestoient la Fille,
+       </lem>
+       <rdg wit="#A">
+        Aussi bien que le Pere en detestoient la Fille,
+       </rdg>
+       <rdg wit="#B">
+        (lacune)
+       </rdg>
+       <rdg wit="#C">
+        (lacune)
+       </rdg>
+       <rdg wit="#D">
+        (lacune)
+       </rdg>
+      </app>
+     </l>
+     <l n="501">
+      <app>
+       <lem wit="#E">
+        Vous aimastes, Hemon, l’objet de leur couroux,
+       </lem>
+       <rdg wit="#A">
+        Vous aimastes, Hemon, l’obiet de leur couroux,
+       </rdg>
+       <rdg wit="#B">
+        (lacune)
+       </rdg>
+       <rdg wit="#C">
+        (lacune)
+       </rdg>
+       <rdg wit="#D">
+        (lacune)
+       </rdg>
+      </app>
+     </l>
+     <l n="502">
+      <app>
+       <lem wit="#E">
+        Et leur haine pour moy s’estendit jusqu’à vous.
+       </lem>
+       <rdg wit="#A">
+        Et leur haine pour moy s’estendit iusqu’à vous.
+       </rdg>
+       <rdg wit="#B">
+        (lacune)
+       </rdg>
+       <rdg wit="#C">
+        (lacune)
+       </rdg>
+       <rdg wit="#D">
+        (lacune)
+       </rdg>
+      </app>
+     </l>
+     <l n="503">
+      <app>
+       <lem wit="#E">
+        C’est-là de vos mal-heurs le funeste principe,
+       </lem>
+       <rdg wit="#A">
+        C’est-là de vos mal-heurs le funeste principe,
+       </rdg>
+       <rdg wit="#B">
+        (lacune)
+       </rdg>
+       <rdg wit="#C">
+        (lacune)
+       </rdg>
+       <rdg wit="#D">
+        (lacune)
+       </rdg>
+      </app>
+     </l>
+     <l n="504">
+      <app>
+       <lem wit="#E">
+        Fuyez, Hemon, fuyez de la Fille d’Oedipe,
+       </lem>
+       <rdg wit="#A">
+        Fuyez, Hemon, fuyez de la Fille d’Oedipe,
+       </rdg>
+       <rdg wit="#B">
+        (lacune)
+       </rdg>
+       <rdg wit="#C">
+        (lacune)
+       </rdg>
+       <rdg wit="#D">
+        (lacune)
+       </rdg>
+      </app>
+     </l>
+     <l n="505">
+      <app>
+       <lem wit="#E">
+        Taschez de n’aimer plus, pour plaire aux immortels,
+       </lem>
+       <rdg wit="#A">
+        Taschez de n’aimer plus, pour plaire aux immortels,
+       </rdg>
+       <rdg wit="#B">
+        (lacune)
+       </rdg>
+       <rdg wit="#C">
+        (lacune)
+       </rdg>
+       <rdg wit="#D">
+        (lacune)
+       </rdg>
+      </app>
+     </l>
+     <l n="506">
+      <app>
+       <lem wit="#E">
+        Et la Fille &amp; la sœur de tant de Criminels.
+       </lem>
+       <rdg wit="#A">
+        Et la Fille &amp; la sœur de tant de Criminels.
+       </rdg>
+       <rdg wit="#B">
+        (lacune)
+       </rdg>
+       <rdg wit="#C">
+        (lacune)
+       </rdg>
+       <rdg wit="#D">
+        (lacune)
+       </rdg>
+      </app>
+     </l>
+     <l n="507.1">
+      <app>
+       <lem wit="#A #E">
+        Le&#160;crime&#160;en&#160;sa&#160;famille….
+       </lem>
+       <rdg wit="#B #C #D">
+        (lacune)
+       </rdg>
+      </app>
+     </l>
+    </sp>
+    <sp>
+     <speaker>
+      <app>
+       <lem wit="#A #E">
+        HEMON.
+       </lem>
+       <rdg wit="#B #C #D">
+        (lacune)
+       </rdg>
+      </app>
+     </speaker>
+     <l n="507.2">
+      <app>
+       <lem wit="#A #E">
+        Ah&#160;!&#160;Madame&#160;leur&#160;crime,
+       </lem>
+       <rdg wit="#B #C #D">
+        (lacune)
+       </rdg>
+      </app>
+     </l>
+     <l n="508">
+      <app>
+       <lem wit="#E">
+        Ne fait que relever vostre vertu sublime,
+       </lem>
+       <rdg wit="#A">
+        Ne fait que releuer vostre vertu sublime,
+       </rdg>
+       <rdg wit="#B">
+        (lacune)
+       </rdg>
+       <rdg wit="#C">
+        (lacune)
+       </rdg>
+       <rdg wit="#D">
+        (lacune)
+       </rdg>
+      </app>
+     </l>
+     <l n="509">
+      <app>
+       <lem wit="#E">
+        Puisque par un effort dont les Dieux sont jaloux,
+       </lem>
+       <rdg wit="#A">
+        Puisque par vn effort dont les Dieux sont ialoux,
+       </rdg>
+       <rdg wit="#B">
+        (lacune)
+       </rdg>
+       <rdg wit="#C">
+        (lacune)
+       </rdg>
+       <rdg wit="#D">
+        (lacune)
+       </rdg>
+      </app>
+     </l>
+     <l n="510">
+      <app>
+       <lem wit="#E">
+        Vous brillez d’un éclat qui ne vient que de vous.
+       </lem>
+       <rdg wit="#A">
+        Vous brillez d’vn éclat qui ne vient que de vous.
+       </rdg>
+       <rdg wit="#B">
+        (lacune)
+       </rdg>
+       <rdg wit="#C">
+        (lacune)
+       </rdg>
+       <rdg wit="#D">
+        (lacune)
+       </rdg>
+      </app>
+     </l>
+     <l n="511">
+      Que le Ciel à son gré de ma perte dispose,
+     </l>
+     <l n="512">
+      <app>
+       <lem wit="#B #C #D #E">
+        J’en
+       </lem>
+       <rdg wit="#A">
+        I’en
+       </rdg>
+      </app>
+      cheriray
+      <app>
+       <lem wit="#E">
+        tousjours
+       </lem>
+       <rdg wit="#A">
+        tousiours
+       </rdg>
+       <rdg wit="#B #C #D">
+        toûjours
+       </rdg>
+      </app>
+      &amp;
+      <app>
+       <lem wit="#B #C #D #E">
+        l’une
+       </lem>
+       <rdg wit="#A">
+        l’vne
+       </rdg>
+      </app>
+      &amp; l’autre cause,
+     </l>
+     <l n="513">
+      Glorieux de mourir pour le sang de mes
+      <app>
+       <lem wit="#A #E">
+        Roys,
+       </lem>
+       <rdg wit="#B #C #D">
+        Rois,
+       </rdg>
+      </app>
+     </l>
+     <l n="514">
+      Et plus heureux encor de mourir sous vos lois.
+     </l>
+     <l n="515">
+      <app>
+       <lem wit="#E">
+        Plust aux Dieux seulement que vostre amant fidelle,
+       </lem>
+       <rdg wit="#A">
+        Plust aux Dieux seulement que vostre amant fidelle,
+       </rdg>
+       <rdg wit="#B">
+        (lacune)
+       </rdg>
+       <rdg wit="#C">
+        (lacune)
+       </rdg>
+       <rdg wit="#D">
+        (lacune)
+       </rdg>
+      </app>
+     </l>
+     <l n="516">
+      <app>
+       <lem wit="#E">
+        Pust avoir de leur haine une cause nouvelle,
+       </lem>
+       <rdg wit="#A">
+        Pust auoir de leur haine vne cause nouuelle,
+       </rdg>
+       <rdg wit="#B">
+        (lacune)
+       </rdg>
+       <rdg wit="#C">
+        (lacune)
+       </rdg>
+       <rdg wit="#D">
+        (lacune)
+       </rdg>
+      </app>
+     </l>
+     <l n="517">
+      <app>
+       <lem wit="#E">
+        Et que pour vous aymer meritant leur courroux,
+       </lem>
+       <rdg wit="#A">
+        Et que pour vous aymer meritant leur courroux,
+       </rdg>
+       <rdg wit="#B">
+        (lacune)
+       </rdg>
+       <rdg wit="#C">
+        (lacune)
+       </rdg>
+       <rdg wit="#D">
+        (lacune)
+       </rdg>
+      </app>
+     </l>
+     <l n="518">
+      <app>
+       <lem wit="#E">
+        Il pust mourir encor pour estre aymé de vous.
+       </lem>
+       <rdg wit="#A">
+        Il pust mourir encor pour estre aymé de vous.
+       </rdg>
+       <rdg wit="#B">
+        (lacune)
+       </rdg>
+       <rdg wit="#C">
+        (lacune)
+       </rdg>
+       <rdg wit="#D">
+        (lacune)
+       </rdg>
+      </app>
+     </l>
+     <l n="519">
+      Aussi-bien que
+      <app>
+       <lem wit="#B #C #D #E">
+        ferois-je
+       </lem>
+       <rdg wit="#A">
+        ferois-ie
+       </rdg>
+      </app>
+      en ce commun
+      <app>
+       <lem wit="#A #E">
+        naufrage,
+       </lem>
+       <rdg wit="#B #C #D">
+        naufrage&#160;?
+       </rdg>
+      </app>
+     </l>
+     <l n="520">
+      <app>
+       <lem wit="#B #C #D #E">
+        Pourrois-je
+       </lem>
+       <rdg wit="#A">
+        Pourrois-ie
+       </rdg>
+      </app>
+      me resoudre à
+      <app>
+       <lem wit="#B #C #D #E">
+        vivre
+       </lem>
+       <rdg wit="#A">
+        viure
+       </rdg>
+      </app>
+      <app>
+       <lem wit="#E">
+        d’avantage,
+       </lem>
+       <rdg wit="#A">
+        d’auantage,
+       </rdg>
+       <rdg wit="#B #C">
+        davantage,
+       </rdg>
+       <rdg wit="#D">
+        davantage&#160;?
+       </rdg>
+      </app>
+     </l>
+     <l n="521">
+      En vain les Dieux voudroient differer mon trépas,
+     </l>
+     <l n="522">
+      Mon desespoir feroit ce qu’ils ne feroient
+      <app>
+       <lem wit="#A #E">
+        pas,
+       </lem>
+       <rdg wit="#B #C #D">
+        pas.
+       </rdg>
+      </app>
+     </l>
+     <l n="523">
+      Mais peut-estre
+      <app>
+       <lem wit="#A #E">
+        en&#160;ce&#160;point
+       </lem>
+       <rdg wit="#B">
+        apres&#160;tout
+       </rdg>
+       <rdg wit="#C #D">
+        aprés&#160;tout
+       </rdg>
+      </app>
+      nostre frayeur est vaine,
+     </l>
+     <l n="524">
+      <app>
+       <lem wit="#A #B #E">
+        Attendons….
+       </lem>
+       <rdg wit="#C #D">
+        Attendons…
+       </rdg>
+      </app>
+      Mais
+      <app>
+       <lem wit="#A #B #D #E">
+        voicy
+       </lem>
+       <rdg wit="#C">
+        voici
+       </rdg>
+      </app>
+      Polinice &amp; la Reine.
+     </l>
+    </sp>
+   </div>
+  </body>
+ </text>
+</TEI>

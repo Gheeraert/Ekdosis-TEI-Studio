@@ -8,7 +8,7 @@ _ACT_RE = re.compile(r"^####(.+?)####$")
 _SCENE_RE = re.compile(r"^###(.+?)###$")
 _SPEAKER_RE = re.compile(r"^#(.+?)#$")
 _CAST_RE = re.compile(r"##(.*?)##")
-_STAGE_RE = re.compile(r"^\*\*(.+?)\*\*$")
+_STAGE_RE = re.compile(r"^\*\*(?!\*)(.+?)(?<!\*)\*\*$")
 
 
 def _split_parallel_blocks(text: str, witness_count: int) -> list[list[str]]:
@@ -99,8 +99,8 @@ def parse_play(text: str, config: EditionConfig) -> Play:
             current_scene = Scene(head_readings=_extract_wrapped(block, _SCENE_RE), head_block_index=block_index, cast_readings=[])
             current_act.scenes.append(current_scene)
             current_speech = None
-            shared_base = None
-            shared_part = 0
+            # Keep an open shared-verse state across successive scene boundaries.
+            # It will be closed deterministically on the next verse if no `***` continuation appears.
             continue
 
         if first.startswith("##") and not first.startswith("###") and _CAST_RE.search(first):
@@ -146,6 +146,9 @@ def parse_play(text: str, config: EditionConfig) -> Play:
             shared_part += 1
             number = f"{shared_base}.{shared_part}"
         else:
+            if shared_base is not None and not split_continues:
+                shared_base = None
+                shared_part = 0
             base = line_number
             line_number += 1
             if split_starts:
