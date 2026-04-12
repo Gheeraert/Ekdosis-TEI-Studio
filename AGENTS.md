@@ -138,6 +138,26 @@ This includes:
 
 - Core principle:
   the system models "collatable text", not "variant verse".
+  
+- Implicit stage directions (`$$TYPE$$ ... $$fin$$`) are supported as simple spans within a single speech. They must be rendered as:
+
+  `<stage xml:id="impliciteN" type="DI" ana="#TYPE"> ... </stage>`
+
+  containing the collated and normally numbered `<l>` elements of the span.
+
+- Current guaranteed scope for implicit stage directions:
+  - simple non-nested spans
+  - same speech
+  - one or more consecutive verse lines
+
+- Out of scope for now:
+  - nested spans
+  - interaction with shared verses
+  - interaction with scene changes
+  - witness-dependent presence or absence of span markers
+
+- TYPE validation is intentionally left open at this stage.
+  Do not hard-code a closed enum yet.
 
 
 ## Legacy code policy

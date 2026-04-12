@@ -270,29 +270,38 @@ These behaviors must be regression-tested through the fixtures in:
 
 - `fixtures/shared_verses/`
 
-### 6.7 Implicit stage directions (initial support)
 
-The input syntax supports implicit stage directions using span markers:
+### 6.7 Implicit stage directions (initial stabilized support)
 
-- `$$TYPE$$` opens a span
-- `$$fin$$` closes the span
+The input syntax supports implicit stage direction spans using:
 
-Where TYPE is a category such as:
-- SET (setting)
-- EVT (event)
-- etc.
+- `$$TYPE$$` to open a span
+- `$$fin$$` to close it
 
-In the initial implementation:
+Where TYPE is an editorial category label such as `SET`, `EVT`, etc.
 
-- an implicit stage direction spans one or more consecutive verse lines
-- the span does not interrupt verse numbering or collation
-- the span is rendered in TEI as:
+At the current stage of the project, the following behavior is guaranteed:
 
-```xml
-<stage xml:id="..." type="DI" ana="#TYPE">
-  <l>...</l>
-  ...
-</stage>
+- an implicit stage direction span may contain one or more consecutive verse lines
+- the span remains inside the current `Speech`
+- the lines inside the span are collated and numbered exactly like ordinary verse lines
+- the TEI output must be:
+
+  `<stage xml:id="impliciteN" type="DI" ana="#TYPE"> ... </stage>`
+
+  containing the corresponding `<l>` elements
+
+- `xml:id` values must be generated deterministically as `implicite1`, `implicite2`, etc.
+
+Current out-of-scope cases:
+
+- nested implicit stage spans
+- interaction with shared verses
+- interaction with scene changes
+- witness-dependent presence or absence of span markers
+- other complex cases
+
+TYPE validation is intentionally left open at this stage and must not yet be restricted to a fixed closed list.
 
 
 ## 7. Shared verse requirements
@@ -412,10 +421,7 @@ The directories:
 contain authoritative regression fixtures for:
 - variant-bearing structural text blocks
 - prioritized shared-verse cases
-
-The directory `fixtures/implied_stage_directions/` contains regression fixtures
-for implicit stage direction spans (`$$TYPE$$ ... $$fin$$`), which will be
-progressively stabilized.
+- simple implicit stage direction spans
 
 ### 10.3 Comparison strategy
 
