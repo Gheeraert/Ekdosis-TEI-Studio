@@ -1,0 +1,1178 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0">
+  <teiHeader>
+    <fileDesc>
+      <titleStmt>
+        <title>Britannicus</title>
+        <author>Jean Racine</author>
+        <editor>Caroline Labrune</editor>
+      </titleStmt>
+      <publicationStmt>
+        <publisher>Presses de l'Université de Rouen et du Havre</publisher>
+        <pubPlace>Rouen</pubPlace>
+       <date>30 July 2025</date>
+      </publicationStmt>
+      <sourceDesc>
+        <p>généré par Ekdosis-TEI Studio – Acte I, Scène 1</p>
+      </sourceDesc>
+    </fileDesc>
+  </teiHeader>
+  <text>
+    <body>
+  <div type="scene" n="1">
+    <head>SCENE II.</head>
+    <stage type='personnages'><app>
+        <lem wit="#A #B #C #E">AGRIPPINE, BURRHUS, ALBINE. </lem>
+        <rdg wit="#D">AGRIPPINE, BURRHUS, ALBINE, </rdg>
+      </app></stage>
+    <sp>
+      <speaker>BURRHUS.</speaker>
+<l n="128">
+&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;MAdame, </l>
+
+<l n="129">
+Au nom de l’Empereur j’allois vous informer </l>
+
+<l n="130">
+D’un ordre, qui d’abord a pû vous allarmer, </l>
+
+<l n="131">
+Mais qui n’est que l’effet d’une sage 
+      <app>
+        <lem wit="#A #C #D #E">conduite, </lem>
+        <rdg wit="#B">conduite </rdg>
+      </app>
+</l>
+
+<l n="132">
+Dont Cesar a voulu que vous 
+      <app>
+        <lem wit="#A #B #D #E">soyez </lem>
+        <rdg wit="#C">soiés </rdg>
+      </app>
+instruite. </l>
+
+    </sp>
+    <sp>
+      <speaker>AGRIPPINE.</speaker>
+<l n="133">
+Puisqu’il le veut, entrons, il m’en instruira mieux. </l>
+
+    </sp>
+    <sp>
+      <speaker>BURRHUS.</speaker>
+<l n="134">
+Cesar pour quelque temps s’est soustrait à nos yeux. </l>
+
+<l n="135">
+Déja par une porte au public moins connuë, </l>
+
+<l n="136">
+L’un &amp; l’autre Consul vous avoient prevenuë, </l>
+
+<l n="137">
+Madame. Mais 
+      <app>
+        <lem wit="#A #B #D #E">souffrez </lem>
+        <rdg wit="#C">souffrés </rdg>
+      </app>
+que je retourne exprés... </l>
+
+    </sp>
+    <sp>
+      <speaker>AGRIPPINE.</speaker>
+<l n="138">
+Non, je ne trouble point ses augustes secrets. </l>
+
+<l n="139">
+Cependant 
+      <app>
+        <lem wit="#A #B #D #E">voulez-vous </lem>
+        <rdg wit="#C">voulés-vous </rdg>
+      </app>
+qu’avez moins de 
+      <app>
+        <lem wit="#B #C #D #E">contrainte </lem>
+        <rdg wit="#A">cõtrainte </rdg>
+      </app>
+</l>
+
+<l n="140">
+L’un &amp; l’autre une fois nous nous 
+      <app>
+        <lem wit="#B #C #D #E">parlions </lem>
+        <rdg wit="#A">parliõs </rdg>
+      </app>
+sans feinte&#160;? </l>
+
+    </sp>
+    <sp>
+      <speaker>BURRHUS.</speaker>
+<l n="141">
+Burrhus pour le mensonge eut toûjours trop 
+      <app>
+        <lem wit="#A #B #E">d’horreur. </lem>
+        <rdg wit="#C">d’horreur </rdg>
+        <rdg wit="#D">d’horreur&#160;? </rdg>
+      </app>
+</l>
+
+    </sp>
+    <sp>
+      <speaker>AGRIPPINE.</speaker>
+<l n="142">
+
+      <app>
+        <lem wit="#A #B #D #E">Pretendez-vous </lem>
+        <rdg wit="#C">Pretendés-vous </rdg>
+      </app>
+long-temps me cacher l’Empereur&#160;? </l>
+
+<l n="143">
+Ne le 
+      <app>
+        <lem wit="#A #B #D #E">verray-je </lem>
+        <rdg wit="#C">verrai-je </rdg>
+      </app>
+plus qu’à titre d’importune&#160;? </l>
+
+<l n="144">
+
+      <app>
+        <lem wit="#A #B #D #E">Ay-je </lem>
+        <rdg wit="#C">Ai-je </rdg>
+      </app>
+donc élevé si haut vostre 
+      <app>
+        <lem wit="#A #B #E">fortune </lem>
+        <rdg wit="#C #D">fortune, </rdg>
+      </app>
+</l>
+
+<l n="145">
+Pour mettre une barriere entre mon fils &amp; 
+      <app>
+        <lem wit="#A #B #D #E">moy&#160;? </lem>
+        <rdg wit="#C">moi&#160;? </rdg>
+      </app>
+</l>
+
+<l n="146">
+Ne 
+      <app>
+        <lem wit="#A #B #D #E">l’osez-vous </lem>
+        <rdg wit="#C">l’osés-vous </rdg>
+      </app>
+laisser un moment sur sa 
+      <app>
+        <lem wit="#A #B #D #E">foy&#160;? </lem>
+        <rdg wit="#C">foi&#160;? </rdg>
+      </app>
+</l>
+
+<l n="147">
+Entre Seneque &amp; vous 
+      <app>
+        <lem wit="#A #B #D #E">disputez-vous </lem>
+        <rdg wit="#C">disputés-vous </rdg>
+      </app>
+la gloire </l>
+
+<l n="148">
+A qui m’effacera 
+      <app>
+        <lem wit="#A #B #E">plûtost </lem>
+        <rdg wit="#C #D">plûtôt </rdg>
+      </app>
+de sa memoire&#160;? </l>
+
+<l n="149">
+Vous 
+      <app>
+        <lem wit="#A #B #D #E">l’ay-je </lem>
+        <rdg wit="#C">l’ai-je </rdg>
+      </app>
+confié pour en faire un ingrat&#160;? </l>
+
+<l n="150">
+Pour estre sous son nom les 
+      <app>
+        <lem wit="#A #B #D #E">Maistres </lem>
+        <rdg wit="#C">Maîtres </rdg>
+      </app>
+de l’Estat&#160;? </l>
+
+<l n="151">
+Certes plus je medite, &amp; moins je me figure </l>
+
+<l n="152">
+Que vous 
+      <app>
+        <lem wit="#A #B #D #E">m’osiez </lem>
+        <rdg wit="#C">m’osiés </rdg>
+      </app>
+conter pour 
+      <app>
+        <lem wit="#A #B #E">vostre </lem>
+        <rdg wit="#C #D">vôtre </rdg>
+      </app>
+Creature&#160;; </l>
+
+<l n="153">
+
+      <app>
+        <lem wit="#A #B #C #E">Vous, </lem>
+        <rdg wit="#D">Vous </rdg>
+      </app>
+dont 
+      <app>
+        <lem wit="#A #B #D #E">j’ay </lem>
+        <rdg wit="#C">j’ai </rdg>
+      </app>
+pû laisser vieillir l’ambition </l>
+
+<l n="154">
+Dans les honneurs obscurs de quelque Legion, </l>
+
+<l n="155">
+Et 
+      <app>
+        <lem wit="#A #B #D #E">moy </lem>
+        <rdg wit="#C">moi </rdg>
+      </app>
+qui sur le Trône ay 
+      <app>
+        <lem wit="#A #B #E">suivy </lem>
+        <rdg wit="#C #D">suivi </rdg>
+      </app>
+mes 
+      <app>
+        <lem wit="#A #B #E">Ancestres, </lem>
+        <rdg wit="#C #D">Ancêtres, </rdg>
+      </app>
+</l>
+
+<l n="156">
+Moy fille, femme, sœur, &amp; mere de vos 
+      <app>
+        <lem wit="#A #B #E">Maistres. </lem>
+        <rdg wit="#C #D">Maîtres. </rdg>
+      </app>
+</l>
+
+<l n="157">
+Que 
+      <app>
+        <lem wit="#A #B #D #E">pretendez-vous </lem>
+        <rdg wit="#C">pretendés-vous </rdg>
+      </app>
+donc&#160;? 
+      <app>
+        <lem wit="#A #B #D #E">Pensez-vous </lem>
+        <rdg wit="#C">Pensés-vous </rdg>
+      </app>
+que ma voix </l>
+
+<l n="158">
+Ait fait un Empereur pour m’en imposer trois&#160;? </l>
+
+<l n="159">
+Neron n’est plus enfant. N’est-il pas 
+      <app>
+        <lem wit="#B #E">temps </lem>
+        <rdg wit="#A">tẽps </rdg>
+        <rdg wit="#C #D">tems </rdg>
+      </app>
+qu’il regne&#160;? </l>
+
+<l n="160">
+Jusqu’à quand 
+      <app>
+        <lem wit="#A #B #D #E">voulez-vous </lem>
+        <rdg wit="#C">voulés-vous </rdg>
+      </app>
+que l’Empereur vous craigne&#160;? </l>
+
+<l n="161">
+Ne sçauroit-il rien voir, qu’il n’emprunte vos yeux&#160;? </l>
+
+<l n="162">
+Pour se conduire enfin n’a-t-il pas ses ayeux&#160;? </l>
+
+<l n="163">
+Qu’il 
+      <app>
+        <lem wit="#A #B #C #E">choisisse, </lem>
+        <rdg wit="#D">choisisse </rdg>
+      </app>
+s’il veut, d’Auguste, ou de Tibere. </l>
+
+<l n="164">
+Qu’il 
+      <app>
+        <lem wit="#A #B #C #E">imite, </lem>
+        <rdg wit="#D">imite </rdg>
+      </app>
+s’il peut, Germanicus mon pere. </l>
+
+<l n="165">
+
+      <app>
+        <lem wit="#A #B #E">Parmy </lem>
+        <rdg wit="#C #D">Parmi </rdg>
+      </app>
+tant de Heros je n’ose me placer. </l>
+
+<l n="166">
+Mais il est des vertus que je 
+      <app>
+        <lem wit="#A #B #D #E">luy </lem>
+        <rdg wit="#C">lui </rdg>
+      </app>
+puis tracer. </l>
+
+<l n="167">
+Je puis l’instruire au moins, combien sa confidence </l>
+
+<l n="168">
+Entre un sujet &amp; 
+      <app>
+        <lem wit="#A #B #D #E">luy </lem>
+        <rdg wit="#C">lui </rdg>
+      </app>
+doit laisser de distance. </l>
+
+    </sp>
+    <sp>
+      <speaker>BURRHUS.</speaker>
+<l n="169">
+Je ne m’étois chargé dans cette 
+      <app>
+        <lem wit="#A #E">occasion </lem>
+        <rdg wit="#B #C #D">occasion, </rdg>
+      </app>
+</l>
+
+<l n="170">
+Que d’excuser Cesar d’une seule action. </l>
+
+<l n="171">
+Mais puisque sans vouloir que je le justifie, </l>
+
+<l n="172">
+Vous me 
+      <app>
+        <lem wit="#A #B #D #E">rendez </lem>
+        <rdg wit="#C">rendés </rdg>
+      </app>
+garant du reste de sa vie, </l>
+
+<l n="173">
+Je 
+      <app>
+        <lem wit="#A #B #E">répondray, </lem>
+        <rdg wit="#C #D">répondrai, </rdg>
+      </app>
+Madame, avec la liberté </l>
+
+<l n="174">
+D’un Soldat, qui sçait mal farder la verité. </l>
+
+<l n="175">
+&#160;&#160;&#160;&#160;&#160;&#160;Vous m’avez de Cesar confié la jeunesse, </l>
+
+<l n="176">
+Je l’avouë, &amp; je 
+      <app>
+        <lem wit="#A #B #E">doy </lem>
+        <rdg wit="#C">doi </rdg>
+        <rdg wit="#D">dois </rdg>
+      </app>
+m’en souvenir sans cesse. </l>
+
+<l n="177">
+Mais vous avois-je fait serment de le trahir, </l>
+
+<l n="178">
+D’en faire un Empereur, qui ne 
+      <app>
+        <lem wit="#A #B #E">sceût </lem>
+        <rdg wit="#C #D">sçût </rdg>
+      </app>
+
+      <app>
+        <lem wit="#A #B #D #E">qu’obeïr&#160;? </lem>
+        <rdg wit="#C">qu’obeir&#160;? </rdg>
+      </app>
+</l>
+
+<l n="179">
+Non. Ce n’est plus à vous qu’il faut que j’en réponde. </l>
+
+<l n="180">
+Ce n’est plus vostre 
+      <app>
+        <lem wit="#A #B #E">fils. </lem>
+        <rdg wit="#C">Fils, </rdg>
+        <rdg wit="#D">Fils. </rdg>
+      </app>
+C’est le 
+      <app>
+        <lem wit="#A #B #D #E">Maistre </lem>
+        <rdg wit="#C">Maître </rdg>
+      </app>
+du monde. </l>
+
+<l n="181">
+J’en 
+      <app>
+        <lem wit="#A #B #D #E">doy </lem>
+        <rdg wit="#C">doi </rdg>
+      </app>
+compte, Madame, à l’Empire 
+      <app>
+        <lem wit="#A #B #E">Romain </lem>
+        <rdg wit="#C #D">Romain, </rdg>
+      </app>
+</l>
+
+<l n="182">
+Qui croit voir son salut, ou sa perte en ma main. </l>
+
+<l n="183">
+Ah&#160;! si dans l’ignorance il le 
+      <app>
+        <lem wit="#A #E">faloit </lem>
+        <rdg wit="#B #C #D">falloit </rdg>
+      </app>
+instruire, </l>
+
+<l n="184">
+N’avoit-on que Seneque, &amp; 
+      <app>
+        <lem wit="#A #B #D #E">moy </lem>
+        <rdg wit="#C">moi </rdg>
+      </app>
+pour le seduire&#160;? </l>
+
+<l n="185">
+
+      <app>
+        <lem wit="#A #B #D #E">Pourquoy </lem>
+        <rdg wit="#C">Pourquoi </rdg>
+      </app>
+de sa conduite éloigner les Flateurs&#160;? </l>
+
+<l n="186">
+
+      <app>
+        <lem wit="#A #E">Faloit-il </lem>
+        <rdg wit="#B #C #D">Falloit-il </rdg>
+      </app>
+dans l’exil chercher des Corrupteurs&#160;? </l>
+
+<l n="187">
+La Cour de Claudius en esclaves fertile, </l>
+
+<l n="188">
+Pour deux que l’on cherchoit en eût presenté mille, </l>
+
+<l n="189">
+Qui tous auroient brigué l’honneur de l’avilir, </l>
+
+<l n="190">
+Dans une longue enfance ils l’auroient fait vieillir. </l>
+
+<l n="191">
+De 
+      <app>
+        <lem wit="#A #B #D #E">quoy </lem>
+        <rdg wit="#C">quoi </rdg>
+      </app>
+vous 
+      <app>
+        <lem wit="#A #B #D #E">plaignez-vous, </lem>
+        <rdg wit="#C">plaignés-vous, </rdg>
+      </app>
+Madame&#160;? On vous revere. </l>
+
+<l n="192">
+Ainsi que par Cesar, on jure par sa Mere. </l>
+
+<l n="193">
+L’Empereur, il est 
+      <app>
+        <lem wit="#A #B #D #E">vray, </lem>
+        <rdg wit="#C">vrai, </rdg>
+      </app>
+ne vient plus chaque jour </l>
+
+<l n="194">
+Mettre à vos 
+      <app>
+        <lem wit="#A #C #D #E">pieds </lem>
+        <rdg wit="#B">piez </rdg>
+      </app>
+l’Empire, &amp; grossir vostre Cour. </l>
+
+<l n="195">
+Mais le doit-il, Madame&#160;? Et sa reconnoissance </l>
+
+<l n="196">
+Ne peut-elle éclater que dans sa dépendance&#160;? </l>
+
+<l n="197">
+Toûjours humble, toûjours le timide Neron </l>
+
+<l n="198">
+
+      <app>
+        <lem wit="#A #E">N’ose-il </lem>
+        <rdg wit="#B">N’ose-t’il </rdg>
+        <rdg wit="#C #D">N’ose-t-il </rdg>
+      </app>
+estre Auguste, &amp; Cesar que de nom&#160;? </l>
+
+<l n="199">
+Vous le 
+      <app>
+        <lem wit="#A #B #D #E">diray-je </lem>
+        <rdg wit="#C">dirai-je </rdg>
+      </app>
+enfin&#160;? Rome le justifie. </l>
+
+<l n="200">
+Rome à trois Affranchis si long-temps asservie, </l>
+
+<l n="201">
+A peine respirant du joug qu’elle a porté, </l>
+
+<l n="202">
+Du regne de Neron compte sa liberté. </l>
+
+<l n="203">
+Que dis-je&#160;? La Vertu semble 
+      <app>
+        <lem wit="#A #B #C #E">mesme </lem>
+        <rdg wit="#D">même </rdg>
+      </app>
+renaistre. </l>
+
+<l n="204">
+Tout l’Empire n’est plus la 
+      <app>
+        <lem wit="#A #B #C #E">dépoüille </lem>
+        <rdg wit="#D">dépouille </rdg>
+      </app>
+d’un 
+      <app>
+        <lem wit="#A #C #E">Maître. </lem>
+        <rdg wit="#B #D">Maistre. </rdg>
+      </app>
+</l>
+
+<l n="205">
+Le Peuple au champ de Mars nomme ses Magistrats&#160;; </l>
+
+<l n="206">
+Cesar nomme les Chefs sur la 
+      <app>
+        <lem wit="#A #B #D #E">foy </lem>
+        <rdg wit="#C">foi </rdg>
+      </app>
+des Soldats. </l>
+
+<l n="207">
+Thraseas au Senat, Corbulon dans l’Armée, </l>
+
+<l n="208">
+Sont encore innocens, malgré leur renommée. </l>
+
+<l n="209">
+Les Deserts autrefois 
+      <app>
+        <lem wit="#A #B #D #E">peuplez </lem>
+        <rdg wit="#C">peuplés </rdg>
+      </app>
+de Senateurs </l>
+
+<l n="210">
+Ne sont plus 
+      <app>
+        <lem wit="#A #B #D #E">habitez </lem>
+        <rdg wit="#C">habités </rdg>
+      </app>
+que par leurs Delateurs. </l>
+
+<l n="211">
+Qu’importe que Cesar continuë à nous croire, </l>
+
+<l n="212">
+Pourvû que nos conseils ne tendent qu’à sa gloire&#160;? </l>
+
+<l n="213">
+Pourvû que dans le cours d’un regne florissant </l>
+
+<l n="214">
+Rome soit toûjours libre, &amp; Cesar 
+      <app>
+        <lem wit="#A #B #E">tout&#160;puissant&#160;? </lem>
+        <rdg wit="#C #D">tout-puissant&#160;? </rdg>
+      </app>
+</l>
+
+<l n="215">
+&#160;&#160;&#160;&#160;&#160;&#160;Mais, Madame, 
+      <app>
+        <lem wit="#A #B #C #E">Neron </lem>
+        <rdg wit="#D">Neron, </rdg>
+      </app>
+suffit 
+      <app>
+        <lem wit="#B #C #D #E">pour </lem>
+        <rdg wit="#A">ponr </rdg>
+      </app>
+se conduire. </l>
+
+<l n="216">
+J’obeïs, sans pretendre à l’honneur de l’instruire. </l>
+
+<l n="217">
+Sur ses Ayeux sans doute il n’a qu’à se regler. </l>
+
+<l n="218">
+Pour bien faire, Neron n’a qu’à se 
+      <app>
+        <lem wit="#A #B #C #E">ressembler&#160;; </lem>
+        <rdg wit="#D">ressembler&#160;: </rdg>
+      </app>
+</l>
+
+<l n="219">
+Heureux, si ses vertus l’une à l’autre enchaînées </l>
+
+<l n="220">
+Rameinent tous les ans ses premieres années&#160;! </l>
+
+    </sp>
+    <sp>
+      <speaker>AGRIPPINE.</speaker>
+<l n="221">
+Ainsi sur l’avenir n’osant vous assurer </l>
+
+<l n="222">
+Vous 
+      <app>
+        <lem wit="#A #B #D #E">croyez </lem>
+        <rdg wit="#C">croiés </rdg>
+      </app>
+que sans vous Neron va s’égarer. </l>
+
+<l n="223">
+Mais vous, qui jusqu’icy content de 
+      <app>
+        <lem wit="#A #B #E">vôtre </lem>
+        <rdg wit="#C #D">vostre </rdg>
+      </app>
+ouvrage, </l>
+
+<l n="224">
+
+      <app>
+        <lem wit="#A #B #D #E">Venez </lem>
+        <rdg wit="#C">Venés </rdg>
+      </app>
+de ses vertus nous rendre témoignage, </l>
+
+<l n="225">
+
+      <app>
+        <lem wit="#A #B #D #E">Expliquez-nous, </lem>
+        <rdg wit="#C">Expliqués-nous, </rdg>
+      </app>
+
+      <app>
+        <lem wit="#A #B #D #E">pourquoy </lem>
+        <rdg wit="#C">pourquoi </rdg>
+      </app>
+devenu ravisseur </l>
+
+<l n="226">
+Neron de Silanus fait enlever la Sœur. </l>
+
+<l n="227">
+Ne tient-il qu’à marquer de cette ignominie </l>
+
+<l n="228">
+Le sang de 
+      <app>
+        <lem wit="#A #B #C #E">nos </lem>
+        <rdg wit="#D">mes </rdg>
+      </app>
+Ayeux, qui brille dans Junie&#160;? </l>
+
+<l n="229">
+De 
+      <app>
+        <lem wit="#A #B #D #E">quoy </lem>
+        <rdg wit="#C">quoi </rdg>
+      </app>
+
+      <app>
+        <lem wit="#A #B #D #E">l’accuse-t-il&#160;? </lem>
+        <rdg wit="#C">l’accuse-t’il&#160;? </rdg>
+      </app>
+Et par quel attentat </l>
+
+<l n="230">
+Devient-elle en un jour criminelle 
+      <app>
+        <lem wit="#A #B #D #E">d’Estat&#160;? </lem>
+        <rdg wit="#C">d’Etat&#160;? </rdg>
+      </app>
+</l>
+
+<l n="231">
+Elle, qui sans orgueil 
+      <app>
+        <lem wit="#A #E">jusqu’à&#160;lors </lem>
+        <rdg wit="#B">jusqu’àlors </rdg>
+        <rdg wit="#C #D">jusqu’alors </rdg>
+      </app>
+élevée, </l>
+
+<l n="232">
+N’auroit point vû Neron, s’il ne l’eust enlevée, </l>
+
+<l n="233">
+Et qui 
+      <app>
+        <lem wit="#A #B #C #E">mesme </lem>
+        <rdg wit="#D">même </rdg>
+      </app>
+auroit mis au rang de ses bienfaits </l>
+
+<l n="234">
+L’heureuse liberté de ne le voir jamais. </l>
+
+    </sp>
+    <sp>
+      <speaker>BURRHUS.</speaker>
+<l n="235">
+Je 
+      <app>
+        <lem wit="#A #B #D #E">sçay </lem>
+        <rdg wit="#C">sçai </rdg>
+      </app>
+que d’aucun crime elle n’est soupçonnée. </l>
+
+<l n="236">
+Mais 
+      <app>
+        <lem wit="#A #B #D #E">jusqu’icy </lem>
+        <rdg wit="#C">jusqu’ici </rdg>
+      </app>
+Cesar ne l’a point 
+      <app>
+        <lem wit="#A #C #D #E">condamnée, </lem>
+        <rdg wit="#B">condannée, </rdg>
+      </app>
+</l>
+
+<l n="237">
+
+      <app>
+        <lem wit="#A #B #C #E">Madame. </lem>
+        <rdg wit="#D">Madame, </rdg>
+      </app>
+
+      <app>
+        <lem wit="#A #B #C #E">Aucun </lem>
+        <rdg wit="#D">aucun </rdg>
+      </app>
+objet ne blesse 
+      <app>
+        <lem wit="#A #B #D #E">icy </lem>
+        <rdg wit="#C">ici </rdg>
+      </app>
+ses yeux. </l>
+
+<l n="238">
+Elle est dans un Palais tout plein de ses Ayeux. </l>
+
+<l n="239">
+Vous 
+      <app>
+        <lem wit="#A #B #D #E">sçavez </lem>
+        <rdg wit="#C">sçavés </rdg>
+      </app>
+que les droits qu’elle porte avec elle </l>
+
+<l n="240">
+Peuvent de son 
+      <app>
+        <lem wit="#A #E">Espoux </lem>
+        <rdg wit="#B #C #D">Epoux </rdg>
+      </app>
+faire un Prince rebelle, </l>
+
+<l n="241">
+Que le sang de Cesar ne se doit allier </l>
+
+<l n="242">
+Qu’à ceux à qui Cesar le veut bien 
+      <app>
+        <lem wit="#A #B #E">confier, </lem>
+        <rdg wit="#C #D">confier&#160;; </rdg>
+      </app>
+</l>
+
+<l n="243">
+Et 
+      <app>
+        <lem wit="#A #B #C #E">vous&#160;mesme </lem>
+        <rdg wit="#D">vous-même </rdg>
+      </app>
+
+      <app>
+        <lem wit="#A #E">avoürez </lem>
+        <rdg wit="#B">avoüerez </rdg>
+        <rdg wit="#C">avoüerés </rdg>
+        <rdg wit="#D">avoûrez </rdg>
+      </app>
+qu’il ne seroit pas juste, </l>
+
+<l n="244">
+Qu’on disposast sans 
+      <app>
+        <lem wit="#A #B #D #E">luy </lem>
+        <rdg wit="#C">lui </rdg>
+      </app>
+de la 
+      <app>
+        <lem wit="#A #B #E">Niece </lem>
+        <rdg wit="#C #D">Niéce </rdg>
+      </app>
+d’Auguste. </l>
+
+    </sp>
+    <sp>
+      <speaker>AGRIPPINE.</speaker>
+<l n="245">
+Je vous entens. Neron m’apprend par vostre voix </l>
+
+<l n="246">
+Qu’en vain Britannicus 
+      <app>
+        <lem wit="#A #C #D #E">s’assure </lem>
+        <rdg wit="#B">s’asseure </rdg>
+      </app>
+sur mon choix. </l>
+
+<l n="247">
+En vain pour détourner ses yeux de sa misere, </l>
+
+<l n="248">
+
+      <app>
+        <lem wit="#A #B #D #E">J’ay </lem>
+        <rdg wit="#C">J’ai </rdg>
+      </app>
+flaté son amour d’un Hymen qu’il 
+      <app>
+        <lem wit="#A #E">espere, </lem>
+        <rdg wit="#B #C #D">espere. </rdg>
+      </app>
+</l>
+
+<l n="249">
+A ma confusion Neron veut faire voir </l>
+
+<l n="250">
+Qu’Agrippine promet par 
+      <app>
+        <lem wit="#A #D #E">delà </lem>
+        <rdg wit="#B #C">de&#160;là </rdg>
+      </app>
+son pouvoir. </l>
+
+<l n="251">
+Rome de ma faveur est trop préoccupée, </l>
+
+<l n="252">
+Il veut par 
+      <app>
+        <lem wit="#A #B #E">cét </lem>
+        <rdg wit="#C #D">cet </rdg>
+      </app>
+affront qu’elle soit 
+      <app>
+        <lem wit="#A #E">détrompée, </lem>
+        <rdg wit="#B #C #D">detrompée, </rdg>
+      </app>
+</l>
+
+<l n="253">
+Et que tout l’Univers apprenne avec terreur </l>
+
+<l n="254">
+A ne confondre plus mon fils &amp; l’Empereur. </l>
+
+<l n="255">
+Il le peut. Toutefois j’ose encore 
+      <app>
+        <lem wit="#A #B #D #E">luy </lem>
+        <rdg wit="#C">lui </rdg>
+      </app>
+dire </l>
+
+<l n="256">
+Qu’il doit avant ce coup affermir son Empire, </l>
+
+<l n="257">
+Et qu’en me reduisant à la necessité </l>
+
+<l n="258">
+D’éprouver contre 
+      <app>
+        <lem wit="#A #B #D #E">luy </lem>
+        <rdg wit="#C">lui </rdg>
+      </app>
+ma foible autorité, </l>
+
+<l n="259">
+Il expose la sienne, &amp; que dans la balance </l>
+
+<l n="260">
+Mon nom 
+      <app>
+        <lem wit="#A #B #D #E">peut-estre </lem>
+        <rdg wit="#C">peut&#160;estre </rdg>
+      </app>
+aura plus de poids qu’il ne 
+      <app>
+        <lem wit="#B #C #D #E">pense. </lem>
+        <rdg wit="#A">pẽse. </rdg>
+      </app>
+</l>
+
+    </sp>
+    <sp>
+      <speaker>BURRHUS.</speaker>
+<l n="261">
+
+      <app>
+        <lem wit="#A #B #D #E">Quoy </lem>
+        <rdg wit="#C">Quoi </rdg>
+      </app>
+Madame&#160;? 
+      <app>
+        <lem wit="#A #C #D #E">Toûjours </lem>
+        <rdg wit="#B">Toujours </rdg>
+      </app>
+soupçonner son respect&#160;? </l>
+
+<l n="262">
+Ne peut-il faire un pas qui ne vous soit suspect&#160;? </l>
+
+<l n="263">
+L’Empereur vous croit-il du 
+      <app>
+        <lem wit="#A #E">party </lem>
+        <rdg wit="#B #C #D">parti </rdg>
+      </app>
+de Junie&#160;? </l>
+
+<l n="264">
+Avec Britannicus vous croit-il 
+      <app>
+        <lem wit="#A #B #E">reünie&#160;? </lem>
+        <rdg wit="#C">réünie&#160;? </rdg>
+        <rdg wit="#D">réunie&#160;? </rdg>
+      </app>
+</l>
+
+<l n="265">
+
+      <app>
+        <lem wit="#A #B #E">Quoy </lem>
+        <rdg wit="#C">Quoi&#160;! </rdg>
+        <rdg wit="#D">Quoy&#160;! </rdg>
+      </app>
+de vos ennemis 
+      <app>
+        <lem wit="#A #B #D #E">devenez-vous </lem>
+        <rdg wit="#C">devenés-vous </rdg>
+      </app>
+
+      <app>
+        <lem wit="#A #B #D #E">l’appuy </lem>
+        <rdg wit="#C">l’appui </rdg>
+      </app>
+</l>
+
+<l n="266">
+Pour trouver un pretexte à vous plaindre de 
+      <app>
+        <lem wit="#A #B #D #E">luy&#160;? </lem>
+        <rdg wit="#C">lui&#160;? </rdg>
+      </app>
+</l>
+
+<l n="267">
+Sur le moindre discours qu’on pourra vous redire, </l>
+
+<l n="268">
+
+      <app>
+        <lem wit="#A #B #D #E">Serez-vous </lem>
+        <rdg wit="#C">Serés-vous </rdg>
+      </app>
+toûjours preste à partager l’Empire&#160;? </l>
+
+<l n="269">
+Vous 
+      <app>
+        <lem wit="#A #B #D #E">craindrez-vous </lem>
+        <rdg wit="#C">craindrés-vous </rdg>
+      </app>
+sans cesse, &amp; vos embrassemens </l>
+
+<l n="270">
+Ne se passeront-ils qu’en éclaircissemens&#160;? </l>
+
+<l n="271">
+Ah&#160;! 
+      <app>
+        <lem wit="#A #B #D #E">Quittez </lem>
+        <rdg wit="#C">Quittés </rdg>
+      </app>
+d’un Censeur la triste diligence. </l>
+
+<l n="272">
+D’une Mere facile 
+      <app>
+        <lem wit="#A #B #D #E">affectez </lem>
+        <rdg wit="#C">affectés </rdg>
+      </app>
+l’indulgence. </l>
+
+<l n="273">
+
+      <app>
+        <lem wit="#A #B #D #E">Souffrez </lem>
+        <rdg wit="#C">Souffrés </rdg>
+      </app>
+quelques froideurs sans les faire 
+      <app>
+        <lem wit="#A #E">éclater, </lem>
+        <rdg wit="#B #C #D">éclater. </rdg>
+      </app>
+</l>
+
+<l n="274">
+Et 
+      <app>
+        <lem wit="#A #B #D #E">n’avertissez </lem>
+        <rdg wit="#C">n’avertissés </rdg>
+      </app>
+point la Cour de vous quitter. </l>
+
+    </sp>
+    <sp>
+      <speaker>AGRIPPINE.</speaker>
+<l n="275">
+Et qui 
+      <app>
+        <lem wit="#A #C #D #E">s’honoreroit </lem>
+        <rdg wit="#B">s’honnoreroit </rdg>
+      </app>
+de 
+      <app>
+        <lem wit="#A #B #D #E">l’appuy </lem>
+        <rdg wit="#C">l’appui </rdg>
+      </app>
+d’Agrippine </l>
+
+<l n="276">
+Lors&#160;que Neron 
+      <app>
+        <lem wit="#A #E">luy&#160;mesme </lem>
+        <rdg wit="#B">luy-mesme </rdg>
+        <rdg wit="#C">lui-mesme </rdg>
+        <rdg wit="#D">luy-même </rdg>
+      </app>
+annonce 
+      <app>
+        <lem wit="#A #E">sa </lem>
+        <rdg wit="#B #C #D">ma </rdg>
+      </app>
+
+      <app>
+        <lem wit="#A #D #E">ruine&#160;? </lem>
+        <rdg wit="#B #C">ruïne&#160;? </rdg>
+      </app>
+</l>
+
+<l n="277">
+Lors&#160;que de sa presence il semble me bannir&#160;? </l>
+
+<l n="278">
+Quand Burrhus à sa porte ose me retenir&#160;? </l>
+
+    </sp>
+    <sp>
+      <speaker>BURRHUS.</speaker>
+<l n="279">
+Madame, je 
+      <app>
+        <lem wit="#A #B #D #E">voy </lem>
+        <rdg wit="#C">voi </rdg>
+      </app>
+bien qu’il est temps de me taire, </l>
+
+<l n="280">
+Et que ma liberté commence à vous déplaire. </l>
+
+<l n="281">
+La douleur est injuste, &amp; toutes les raisons </l>
+
+<l n="282">
+Qui ne la flattent point aigrissent ses soupçons. </l>
+
+<l n="283">
+
+      <app>
+        <lem wit="#A #B #D #E">Voicy </lem>
+        <rdg wit="#C">Voici </rdg>
+      </app>
+Britannicus. Je 
+      <app>
+        <lem wit="#A #B #D #E">luy </lem>
+        <rdg wit="#C">lui </rdg>
+      </app>
+cede ma place. </l>
+
+<l n="284">
+Je vous laisse écouter, &amp; plaindre sa disgrace, </l>
+
+<l n="285">
+Et peut-estre, Madame, en accuser les soins </l>
+
+<l n="286">
+De 
+      <app>
+        <lem wit="#A #E">ceux, </lem>
+        <rdg wit="#B #C #D">ceux </rdg>
+      </app>
+que l’Empereur a 
+      <app>
+        <lem wit="#A #B #D #E">consultez </lem>
+        <rdg wit="#C">consultés </rdg>
+      </app>
+le moins. </l>
+
+</sp>
+</div>
+</body></text>
+</TEI>
