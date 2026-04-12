@@ -49,13 +49,11 @@ Build a minimal, well-tested Python core that can:
 3. collate parallel witness lines using a reference witness
 4. generate minimal XML-TEI
 5. pass the stable fixture tests
+6. A minimal local desktop UI (Tkinter) is now in scope
 
 ## Non-goals for now
-
 Do not build or restore:
-- Tkinter UI
 - Flask UI
-- HTML preview
 - LaTeX / ekdosis export
 - broad feature parity with legacy code
 
@@ -158,6 +156,37 @@ This includes:
 
 - TYPE validation is intentionally left open at this stage.
   Do not hard-code a closed enum yet.
+
+
+## UI Policy (Tkinter V1)
+
+A first local desktop interface using Tkinter is now part of the project scope.
+
+This UI must remain a thin layer above the application services.
+
+Refer to `docs/UI_TK_V1.md` for detailed UI specifications.
+
+### Rules
+
+- No business logic in UI modules
+- UI must only call application services
+- No parsing, collation, or TEI generation inside UI code
+- Keep UI components small, modular, and readable
+- Avoid recreating a monolithic architecture like the legacy code
+
+### Goal
+
+Provide a simple, stable interface for:
+
+- text input
+- validation
+- TEI generation
+- HTML preview
+- export
+
+### Constraint
+
+The core engine must remain fully usable without Tkinter.
 
 
 ## Legacy code policy

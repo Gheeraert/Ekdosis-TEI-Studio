@@ -202,3 +202,110 @@ src/ets/
         search_dialog.py
         config_dialog.py
         validation_dialog.py
+
+Cette arborescence peut évoluer légèrement, mais doit rester lisible.
+
+## Stratégie de développement
+
+Le développement doit se faire par étapes courtes.
+
+### Étape 1
+
+Créer une coquille d’interface navigable avec :
+
+- fenêtre principale ;
+- menu ;
+- éditeur en haut ;
+- onglets TEI / HTML en bas ;
+- barre de contrôle intermédiaire.
+
+### Étape 2
+
+Brancher les actions simples :
+
+- ouvrir / enregistrer ;
+- copier / coller ;
+- recherche simple ;
+- changement de témoin de référence.
+
+### Étape 3
+
+Brancher la validation réelle.
+
+### Étape 4
+
+Brancher la génération TEI et la prévisualisation HTML.
+
+### Étape 5
+
+Brancher les exports.
+
+## Orientation UX
+
+L’interface doit être :
+
+- sobre ;
+- lisible ;
+- stable ;
+- peu intimidante ;
+- familière pour un usage universitaire non technique.
+
+Éviter :
+
+- les effets visuels inutiles ;
+- les dispositions surchargées ;
+- les icônes obscures sans libellé ;
+- les fenêtres multiples non nécessaires.
+
+## Rapport au legacy
+
+Le dossier `legacy` peut servir de source d’inspiration ergonomique et fonctionnelle, mais ne doit pas être recopié en bloc.
+
+On peut y reprendre :
+
+- les grands principes d’organisation de la fenêtre ;
+- certains raccourcis ;
+- certaines formulations ;
+- la logique d’usage générale.
+
+On ne doit pas y reprendre :
+
+- le couplage fort entre interface et logique métier ;
+- les variables globales envahissantes ;
+- les fonctions monolithiques longues et peu testables.
+
+## Préparation de Flask
+
+Même si cette phase porte sur Tkinter, tout choix d’architecture doit faciliter une future interface web Flask.
+
+En conséquence :
+
+- le moteur doit rester indépendant de l’interface ;
+- les services doivent être réutilisables sans Tkinter ;
+- les formats d’entrée et de sortie doivent rester clairs ;
+- l’UI ne doit pas devenir le centre du programme.
+
+## Consignes pour les contributions Codex
+
+Toute contribution touchant à l’UI Tkinter doit respecter les règles suivantes :
+
+- ne pas déplacer de logique métier dans les modules UI ;
+- limiter la taille et la responsabilité de chaque fichier ;
+- privilégier des composants lisibles ;
+- conserver une interface simple ;
+- ne pas réintroduire un monolithe comparable au `legacy` ;
+- documenter brièvement les nouveaux composants ;
+- produire une interface immédiatement testable localement.
+
+## Critère de réussite de cette phase
+
+Cette phase sera considérée comme réussie lorsque l’on disposera d’une interface Tkinter permettant :
+
+- de saisir ou coller un texte ;
+- de charger ou créer une configuration ;
+- de choisir le témoin de référence ;
+- de lancer la validation ;
+- de générer et afficher le TEI ;
+- de générer et afficher un HTML de prévisualisation ;
+- d’exporter les résultats ;
+- le tout dans une interface claire, stable et compréhensible.
