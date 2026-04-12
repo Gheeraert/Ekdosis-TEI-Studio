@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0">
+  <teiHeader>
+    <fileDesc>
+      <titleStmt>
+        <title>Bérénice</title>
+        <author>Racine Racine</author>
+        <editor>Tony Gheeraert</editor>
+      </titleStmt>
+      <publicationStmt>
+        <publisher>Presses de l'Université de Rouen et du Havre</publisher>
+        <pubPlace>Rouen</pubPlace>
+       <date>02 août 2025</date>
+      </publicationStmt>
+      <sourceDesc>
+        <p>généré par Ekdosis-TEI Studio – Acte I, Scène 1</p>
+      </sourceDesc>
+    </fileDesc>
+  </teiHeader>
+  <text>
+    <body>
+<div type="act" n="I">
+    <head><app>
+        <lem wit="#A #B #E">ACTE PREMIER. </lem>
+        <rdg wit="#C">CTE I. </rdg>
+        <rdg wit="#D">ACTE I. </rdg>
+      </app></head>
+  <div type="scene" n="1">
+    <head>SCENE PREMIERE.</head>
+    <stage type='personnages'>ANTIOCHUS, ARSACE.</stage>
+    <sp>
+      <speaker>ANTIOCHUS.</speaker>
+      <stage xml:id="implicite1" type="DI" ana="#SET">
+<l n="1">
+ARRESTONS un moment. La pompe de ces Lieux, </l>
+
+<l n="2">
+Je le 
+      <app>
+        <lem wit="#A #B #E">voy </lem>
+        <rdg wit="#C #D">voi </rdg>
+      </app>
+bien, Arsace, est nouvelle à tes yeux. </l>
+
+<l n="3">
+Souvent ce Cabinet superbe 
+      <app>
+        <lem wit="#A #C #D #E">&amp; </lem>
+        <rdg wit="#B">é </rdg>
+      </app>
+solitaire, </l>
+
+<l n="4">
+Des secrets de Titus est le dépositaire. </l>
+
+<l n="5">
+C'est 
+      <app>
+        <lem wit="#A #B #E">icy </lem>
+        <rdg wit="#C #D">ici </rdg>
+      </app>
+quelquefois qu'il se cache à sa Cour, </l>
+
+<l n="6">
+Lors qu'il vient à la 
+      <app>
+        <lem wit="#A #B #E">Reyne </lem>
+        <rdg wit="#C #D">Reine </rdg>
+      </app>
+expliquer son amour. </l>
+
+<l n="7">
+De son 
+      <app>
+        <lem wit="#A #B #C #E">Apartement </lem>
+        <rdg wit="#D">appartement </rdg>
+      </app>
+cette porte est prochaine, </l>
+
+<l n="8">
+Et cette autre conduit dans 
+      <app>
+        <lem wit="#A #B #D #E">celuy </lem>
+        <rdg wit="#C">celui </rdg>
+      </app>
+de la 
+      <app>
+        <lem wit="#A #E">Reyne. </lem>
+        <rdg wit="#B">Reyne, </rdg>
+        <rdg wit="#C">Reine, </rdg>
+        <rdg wit="#D">Reine. </rdg>
+      </app>
+</l>
+
+      </stage>
+      <stage xml:id="implicite2" type="DI" ana="#EVT">
+<l n="9">
+Va 
+      <app>
+        <lem wit="#A #B #D #E">chez </lem>
+        <rdg wit="#C">chés </rdg>
+      </app>
+elle. 
+      <app>
+        <lem wit="#A #B #E">Dy-luy </lem>
+        <rdg wit="#C">Di-lui </rdg>
+        <rdg wit="#D">Di-luy </rdg>
+      </app>
+qu'importun à regret, </l>
+
+      </stage>
+<l n="10">
+J'ose 
+      <app>
+        <lem wit="#A #B #D #E">luy </lem>
+        <rdg wit="#C">lui </rdg>
+      </app>
+demander un entretien secret. </l>
+
+</sp>
+</div>
+</div>
+</body></text>
+</TEI>

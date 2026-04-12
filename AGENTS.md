@@ -112,21 +112,32 @@ Important:
 - The reference witness is the lemma witness.
 - Do not restrict collation to verse lines.
 - Any textual block produced from parallel witness lines must support `CollatedText`.
+
 This includes:
   - act headers
   - scene headers
   - cast lists
   - speakers
-  - stage directions
+  - explicit stage directions
   - verse lines
-- Use `fixtures/variant_head_and_cast/` as regression fixtures for this behavior.
+
+- Use regression fixtures in:
+  - `fixtures/variant_head_and_cast/`
+  - `fixtures/shared_verses/`
+
 - Do not implement special-case logic for heads or cast lists.
   The collation model must remain generic.
+
+- Shared-verse support currently guaranteed:
+  - three segments in the same scene
+  - two segments across two successive scenes, only when the continuation in the next scene is explicitly marked by `***`
+
+- A shared verse may cross at most one immediate scene boundary under this rule.
+  Otherwise, the shared-verse state must be closed deterministically.
+
 - Core principle:
   the system models "collatable text", not "variant verse".
-- Shared-verse support must be regression-tested against real fixtures in `fixtures/shared_verses/`. Current priority cases are:
-  - three-segment shared verse in a single scene
-  - two-segment shared verse across two successive scenes
+
 
 ## Legacy code policy
 

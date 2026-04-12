@@ -85,6 +85,15 @@ legacy/            archived historical code
 5. Generate TEI.
 6. Lock behavior with pytest.
 
+## Current guaranteed shared-verse cases
+
+The current core guarantees the following shared-verse cases:
+
+- three-segment shared verse within a single scene
+- two-segment shared verse across two successive scenes when the continuation in the next scene is explicitly marked by `***`
+
+These cases are covered by regression fixtures in `fixtures/shared_verses/`.
+
 ## Why fixtures matter
 
 Fixtures are the strongest source of truth in this rewrite.

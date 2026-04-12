@@ -1,0 +1,107 @@
+####ACTE PREMIER.####
+####ACTE PREMIER.####
+####CTE I.####
+####ACTE I.####
+####ACTE PREMIER.####
+
+###SCENE PREMIERE.###
+###SCENE PREMIERE.###
+###SCENE PREMIERE.###
+###SCENE PREMIERE.###
+###SCENE PREMIERE.###
+
+##ANTIOCHUS,## ##ARSACE.##
+##ANTIOCHUS,## ##ARSACE.##
+##ANTIOCHUS,## ##ARSACE.##
+##ANTIOCHUS,## ##ARSACE.##
+##ANTIOCHUS,## ##ARSACE.##
+
+#ANTIOCHUS.#
+#ANTIOCHUS.#
+#ANTIOCHUS.#
+#ANTIOCHUS.#
+#ANTIOCHUS.#
+
+$$SET$$
+$$SET$$
+$$SET$$
+$$SET$$
+$$SET$$
+
+ARRESTONS un moment. La pompe de ces Lieux,
+ARRESTONS un moment. La pompe de ces Lieux,
+ARRESTONS un moment. La pompe de ces Lieux,
+ARRESTONS un moment. La pompe de ces Lieux,
+ARRESTONS un moment. La pompe de ces Lieux,
+
+Je le voy bien, Arsace, est nouvelle à tes yeux.
+Je le voy bien, Arsace, est nouvelle à tes yeux.
+Je le voi bien, Arsace, est nouvelle à tes yeux.
+Je le voi bien, Arsace, est nouvelle à tes yeux.
+Je le voy bien, Arsace, est nouvelle à tes yeux.
+
+Souvent ce Cabinet superbe & solitaire,
+Souvent ce Cabinet superbe é solitaire,
+Souvent ce Cabinet superbe & solitaire,
+Souvent ce Cabinet superbe & solitaire,
+Souvent ce Cabinet superbe & solitaire,
+
+Des secrets de Titus est le dépositaire.
+Des secrets de Titus est le dépositaire.
+Des secrets de Titus est le dépositaire.
+Des secrets de Titus est le dépositaire.
+Des secrets de Titus est le dépositaire.
+
+C'est icy quelquefois qu'il se cache à sa Cour,
+C'est icy quelquefois qu'il se cache à sa Cour,
+C'est ici quelquefois qu'il se cache à sa Cour,
+C'est ici quelquefois qu'il se cache à sa Cour,
+C'est icy quelquefois qu'il se cache à sa Cour,
+
+Lors qu'il vient à la Reyne expliquer son amour.
+Lors qu'il vient à la Reyne expliquer son amour.
+Lors qu'il vient à la Reine expliquer son amour.
+Lors qu'il vient à la Reine expliquer son amour.
+Lors qu'il vient à la Reyne expliquer son amour.
+
+De son Apartement cette porte est prochaine,
+De son Apartement cette porte est prochaine,
+De son Apartement cette porte est prochaine,
+De son appartement cette porte est prochaine,
+De son Apartement cette porte est prochaine,
+
+Et cette autre conduit dans celuy de la Reyne.
+Et cette autre conduit dans celuy de la Reyne,
+Et cette autre conduit dans celui de la Reine,
+Et cette autre conduit dans celuy de la Reine.
+Et cette autre conduit dans celuy de la Reyne.
+
+$$fin$$
+$$fin$$
+$$fin$$
+$$fin$$
+$$fin$$
+
+$$EVT$$
+$$EVT$$
+$$EVT$$
+$$EVT$$
+$$EVT$$
+
+Va chez elle. Dy-luy qu'importun à regret,
+Va chez elle. Dy-luy qu'importun à regret,
+Va chés elle. Di-lui qu'importun à regret,
+Va chez elle. Di-luy qu'importun à regret,
+Va chez elle. Dy-luy qu'importun à regret,
+
+$$fin$$
+$$fin$$
+$$fin$$
+$$fin$$
+$$fin$$
+
+J'ose luy demander un entretien secret.
+J'ose luy demander un entretien secret.
+J'ose lui demander un entretien secret.
+J'ose luy demander un entretien secret.
+J'ose luy demander un entretien secret.

@@ -180,9 +180,7 @@ The parser must:
 - identify transitions between acts and scenes
 - support multi-scene inputs
 - support eventual act-level inputs
-- Any textual element derived from parallel witness lines must be treated as potentially variant-bearing.
-- The collation model must not be limited to verse lines. Act headers, scene headers, cast lists, speakers, stage directions, and verse lines must all be able to contain a `CollatedText` structure rendered as literal text or inline TEI apparatus (`app`, `lem`, `rdg`).
-- The core abstraction is therefore not “variant verse” but “collatable text”.
+- preserve enough information for later collation of any textual block derived from parallel witness lines
 
 ### 5.3 Parser non-responsibilities
 
@@ -252,6 +250,25 @@ The design must leave room for:
 - partial rewritings
 - shared verse segments
 - difficult multi-segment partitioning
+
+### 6.6 Shared-verse stabilization targets
+
+At the current stage of the project, shared-verse support is intentionally stabilized on a limited but robust subset of cases.
+
+The following cases are currently target guarantees:
+
+- shared verse in three segments within a single scene
+- shared verse in two segments across two successive scenes, only when the continuation in the next scene is explicitly marked by `***`
+
+The following rule applies:
+
+- a shared verse may survive a scene boundary only if the continuation is immediate and explicitly marked by `***`
+- if the continuation is not immediately resumed, the shared-verse state must be closed deterministically
+- a shared verse must not remain open across more than one scene boundary
+
+These behaviors must be regression-tested through the fixtures in:
+
+- `fixtures/shared_verses/`
 
 ## 7. Shared verse requirements
 
@@ -360,6 +377,15 @@ For every bug fixed in difficult cases
 Fixtures are the main behavioral specification.
 The stable fixture is the first target.
 Known-issue fixtures must be converted progressively into passing regression tests.
+
+The directories:
+
+- `fixtures/variant_head_and_cast/`
+- `fixtures/shared_verses/`
+
+contain authoritative regression fixtures for:
+- variant-bearing structural text blocks
+- prioritized shared-verse cases
 
 ### 10.3 Comparison strategy
 
