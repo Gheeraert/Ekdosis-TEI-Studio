@@ -130,6 +130,8 @@ in all structural textual elements, not only verse lines.
 
 `fixtures/shared_verses/` contains regression cases for prioritized shared-verse patterns.
 
+`fixtures/implied_stage_directions/` contains regression cases for implicit stage directions (`$$TYPE$$ ... $$fin$$`).
+
 ## Design principles
 
 - explicit domain model

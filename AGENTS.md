@@ -124,6 +124,7 @@ This includes:
 - Use regression fixtures in:
   - `fixtures/variant_head_and_cast/`
   - `fixtures/shared_verses/`
+  - `fixtures/implied_stage_directions/`
 
 - Do not implement special-case logic for heads or cast lists.
   The collation model must remain generic.

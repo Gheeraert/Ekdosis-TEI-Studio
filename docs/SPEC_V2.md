@@ -270,6 +270,31 @@ These behaviors must be regression-tested through the fixtures in:
 
 - `fixtures/shared_verses/`
 
+### 6.7 Implicit stage directions (initial support)
+
+The input syntax supports implicit stage directions using span markers:
+
+- `$$TYPE$$` opens a span
+- `$$fin$$` closes the span
+
+Where TYPE is a category such as:
+- SET (setting)
+- EVT (event)
+- etc.
+
+In the initial implementation:
+
+- an implicit stage direction spans one or more consecutive verse lines
+- the span does not interrupt verse numbering or collation
+- the span is rendered in TEI as:
+
+```xml
+<stage xml:id="..." type="DI" ana="#TYPE">
+  <l>...</l>
+  ...
+</stage>
+
+
 ## 7. Shared verse requirements
 
 Shared verses are a core requirement, not a marginal edge case.
@@ -382,10 +407,15 @@ The directories:
 
 - `fixtures/variant_head_and_cast/`
 - `fixtures/shared_verses/`
+- `fixtures/implied_stage_directions/`
 
 contain authoritative regression fixtures for:
 - variant-bearing structural text blocks
 - prioritized shared-verse cases
+
+The directory `fixtures/implied_stage_directions/` contains regression fixtures
+for implicit stage direction spans (`$$TYPE$$ ... $$fin$$`), which will be
+progressively stabilized.
 
 ### 10.3 Comparison strategy
 
