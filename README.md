@@ -29,15 +29,25 @@ The core engine should be able to:
 - generate valid XML-TEI
 - remain robust in the presence of difficult editorial cases
 
-## Scope of the first development phase
+## Initial core milestone
 
-The first milestone is intentionally limited.
+The initial milestone was intentionally limited to:
+- reading plain-text fixture inputs
+- parsing acts, scenes, cast lists, speaker changes, explicit stage directions, and ordinary verse blocks
+- collating witness lines with a reference witness
+- producing minimal XML-TEI
+- passing the stable fixture tests 
+
+## Scope of the current development phase
+
+The current focus is the first local desktop UI.
+
+This UI must stay thin and rely on the existing core services.
 
 It should:
-- read plain-text fixture inputs
-- parse acts, scenes, cast lists, speaker changes, explicit stage directions, and ordinary verse blocks
-- collate witness lines with a reference witness
-- produce minimal XML-TEI
+- provide a minimal Tkinter desktop interface for text input, validation, TEI generation, HTML preview, and export
+- surface validator diagnostics clearly and help users correct them
+- preserve the current core-first architecture
 - pass the stable fixture tests
 
 It should not yet aim at:
@@ -91,18 +101,6 @@ The current core guarantees the following shared-verse cases:
 - two-segment shared verse across two successive scenes when the continuation in the next scene is explicitly marked by `***`
 
 These cases are covered by regression fixtures in `fixtures/shared_verses/`.
-
-## Scope of the current development phase
-
-The current focus is the first local desktop UI.
-
-This UI must stay thin and rely on the existing core services.
-
-It should:
-- provide a minimal Tkinter desktop interface for text input, validation, TEI generation, HTML preview, and export
-- surface validator diagnostics clearly and help users correct them
-- preserve the current core-first architecture
-- pass the stable fixture tests
 
 ## Why fixtures matter
 
