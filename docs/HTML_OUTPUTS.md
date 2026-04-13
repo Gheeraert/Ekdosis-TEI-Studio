@@ -43,6 +43,10 @@ L'export ajoute maintenant une structure de page proche de la reference editoria
 - `div#footer` (optionnel)
 
 Le menu/header/footer restent volontairement simples a ce stade pour preparer une integration future.
+L'export adapte aussi la mise en page :
+
+- menu present : grille a deux colonnes
+- menu absent : grille mono-colonne sans espace lateral vide
 
 ## Configuration simple de l'habillage
 
@@ -54,6 +58,17 @@ Le menu/header/footer restent volontairement simples a ce stade pour preparer un
 - `include_menu`, `include_header`, `include_footer`
 - `menu_placeholder`
 - `header_html`, `footer_html`
+
+## Qualite typographique (passe courte)
+
+La passe actuelle corrige les libelles export en francais :
+
+- `Scène`
+- `Édition critique par`
+- `Document généré le`
+- `Télécharger le XML`
+
+Cette amelioration reste volontairement sobre et n'ouvre pas de chantier editorial plus large.
 
 ## Role de `tei-vers-html.xsl`
 

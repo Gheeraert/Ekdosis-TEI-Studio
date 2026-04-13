@@ -33,7 +33,7 @@ def test_html_export_generates_editorial_shell_and_credits() -> None:
     doc = lxml_html.document_fromstring(export)
 
     assert doc.xpath("string(/html/head/title)") == "Andromaque"
-    assert doc.xpath("//div[@id='container']")
+    assert doc.xpath("//div[@id='container' and contains(@class, 'with-menu')]")
     assert doc.xpath("//aside[@id='menu-lateral']")
     assert doc.xpath("//main")
     assert doc.xpath("//div[@id='header']")
@@ -42,11 +42,12 @@ def test_html_export_generates_editorial_shell_and_credits() -> None:
 
     credit_lines = [
         line.text_content().strip()
-        for line in doc.xpath("//div[contains(@class, 'bloc-credit')]//div[contains(@class, 'credit-line')]")
+        for line in doc.xpath("//*[contains(@class, 'bloc-credit')]//*[contains(@class, 'credit-line')]")
     ]
-    assert "Jean Racine - Andromaque, Acte 1, Scene 1" in credit_lines
-    assert "Edition critique par Clémentine Gheeraert" in credit_lines
-    assert any(line.startswith("Document genere le ") and "Ekdosis-TEI Studio" in line for line in credit_lines)
+    assert "Jean Racine - Andromaque, Acte 1, Scène 1" in credit_lines
+    assert "Édition critique par Clémentine Gheeraert" in credit_lines
+    assert any(line.startswith("Document généré le ") and "Ekdosis-TEI Studio" in line for line in credit_lines)
+    assert any("Télécharger le XML" in line for line in credit_lines)
     assert doc.xpath("//a[@href='../xml-tei/stable.xml']")
 
     assert doc.xpath("//section[@id='contenu-editorial']//div[contains(@class, 'acte-titre') or contains(@class, 'acte-titre-sans-variation')]")
@@ -74,6 +75,7 @@ def test_html_export_accepts_simple_layout_options() -> None:
     assert doc.xpath("string(/html/head/title)") == "Edition export test"
     assert doc.xpath("//link[@rel='stylesheet' and @href='../../../css/portail.css']")
     assert doc.xpath("//script[@src='../../../js/site.js']")
+    assert doc.xpath("//div[@id='container' and contains(@class, 'without-menu')]")
     assert not doc.xpath("//aside[@id='menu-lateral']")
     assert not doc.xpath("//div[@id='header']")
     assert doc.xpath("//div[@id='footer']")

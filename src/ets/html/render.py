@@ -41,13 +41,11 @@ def _first_text(doc: etree._Element, xpath: str) -> str:
         return "".join(first.itertext()).strip()
     return str(first).strip()
 
-
 def _extract_preview_assets(preview_doc: etree._Element) -> str:
     assets: list[str] = []
     for node in preview_doc.xpath("/html/head/style | /html/head/link"):
         assets.append(etree.tostring(node, encoding="unicode", method="html"))
     return "\n".join(assets)
-
 
 def _extract_preview_body_content(preview_doc: etree._Element) -> str:
     body = preview_doc.xpath("/html/body")
@@ -60,7 +58,6 @@ def _extract_preview_body_content(preview_doc: etree._Element) -> str:
             continue
         html_fragments.append(etree.tostring(child, encoding="unicode", method="html"))
     return "\n".join(html_fragments)
-
 
 def _build_credit_block(
     *,
@@ -75,7 +72,7 @@ def _build_credit_block(
     if act:
         context.append(f"Acte {std_html.escape(act)}")
     if scene:
-        context.append(f"Scene {std_html.escape(scene)}")
+        context.append(f"Scène {std_html.escape(scene)}")
     context_suffix = f", {', '.join(context)}" if context else ""
     title_html = f'<span class="italic">{std_html.escape(title)}</span>' if title else ""
     first_line_text = ""
@@ -90,14 +87,14 @@ def _build_credit_block(
     if first_line_text:
         credit_lines.append(f'<div class="credit-line">{first_line_text}</div>')
     if editor:
-        credit_lines.append(f'<div class="credit-line">Edition critique par {std_html.escape(editor)}</div>')
+        credit_lines.append(f'<div class="credit-line">Édition critique par {std_html.escape(editor)}</div>')
     credit_lines.append(
-        f'<div class="credit-line">Document genere le {date.today().isoformat()} depuis Ekdosis-TEI Studio</div>'
+        f'<div class="credit-line">Document généré le {date.today().isoformat()} depuis Ekdosis-TEI Studio</div>'
     )
     if xml_href:
         escaped_href = std_html.escape(xml_href, quote=True)
         credit_lines.append(
-            f'<div class="credit-line"><a href="{escaped_href}" download>Telecharger le XML</a></div>'
+            f'<div class="credit-line"><a href="{escaped_href}" download>Télécharger le XML</a></div>'
         )
     return "\n".join(credit_lines)
 
@@ -120,6 +117,8 @@ def _build_export_shell(
         f'<script src="{std_html.escape(src, quote=True)}"></script>' for src in options.script_srcs
     )
 
+    container_classes = "with-menu" if options.include_menu else "without-menu"
+
     return f"""<!doctype html>
 <html lang="fr">
 <head>
@@ -137,6 +136,9 @@ def _build_export_shell(
       grid-template-columns: 240px 1fr;
       min-height: 100vh;
     }}
+    #container.without-menu {{
+      grid-template-columns: 1fr;
+    }}
     #menu-lateral {{
       border-right: 1px solid #ddd;
       padding: 1rem;
@@ -144,10 +146,25 @@ def _build_export_shell(
       color: #444;
     }}
     main {{
+      width: 100%;
+      max-width: 980px;
+      margin: 0 auto;
       padding: 1rem;
     }}
     #header, #footer {{
       min-height: 1.5rem;
+    }}
+    .bloc-credit {{
+      margin: 1rem auto 1.5rem;
+      max-width: 760px;
+      border: 1px solid #d6d2ca;
+      border-radius: 6px;
+      padding: 0.75rem 1rem;
+      background: #fffdf8;
+      line-height: 1.35;
+    }}
+    .credit-line + .credit-line {{
+      margin-top: 0.25rem;
     }}
     .ets-export-content {{
       margin-top: 1rem;
@@ -155,13 +172,13 @@ def _build_export_shell(
   </style>
 </head>
 <body>
-  <div id="container">
+  <div id="container" class="{container_classes}">
     {menu_html}
     <main>
       {header_html}
-      <div class="bloc-credit">
+      <section class="bloc-credit" aria-label="Crédits de l'édition">
         {credit_html}
-      </div>
+      </section>
       <section id="contenu-editorial" class="ets-export-content">
         {body_content}
       </section>
