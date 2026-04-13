@@ -147,6 +147,8 @@ Règles :
 
 L’interface ne doit pas réimplémenter la validation : elle doit appeler les services du cœur.
 
+Validation diagnostics must be surfaced visually in the editor whenever possible: line highlighting, error marks, and direct navigation from diagnostics to the faulty line.
+
 ## Architecture technique attendue
 
 L’interface Tkinter ne doit contenir que :
@@ -202,6 +204,8 @@ src/ets/
         search_dialog.py
         config_dialog.py
         validation_dialog.py
+
+```
 
 Cette arborescence peut évoluer légèrement, mais doit rester lisible.
 

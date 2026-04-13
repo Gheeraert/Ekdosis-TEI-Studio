@@ -57,6 +57,9 @@ Do not build or restore:
 - LaTeX / ekdosis export
 - broad feature parity with legacy code
 
+The legacy application remains a functional reference for expected UI affordances and workflows.
+Do not recreate its monolithic architecture, but do use it to infer the required desktop interactions.
+
 These may come later, but the current phase is focused on the core TEI engine.
 
 ## Architectural rules

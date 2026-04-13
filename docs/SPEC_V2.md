@@ -452,20 +452,25 @@ legacy/
 
 ## 12. Interface policy
 
-The first development phase must not depend on any GUI.
+The core engine must remain fully usable without any GUI.
+However, the current phase now includes a first local desktop UI in Tkinter as a thin layer above the application services.
 
-### 12.1 Forbidden in phase 1
-- Tkinter rewrite
+### 12.1 Forbidden in the current phase
 - Flask app
 - HTML visual editor
+- business logic implemented inside UI modules
 
-### 12.2 Allowed in phase 1
+### 12.2 Allowed in the current phase
 - CLI entry point
 - file-based workflow
 - fixture-driven testing
+- minimal Tkinter desktop UI
+- TEI display
+- HTML preview display
+- export actions delegated to application services
 
 ### 12.3 Phase 2+
-Once the core is stable, Flask may be added as a separate presentation layer.
+Once the core services are stable, Flask may be added as a separate presentation layer.
 
 ## 13. Legacy code policy
 
@@ -478,12 +483,16 @@ The previous codebase may be consulted for logic and conventions, but:
 
 The first milestone is complete when the application can:
 
-1. load the stable fixture input
+1. load a structured plain-text input
 2. read its witness configuration
 3. parse acts, scenes, cast, speakers, and ordinary verse blocks
-4. collate witness lines against a reference witness
-5. generate minimal TEI
-6. pass the stable fixture test suite
+4. validate malformed blocks and token-count inconsistencies
+5. collate witness lines against a reference witness
+6. generate minimal TEI
+7. expose these actions through a simple Tkinter interface
+8. display TEI and HTML preview outputs
+9. export results
+10. pass the stable fixture test suite
 
 ## 15. Subsequent milestone suggestions
 

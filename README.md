@@ -42,9 +42,7 @@ It should:
 
 It should not yet aim at:
 - full legacy feature parity
-- graphical UI
 - Flask UI
-- HTML preview
 - LaTeX / ekdosis output
 
 ## Input format
@@ -93,6 +91,18 @@ The current core guarantees the following shared-verse cases:
 - two-segment shared verse across two successive scenes when the continuation in the next scene is explicitly marked by `***`
 
 These cases are covered by regression fixtures in `fixtures/shared_verses/`.
+
+## Scope of the current development phase
+
+The current focus is the first local desktop UI.
+
+This UI must stay thin and rely on the existing core services.
+
+It should:
+- provide a minimal Tkinter desktop interface for text input, validation, TEI generation, HTML preview, and export
+- surface validator diagnostics clearly and help users correct them
+- preserve the current core-first architecture
+- pass the stable fixture tests
 
 ## Why fixtures matter
 
