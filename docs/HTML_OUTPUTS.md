@@ -20,7 +20,7 @@ La preview doit rester simple et robuste, sans habillage portail complexe.
 
 ## Export HTML publiable (base)
 
-- Fonction : `render_html_export_from_tei(tei_xml: str, xml_href: str | None = None) -> str`
+- Fonction : `render_html_export_from_tei(tei_xml: str, xml_href: str | None = None, options: HtmlExportOptions | None = None) -> str`
 - Module : `src/ets/html/render.py`
 - Mecanisme :
   - reutilise la preview XSLT comme couche de rendu du texte
@@ -29,6 +29,31 @@ La preview doit rester simple et robuste, sans habillage portail complexe.
 
 Cette sortie est une base publiable et extensible. Elle n'est pas encore un clone du portail editorial final.
 Elle ne cherche pas, a ce stade, a reproduire la structure complete de `fixtures/html_reference/britannicus_AI_S1_of4.html`.
+
+## Enveloppe editoriale export (niveau actuel)
+
+L'export ajoute maintenant une structure de page proche de la reference editoriale :
+
+- `div#container`
+- `aside#menu-lateral` (optionnel)
+- `main`
+- `div#header` (optionnel)
+- bloc credits
+- `section#contenu-editorial` (contenu transforme depuis la preview XSLT)
+- `div#footer` (optionnel)
+
+Le menu/header/footer restent volontairement simples a ce stade pour preparer une integration future.
+
+## Configuration simple de l'habillage
+
+`HtmlExportOptions` permet de parametrer legerement l'enveloppe :
+
+- `document_title`
+- `css_href`
+- `script_srcs`
+- `include_menu`, `include_header`, `include_footer`
+- `menu_placeholder`
+- `header_html`, `footer_html`
 
 ## Role de `tei-vers-html.xsl`
 
@@ -42,6 +67,7 @@ Le fichier `fixtures/html_reference/britannicus_AI_S1_of4.html` est une **refere
 
 - Ce n'est pas une golden fixture a reproduire au caractere pres.
 - Les tests HTML verifient des proprietes structurelles et semantiques (presence d'elements/classes/contenu utile), pas une stricte egalite textuelle.
+- L'export actuel s'en rapproche sur l'ossature, mais pas encore sur tous les details de portail (scripts, menu dynamique, theme complet).
 
 ## `teiHeader` vs `metadonnees`
 

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import dataclass, field
 from datetime import date
 import html as std_html
 
@@ -8,6 +9,19 @@ from lxml import etree, html as lxml_html
 from .transform import render_html_preview_from_tei
 
 TEI_NS = {"tei": "http://www.tei-c.org/ns/1.0"}
+
+
+@dataclass(frozen=True)
+class HtmlExportOptions:
+    document_title: str | None = None
+    css_href: str | None = None
+    script_srcs: tuple[str, ...] = field(default_factory=tuple)
+    include_menu: bool = True
+    include_header: bool = True
+    include_footer: bool = True
+    menu_placeholder: str = "Chargement du menu..."
+    header_html: str = ""
+    footer_html: str = ""
 
 
 def _first_text(doc: etree._Element, xpath: str) -> str:
@@ -48,8 +62,125 @@ def _extract_preview_body_content(preview_doc: etree._Element) -> str:
     return "\n".join(html_fragments)
 
 
-def render_html_export_from_tei(tei_xml: str, xml_href: str | None = None) -> str:
+def _build_credit_block(
+    *,
+    author: str,
+    title: str,
+    act: str,
+    scene: str,
+    editor: str,
+    xml_href: str | None,
+) -> str:
+    context: list[str] = []
+    if act:
+        context.append(f"Acte {std_html.escape(act)}")
+    if scene:
+        context.append(f"Scene {std_html.escape(scene)}")
+    context_suffix = f", {', '.join(context)}" if context else ""
+    title_html = f'<span class="italic">{std_html.escape(title)}</span>' if title else ""
+    first_line_text = ""
+    if author and title_html:
+        first_line_text = f"{std_html.escape(author)} - {title_html}{context_suffix}"
+    elif title_html:
+        first_line_text = f"{title_html}{context_suffix}"
+    elif author:
+        first_line_text = f"{std_html.escape(author)}{context_suffix}"
+
+    credit_lines: list[str] = []
+    if first_line_text:
+        credit_lines.append(f'<div class="credit-line">{first_line_text}</div>')
+    if editor:
+        credit_lines.append(f'<div class="credit-line">Edition critique par {std_html.escape(editor)}</div>')
+    credit_lines.append(
+        f'<div class="credit-line">Document genere le {date.today().isoformat()} depuis Ekdosis-TEI Studio</div>'
+    )
+    if xml_href:
+        escaped_href = std_html.escape(xml_href, quote=True)
+        credit_lines.append(
+            f'<div class="credit-line"><a href="{escaped_href}" download>Telecharger le XML</a></div>'
+        )
+    return "\n".join(credit_lines)
+
+
+def _build_export_shell(
+    *,
+    title: str,
+    assets: str,
+    body_content: str,
+    credit_html: str,
+    options: HtmlExportOptions,
+) -> str:
+    menu_html = (
+        f'<aside id="menu-lateral">{std_html.escape(options.menu_placeholder)}</aside>' if options.include_menu else ""
+    )
+    header_html = f'<div id="header">{options.header_html}</div>' if options.include_header else ""
+    footer_html = f'<div id="footer">{options.footer_html}</div>' if options.include_footer else ""
+    css_link = f'<link rel="stylesheet" href="{std_html.escape(options.css_href, quote=True)}">' if options.css_href else ""
+    scripts = "\n".join(
+        f'<script src="{std_html.escape(src, quote=True)}"></script>' for src in options.script_srcs
+    )
+
+    return f"""<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>{std_html.escape(title)}</title>
+  {css_link}
+  {assets}
+  <style>
+    body {{
+      margin: 0;
+      padding: 0;
+    }}
+    #container {{
+      display: grid;
+      grid-template-columns: 240px 1fr;
+      min-height: 100vh;
+    }}
+    #menu-lateral {{
+      border-right: 1px solid #ddd;
+      padding: 1rem;
+      font-family: sans-serif;
+      color: #444;
+    }}
+    main {{
+      padding: 1rem;
+    }}
+    #header, #footer {{
+      min-height: 1.5rem;
+    }}
+    .ets-export-content {{
+      margin-top: 1rem;
+    }}
+  </style>
+</head>
+<body>
+  <div id="container">
+    {menu_html}
+    <main>
+      {header_html}
+      <div class="bloc-credit">
+        {credit_html}
+      </div>
+      <section id="contenu-editorial" class="ets-export-content">
+        {body_content}
+      </section>
+      {footer_html}
+    </main>
+  </div>
+  {scripts}
+</body>
+</html>
+"""
+
+
+def render_html_export_from_tei(
+    tei_xml: str,
+    xml_href: str | None = None,
+    options: HtmlExportOptions | None = None,
+) -> str:
     """Render a publication-ready HTML base from TEI XML."""
+    selected = options or HtmlExportOptions()
     preview_html = render_html_preview_from_tei(tei_xml)
     preview_doc = lxml_html.document_fromstring(preview_html)
     tei_doc = etree.fromstring(tei_xml.encode("utf-8"))
@@ -58,56 +189,23 @@ def render_html_export_from_tei(tei_xml: str, xml_href: str | None = None) -> st
     author = _first_text(tei_doc, "string(/tei:TEI/tei:teiHeader/tei:fileDesc/tei:titleStmt/tei:author[1])")
     editor = _first_text(tei_doc, "string(/tei:TEI/tei:teiHeader/tei:fileDesc/tei:titleStmt/tei:editor[1])")
     act = _first_text(tei_doc, "string((/tei:TEI/tei:text/tei:body/tei:div[@type='act']/@n)[1])")
-
-    credit_lines: list[str] = []
-    if author or title:
-        credit_lines.append(f"{author} - {title}" if author else title)
-    if act:
-        credit_lines.append(f"Acte {act}")
-    if editor:
-        credit_lines.append(f"Edition critique par {editor}")
-    credit_lines.append(f"Document genere le {date.today().isoformat()} depuis Ekdosis-TEI Studio")
+    scene = _first_text(tei_doc, "string((/tei:TEI/tei:text/tei:body/tei:div[@type='act']/tei:div[@type='scene']/@n)[1])")
 
     assets = _extract_preview_assets(preview_doc)
     body_content = _extract_preview_body_content(preview_doc)
-    xml_line = (
-        f'<div class="credit-line"><a href="{std_html.escape(xml_href, quote=True)}">Telecharger le XML</a></div>'
-        if xml_href
-        else ""
+    credits_html = _build_credit_block(
+        author=author,
+        title=title,
+        act=act,
+        scene=scene,
+        editor=editor,
+        xml_href=xml_href,
     )
-    credits_html = "\n".join(f'<div class="credit-line">{std_html.escape(line)}</div>' for line in credit_lines)
-
-    return f"""<!doctype html>
-<html lang="fr">
-<head>
-  <meta charset="UTF-8">
-  <title>{std_html.escape(title)}</title>
-  {assets}
-  <style>
-    .ets-export-root {{
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 1rem;
-    }}
-    .ets-export-main {{
-      max-width: 980px;
-      margin: 0 auto;
-    }}
-    .ets-export-content {{
-      margin-top: 1rem;
-    }}
-  </style>
-</head>
-<body class="ets-export-root">
-  <main class="ets-export-main">
-    <div class="bloc-credit">
-      {credits_html}
-      {xml_line}
-    </div>
-    <section class="ets-export-content">
-      {body_content}
-    </section>
-  </main>
-</body>
-</html>
-"""
+    page_title = selected.document_title or title
+    return _build_export_shell(
+        title=page_title,
+        assets=assets,
+        body_content=body_content,
+        credit_html=credits_html,
+        options=selected,
+    )
