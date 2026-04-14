@@ -158,3 +158,37 @@ def test_line_range_over_shared_verse_returns_explicit_decimal_diagnostic() -> N
 
     codes = {diag.code for diag in exc_info.value.diagnostics}
     assert "E_ANN_RANGE_DECIMAL_UNSUPPORTED" in codes
+
+
+def test_injection_builds_structured_note_children_for_markdown_content() -> None:
+    fixture = _fixture_dir()
+    tei_xml = run_pipeline(input_path=fixture / "input.txt", config_path=fixture / "config.json")
+    annotations = AnnotationCollection(
+        version=1,
+        annotations=[
+            Annotation(
+                id="n_md",
+                type="explicative",
+                anchor=AnnotationAnchor(kind="line", act="1", scene="1", line="1"),
+                content="Voir *Berenice*.\n\nConsulter [ce site](https://example.org).",
+                status="draft",
+                keywords=[],
+            )
+        ],
+    )
+
+    enriched = inject_annotations_into_tei(tei_xml, annotations)
+    root = ET.fromstring(enriched)
+    note = root.find(".//tei:note[@xml:id='n_md']", {"tei": NS["tei"], "xml": XML_NS})
+    assert note is not None
+    assert (note.text or "").strip() == ""
+
+    paragraphs = note.findall("./tei:p", NS)
+    assert len(paragraphs) == 2
+    italic = note.find(".//tei:hi[@rend='italic']", NS)
+    assert italic is not None
+    assert italic.text == "Berenice"
+    ref = note.find(".//tei:ref", NS)
+    assert ref is not None
+    assert ref.text == "ce site"
+    assert ref.get("target") == "https://example.org"

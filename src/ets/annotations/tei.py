@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import xml.etree.ElementTree as ET
 
+from .markdown import append_annotation_content
 from .models import (
     Annotation,
     AnnotationCollection,
@@ -202,7 +203,7 @@ def _build_note(annotation: Annotation, targets: list[str]) -> ET.Element:
         attrs["corresp"] = " ".join(f"#{keyword.replace(' ', '_')}" for keyword in annotation.keywords)
 
     note = ET.Element(_tei("note"), attrs)
-    note.text = annotation.content
+    append_annotation_content(note, annotation.content)
     return note
 
 
