@@ -20,12 +20,14 @@ class OutputNotebook(ttk.Frame):
         on_annotation_add: Callable[[], None] | None = None,
         on_annotation_edit: Callable[[], None] | None = None,
         on_annotation_delete: Callable[[], None] | None = None,
+        on_annotation_select: Callable[[str | None], None] | None = None,
     ) -> None:
         super().__init__(master)
         self.columnconfigure(0, weight=1)
         self.rowconfigure(0, weight=1)
         self._on_tei_edited = on_tei_edited
         self._suspend_tei_edit_event = False
+        self._tei_orig_command = ""
 
         self.notebook = ttk.Notebook(self)
         self.notebook.grid(row=0, column=0, sticky="nsew")
@@ -37,8 +39,23 @@ class OutputNotebook(ttk.Frame):
             on_add=on_annotation_add,
             on_edit=on_annotation_edit,
             on_delete=on_annotation_delete,
+            on_select=on_annotation_select,
         )
+        self._install_tei_proxy()
         self.tei_text.bind("<<Modified>>", self._on_tei_modified, add="+")
+
+    def _install_tei_proxy(self) -> None:
+        self._tei_orig_command = f"{self.tei_text._w}_orig"
+        self.tei_text.tk.call("rename", self.tei_text._w, self._tei_orig_command)
+        self.tei_text.tk.createcommand(self.tei_text._w, self._tei_proxy)
+
+    def _tei_proxy(self, *args: object) -> object:
+        result = self.tei_text.tk.call(self._tei_orig_command, *args)
+        if not self._suspend_tei_edit_event and args:
+            command = str(args[0])
+            if command in {"insert", "delete", "replace"} and self._on_tei_edited is not None:
+                self._on_tei_edited()
+        return result
 
     def _create_tab(self, title: str, *, editable: bool) -> tk.Text:
         frame = ttk.Frame(self.notebook)
@@ -61,11 +78,12 @@ class OutputNotebook(ttk.Frame):
         on_add: Callable[[], None] | None,
         on_edit: Callable[[], None] | None,
         on_delete: Callable[[], None] | None,
+        on_select: Callable[[str | None], None] | None,
     ) -> AnnotationPanel:
         frame = ttk.Frame(self.notebook)
         frame.columnconfigure(0, weight=1)
         frame.rowconfigure(0, weight=1)
-        panel = AnnotationPanel(frame, on_add=on_add, on_edit=on_edit, on_delete=on_delete)
+        panel = AnnotationPanel(frame, on_add=on_add, on_edit=on_edit, on_delete=on_delete, on_select=on_select)
         panel.grid(row=0, column=0, sticky="nsew")
         self.notebook.add(frame, text=title)
         return panel

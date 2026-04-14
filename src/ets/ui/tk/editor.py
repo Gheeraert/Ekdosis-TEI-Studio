@@ -95,4 +95,25 @@ class TextEditor(ttk.Frame):
         self.text.tag_configure("diag_error", background="#ffe0e0")
         for line in line_numbers:
             self.text.tag_add("diag_error", f"{line}.0", f"{line}.end")
+        self.text.tag_raise("diag_error")
 
+    def clear_annotation_highlights(self) -> None:
+        self.text.tag_remove("ann_target", "1.0", "end")
+        self.text.tag_remove("ann_focus", "1.0", "end")
+
+    def highlight_annotation_lines(self, line_numbers: list[int], *, focus_line: int | None = None) -> None:
+        self.clear_annotation_highlights()
+        if not line_numbers:
+            return
+        self.text.tag_configure("ann_target", background="#fff6cc")
+        self.text.tag_configure("ann_focus", background="#ffe08a")
+        for line in sorted(set(line_numbers)):
+            self.text.tag_add("ann_target", f"{line}.0", f"{line}.end")
+        if focus_line is not None:
+            self.text.tag_add("ann_focus", f"{focus_line}.0", f"{focus_line}.end")
+        # Diagnostics keep visual priority over annotation marks when both exist.
+        self.text.tag_lower("ann_target")
+        self.text.tag_raise("ann_target")
+        self.text.tag_raise("ann_focus")
+        if "diag_error" in self.text.tag_names():
+            self.text.tag_raise("diag_error")

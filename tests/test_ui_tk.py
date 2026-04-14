@@ -7,7 +7,7 @@ from uuid import uuid4
 import pytest
 
 from ets.annotations import Annotation, AnnotationAnchor, AnnotationCollection
-from ets.application import AppDiagnostic, load_annotations
+from ets.application import AppDiagnostic, load_annotations, load_config
 from ets.infrastructure import AutosavePayload, AutosaveStore
 from ets.ui.tk.helpers import diagnostic_line_numbers, format_config_status
 from ets.ui.tk.main_window import MainWindow, suggest_next_annotation_id
@@ -417,5 +417,126 @@ def test_annotation_crud_actions_update_state(monkeypatch: pytest.MonkeyPatch) -
         window.outputs.annotations_panel.tree.selection_set("n4")
         window.action_delete_annotation()
         assert all(item.id != "n4" for item in window.state.annotations.annotations)
+    finally:
+        root.destroy()
+
+
+def test_load_annotations_refreshes_editor_annotation_highlights(monkeypatch: pytest.MonkeyPatch) -> None:
+    root = _make_root()
+    try:
+        window = MainWindow(root)
+        fixture_dir = Path(__file__).resolve().parents[1] / "fixtures" / "annotations" / "berenice_1_1"
+        window.state.config = load_config(fixture_dir / "config.json")
+        window.editor.set_text((fixture_dir / "input.txt").read_text(encoding="utf-8"))
+
+        calls: list[tuple[list[int], int | None]] = []
+        monkeypatch.setattr(
+            window.editor,
+            "highlight_annotation_lines",
+            lambda lines, focus_line=None: calls.append((list(lines), focus_line)),
+        )
+        monkeypatch.setattr("tkinter.filedialog.askopenfilename", lambda **kwargs: str(fixture_dir / "annotations.json"))
+        monkeypatch.setattr("tkinter.messagebox.showinfo", lambda *args, **kwargs: None)
+
+        window.action_load_annotations()
+
+        assert calls
+        lines, focus = calls[-1]
+        assert 13 in lines
+        assert 19 in lines
+        assert 22 in lines
+        assert focus is None
+    finally:
+        root.destroy()
+
+
+def test_annotation_crud_triggers_highlight_refresh(monkeypatch: pytest.MonkeyPatch) -> None:
+    root = _make_root()
+    try:
+        window = MainWindow(root)
+        fixture_dir = Path(__file__).resolve().parents[1] / "fixtures" / "annotations" / "berenice_1_1"
+        collection = load_annotations(fixture_dir / "annotations.json")
+        refresh_calls: list[str] = []
+        monkeypatch.setattr(window, "_refresh_annotation_highlights", lambda *args, **kwargs: refresh_calls.append("refresh"))
+
+        window._set_annotations(collection, fixture_dir / "annotations.json")
+        assert refresh_calls
+        refresh_calls.clear()
+
+        add_payload = {
+            "id": "n4",
+            "type": "explicative",
+            "anchor": {"kind": "line", "act": "1", "scene": "1", "line": "1"},
+            "content": "ajout",
+            "status": "draft",
+            "keywords": [],
+        }
+        monkeypatch.setattr("ets.ui.tk.main_window.open_annotation_dialog", lambda *args, **kwargs: add_payload)
+        window.action_add_annotation()
+        assert refresh_calls
+        refresh_calls.clear()
+
+        edit_payload = {
+            "id": "n4",
+            "type": "dramaturgique",
+            "anchor": {"kind": "line", "act": "1", "scene": "1", "line": "1"},
+            "content": "modif",
+            "status": "reviewed",
+            "keywords": [],
+        }
+        window.outputs.annotations_panel.tree.selection_set("n4")
+        monkeypatch.setattr("ets.ui.tk.main_window.open_annotation_dialog", lambda *args, **kwargs: edit_payload)
+        window.action_edit_annotation()
+        assert refresh_calls
+        refresh_calls.clear()
+
+        monkeypatch.setattr("tkinter.messagebox.askyesno", lambda *args, **kwargs: True)
+        window.outputs.annotations_panel.tree.selection_set("n4")
+        window.action_delete_annotation()
+        assert refresh_calls
+    finally:
+        root.destroy()
+
+
+def test_selecting_line_annotation_navigates_editor_to_target_line(monkeypatch: pytest.MonkeyPatch) -> None:
+    root = _make_root()
+    try:
+        window = MainWindow(root)
+        fixture_dir = Path(__file__).resolve().parents[1] / "fixtures" / "annotations" / "berenice_1_1"
+        window.state.config = load_config(fixture_dir / "config.json")
+        window.editor.set_text((fixture_dir / "input.txt").read_text(encoding="utf-8"))
+        window._set_annotations(load_annotations(fixture_dir / "annotations.json"), fixture_dir / "annotations.json")
+
+        seen: list[int] = []
+        monkeypatch.setattr(window.editor, "go_to_line", lambda line: seen.append(line))
+        window._on_annotation_selected("n1")
+        assert seen[-1] == 13
+    finally:
+        root.destroy()
+
+
+def test_selecting_line_range_annotation_focuses_first_line_and_range(monkeypatch: pytest.MonkeyPatch) -> None:
+    root = _make_root()
+    try:
+        window = MainWindow(root)
+        fixture_dir = Path(__file__).resolve().parents[1] / "fixtures" / "annotations" / "berenice_1_1"
+        window.state.config = load_config(fixture_dir / "config.json")
+        window.editor.set_text((fixture_dir / "input.txt").read_text(encoding="utf-8"))
+        window._set_annotations(load_annotations(fixture_dir / "annotations.json"), fixture_dir / "annotations.json")
+
+        seen_go: list[int] = []
+        seen_highlights: list[tuple[list[int], int | None]] = []
+        monkeypatch.setattr(window.editor, "go_to_line", lambda line: seen_go.append(line))
+        monkeypatch.setattr(
+            window.editor,
+            "highlight_annotation_lines",
+            lambda lines, focus_line=None: seen_highlights.append((list(lines), focus_line)),
+        )
+        window._on_annotation_selected("n2")
+        assert seen_go[-1] == 19
+        highlighted_lines, focus_line = seen_highlights[-1]
+        assert 19 in highlighted_lines
+        assert 22 in highlighted_lines
+        assert focus_line == 19
     finally:
         root.destroy()

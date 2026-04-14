@@ -33,7 +33,10 @@ class SearchReplaceDialog(tk.Toplevel):
         frame = ttk.Frame(self, padding=10)
         frame.grid(row=0, column=0, sticky="nsew")
         ttk.Label(frame, text="Rechercher:").grid(row=0, column=0, sticky="e", padx=(0, 6), pady=2)
-        ttk.Entry(frame, textvariable=self.find_var, width=36).grid(row=0, column=1, pady=2)
+
+        self.find_entry = ttk.Entry(frame, textvariable=self.find_var, width=36)
+        self.find_entry.grid(row=0, column=1, pady=2)
+
         ttk.Label(frame, text="Remplacer par:").grid(row=1, column=0, sticky="e", padx=(0, 6), pady=2)
         ttk.Entry(frame, textvariable=self.replace_var, width=36).grid(row=1, column=1, pady=2)
 
@@ -47,6 +50,13 @@ class SearchReplaceDialog(tk.Toplevel):
         ttk.Label(frame, textvariable=self.status_var, foreground="#555").grid(
             row=3, column=0, columnspan=2, sticky="w", pady=(8, 0)
         )
+
+        self.after_idle(self._focus_find_entry)
+
+    def _focus_find_entry(self) -> None:
+        self.find_entry.focus_set()
+        self.find_entry.select_range(0, "end")
+        self.find_entry.icursor("end")
 
     def _find_next(self) -> None:
         needle = self.find_var.get()
@@ -71,4 +81,3 @@ class SearchReplaceDialog(tk.Toplevel):
             return
         count = self._on_replace_all(needle, self.replace_var.get())
         self.status_var.set(f"{count} occurrence(s) remplacée(s).")
-

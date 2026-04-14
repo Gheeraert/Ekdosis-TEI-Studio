@@ -26,6 +26,7 @@ class AnnotationPanel(ttk.Frame):
         on_add: Callable[[], None] | None = None,
         on_edit: Callable[[], None] | None = None,
         on_delete: Callable[[], None] | None = None,
+        on_select: Callable[[str | None], None] | None = None,
     ) -> None:
         super().__init__(master)
         self.columnconfigure(0, weight=1)
@@ -58,6 +59,8 @@ class AnnotationPanel(ttk.Frame):
 
         if on_edit is not None:
             self.tree.bind("<Double-1>", lambda _event: on_edit(), add="+")
+        if on_select is not None:
+            self.tree.bind("<<TreeviewSelect>>", lambda _event: on_select(self.selected_annotation_id()), add="+")
 
     def set_file_path(self, value: str | None) -> None:
         if value:

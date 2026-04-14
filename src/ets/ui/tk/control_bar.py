@@ -52,6 +52,8 @@ class ControlBar(ttk.Frame):
 
         self.buttons_frame = ttk.Frame(self.actions_row)
         self.buttons_frame.grid(row=0, column=2, sticky="e")
+        # Compatibility alias kept for existing tests and lightweight responsive relayout.
+        self.buttons_row = self.buttons_frame
         for i in range(5):
             self.buttons_frame.columnconfigure(i, weight=0)
 
@@ -70,6 +72,12 @@ class ControlBar(ttk.Frame):
         ]
         for index, button in enumerate(buttons):
             button.grid(row=0, column=index, padx=2)
+
+    def _relayout(self, width: int) -> None:
+        if width < 1000:
+            self.buttons_frame.grid_configure(row=1, column=0, columnspan=3, sticky="w", pady=(6, 0))
+        else:
+            self.buttons_frame.grid_configure(row=0, column=2, columnspan=1, sticky="e", pady=0)
 
     def set_config_status(self, value: str) -> None:
         self.config_status.set(value)

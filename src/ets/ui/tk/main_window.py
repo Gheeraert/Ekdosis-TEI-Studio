@@ -27,6 +27,7 @@ from ets.application import (
 )
 from ets.domain import EditionConfig
 from ets.infrastructure import AutosavePayload, AutosaveStore, LocalPreviewServer
+from ets.parser import parse_play
 from ets.validation import validate_tei_xml
 
 from .control_bar import ControlBar
@@ -62,6 +63,28 @@ def suggest_next_annotation_id(collection: AnnotationCollection) -> str:
     while f"n{candidate}" in existing:
         candidate += 1
     return f"n{candidate}"
+
+
+def _numeric_equivalents(token: str) -> set[str]:
+    value = token.strip()
+    if not value:
+        return set()
+    if value.isdigit():
+        return {value, str(int(value))}
+    roman_map = {"I": 1, "V": 5, "X": 10, "L": 50, "C": 100, "D": 500, "M": 1000}
+    text = value.upper()
+    if any(char not in roman_map for char in text):
+        return {value}
+    total = 0
+    prev = 0
+    for char in reversed(text):
+        current = roman_map[char]
+        if current < prev:
+            total -= current
+        else:
+            total += current
+            prev = current
+    return {value, text, str(total)}
 
 
 class MainWindow(ttk.Frame):
@@ -117,6 +140,7 @@ class MainWindow(ttk.Frame):
             on_annotation_add=self.action_add_annotation,
             on_annotation_edit=self.action_edit_annotation,
             on_annotation_delete=self.action_delete_annotation,
+            on_annotation_select=self._on_annotation_selected,
         )
         self.outputs.grid(row=0, column=0, sticky="nsew")
         self.outputs.set_annotations(self.state.annotations)
@@ -268,6 +292,133 @@ class MainWindow(ttk.Frame):
         self.state.annotations_path = path
         self.outputs.set_annotations(collection)
         self.outputs.set_annotations_file_path(str(path) if path is not None else None)
+        self._refresh_annotation_highlights()
+
+    @staticmethod
+    def _split_parallel_blocks_with_start_lines(text: str, witness_count: int) -> dict[int, int]:
+        starts: dict[int, int] = {}
+        current_count = 0
+        current_start_line = 1
+        block_index = 0
+        for line_number, raw_line in enumerate(text.splitlines(), start=1):
+            if raw_line.strip() == "":
+                if current_count:
+                    if current_count == witness_count:
+                        starts[block_index] = current_start_line
+                    block_index += 1
+                    current_count = 0
+                current_start_line = line_number + 1
+                continue
+            if current_count == 0:
+                current_start_line = line_number
+            current_count += 1
+        if current_count:
+            if current_count == witness_count:
+                starts[block_index] = current_start_line
+        return starts
+
+    def _annotation_source_line_map(self) -> dict[str, list[int]]:
+        if self.state.config is None:
+            return {}
+        text = self._current_text()
+        if not text.strip():
+            return {}
+        try:
+            play = parse_play(text, self.state.config)
+        except ValueError:
+            return {}
+
+        block_start_lines = self._split_parallel_blocks_with_start_lines(text, len(self.state.config.witnesses))
+        verse_index: dict[tuple[str, str, str], int] = {}
+        stage_index: dict[tuple[str, str, int], int] = {}
+
+        for act_pos, act in enumerate(play.acts, start=1):
+            act_label = self.state.config.act_number if len(play.acts) == 1 else str(act_pos)
+            for scene_pos, scene in enumerate(act.scenes, start=1):
+                scene_label = self.state.config.scene_number if len(act.scenes) == 1 else str(scene_pos)
+                stage_counter = 0
+                for stage in scene.stage_directions:
+                    stage_counter += 1
+                    stage_index[(act_label, scene_label, stage_counter)] = stage.block_index
+                for speech in scene.speeches:
+                    for element in speech.elements:
+                        if hasattr(element, "number") and hasattr(element, "block_index"):
+                            verse_index[(act_label, scene_label, element.number)] = element.block_index
+                        elif hasattr(element, "lines"):
+                            for verse in element.lines:
+                                verse_index[(act_label, scene_label, verse.number)] = verse.block_index
+                        elif hasattr(element, "block_index"):
+                            stage_counter += 1
+                            stage_index[(act_label, scene_label, stage_counter)] = element.block_index
+
+        mapped: dict[str, list[int]] = {}
+        for annotation in self.state.annotations.annotations:
+            anchor = annotation.anchor
+            lines: list[int] = []
+
+            if anchor.kind == "line" and anchor.line is not None:
+                for act_value in _numeric_equivalents(anchor.act) or {anchor.act}:
+                    for scene_value in _numeric_equivalents(anchor.scene) or {anchor.scene}:
+                        key = (act_value, scene_value, anchor.line)
+                        block = verse_index.get(key)
+                        if block is not None and block in block_start_lines:
+                            lines = [block_start_lines[block]]
+                            break
+                    if lines:
+                        break
+            elif anchor.kind == "line_range" and anchor.start_line is not None and anchor.end_line is not None:
+                if anchor.start_line.isdigit() and anchor.end_line.isdigit():
+                    start = int(anchor.start_line)
+                    end = int(anchor.end_line)
+                    if start <= end:
+                        for act_value in _numeric_equivalents(anchor.act) or {anchor.act}:
+                            for scene_value in _numeric_equivalents(anchor.scene) or {anchor.scene}:
+                                candidates: list[int] = []
+                                for (a, s, line_number), block in verse_index.items():
+                                    if a != act_value or s != scene_value:
+                                        continue
+                                    number_text = str(line_number)
+                                    base = number_text.split(".", maxsplit=1)[0]
+                                    if not base.isdigit():
+                                        continue
+                                    numeric = int(base)
+                                    if start <= numeric <= end and block in block_start_lines:
+                                        candidates.append(block_start_lines[block])
+                                if candidates:
+                                    lines = sorted(set(candidates))
+                                    break
+                            if lines:
+                                break
+            elif anchor.kind == "stage" and anchor.stage_index is not None:
+                for act_value in _numeric_equivalents(anchor.act) or {anchor.act}:
+                    for scene_value in _numeric_equivalents(anchor.scene) or {anchor.scene}:
+                        block = stage_index.get((act_value, scene_value, anchor.stage_index))
+                        if block is not None and block in block_start_lines:
+                            lines = [block_start_lines[block]]
+                            break
+                    if lines:
+                        break
+
+            if lines:
+                mapped[annotation.id] = lines
+        return mapped
+
+    def _refresh_annotation_highlights(self, focus_annotation_id: str | None = None) -> None:
+        mapping = self._annotation_source_line_map()
+        all_lines: list[int] = sorted({line for lines in mapping.values() for line in lines})
+        focus_line: int | None = None
+        if focus_annotation_id is not None:
+            focus_lines = mapping.get(focus_annotation_id)
+            if focus_lines:
+                focus_line = focus_lines[0]
+                self.editor.go_to_line(focus_line)
+        self.editor.highlight_annotation_lines(all_lines, focus_line=focus_line)
+
+    def _on_annotation_selected(self, annotation_id: str | None) -> None:
+        if annotation_id is None:
+            self._refresh_annotation_highlights()
+            return
+        self._refresh_annotation_highlights(focus_annotation_id=annotation_id)
 
     def _find_annotation(self, annotation_id: str) -> Annotation | None:
         for annotation in self.state.annotations.annotations:
@@ -849,9 +1000,9 @@ class MainWindow(ttk.Frame):
 
     def _search_next_in(self, text: tk.Text, needle: str) -> bool:
         start = text.index("insert +1c")
-        idx = text.search(needle, start, stopindex="end")
+        idx = text.search(needle, start, stopindex="end", nocase=True)
         if not idx:
-            idx = text.search(needle, "1.0", stopindex=start)
+            idx = text.search(needle, "1.0", stopindex=start, nocase=True)
         if not idx:
             return False
         end = f"{idx}+{len(needle)}c"
@@ -887,7 +1038,7 @@ class MainWindow(ttk.Frame):
         count = 0
         start = "1.0"
         while True:
-            idx = text.search(pattern, start, stopindex="end")
+            idx = text.search(pattern, start, stopindex="end", nocase=True)
             if not idx:
                 break
             end = f"{idx}+{len(pattern)}c"
