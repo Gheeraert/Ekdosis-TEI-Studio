@@ -7,15 +7,18 @@ This repository is a clean rewrite of **Ekdosis TEI Studio**.
 The project converts a structured plain-text transcription format for **classical French drama with multiple witnesses** into **valid XML-TEI**, with a strong focus on:
 - theatrical structure
 - critical apparatus
+- editorial annotations
 - robustness on difficult edge cases
 - testability
 - future web integration
 
-The current objective is **not** to repair the legacy monolithic application.  
-The objective is to build a **new modular core**.
+The project now also includes:
+- a first **local Tkinter desktop UI**
+- a first **editorial annotation layer**
+- a limited **Markdown-inspired authoring syntax for annotation content**
 
-## Critical collation engine
-The critical collation engine must operate token by token across synchronized witness columns. Do not use line-level diffs as the main algorithm.
+The objective is **not** to repair the legacy monolithic application.  
+The objective is to build a **new modular core**, with thin interface layers on top of it.
 
 ## Priority order of truth sources
 
@@ -28,15 +31,21 @@ When making decisions, use these sources in this order:
 2. `docs/SPEC_V2.md`  
    This is the functional and architectural specification for the rewrite.
 
-3. `docs/Documentation_ancienne.md` and other legacy docs  
+3. `docs/ANNOTATIONS_V1.md`  
+   This defines the editorial annotation layer.
+
+4. `docs/ANNOTATION_MARKDOWN_V1.md`  
+   This defines the limited Markdown-inspired syntax allowed in annotation content and its conversion to TEI.
+
+5. `docs/Documentation_ancienne.md` and other legacy docs  
    These explain the historical behavior and input conventions.
 
-4. `legacy/`  
+6. `legacy/`  
    Legacy code is reference material only. Reuse ideas if useful, but do not preserve its architecture.
 
 ## Immediate objective
 
-Build a minimal, well-tested Python core that can:
+Build and stabilize a modular, well-tested Python application that can:
 
 1. read a plain text input file
 2. parse structural markers such as:
@@ -48,22 +57,23 @@ Build a minimal, well-tested Python core that can:
    - `***` for shared verse segmentation
 3. collate parallel witness lines using a reference witness
 4. generate minimal XML-TEI
-5. pass the stable fixture tests
-6. A minimal local desktop UI (Tkinter) is now in scope
-7. A first editorial annotation layer is now in scope
+5. expose core actions through a minimal local Tkinter UI
+6. support a first editorial annotation layer
+7. support a limited Markdown-inspired syntax in annotation content
+8. pass the stable and regression fixture tests
 
 ## Non-goals for now
+
 Do not build or restore:
-- Flask UI
-- LaTeX / ekdosis export
 - broad feature parity with legacy code
-- note authoring inside `input.txt`
-- word-level note anchoring inside variant apparatus
+- a complex visual annotation editor
+- free text selection anchoring in the source editor
+- word-level or apparatus-internal note anchoring
+- full Pandoc Markdown support
+- LaTeX / ekdosis export of annotations
+- HTML note rendering beyond the documented limited scope
 
-The legacy application remains a functional reference for expected UI affordances and workflows.
-Do not recreate its monolithic architecture, but do use it to infer the required desktop interactions.
-
-These may come later, but the current phase is focused on the core TEI engine.
+These may come later, but the current phase remains focused on a stable core plus a thin desktop UI.
 
 ## Architectural rules
 
@@ -74,11 +84,17 @@ These may come later, but the current phase is focused on the core TEI engine.
   - domain model
   - collation
   - TEI generation
+  - annotation enrichment
   - validation
+  - application services
+  - UI
 - Use typed Python
 - Prefer dataclasses for domain objects
 - Keep functions small and testable
 - Avoid hidden side effects
+- Keep UI code thin
+- Keep annotation logic separate from collation/tokenization
+- Keep Markdown parsing for annotations local to annotation content only
 
 ## Expected repository structure
 
@@ -86,6 +102,9 @@ These may come later, but the current phase is focused on the core TEI engine.
 - `src/ets/parser/` for parsing input text
 - `src/ets/collation/` for tokenization and variant alignment
 - `src/ets/tei/` for TEI generation
+- `src/ets/annotations/` for editorial annotations and annotation enrichment
+- `src/ets/application/` for service-layer APIs used by interfaces
+- `src/ets/ui/` for interface code
 - `src/ets/validation/` for structural and XML validation
 - `tests/` for pytest test suite
 - `fixtures/` for real inputs and expected outputs
@@ -96,8 +115,13 @@ These may come later, but the current phase is focused on the core TEI engine.
 - Use `pytest`
 - Prefer real fixtures over artificial examples
 - Add regression tests for every bug fixed
-- The first target is to pass the stable fixture exactly or with a documented XML normalization strategy
 - Keep unit tests and integration tests separate
+- When UI tests are brittle, prefer testing UI-adjacent controller/state methods
+- Any annotation feature must include tests for:
+  - JSON validation
+  - TEI enrichment
+  - diagnostics
+  - UI state stability where relevant
 
 ## TEI principles
 
@@ -111,123 +135,37 @@ At minimum, support:
 - verse lines
 - stage directions
 - critical apparatus using lemma + readings
+- editorial notes as a separate enrichment layer
 
-Important:
-- The reference witness is the lemma witness.
-- Do not restrict collation to verse lines.
-- Any textual block produced from parallel witness lines must support `CollatedText`.
-
-This includes:
-  - act headers
-  - scene headers
-  - cast lists
-  - speakers
-  - explicit stage directions
-  - verse lines
-
-- Use regression fixtures in:
-  - `fixtures/variant_head_and_cast/`
-  - `fixtures/shared_verses/`
-  - `fixtures/implied_stage_directions/`
-
-- Do not implement special-case logic for heads or cast lists.
-  The collation model must remain generic.
-
-- Shared-verse support currently guaranteed:
-  - three segments in the same scene
-  - two segments across two successive scenes, only when the continuation in the next scene is explicitly marked by `***`
-
-- A shared verse may cross at most one immediate scene boundary under this rule.
-  Otherwise, the shared-verse state must be closed deterministically.
-
-- Core principle:
-  the system models "collatable text", not "variant verse".
-  
-- Implicit stage directions (`$$TYPE$$ ... $$fin$$`) are supported as simple spans within a single speech. They must be rendered as:
-
-  `<stage xml:id="impliciteN" type="DI" ana="#TYPE"> ... </stage>`
-
-  containing the collated and normally numbered `<l>` elements of the span.
-
-- Current guaranteed scope for implicit stage directions:
-  - simple non-nested spans
-  - same speech
-  - one or more consecutive verse lines
-
-- Out of scope for now:
-  - nested spans
-  - interaction with shared verses
-  - interaction with scene changes
-  - witness-dependent presence or absence of span markers
-
-- TYPE validation is intentionally left open at this stage.
-  Do not hard-code a closed enum yet.
-
-
-## UI Policy (Tkinter V1)
-
-A first local desktop interface using Tkinter is now part of the project scope.
-
-This UI must remain a thin layer above the application services.
-
-Refer to `docs/UI_TK_V1.md` for detailed UI specifications.
-
-### Rules
-
-- No business logic in UI modules
-- UI must only call application services
-- No parsing, collation, or TEI generation inside UI code
-- Keep UI components small, modular, and readable
-- Avoid recreating a monolithic architecture like the legacy code
-
-### Goal
-
-Provide a simple, stable interface for:
-
-- text input
-- validation
-- TEI generation
-- HTML preview
-- export
-- annotation creation and editing
-- annotation list display
-- annotation file persistence
-
-### Constraint
-
-The core engine must remain fully usable without Tkinter.
-
+The reference witness is the lemma witness.
 
 ## Editorial annotations policy
 
-A first editorial annotation layer is now part of the project scope.
+A first editorial annotation layer is in scope.
 
-Annotations must remain a separate scholarly layer above the current TEI pipeline.
-
-### Rules
-
+Rules:
 - Do not add note syntax inside `input.txt`
 - Do not modify tokenization rules to support annotations
-- Do not mix note logic into witness collation
+- Do not mix annotation logic into witness collation
 - Store annotations in a separate structured file, e.g. `annotations.json`
 - Inject annotations after TEI generation, not during collation
-- Keep UI note editing thin and service-based
 - Prefer stable editorial anchors such as act / scene / line / stage index
-- Do not use raw character offsets in the source editor as the main anchoring strategy for V1
+- Do not use raw character offsets as the primary anchoring strategy in V1
 
-### Goal
+## Annotation content markup policy
 
-Provide a simple, stable workflow for:
+Annotation content may use a limited Markdown-inspired syntax.
 
-- annotation loading and saving
-- annotation creation and editing
-- TEI enrichment with `<note>`
-- HTML rendering of editorial notes
+This is an authoring convenience only.
 
-### Constraint
+Rules:
+- TEI remains the canonical output model
+- convert supported annotation markup to TEI during annotation enrichment
+- do not introduce full Pandoc Markdown support
+- do not broaden the supported syntax beyond the documented subset
+- unsupported or malformed markup should remain literal text rather than generating broken TEI
 
-The core engine must remain fully usable without the annotation UI.
-
+See `docs/ANNOTATION_MARKDOWN_V1.md`.
 
 ## Legacy code policy
 

@@ -11,6 +11,7 @@ The goal of this first version is to provide a simple, robust, testable annotati
 
 - store editorial notes separately from `input.txt`
 - attach notes to stable dramatic locations
+- accept a limited Markdown-style authoring syntax for note content
 - inject notes into generated TEI
 - render those notes in HTML outputs
 - remain compatible with the current core-first architecture
@@ -43,6 +44,7 @@ This first version supports:
 - note attached to a **full explicit stage direction**
 - loading and saving annotation files
 - simple creation / update / deletion workflows
+- a limited Markdown-style authoring syntax for annotation content
 - TEI enrichment after TEI generation
 - basic HTML rendering of note calls and note contents
 
@@ -56,6 +58,7 @@ The following are explicitly out of scope for V1:
 - note anchoring by text selection offsets in the raw source editor
 - collaborative multi-user editing
 - annotation history / versioning
+- full Pandoc Markdown support
 - LaTeX / ekdosis export of notes
 
 ## 4. Anchoring model
@@ -212,9 +215,25 @@ Examples of expected diagnostics:
 - `E_ANN_EMPTY_CONTENT`
 - `E_ANN_TARGET_NOT_FOUND`
 
-## 8. TEI integration
+## 8. Annotation content markup
 
-### 8.1 Integration strategy
+Annotation content may use a **limited Markdown-style authoring syntax**.
+
+This syntax is an **input convenience**, not the canonical internal model of the project.
+The canonical structured output remains **TEI**.
+
+Therefore:
+
+- annotation content may be written with a small Markdown-inspired syntax in the UI
+- this syntax may remain stored as text in `annotations.json`
+- supported constructs must be converted to TEI during annotation enrichment
+- downstream HTML rendering should consume the resulting TEI note structure, not raw Markdown text
+
+See `docs/ANNOTATION_MARKDOWN_V1.md` for the supported subset and exact TEI mappings.
+
+## 9. TEI integration
+
+### 9.1 Integration strategy
 
 Annotations must be injected **after** the normal TEI generation step.
 
@@ -223,16 +242,17 @@ Pipeline:
 1. generate TEI from the current core pipeline
 2. parse the generated TEI
 3. resolve annotation anchors against TEI elements
-4. insert `<note>` elements
-5. serialize the enriched TEI
+4. convert supported annotation markup to TEI when needed
+5. insert `<note>` elements
+6. serialize the enriched TEI
 
-### 8.2 Important rule
+### 9.2 Important rule
 
 Do not refactor the whole TEI generator just to support annotations in V1.
 
 A post-generation enrichment step is preferred.
 
-### 8.3 Stable TEI identifiers
+### 9.3 Stable TEI identifiers
 
 Annotatable TEI elements should receive stable `xml:id` values whenever possible.
 
@@ -251,7 +271,7 @@ Examples:
 <stage xml:id="A1S1ST2">Antiochus entre</stage>
 ```
 
-### 8.4 Note examples
+### 9.4 Note examples
 
 Single-line note:
 
@@ -277,9 +297,11 @@ Stage note:
 </note>
 ```
 
-## 9. HTML rendering
+For notes containing supported markup and/or several paragraphs, the content of `<note>` may include structured TEI such as `<p>`, `<hi>`, or `<ref>`.
 
-### 9.1 Preview HTML
+## 10. HTML rendering
+
+### 10.1 Preview HTML
 
 If TEI contains editorial notes, the HTML preview should render:
 
@@ -294,19 +316,22 @@ For V1, a simple rendering is sufficient:
 
 No complex interactive apparatus is required.
 
-### 9.2 Export HTML
+### 10.2 Export HTML
 
 Publication-oriented HTML export must preserve editorial notes.
 
 A simple and stable rendering is preferred over a sophisticated one.
 
-## 10. UI integration (Tkinter)
+If annotation content contains supported Markdown-style markup, this markup must first be converted to TEI during annotation enrichment.
+HTML rendering should then consume the TEI note structure rather than raw Markdown strings.
 
-### 10.1 General rule
+## 11. UI integration (Tkinter)
+
+### 11.1 General rule
 
 The Tkinter UI must remain thin and must use application services.
 
-### 10.2 V1 UX recommendation
+### 11.2 V1 UX recommendation
 
 The first UI version should provide:
 
@@ -315,7 +340,7 @@ The first UI version should provide:
 - add / edit / delete actions
 - load / save annotation file actions
 
-### 10.3 Important UX constraint
+### 11.3 Important UX constraint
 
 Do not build V1 around free mouse selection inside the raw source editor.
 
@@ -327,7 +352,16 @@ For this phase, anchors should be entered explicitly through a dialog using:
 
 This is less ambitious but much more robust.
 
-## 11. Application services
+### 11.4 Annotation content field
+
+The annotation content field may accept a limited Markdown-style syntax.
+
+No live preview is required in V1.
+A short help text, tooltip, or documentation link is sufficient.
+
+See `docs/ANNOTATION_MARKDOWN_V1.md`.
+
+## 12. Application services
 
 The UI should be able to call services such as:
 
@@ -340,7 +374,7 @@ The UI should be able to call services such as:
 
 Exact names may vary, but the architectural separation must remain clear.
 
-## 12. Testing policy
+## 13. Testing policy
 
 Add dedicated tests for annotations, for example:
 
@@ -352,7 +386,7 @@ tests/
   test_annotations_html_render.py
 ```
 
-### 12.1 Required test cases
+### 13.1 Required test cases
 
 - valid JSON load
 - invalid JSON rejection
@@ -362,9 +396,11 @@ tests/
 - TEI injection on line range
 - TEI injection on stage direction
 - diagnostic when TEI target is not found
+- conversion of supported annotation markup to TEI
+- malformed annotation markup preserved as literal text
 - HTML rendering includes note call and note content
 
-## 13. Fixtures
+## 14. Fixtures
 
 Add at least one small dedicated fixture, for example:
 
@@ -378,7 +414,7 @@ fixtures/annotations/berenice_1_1/
 
 This fixture should remain minimal and stable.
 
-## 14. Acceptance criteria
+## 15. Acceptance criteria
 
 V1 is considered complete when:
 
@@ -386,10 +422,11 @@ V1 is considered complete when:
 - annotations can be saved back to JSON
 - the UI can add / edit / delete annotations
 - generated TEI can be enriched with `<note>` elements
+- supported annotation markup can be converted into TEI note content
 - HTML outputs show notes in a readable form
 - the collation engine remains independent from note logic
 
-## 15. Forbidden shortcuts
+## 16. Forbidden shortcuts
 
 For this feature, do not:
 
@@ -399,3 +436,4 @@ For this feature, do not:
 - use raw source character offsets as anchors
 - rebuild the whole TEI generator around annotations
 - over-engineer V1 with complex UI interactions
+- introduce full Pandoc Markdown support instead of the documented subset

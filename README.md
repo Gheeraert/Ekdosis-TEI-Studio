@@ -16,27 +16,24 @@ This new version starts from a different principle:
 
 **plain text input -> structured parsing -> domain model -> collation -> TEI output**
 
+It now also includes:
+- a first local **Tkinter desktop UI**
+- a first **editorial annotation layer**
+- a limited **Markdown-inspired authoring syntax for annotation content**
+
 ## Main objective
 
 The project aims to support scholarly editing workflows for classical drama, especially when several textual witnesses must be collated and encoded in TEI.
 
-The core engine should be able to:
+The application should be able to:
 - parse a structured plain-text encoding format
 - identify dramatic structure
 - manage a configurable number of witnesses
 - identify a reference witness used as lemma
 - align and collate variant readings
 - generate valid XML-TEI
+- enrich the generated TEI with editorial annotations
 - remain robust in the presence of difficult editorial cases
-
-## Initial core milestone
-
-The initial milestone was intentionally limited to:
-- reading plain-text fixture inputs
-- parsing acts, scenes, cast lists, speaker changes, explicit stage directions, and ordinary verse blocks
-- collating witness lines with a reference witness
-- producing minimal XML-TEI
-- passing the stable fixture tests 
 
 ## Scope of the current development phase
 
@@ -50,16 +47,19 @@ It should:
 - support a first workflow for editorial annotations
 - store annotations in a separate structured file
 - enrich generated TEI with editorial notes
-- display notes in HTML outputs
+- support a limited Markdown-inspired syntax in annotation content
+- convert supported annotation markup to TEI during annotation enrichment
+- display notes in downstream HTML outputs once TEI rendering support is in place
 - preserve the current core-first architecture
 - pass the stable fixture tests
 
 It should not yet aim at:
 - full legacy feature parity
-- Flask UI
-- LaTeX / ekdosis output
+- broad Flask UI work
 - word-level annotation anchoring inside variant apparatus
 - note authoring directly inside `input.txt`
+- full Pandoc Markdown support
+- LaTeX / ekdosis output for annotations
 
 ## Input format
 
@@ -85,11 +85,33 @@ The exact target behavior is documented in `docs/SPEC_V2.md` and in the fixtures
 ```text
 src/ets/              core package
 src/ets/annotations/  editorial annotation layer
+src/ets/ui/           local interface code
 tests/                test suite
 fixtures/             real inputs and expected outputs
 docs/                 project documentation
 legacy/               archived historical code
 ```
+
+## Editorial annotations
+
+The project now prepares a first editorial annotation layer.
+
+Annotations are treated as a separate scholarly layer:
+- they are not written inside `input.txt`
+- they are stored in a separate structured file
+- they are injected after TEI generation
+- they are rendered downstream from the enriched TEI
+
+See `docs/ANNOTATIONS_V1.md`.
+
+## Annotation content markup
+
+Annotation content may use a limited Markdown-inspired authoring syntax.
+
+This syntax is only an input convenience.
+It must be converted to TEI during annotation enrichment.
+
+See `docs/ANNOTATION_MARKDOWN_V1.md`.
 
 ## Recommended development workflow
 
@@ -99,15 +121,6 @@ legacy/               archived historical code
 4. Add collation logic only where needed.
 5. Generate TEI.
 6. Lock behavior with pytest.
-
-## Current guaranteed shared-verse cases
-
-The current core guarantees the following shared-verse cases:
-
-- three-segment shared verse within a single scene
-- two-segment shared verse across two successive scenes when the continuation in the next scene is explicitly marked by `***`
-
-These cases are covered by regression fixtures in `fixtures/shared_verses/`.
 
 ## Why fixtures matter
 
@@ -120,55 +133,6 @@ They provide:
 - a concrete basis for design decisions
 
 The stable fixture should be the first development target.
-
-## Fixtures
-
-The directory `fixtures/variant_head_and_cast/` contains real-world regression cases
-for textual variation in:
-
-- act headers
-- scene headers
-- cast lists
-
-These fixtures ensure that the collation engine correctly handles variation
-in all structural textual elements, not only verse lines.
-
-`fixtures/shared_verses/` contains regression cases for prioritized shared-verse patterns.
-
-`fixtures/implied_stage_directions/` contains regression cases for implicit stage directions (`$$TYPE$$ ... $$fin$$`).
-
-## Current guaranteed implicit stage direction cases
-
-The current core supports simple implicit stage direction spans:
-
-- `$$TYPE$$` opens a span
-- `$$fin$$` closes it
-- the span remains inside the current speech
-- the span contains one or more normally collated and numbered verse lines
-- TEI output uses `<stage xml:id="impliciteN" type="DI" ana="#TYPE">`
-
-These cases are covered by regression fixtures in `fixtures/implied_stage_directions/`.
-
-## HTML outputs
-
-The core now exposes two HTML outputs from generated TEI:
-
-- a fast preview HTML (XSLT-based) for immediate editor rendering
-- a publication-ready HTML base with credits and optional XML link
-
-See `docs/HTML_OUTPUTS.md` for the architecture and scope.
-
-## Editorial annotations
-
-The project now also prepares a first editorial annotation layer.
-
-Annotations are treated as a separate scholarly layer:
-- they are not written inside `input.txt`
-- they are stored in a separate structured file
-- they are injected after TEI generation
-- they are rendered in HTML outputs
-
-See `docs/ANNOTATIONS_V1.md`.
 
 ## Design principles
 
@@ -207,6 +171,7 @@ See `docs/ANNOTATIONS_V1.md`.
 ### Milestone 5
 - editorial annotations V1
 - stable TEI identifiers for annotable elements
+- limited Markdown-to-TEI conversion for annotation content
 - note rendering in HTML outputs
 
 ### Milestone 6
@@ -221,7 +186,7 @@ It is not the foundation of the new architecture.
 
 Use Python with type hints and pytest.
 
-A simple first CLI target is expected, for example:
+A simple CLI target may still be useful, for example:
 
 ```bash
 python -m ets.cli --input fixtures/stable/input.txt --config fixtures/stable/config.json --output out.xml

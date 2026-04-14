@@ -33,7 +33,8 @@ La V1 doit proposer :
 4. une **barre de contrôle intermédiaire** ;
 5. des **menus classiques** ;
 6. un branchement progressif vers les services existants ;
-7. une première gestion simple des **annotations éditoriales**.
+7. une première gestion simple des **annotations éditoriales** ;
+8. l’acceptation d’une **syntaxe Markdown limitée** dans le contenu des annotations.
 
 ## Hors périmètre pour cette phase
 
@@ -47,6 +48,8 @@ Ne pas implémenter dans cette phase :
 - un système de persistance sophistiqué côté interface (historique complet, synchronisation complexe, autosave avancé, versioning, etc.).
 - l’annotation fine au mot ou au groupe de mots dans l’apparat de variantes ;
 - la saisie des notes directement dans `input.txt` ;
+- un support intégral de Pandoc Markdown ;
+- une prévisualisation temps réel du rendu typographique des annotations.
 
 En revanche, une persistance locale simple de configuration est dans le périmètre :
 - charger une configuration ;
@@ -157,6 +160,7 @@ L’onglet `Annotations` doit permettre au minimum :
 
 - À propos
 - Rappel synthétique de la syntaxe de saisie
+- Rappel synthétique de la syntaxe d’annotation Markdown autorisée
 
 ## Validation
 
@@ -382,7 +386,8 @@ Brancher une première gestion des annotations éditoriales :
 - chargement / enregistrement d’un fichier d’annotations ;
 - affichage d’une liste de notes ;
 - ajout / modification / suppression d’une note ;
-- injection des annotations dans le TEI généré.
+- injection des annotations dans le TEI généré ;
+- saisie du contenu des annotations avec une syntaxe Markdown limitée.
 
 ### Étape 6
 
@@ -419,6 +424,22 @@ L’ancre d’une annotation doit être saisie explicitement, par exemple à par
 
 Cette contrainte est volontaire :
 elle limite l’ambition interactive de la V1, mais garantit une meilleure robustesse.
+
+## Contenu des annotations
+
+Le contenu des annotations peut employer une **syntaxe Markdown limitée**.
+
+Cette syntaxe est une commodité de saisie et non le modèle canonique de l’application.
+Le modèle canonique de sortie reste le **TEI**.
+
+En conséquence :
+
+- la zone de contenu de la boîte d’annotation peut accepter une syntaxe de balisage légère ;
+- aucune prévisualisation en direct n’est requise en V1 ;
+- le rendu typographique ne doit pas être fabriqué dans l’UI Tkinter ;
+- la conversion vers le TEI doit être assurée plus loin dans la chaîne, au moment de l’enrichissement des annotations.
+
+Voir `docs/ANNOTATION_MARKDOWN_V1.md`.
 
 ## Rapport au legacy
 
@@ -470,5 +491,8 @@ Cette phase sera considérée comme réussie lorsque l’on disposera d’une in
 - de lancer la validation ;
 - de générer et afficher le TEI ;
 - de générer et afficher un HTML de prévisualisation ;
+- de charger et enregistrer un fichier d’annotations ;
+- d’ajouter, modifier et supprimer des annotations simples ;
+- de saisir le contenu d’une annotation avec une syntaxe Markdown limitée ;
 - d’exporter les résultats ;
 - le tout dans une interface claire, stable et compréhensible.

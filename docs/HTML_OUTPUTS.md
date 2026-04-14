@@ -22,6 +22,8 @@ La preview doit rester simple et robuste, sans habillage portail complexe.
 
 Si le TEI contient des notes éditoriales, la preview doit afficher des appels de note lisibles ainsi qu’un rendu simple du contenu des notes.
 
+Si le contenu des annotations utilise la syntaxe Markdown limitée documentée pour V1, ce contenu doit d’abord avoir été converti en TEI au moment de l’enrichissement. La preview HTML ne doit pas interpréter du Markdown brut à l’intérieur des `<note>`.
+
 ## Export HTML publiable (base)
 
 - Fonction : `render_html_export_from_tei(tei_xml: str, xml_href: str | None = None, options: HtmlExportOptions | None = None) -> str`
@@ -37,6 +39,8 @@ Elle ne cherche pas, a ce stade, a reproduire la structure complete de `fixtures
 Lorsque le TEI contient des notes éditoriales, l’export HTML doit les préserver.
 Pour cette V1, un rendu simple et stable suffit : notes de fin, notes de bas de page simples, ou bloc de notes en fin de scène / fin de document.
 Aucun dispositif interactif complexe n’est requis à ce stade.
+
+Si le contenu des annotations emploie la syntaxe Markdown limitée autorisée en V1, cette syntaxe doit déjà avoir été convertie en TEI pendant l’enrichissement des notes. L’export HTML doit consommer la structure TEI obtenue, et non tenter de rendre directement du Markdown brut.
 
 ## Enveloppe editoriale export (niveau actuel)
 
@@ -96,6 +100,25 @@ Pour cette première version, un rendu simple est acceptable :
 
 L’objectif n’est pas encore de produire un appareil critique HTML richement interactif, mais d’assurer la continuité :
 annotation -> TEI enrichi -> HTML lisible.
+
+## Markdown des annotations (V1)
+
+Le contenu des annotations peut utiliser une syntaxe Markdown limitée, documentée dans `docs/ANNOTATION_MARKDOWN_V1.md`.
+
+Cette syntaxe n’est pas le modèle canonique des sorties HTML.
+Le modèle canonique reste le **TEI enrichi**.
+
+La chaîne attendue est donc :
+
+- saisie d’une annotation avec une syntaxe Markdown limitée ;
+- conversion de cette syntaxe vers le TEI pendant l’enrichissement des annotations ;
+- rendu HTML à partir du TEI obtenu.
+
+En particulier :
+
+- les sorties HTML ne doivent pas dépendre d’un parseur Markdown généraliste ;
+- elles doivent consommer des éléments TEI structurés comme `<p>`, `<hi>`, `<ref>` ;
+- un balisage Markdown mal formé doit rester du texte littéral si la conversion en TEI n’a pas pu être faite proprement.
 
 ## Role de `tei-vers-html.xsl`
 

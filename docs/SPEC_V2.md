@@ -12,6 +12,7 @@ The rewrite must prioritize:
 - testability
 - robustness on edge cases
 - compatibility with future interfaces, especially Flask
+- clean support for a local desktop UI and editorial annotations
 
 ## 2. Functional objective
 
@@ -24,7 +25,7 @@ The user must be able to:
 - encode a dramatic text in a lightweight syntax
 - process one scene, multiple scenes, or eventually an entire act
 - generate TEI reliably
-
+- enrich the generated TEI with editorial annotations
 
 ## 3. Input model
 
@@ -180,7 +181,6 @@ The parser must:
 - identify transitions between acts and scenes
 - support multi-scene inputs
 - support eventual act-level inputs
-- preserve enough information for later collation of any textual block derived from parallel witness lines
 
 ### 5.3 Parser non-responsibilities
 
@@ -197,10 +197,6 @@ The parser must not:
 Collation must happen only on already-identified textual units.
 
 The reference witness is the lemma witness.
-
-In ordinary parallel witness blocks, token counts must be strictly identical across witnesses. Validation must fail otherwise.
-
-Whole-line variants must be triggered only by the explicit `#####` marker and must not rely on heuristic rewriting of marker syntax.
 
 ### 6.2 Minimal first implementation
 
@@ -226,23 +222,7 @@ build_apparatus_from_alignment(...) -> CollatedText
 collate_parallel_verse(...) -> CollatedText
 ```
 
-### 6.4 Variant-bearing dramatic headings
-
-Act headers, scene headers, and scene cast lists are textual units that may carry variants.
-
-They must not be reduced to plain strings during parsing.
-
-The following elements must support the same token-based collation model as verse lines:
-
-- act headers: `####...####`
-- scene headers: `###...###`
-- scene cast lists: `##...##`
-
-If variants are present, the TEI output must render an inline apparatus with `<app>`, `<lem>`, and `<rdg>`.
-
-The fixture `fixtures/variant_head_and_cast/` documents this requirement.
-
-### 6.5 Future needs
+### 6.4 Future needs
 
 The design must leave room for:
 - whole-line variant mode
@@ -250,59 +230,6 @@ The design must leave room for:
 - partial rewritings
 - shared verse segments
 - difficult multi-segment partitioning
-
-### 6.6 Shared-verse stabilization targets
-
-At the current stage of the project, shared-verse support is intentionally stabilized on a limited but robust subset of cases.
-
-The following cases are currently target guarantees:
-
-- shared verse in three segments within a single scene
-- shared verse in two segments across two successive scenes, only when the continuation in the next scene is explicitly marked by `***`
-
-The following rule applies:
-
-- a shared verse may survive a scene boundary only if the continuation is immediate and explicitly marked by `***`
-- if the continuation is not immediately resumed, the shared-verse state must be closed deterministically
-- a shared verse must not remain open across more than one scene boundary
-
-These behaviors must be regression-tested through the fixtures in:
-
-- `fixtures/shared_verses/`
-
-
-### 6.7 Implicit stage directions (initial stabilized support)
-
-The input syntax supports implicit stage direction spans using:
-
-- `$$TYPE$$` to open a span
-- `$$fin$$` to close it
-
-Where TYPE is an editorial category label such as `SET`, `EVT`, etc.
-
-At the current stage of the project, the following behavior is guaranteed:
-
-- an implicit stage direction span may contain one or more consecutive verse lines
-- the span remains inside the current `Speech`
-- the lines inside the span are collated and numbered exactly like ordinary verse lines
-- the TEI output must be:
-
-  `<stage xml:id="impliciteN" type="DI" ana="#TYPE"> ... </stage>`
-
-  containing the corresponding `<l>` elements
-
-- `xml:id` values must be generated deterministically as `implicite1`, `implicite2`, etc.
-
-Current out-of-scope cases:
-
-- nested implicit stage spans
-- interaction with shared verses
-- interaction with scene changes
-- witness-dependent presence or absence of span markers
-- other complex cases
-
-TYPE validation is intentionally left open at this stage and must not yet be restricted to a fixed closed list.
-
 
 ## 7. Shared verse requirements
 
@@ -322,9 +249,6 @@ A `SharedVerse` should contain:
 - content per segment
 
 This is essential for future robustness.
-
-Current deterministic rule for the sprint-level parser:
-- an open shared verse (`...***`) may continue across an immediate scene boundary only if the next verse segment begins with `***`; otherwise the shared verse is closed at the boundary.
 
 ## 8. TEI generation requirements
 
@@ -364,6 +288,7 @@ Later versions may add:
 - richer `teiHeader`
 - explicit witness declarations
 - analytic annotation for implicit stage directions
+- editorial annotation enrichment
 
 ## 9. Validation requirements
 
@@ -412,17 +337,6 @@ Fixtures are the main behavioral specification.
 The stable fixture is the first target.
 Known-issue fixtures must be converted progressively into passing regression tests.
 
-The directories:
-
-- `fixtures/variant_head_and_cast/`
-- `fixtures/shared_verses/`
-- `fixtures/implied_stage_directions/`
-
-contain authoritative regression fixtures for:
-- variant-bearing structural text blocks
-- prioritized shared-verse cases
-- simple implicit stage direction spans
-
 ### 10.3 Comparison strategy
 
 When comparing generated XML to expected XML:
@@ -441,6 +355,9 @@ src/
     parser/
     collation/
     tei/
+    annotations/
+    application/
+    ui/
     validation/
     render/
     cli.py
@@ -452,25 +369,23 @@ legacy/
 
 ## 12. Interface policy
 
-The core engine must remain fully usable without any GUI.
-However, the current phase now includes a first local desktop UI in Tkinter as a thin layer above the application services.
+The core must remain usable independently from any GUI.
 
-### 12.1 Forbidden in the current phase
-- Flask app
-- HTML visual editor
-- business logic implemented inside UI modules
-
-### 12.2 Allowed in the current phase
-- CLI entry point
+### 12.1 Current interface scope
+The project may include:
+- a local Tkinter desktop UI
 - file-based workflow
 - fixture-driven testing
-- minimal Tkinter desktop UI
-- TEI display
-- HTML preview display
-- export actions delegated to application services
+- later, a Flask presentation layer
 
-### 12.3 Phase 2+
-Once the core services are stable, Flask may be added as a separate presentation layer.
+### 12.2 Constraints
+Interfaces must remain thin:
+- no business logic in the UI
+- no direct XML generation in UI code
+- no duplication of parser/collation/annotation validation logic
+
+### 12.3 Future interfaces
+Once the core is stable, Flask may be added as a separate presentation layer.
 
 ## 13. Legacy code policy
 
@@ -483,7 +398,7 @@ The previous codebase may be consulted for logic and conventions, but:
 
 The first milestone is complete when the application can:
 
-1. load a structured plain-text input
+1. load the stable fixture input
 2. read its witness configuration
 3. parse acts, scenes, cast, speakers, and ordinary verse blocks
 4. validate malformed blocks and token-count inconsistencies
@@ -491,10 +406,10 @@ The first milestone is complete when the application can:
 6. generate minimal TEI
 7. expose these actions through a simple Tkinter interface
 8. display TEI and HTML preview outputs
-9. export results
+9. keep the core usable independently from the UI
 10. pass the stable fixture test suite
 
-## 16. Subsequent milestone suggestions
+## 15. Subsequent milestone suggestions
 
 ### Milestone 2
 - explicit stage directions
@@ -509,21 +424,30 @@ The first milestone is complete when the application can:
 - richer witness metadata
 
 ### Milestone 4
-- difficult shared verse chains
-- advanced alignment strategies
-- better identifiers and TEI enrichment
+- stable Tkinter UI workflow
+- better diagnostics display
+- export stability
 
 ### Milestone 5
+- editorial annotations V1
+- stable TEI identifiers for annotable elements
+- HTML rendering of notes
+
+### Milestone 6
+- annotation-content Markdown subset to TEI conversion
+- annotation rendering improvements
+- richer editorial note workflows
+
+### Milestone 7
 - Flask interface
 - TEI preview
 - editing workflow support
 
+## 16. Editorial annotations (V1)
 
-## 17. Editorial annotations (V1)
+### 16.1 General principle
 
-### 17.1 General principle
-
-Editorial annotations are now in scope, but they must remain a **separate editorial layer**.
+Editorial annotations are in scope, but they must remain a **separate editorial layer**.
 
 Therefore:
 
@@ -536,50 +460,44 @@ A separate annotation file, e.g. `annotations.json`, must be used.
 
 See `docs/ANNOTATIONS_V1.md`.
 
-### 17.2 Initial supported targets
+### 16.2 Initial supported targets
 
 V1 supports:
-
 - note on a single verse line
 - note on a range of verse lines
 - note on an explicit stage direction
 
 V1 does not yet support:
-
 - note on a word or phrase inside a verse
 - note directly targeting `<app>`, `<lem>`, or `<rdg>`
 - note syntax embedded in `input.txt`
 
-### 17.3 Storage model
+### 16.3 Storage model
 
 Annotations should be stored in a dedicated structured file separate from:
-
 - `input.txt`
 - `config.json`
 
 A JSON-based format is acceptable for V1 and should remain readable and stable.
 
-### 17.4 Anchoring model
+### 16.4 Anchoring model
 
 Annotations must use editorially meaningful anchors, such as:
-
 - act number
 - scene number
 - line number
 - stage direction index
 
 The preferred anchor kinds for V1 are:
-
 - `line`
 - `line_range`
 - `stage`
 
-### 17.5 TEI integration
+### 16.5 TEI integration
 
 Annotation support must be implemented as a **post-generation TEI enrichment step**.
 
 Expected sequence:
-
 1. generate TEI through the normal pipeline
 2. parse the TEI
 3. resolve annotation anchors
@@ -588,51 +506,43 @@ Expected sequence:
 
 Do not refactor the whole TEI generator around note support in this phase.
 
-### 17.6 Stable identifiers
+### 16.6 Stable identifiers
 
 Annotatable TEI elements should receive stable `xml:id` values when possible.
 
 Recommended conventions:
-
 - line: `A{act}S{scene}L{line}`
 - explicit stage direction: `A{act}S{scene}ST{index}`
 
-This is especially important for note targeting and later HTML rendering.
-
-### 17.7 UI integration
+### 16.7 UI integration
 
 The Tkinter UI may expose annotation workflows, but must remain thin.
 
 Allowed in V1:
-
 - annotation list display
 - add / edit / delete actions
 - load / save annotation file actions
 
 Not required in V1:
-
 - free text selection anchoring inside the raw source editor
 - advanced WYSIWYG note editing
 
-### 17.8 HTML rendering
+### 16.8 HTML rendering
 
 If generated TEI contains editorial notes, HTML outputs should render:
-
 - visible note calls
 - readable note contents
 
 For V1, a simple rendering model is acceptable:
-
 - end-of-scene notes
 - end-of-document notes
 - simple footnote-like blocks
 
-### 17.9 Testing and fixtures
+### 16.9 Testing and fixtures
 
 Annotation support must include dedicated tests and at least one dedicated fixture.
 
 Typical tests include:
-
 - annotation JSON validation
 - duplicate ID rejection
 - anchor resolution
@@ -640,114 +550,53 @@ Typical tests include:
 - HTML note rendering
 - diagnostics when a target is missing
 
-## Validation TEI optionnelle, facultatitve, non bloquante
+## 17. Annotation content markup (V1)
 
-### Objectif
+### 17.1 General principle
 
-Ajouter un validateur XML-TEI local, autonome et non bloquant, utilisable à la demande depuis l’interface, sans l’intégrer au pipeline métier principal.
+Annotation content may include a limited Markdown-inspired syntax.
 
-Ce validateur a pour but :
+This syntax is an **authoring convenience**, not the canonical model.
+TEI remains the canonical output model.
 
-- de vérifier la conformité TEI d’un document XML généré ;
-- de signaler clairement les erreurs de validation ;
-- d’aider au diagnostic sans empêcher la génération, l’export ni la sauvegarde.
+See `docs/ANNOTATION_MARKDOWN_V1.md`.
 
-### Principes
+### 17.2 Supported subset
 
-- La validation TEI est **facultative**.
-- Elle n’est **jamais lancée automatiquement**.
-- Elle n’est **jamais bloquante**.
-- Elle est exposée comme un **utilitaire accessible par menu** dans l’interface locale.
-- Elle doit rester **indépendante de l’UI** et **réutilisable** dans un autre contexte applicatif.
+The first version should support only a small editorially useful subset, including:
+- italic
+- bold
+- small caps
+- superscript
+- subscript
+- hyperlinks
+- paragraph breaks on blank lines
 
-### Contraintes techniques
+### 17.3 Conversion rule
 
-- L’implémentation se fait en **Python**.
-- Le moteur de validation repose sur **lxml**.
-- Le validateur utilise un **schéma TEI générique**, non spécifique au projet.
-- On n’introduit **aucun schéma ad hoc propre à Ekdosis TEI Studio** à ce stade.
-- Le module de validation ne doit contenir **aucune logique métier de collation** ni dépendance à Tkinter.
+Supported annotation markup must be converted to TEI during annotation enrichment, inside `<note>` content.
 
-### Positionnement architectural
+The expected pipeline is:
+1. annotation content is written in the UI
+2. it is stored as text in `annotations.json`
+3. TEI is generated normally
+4. annotation enrichment resolves anchors
+5. supported inline markup is converted into TEI nodes inside `<note>`
+6. enriched TEI is serialized
+7. HTML rendering consumes the resulting TEI structure
 
-Le validateur TEI constitue un module autonome.
+### 17.4 Out of scope
 
-Il doit être conçu comme un service indépendant, par exemple dans une arborescence du type :
+The following are out of scope for V1:
+- full Pandoc Markdown support
+- lists, tables, images, raw HTML
+- arbitrary classes/attributes
+- nested complex Markdown structures
+- markdown parsing outside annotation content
 
-- `src/ets/validation/tei_validator.py`
+### 17.5 Validation policy
 
-L’interface Tkinter ne doit faire que :
-
-- appeler le validateur ;
-- transmettre le XML à valider ;
-- afficher le résultat.
-
-### Entrée
-
-Le validateur reçoit :
-
-- soit une chaîne XML déjà générée ;
-- soit éventuellement, à terme, un chemin vers un fichier XML.
-
-Pour la première implémentation, la validation peut se limiter au **XML-TEI généré en mémoire** par l’application.
-
-### Sortie attendue
-
-Le validateur renvoie un résultat structuré, exploitable par l’UI, contenant au minimum :
-
-- un booléen de validité ;
-- la liste des erreurs détectées ;
-- éventuellement la liste des avertissements ou messages de diagnostic ;
-- le nom ou le type du schéma utilisé.
-
-Exemple de structure attendue :
-
-- `is_valid`
-- `errors`
-- `schema_name`
-
-Les messages doivent être présentés de manière lisible, sans exception brute non contrôlée côté interface.
-
-### Comportement dans l’interface
-
-L’interface propose une action explicite du type :
-
-- `Outils > Valider la TEI`
-ou
-- `Validation > Valider la TEI générée`
-
-Cette action :
-
-1. vérifie qu’un XML TEI a bien été généré ;
-2. appelle le module de validation ;
-3. affiche un résultat lisible à l’utilisateur.
-
-### Règles d’usage
-
-- Si aucune TEI n’est disponible, l’application affiche un message simple et informatif.
-- Si la validation réussit, l’application affiche une confirmation sobre.
-- Si la validation échoue, l’application affiche les erreurs, mais **ne bloque rien** :
-  - pas d’interruption du flux ;
-  - pas d’annulation de l’export ;
-  - pas de destruction des résultats déjà générés.
-
-### Hors périmètre pour cette phase
-
-Ne font pas partie de cette première phase :
-
-- la validation automatique après génération ;
-- l’intégration de la validation dans le pipeline principal ;
-- la personnalisation fine d’un schéma TEI propre au projet ;
-- la correction automatique des erreurs ;
-- l’enrichissement sémantique du XML à partir des résultats de validation.
-
-### Critères d’acceptation
-
-La fonctionnalité sera considérée comme correcte si :
-
-- un utilisateur peut lancer manuellement la validation TEI depuis le menu ;
-- la validation repose sur `lxml` ;
-- le module de validation reste autonome ;
-- aucun schéma spécifique au projet n’est introduit ;
-- les erreurs sont affichées proprement ;
-- un échec de validation n’empêche ni la génération ni l’export.
+Markdown conversion should be conservative:
+- valid supported syntax -> convert to TEI
+- malformed syntax -> preserve as literal text
+- never generate malformed TEI from partial markdown parsing
