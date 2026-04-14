@@ -56,8 +56,16 @@ def _append_collated_text(parent: ET.Element, text: CollatedText) -> None:
             last_child = app
 
 
-def _append_collated_line(parent: ET.Element, line: LiteralLine | ApparatusLine | TokenCollatedLine) -> None:
-    l_element = ET.SubElement(parent, _tei("l"), {"n": line.number})
+def _append_collated_line(
+    parent: ET.Element,
+    line: LiteralLine | ApparatusLine | TokenCollatedLine,
+    *,
+    line_xml_id: str | None = None,
+) -> None:
+    attrs = {"n": line.number}
+    if line_xml_id:
+        attrs["xml:id"] = line_xml_id
+    l_element = ET.SubElement(parent, _tei("l"), attrs)
     if isinstance(line, TokenCollatedLine):
         _append_collated_text(l_element, line.text)
         return
@@ -107,14 +115,25 @@ def generate_tei_xml(collated: CollatedPlay, config: EditionConfig) -> str:
         for scene_index, scene in enumerate(act.scenes, start=1):
             scene_n = config.scene_number if len(act.scenes) == 1 else str(scene_index)
             scene_div = ET.SubElement(act_div, _tei("div"), {"type": "scene", "n": scene_n})
+            stage_index = 0
+
+            def append_explicit_stage(parent: ET.Element, stage_text: CollatedText) -> None:
+                nonlocal stage_index
+                stage_index += 1
+                stage_el = ET.SubElement(
+                    parent,
+                    _tei("stage"),
+                    {"xml:id": f"A{act_n}S{scene_n}ST{stage_index}"},
+                )
+                _append_collated_text(stage_el, stage_text)
+
             scene_head = ET.SubElement(scene_div, _tei("head"))
             _append_collated_text(scene_head, scene.head)
             if scene.cast:
                 stage_cast = ET.SubElement(scene_div, _tei("stage"), {"type": "personnages"})
                 _append_collated_text(stage_cast, scene.cast)
             for stage in scene.stage_directions:
-                stage_el = ET.SubElement(scene_div, _tei("stage"))
-                _append_collated_text(stage_el, stage.text)
+                append_explicit_stage(scene_div, stage.text)
 
             for speech in scene.speeches:
                 sp = ET.SubElement(scene_div, _tei("sp"))
@@ -122,8 +141,7 @@ def generate_tei_xml(collated: CollatedPlay, config: EditionConfig) -> str:
                 _append_collated_text(speaker, speech.speaker)
                 for element in speech.elements:
                     if isinstance(element, CollatedStageDirection):
-                        stage_el = ET.SubElement(sp, _tei("stage"))
-                        _append_collated_text(stage_el, element.text)
+                        append_explicit_stage(sp, element.text)
                     elif isinstance(element, CollatedImplicitStageSpan):
                         implicit_counter += 1
                         span = ET.SubElement(
@@ -136,9 +154,9 @@ def generate_tei_xml(collated: CollatedPlay, config: EditionConfig) -> str:
                             },
                         )
                         for span_line in element.lines:
-                            _append_collated_line(span, span_line)
+                            _append_collated_line(span, span_line, line_xml_id=f"A{act_n}S{scene_n}L{span_line.number}")
                     else:
-                        _append_collated_line(sp, element)
+                        _append_collated_line(sp, element, line_xml_id=f"A{act_n}S{scene_n}L{element.number}")
 
     tree = ET.ElementTree(tei)
     ET.indent(tree, "  ")

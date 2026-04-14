@@ -7,15 +7,22 @@ from tkinter import filedialog, messagebox, ttk
 from typing import Callable
 import webbrowser
 
+from ets.annotations import Annotation, AnnotationCollection, AnnotationValidationError
 from ets.application import (
     AppDiagnostic,
+    create_annotation,
+    delete_annotation,
+    parse_annotation,
     export_html,
     export_tei,
     generate_html_preview_from_tei,
     generate_tei_from_text,
+    load_annotations,
     load_config,
+    save_annotations,
     save_config,
     suggest_output_basename,
+    update_annotation,
     validate_text,
 )
 from ets.domain import EditionConfig
@@ -24,7 +31,7 @@ from ets.validation import validate_tei_xml
 
 from .control_bar import ControlBar
 from .diagnostics_panel import DiagnosticsPanel
-from .dialogs import SearchReplaceDialog, open_config_dialog, show_about_dialog, show_help_dialog
+from .dialogs import SearchReplaceDialog, open_annotation_dialog, open_config_dialog, show_about_dialog, show_help_dialog
 from .editor import TextEditor
 from .helpers import diagnostic_line_numbers, format_config_status
 from .menus import MenuCallbacks, install_menus
@@ -41,6 +48,8 @@ class UIState:
     tei_dirty_by_user: bool = False
     diagnostics: list[AppDiagnostic] = field(default_factory=list)
     outputs_stale: bool = False
+    annotations: AnnotationCollection = field(default_factory=lambda: AnnotationCollection(version=1, annotations=[]))
+    annotations_path: Path | None = None
 
 
 class MainWindow(ttk.Frame):
@@ -90,8 +99,16 @@ class MainWindow(ttk.Frame):
         self.bottom.columnconfigure(0, weight=1)
         self.bottom.rowconfigure(0, weight=1)
 
-        self.outputs = OutputNotebook(self.bottom, on_tei_edited=self._on_tei_widget_edited)
+        self.outputs = OutputNotebook(
+            self.bottom,
+            on_tei_edited=self._on_tei_widget_edited,
+            on_annotation_add=self.action_add_annotation,
+            on_annotation_edit=self.action_edit_annotation,
+            on_annotation_delete=self.action_delete_annotation,
+        )
         self.outputs.grid(row=0, column=0, sticky="nsew")
+        self.outputs.set_annotations(self.state.annotations)
+        self.outputs.set_annotations_file_path(None)
 
         self.diagnostics = DiagnosticsPanel(self.bottom, on_navigate=self.editor.go_to_line)
         self.diagnostics.grid(row=1, column=0, sticky="nsew", pady=(6, 0))
@@ -132,6 +149,8 @@ class MainWindow(ttk.Frame):
                 edit_config=self.action_edit_config,
                 save_config_as=self.action_save_config_as,
                 load_config=self.action_load_config,
+                load_annotations=self.action_load_annotations,
+                save_annotations=self.action_save_annotations,
                 quit_app=self.action_quit,
                 undo=self.action_undo,
                 redo=self.action_redo,
@@ -147,6 +166,9 @@ class MainWindow(ttk.Frame):
                 preview_html=self.action_preview_html,
                 export_tei=self.action_export_tei,
                 export_html=self.action_export_html,
+                add_annotation=self.action_add_annotation,
+                edit_annotation=self.action_edit_annotation,
+                delete_annotation=self.action_delete_annotation,
                 toggle_diagnostics=self.action_toggle_diagnostics,
                 show_about=lambda: show_about_dialog(self.master),
                 show_help=lambda: show_help_dialog(self.master),
@@ -216,6 +238,56 @@ class MainWindow(ttk.Frame):
         self.state.diagnostics = diagnostics
         self.diagnostics.set_diagnostics(diagnostics)
         self.editor.highlight_lines(diagnostic_line_numbers(diagnostics))
+
+    @staticmethod
+    def _format_annotation_error(exc: AnnotationValidationError) -> str:
+        lines: list[str] = []
+        for item in exc.diagnostics:
+            suffix = ""
+            if item.annotation_id:
+                suffix += f" [id={item.annotation_id}]"
+            if item.field:
+                suffix += f" [champ={item.field}]"
+            lines.append(f"- {item.code}: {item.message}{suffix}")
+        return "\n".join(lines) if lines else str(exc)
+
+    def _set_annotations(self, collection: AnnotationCollection, path: Path | None) -> None:
+        self.state.annotations = collection
+        self.state.annotations_path = path
+        self.outputs.set_annotations(collection)
+        self.outputs.set_annotations_file_path(str(path) if path is not None else None)
+
+    def _find_annotation(self, annotation_id: str) -> Annotation | None:
+        for annotation in self.state.annotations.annotations:
+            if annotation.id == annotation_id:
+                return annotation
+        return None
+
+    @staticmethod
+    def _annotation_to_payload(annotation: Annotation) -> dict[str, object]:
+        anchor: dict[str, object] = {
+            "kind": annotation.anchor.kind,
+            "act": annotation.anchor.act,
+            "scene": annotation.anchor.scene,
+        }
+        if annotation.anchor.kind == "line":
+            anchor["line"] = annotation.anchor.line or ""
+        elif annotation.anchor.kind == "line_range":
+            anchor["start_line"] = annotation.anchor.start_line or ""
+            anchor["end_line"] = annotation.anchor.end_line or ""
+        elif annotation.anchor.kind == "stage":
+            anchor["stage_index"] = annotation.anchor.stage_index if annotation.anchor.stage_index is not None else ""
+        payload: dict[str, object] = {
+            "id": annotation.id,
+            "type": annotation.type,
+            "anchor": anchor,
+            "content": annotation.content,
+            "status": annotation.status,
+            "keywords": annotation.keywords,
+        }
+        if annotation.resp:
+            payload["resp"] = annotation.resp
+        return payload
 
     def _current_text(self) -> str:
         return self.editor.get_text()
@@ -456,6 +528,105 @@ class MainWindow(ttk.Frame):
         self.state.config_path = target
         self._refresh_config_ui()
         messagebox.showinfo("Configuration", f"Configuration enregistrée:\n{target}", parent=self.master)
+
+    def action_load_annotations(self) -> None:
+        chosen = filedialog.askopenfilename(
+            parent=self.master,
+            title="Charger un fichier d'annotations",
+            filetypes=[("JSON files", "*.json"), ("All files", "*.*")],
+        )
+        if not chosen:
+            return
+        try:
+            collection = load_annotations(chosen)
+        except AnnotationValidationError as exc:
+            messagebox.showerror("Annotations", self._format_annotation_error(exc), parent=self.master)
+            return
+        except (OSError, ValueError) as exc:
+            messagebox.showerror("Annotations", str(exc), parent=self.master)
+            return
+        self._set_annotations(collection, Path(chosen))
+        messagebox.showinfo("Annotations", "Annotations chargées.", parent=self.master)
+
+    def action_save_annotations(self) -> None:
+        initial_path = self.state.annotations_path
+        if initial_path is None:
+            chosen = filedialog.asksaveasfilename(
+                parent=self.master,
+                title="Enregistrer les annotations",
+                defaultextension=".json",
+                filetypes=[("JSON files", "*.json"), ("All files", "*.*")],
+                initialfile=self._default_filename(".json", suffix="_annotations"),
+            )
+            if not chosen:
+                return
+            target = Path(chosen)
+        else:
+            target = initial_path
+        try:
+            written = save_annotations(self.state.annotations, target)
+        except AnnotationValidationError as exc:
+            messagebox.showerror("Annotations", self._format_annotation_error(exc), parent=self.master)
+            return
+        except (OSError, ValueError) as exc:
+            messagebox.showerror("Annotations", str(exc), parent=self.master)
+            return
+        self._set_annotations(self.state.annotations, written)
+        messagebox.showinfo("Annotations", f"Annotations enregistrées:\n{written}", parent=self.master)
+
+    def action_add_annotation(self) -> None:
+        payload = open_annotation_dialog(self.master)
+        if payload is None:
+            return
+        try:
+            annotation = parse_annotation(payload)
+            collection = create_annotation(self.state.annotations, annotation)
+        except AnnotationValidationError as exc:
+            messagebox.showerror("Annotations", self._format_annotation_error(exc), parent=self.master)
+            return
+        self._set_annotations(collection, self.state.annotations_path)
+
+    def action_edit_annotation(self) -> None:
+        selected_id = self.outputs.selected_annotation_id()
+        if selected_id is None:
+            messagebox.showwarning("Annotations", "Sélectionnez une annotation à modifier.", parent=self.master)
+            return
+        current = self._find_annotation(selected_id)
+        if current is None:
+            messagebox.showerror("Annotations", "Annotation introuvable dans l'état courant.", parent=self.master)
+            return
+        payload = open_annotation_dialog(self.master, initial=self._annotation_to_payload(current))
+        if payload is None:
+            return
+        try:
+            updated = parse_annotation(payload)
+            if updated.id == current.id:
+                collection = update_annotation(self.state.annotations, updated)
+            else:
+                without_old = delete_annotation(self.state.annotations, current.id)
+                collection = create_annotation(without_old, updated)
+        except AnnotationValidationError as exc:
+            messagebox.showerror("Annotations", self._format_annotation_error(exc), parent=self.master)
+            return
+        self._set_annotations(collection, self.state.annotations_path)
+
+    def action_delete_annotation(self) -> None:
+        selected_id = self.outputs.selected_annotation_id()
+        if selected_id is None:
+            messagebox.showwarning("Annotations", "Sélectionnez une annotation à supprimer.", parent=self.master)
+            return
+        if not messagebox.askyesno(
+            "Annotations",
+            f"Supprimer l'annotation {selected_id} ?",
+            parent=self.master,
+        ):
+            return
+        try:
+            collection = delete_annotation(self.state.annotations, selected_id)
+        except AnnotationValidationError as exc:
+            messagebox.showerror("Annotations", self._format_annotation_error(exc), parent=self.master)
+            return
+        self._set_annotations(collection, self.state.annotations_path)
 
     def _on_reference_changed(self) -> None:
         if self.state.config is None:

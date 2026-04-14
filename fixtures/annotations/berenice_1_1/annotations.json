@@ -1,0 +1,51 @@
+{
+  "version": 1,
+  "annotations": [
+    {
+      "id": "n1",
+      "type": "explicative",
+      "anchor": {
+        "kind": "line",
+        "act": "1",
+        "scene": "1",
+        "line": "1"
+      },
+      "content": "Ouverture solennelle de la scene.",
+      "resp": "TG",
+      "status": "draft",
+      "keywords": [
+        "ouverture"
+      ]
+    },
+    {
+      "id": "n2",
+      "type": "dramaturgique",
+      "anchor": {
+        "kind": "line_range",
+        "act": "1",
+        "scene": "1",
+        "start_line": "2",
+        "end_line": "3"
+      },
+      "content": "Le rythme s'accelere sur la fin de la replique.",
+      "status": "reviewed",
+      "keywords": [
+        "rythme",
+        "scene"
+      ]
+    },
+    {
+      "id": "n3",
+      "type": "dramaturgique",
+      "anchor": {
+        "kind": "stage",
+        "act": "1",
+        "scene": "1",
+        "stage_index": 1
+      },
+      "content": "Entree scenique structurante.",
+      "status": "validated",
+      "keywords": []
+    }
+  ]
+}

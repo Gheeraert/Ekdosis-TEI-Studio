@@ -10,6 +10,8 @@ class AppDiagnostic:
     level: str
     code: str
     message: str
+    annotation_id: str | None = None
+    annotation_field: str | None = None
     line_number: int | None = None
     block_index: int | None = None
     act: str | None = None
@@ -61,4 +63,3 @@ class HtmlResult:
     html: str | None = None
     diagnostics: list[AppDiagnostic] = field(default_factory=list)
     message: str | None = None
-

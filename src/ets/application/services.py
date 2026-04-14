@@ -1,9 +1,23 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Any
 
 from lxml import etree
 
+from ets.annotations import (
+    Annotation,
+    AnnotationCollection,
+    AnnotationTargetNotFoundError,
+    AnnotationValidationError,
+    create_annotation as _create_annotation,
+    delete_annotation as _delete_annotation,
+    inject_annotations_into_tei,
+    load_annotations as _load_annotations,
+    parse_annotations_payload,
+    update_annotation as _update_annotation,
+)
+from ets.annotations import save_annotations as _save_annotations
 from ets.core import run_pipeline_from_text
 from ets.domain import EditionConfig
 from ets.html import render_html_preview_from_tei
@@ -25,6 +39,29 @@ def _has_error(diagnostics: list[AppDiagnostic]) -> bool:
 
 def _single_diagnostic(code: str, message: str) -> list[AppDiagnostic]:
     return [AppDiagnostic(level="ERROR", code=code, message=message)]
+
+
+def _map_annotation_diagnostics(
+    diagnostics: list[object], default_code: str, default_message: str
+) -> list[AppDiagnostic]:
+    mapped: list[AppDiagnostic] = []
+    for item in diagnostics:
+        code = getattr(item, "code", default_code)
+        message = getattr(item, "message", default_message)
+        annotation_id = getattr(item, "annotation_id", None)
+        annotation_field = getattr(item, "field", None)
+        mapped.append(
+            AppDiagnostic(
+                level="ERROR",
+                code=code,
+                message=message,
+                annotation_id=annotation_id,
+                annotation_field=annotation_field,
+            )
+        )
+    if mapped:
+        return mapped
+    return _single_diagnostic(default_code, default_message)
 
 
 def load_config(config_path: str | Path) -> EditionConfig:
@@ -116,3 +153,70 @@ def export_html(html: str, output_path: str | Path) -> Path:
 def suggest_output_basename(text: str, config: EditionConfig) -> str:
     """Suggest a default output basename like Title_A1_S1of4."""
     return build_default_basename(text, config)
+
+
+def load_annotations(path: str | Path) -> AnnotationCollection:
+    """Load annotations from JSON and validate their shape."""
+    return _load_annotations(path)
+
+
+def save_annotations(collection: AnnotationCollection, output_path: str | Path) -> Path:
+    """Save annotations JSON and return resolved path."""
+    return _save_annotations(collection, output_path)
+
+
+def parse_annotation(payload: dict[str, Any]) -> Annotation:
+    """Parse and validate a single annotation payload."""
+    parsed = parse_annotations_payload({"version": 1, "annotations": [payload]})
+    return parsed.annotations[0]
+
+
+def create_annotation(collection: AnnotationCollection, annotation: Annotation) -> AnnotationCollection:
+    """Create an annotation in an in-memory collection."""
+    return _create_annotation(collection, annotation)
+
+
+def update_annotation(collection: AnnotationCollection, annotation: Annotation) -> AnnotationCollection:
+    """Update an annotation in an in-memory collection."""
+    return _update_annotation(collection, annotation)
+
+
+def delete_annotation(collection: AnnotationCollection, annotation_id: str) -> AnnotationCollection:
+    """Delete an annotation in an in-memory collection."""
+    return _delete_annotation(collection, annotation_id)
+
+
+def enrich_tei_with_annotations(tei_xml: str, annotations: AnnotationCollection) -> GenerationResult:
+    """Inject editorial annotations into generated TEI."""
+    try:
+        enriched = inject_annotations_into_tei(tei_xml, annotations)
+    except AnnotationTargetNotFoundError as exc:
+        return GenerationResult(
+            ok=False,
+            tei_xml=None,
+            diagnostics=_map_annotation_diagnostics(
+                exc.diagnostics,
+                default_code="E_ANN_TARGET_NOT_FOUND",
+                default_message=str(exc),
+            ),
+            message=str(exc),
+        )
+    except AnnotationValidationError as exc:
+        return GenerationResult(
+            ok=False,
+            tei_xml=None,
+            diagnostics=_map_annotation_diagnostics(
+                exc.diagnostics,
+                default_code="E_ANN_INVALID_JSON",
+                default_message=str(exc),
+            ),
+            message=str(exc),
+        )
+    except ValueError as exc:
+        return GenerationResult(
+            ok=False,
+            tei_xml=None,
+            diagnostics=_single_diagnostic("E_ANN_ENRICHMENT", str(exc)),
+            message=str(exc),
+        )
+    return GenerationResult(ok=True, tei_xml=enriched, message="TEI enrichment with annotations successful.")

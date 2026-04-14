@@ -6,7 +6,7 @@ from uuid import uuid4
 
 import pytest
 
-from ets.application import AppDiagnostic
+from ets.application import AppDiagnostic, load_annotations
 from ets.infrastructure import AutosavePayload, AutosaveStore
 from ets.ui.tk.helpers import diagnostic_line_numbers, format_config_status
 from ets.ui.tk.main_window import MainWindow
@@ -164,6 +164,16 @@ def test_output_tabs_tei_editable_html_readonly() -> None:
         root.destroy()
 
 
+def test_output_tabs_include_annotations_tab() -> None:
+    root = _make_root()
+    try:
+        window = MainWindow(root)
+        labels = [window.outputs.notebook.tab(tab_id, "text") for tab_id in window.outputs.notebook.tabs()]
+        assert "Annotations" in labels
+    finally:
+        root.destroy()
+
+
 def test_manual_tei_edit_sets_dirty_flag() -> None:
     root = _make_root()
     try:
@@ -297,5 +307,65 @@ def test_tools_menu_contains_manual_tei_validation_action() -> None:
             if tools_menu_widget.type(i) == "command":
                 labels.append(tools_menu_widget.entrycget(i, "label"))
         assert "Valider la TEI générée" in labels
+    finally:
+        root.destroy()
+
+
+def test_load_annotations_action_updates_state_and_panel(monkeypatch: pytest.MonkeyPatch) -> None:
+    root = _make_root()
+    try:
+        window = MainWindow(root)
+        fixture = Path(__file__).resolve().parents[1] / "fixtures" / "annotations" / "berenice_1_1" / "annotations.json"
+        monkeypatch.setattr("tkinter.filedialog.askopenfilename", lambda **kwargs: str(fixture))
+        monkeypatch.setattr("tkinter.messagebox.showinfo", lambda *args, **kwargs: None)
+
+        window.action_load_annotations()
+
+        assert len(window.state.annotations.annotations) == 3
+        assert window.outputs.annotation_row_count() == 3
+        assert window.state.annotations_path == fixture
+    finally:
+        root.destroy()
+
+
+def test_annotation_crud_actions_update_state(monkeypatch: pytest.MonkeyPatch) -> None:
+    root = _make_root()
+    try:
+        window = MainWindow(root)
+        fixture = Path(__file__).resolve().parents[1] / "fixtures" / "annotations" / "berenice_1_1" / "annotations.json"
+        collection = load_annotations(fixture)
+        window._set_annotations(collection, fixture)
+
+        add_payload = {
+            "id": "n_added",
+            "type": "explicative",
+            "anchor": {"kind": "line", "act": "1", "scene": "1", "line": "1"},
+            "content": "ajout",
+            "status": "draft",
+            "keywords": [],
+        }
+        monkeypatch.setattr("ets.ui.tk.main_window.open_annotation_dialog", lambda *args, **kwargs: add_payload)
+        window.action_add_annotation()
+        assert any(item.id == "n_added" for item in window.state.annotations.annotations)
+
+        edit_payload = {
+            "id": "n_added",
+            "type": "dramaturgique",
+            "anchor": {"kind": "line", "act": "1", "scene": "1", "line": "1"},
+            "content": "modif",
+            "status": "reviewed",
+            "keywords": [],
+        }
+        window.outputs.annotations_panel.tree.selection_set("n_added")
+        monkeypatch.setattr("ets.ui.tk.main_window.open_annotation_dialog", lambda *args, **kwargs: edit_payload)
+        window.action_edit_annotation()
+        edited = [item for item in window.state.annotations.annotations if item.id == "n_added"][0]
+        assert edited.type == "dramaturgique"
+        assert edited.content == "modif"
+
+        monkeypatch.setattr("tkinter.messagebox.askyesno", lambda *args, **kwargs: True)
+        window.outputs.annotations_panel.tree.selection_set("n_added")
+        window.action_delete_annotation()
+        assert all(item.id != "n_added" for item in window.state.annotations.annotations)
     finally:
         root.destroy()

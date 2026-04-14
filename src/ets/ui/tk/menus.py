@@ -16,6 +16,8 @@ class MenuCallbacks:
     edit_config: Callable[[], None]
     save_config_as: Callable[[], None]
     load_config: Callable[[], None]
+    load_annotations: Callable[[], None]
+    save_annotations: Callable[[], None]
     quit_app: Callable[[], None]
     undo: Callable[[], None]
     redo: Callable[[], None]
@@ -31,6 +33,9 @@ class MenuCallbacks:
     preview_html: Callable[[], None]
     export_tei: Callable[[], None]
     export_html: Callable[[], None]
+    add_annotation: Callable[[], None]
+    edit_annotation: Callable[[], None]
+    delete_annotation: Callable[[], None]
     toggle_diagnostics: Callable[[], None]
     show_about: Callable[[], None]
     show_help: Callable[[], None]
@@ -51,6 +56,9 @@ def install_menus(root: tk.Tk, cb: MenuCallbacks) -> None:
     file_menu.add_command(label="Modifier la configuration…", command=cb.edit_config)
     file_menu.add_command(label="Enregistrer la configuration sous…", command=cb.save_config_as)
     file_menu.add_command(label="Charger une configuration…", command=cb.load_config)
+    file_menu.add_separator()
+    file_menu.add_command(label="Charger des annotations…", command=cb.load_annotations)
+    file_menu.add_command(label="Enregistrer les annotations…", command=cb.save_annotations)
     file_menu.add_separator()
     file_menu.add_command(label="Quitter", command=cb.quit_app)
     menu.add_cascade(label="Fichier", menu=file_menu)
@@ -73,6 +81,10 @@ def install_menus(root: tk.Tk, cb: MenuCallbacks) -> None:
     tools_menu.add_command(label="Valider la TEI générée", command=cb.validate_generated_tei)
     tools_menu.add_command(label="Générer le code XML-TEI", command=cb.generate_tei)
     tools_menu.add_command(label="Aperçu HTML", command=cb.preview_html)
+    tools_menu.add_separator()
+    tools_menu.add_command(label="Ajouter une annotation", command=cb.add_annotation)
+    tools_menu.add_command(label="Modifier une annotation", command=cb.edit_annotation)
+    tools_menu.add_command(label="Supprimer une annotation", command=cb.delete_annotation)
     tools_menu.add_separator()
     tools_menu.add_command(label="Export TEI", command=cb.export_tei)
     tools_menu.add_command(label="Export HTML", command=cb.export_html)

@@ -1,0 +1,23 @@
+{
+  "Prénom de l'auteur": "Jean",
+  "Nom de l'auteur": "Racine",
+  "Titre de la pièce": "Bérénice",
+  "Prénom de l'éditeur": "Test",
+  "Nom de l'éditeur (vous)": "Editor",
+  "Numéro du vers de départ": 1,
+  "Numéro de l'acte": "1",
+  "Numéro de la scène": "1",
+  "reference_witness": 0,
+  "Temoins": [
+    {
+      "abbr": "A",
+      "year": "1671",
+      "desc": "Edition A"
+    },
+    {
+      "abbr": "B",
+      "year": "1676",
+      "desc": "Edition B"
+    }
+  ]
+}

@@ -32,7 +32,8 @@ La V1 doit proposer :
 3. une **zone d’affichage des sorties** en partie basse ;
 4. une **barre de contrôle intermédiaire** ;
 5. des **menus classiques** ;
-6. un branchement progressif vers les services existants.
+6. un branchement progressif vers les services existants ;
+7. une première gestion simple des **annotations éditoriales**.
 
 ## Hors périmètre pour cette phase
 
@@ -44,6 +45,8 @@ Ne pas implémenter dans cette phase :
 - des widgets complexes non indispensables ;
 - une logique métier dupliquée dans les fichiers UI ;
 - un système de persistance sophistiqué côté interface (historique complet, synchronisation complexe, autosave avancé, versioning, etc.).
+- l’annotation fine au mot ou au groupe de mots dans l’apparat de variantes ;
+- la saisie des notes directement dans `input.txt` ;
 
 En revanche, une persistance locale simple de configuration est dans le périmètre :
 - charger une configuration ;
@@ -98,8 +101,16 @@ Onglets minimum :
 
 - `TEI`
 - `HTML`
+- `Annotations`
 
 L’objectif ici est la **lecture rapide** des résultats, non une édition avancée.
+
+L’onglet `Annotations` doit permettre au minimum :
+
+- l’affichage d’une liste de notes ;
+- la sélection d’une note ;
+- l’ajout, la modification et la suppression d’une note ;
+- le chargement et l’enregistrement d’un fichier d’annotations.
 
 ## Menus attendus
 
@@ -111,6 +122,8 @@ L’objectif ici est la **lecture rapide** des résultats, non une édition avan
 - Enregistrer sous
 - Charger une configuration
 - Créer une configuration
+- Charger des annotations
+- Enregistrer les annotations
 - Quitter
 
 ### Édition
@@ -128,6 +141,10 @@ L’objectif ici est la **lecture rapide** des résultats, non une édition avan
 
 - Valider la saisie
 - Générer le code XML-TEI
+- Générer la prévisualisation HTML
+- Ajouter une annotation
+- Modifier une annotation
+- Supprimer une annotation
 - Export TEI
 - Export HTML
 
@@ -190,6 +207,12 @@ L’UI doit pouvoir appeler une API Python simple, stable et testable, par exemp
 - `generate_html_preview(text, config)`
 - `export_tei(text, config, output_path)`
 - `export_html(text, config, output_path)`
+- `load_annotations(path)`
+- `save_annotations(collection, path)`
+- `create_annotation(collection, annotation)`
+- `update_annotation(collection, annotation)`
+- `delete_annotation(collection, annotation_id)`
+- `inject_annotations_into_tei(tei_xml, annotations)`
 
 Les noms exacts peuvent évoluer, mais le principe doit être conservé :
 **UI mince, services centraux.**
@@ -207,11 +230,12 @@ src/ets/
       output_notebook.py
       control_bar.py
       menus.py
+      annotation_panel.py
       dialogs/
         search_dialog.py
         config_dialog.py
         validation_dialog.py
-
+        annotation_dialog.py
 ```
 
 Cette arborescence peut évoluer légèrement, mais doit rester lisible.
@@ -353,6 +377,15 @@ Brancher la génération TEI et la prévisualisation HTML.
 
 ### Étape 5
 
+Brancher une première gestion des annotations éditoriales :
+
+- chargement / enregistrement d’un fichier d’annotations ;
+- affichage d’une liste de notes ;
+- ajout / modification / suppression d’une note ;
+- injection des annotations dans le TEI généré.
+
+### Étape 6
+
 Brancher les exports.
 
 ## Orientation UX
@@ -371,6 +404,21 @@ L’interface doit être :
 - les dispositions surchargées ;
 - les icônes obscures sans libellé ;
 - les fenêtres multiples non nécessaires.
+
+## Contrainte UX spécifique aux annotations
+
+Pour cette V1, l’interface ne doit pas reposer sur une sélection libre dans le texte source pour créer une note.
+
+L’ancre d’une annotation doit être saisie explicitement, par exemple à partir de :
+
+- l’acte ;
+- la scène ;
+- le numéro de vers ;
+- une plage de vers ;
+- l’index d’une didascalie.
+
+Cette contrainte est volontaire :
+elle limite l’ambition interactive de la V1, mais garantit une meilleure robustesse.
 
 ## Rapport au legacy
 

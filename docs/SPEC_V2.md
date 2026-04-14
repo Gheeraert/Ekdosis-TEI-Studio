@@ -518,6 +518,128 @@ The first milestone is complete when the application can:
 - TEI preview
 - editing workflow support
 
+
+## 17. Editorial annotations (V1)
+
+### 17.1 General principle
+
+Editorial annotations are now in scope, but they must remain a **separate editorial layer**.
+
+Therefore:
+
+- do not add note syntax inside `input.txt`
+- do not alter tokenization or collation rules for note support
+- do not anchor notes to raw source offsets
+- do not mix note authoring with witness transcription
+
+A separate annotation file, e.g. `annotations.json`, must be used.
+
+See `docs/ANNOTATIONS_V1.md`.
+
+### 17.2 Initial supported targets
+
+V1 supports:
+
+- note on a single verse line
+- note on a range of verse lines
+- note on an explicit stage direction
+
+V1 does not yet support:
+
+- note on a word or phrase inside a verse
+- note directly targeting `<app>`, `<lem>`, or `<rdg>`
+- note syntax embedded in `input.txt`
+
+### 17.3 Storage model
+
+Annotations should be stored in a dedicated structured file separate from:
+
+- `input.txt`
+- `config.json`
+
+A JSON-based format is acceptable for V1 and should remain readable and stable.
+
+### 17.4 Anchoring model
+
+Annotations must use editorially meaningful anchors, such as:
+
+- act number
+- scene number
+- line number
+- stage direction index
+
+The preferred anchor kinds for V1 are:
+
+- `line`
+- `line_range`
+- `stage`
+
+### 17.5 TEI integration
+
+Annotation support must be implemented as a **post-generation TEI enrichment step**.
+
+Expected sequence:
+
+1. generate TEI through the normal pipeline
+2. parse the TEI
+3. resolve annotation anchors
+4. inject `<note>` elements
+5. serialize enriched TEI
+
+Do not refactor the whole TEI generator around note support in this phase.
+
+### 17.6 Stable identifiers
+
+Annotatable TEI elements should receive stable `xml:id` values when possible.
+
+Recommended conventions:
+
+- line: `A{act}S{scene}L{line}`
+- explicit stage direction: `A{act}S{scene}ST{index}`
+
+This is especially important for note targeting and later HTML rendering.
+
+### 17.7 UI integration
+
+The Tkinter UI may expose annotation workflows, but must remain thin.
+
+Allowed in V1:
+
+- annotation list display
+- add / edit / delete actions
+- load / save annotation file actions
+
+Not required in V1:
+
+- free text selection anchoring inside the raw source editor
+- advanced WYSIWYG note editing
+
+### 17.8 HTML rendering
+
+If generated TEI contains editorial notes, HTML outputs should render:
+
+- visible note calls
+- readable note contents
+
+For V1, a simple rendering model is acceptable:
+
+- end-of-scene notes
+- end-of-document notes
+- simple footnote-like blocks
+
+### 17.9 Testing and fixtures
+
+Annotation support must include dedicated tests and at least one dedicated fixture.
+
+Typical tests include:
+
+- annotation JSON validation
+- duplicate ID rejection
+- anchor resolution
+- TEI note injection
+- HTML note rendering
+- diagnostics when a target is missing
+
 ## Validation TEI optionnelle, facultatitve, non bloquante
 
 ### Objectif

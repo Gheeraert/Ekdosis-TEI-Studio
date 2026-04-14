@@ -50,12 +50,15 @@ Build a minimal, well-tested Python core that can:
 4. generate minimal XML-TEI
 5. pass the stable fixture tests
 6. A minimal local desktop UI (Tkinter) is now in scope
+7. A first editorial annotation layer is now in scope
 
 ## Non-goals for now
 Do not build or restore:
 - Flask UI
 - LaTeX / ekdosis export
 - broad feature parity with legacy code
+- note authoring inside `input.txt`
+- word-level note anchoring inside variant apparatus
 
 The legacy application remains a functional reference for expected UI affordances and workflows.
 Do not recreate its monolithic architecture, but do use it to infer the required desktop interactions.
@@ -186,10 +189,44 @@ Provide a simple, stable interface for:
 - TEI generation
 - HTML preview
 - export
+- annotation creation and editing
+- annotation list display
+- annotation file persistence
 
 ### Constraint
 
 The core engine must remain fully usable without Tkinter.
+
+
+## Editorial annotations policy
+
+A first editorial annotation layer is now part of the project scope.
+
+Annotations must remain a separate scholarly layer above the current TEI pipeline.
+
+### Rules
+
+- Do not add note syntax inside `input.txt`
+- Do not modify tokenization rules to support annotations
+- Do not mix note logic into witness collation
+- Store annotations in a separate structured file, e.g. `annotations.json`
+- Inject annotations after TEI generation, not during collation
+- Keep UI note editing thin and service-based
+- Prefer stable editorial anchors such as act / scene / line / stage index
+- Do not use raw character offsets in the source editor as the main anchoring strategy for V1
+
+### Goal
+
+Provide a simple, stable workflow for:
+
+- annotation loading and saving
+- annotation creation and editing
+- TEI enrichment with `<note>`
+- HTML rendering of editorial notes
+
+### Constraint
+
+The core engine must remain fully usable without the annotation UI.
 
 
 ## Legacy code policy

@@ -4,11 +4,23 @@ import tkinter as tk
 from tkinter import ttk
 from typing import Callable
 
+from ets.annotations import AnnotationCollection
+
+from .annotation_panel import AnnotationPanel
+
 
 class OutputNotebook(ttk.Frame):
     """Output tabs with editable TEI and read-only HTML."""
 
-    def __init__(self, master: tk.Misc, *, on_tei_edited: Callable[[], None] | None = None) -> None:
+    def __init__(
+        self,
+        master: tk.Misc,
+        *,
+        on_tei_edited: Callable[[], None] | None = None,
+        on_annotation_add: Callable[[], None] | None = None,
+        on_annotation_edit: Callable[[], None] | None = None,
+        on_annotation_delete: Callable[[], None] | None = None,
+    ) -> None:
         super().__init__(master)
         self.columnconfigure(0, weight=1)
         self.rowconfigure(0, weight=1)
@@ -20,6 +32,12 @@ class OutputNotebook(ttk.Frame):
 
         self.tei_text = self._create_tab("TEI", editable=True)
         self.html_text = self._create_tab("HTML", editable=False)
+        self.annotations_panel = self._create_annotations_tab(
+            "Annotations",
+            on_add=on_annotation_add,
+            on_edit=on_annotation_edit,
+            on_delete=on_annotation_delete,
+        )
         self.tei_text.bind("<<Modified>>", self._on_tei_modified, add="+")
 
     def _create_tab(self, title: str, *, editable: bool) -> tk.Text:
@@ -35,6 +53,22 @@ class OutputNotebook(ttk.Frame):
         text.configure(yscrollcommand=y_scroll.set, xscrollcommand=x_scroll.set)
         self.notebook.add(frame, text=title)
         return text
+
+    def _create_annotations_tab(
+        self,
+        title: str,
+        *,
+        on_add: Callable[[], None] | None,
+        on_edit: Callable[[], None] | None,
+        on_delete: Callable[[], None] | None,
+    ) -> AnnotationPanel:
+        frame = ttk.Frame(self.notebook)
+        frame.columnconfigure(0, weight=1)
+        frame.rowconfigure(0, weight=1)
+        panel = AnnotationPanel(frame, on_add=on_add, on_edit=on_edit, on_delete=on_delete)
+        panel.grid(row=0, column=0, sticky="nsew")
+        self.notebook.add(frame, text=title)
+        return panel
 
     @staticmethod
     def _set_text(widget: tk.Text, value: str, *, editable: bool) -> None:
@@ -70,3 +104,15 @@ class OutputNotebook(ttk.Frame):
 
     def get_tei(self) -> str:
         return self.tei_text.get("1.0", "end-1c")
+
+    def set_annotations(self, collection: AnnotationCollection) -> None:
+        self.annotations_panel.set_annotations(collection)
+
+    def set_annotations_file_path(self, value: str | None) -> None:
+        self.annotations_panel.set_file_path(value)
+
+    def selected_annotation_id(self) -> str | None:
+        return self.annotations_panel.selected_annotation_id()
+
+    def annotation_row_count(self) -> int:
+        return self.annotations_panel.row_count()

@@ -4,6 +4,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 from ets.application import (
+    enrich_tei_with_annotations,
     export_html,
     export_tei,
     generate_html_preview_from_tei,
@@ -12,6 +13,7 @@ from ets.application import (
     load_config,
     validate_text,
 )
+from ets.annotations import Annotation, AnnotationAnchor, AnnotationCollection
 
 
 def _root() -> Path:
@@ -105,3 +107,60 @@ def test_service_generate_tei_avoids_double_input_validation() -> None:
         result = generate_tei_from_text(text, config)
     assert result.ok is True
     assert result.tei_xml is not None
+
+
+def test_service_enrich_tei_preserves_annotation_target_diagnostics() -> None:
+    root = _root()
+    config = load_config(root / "fixtures" / "stable" / "config.json")
+    text = (root / "fixtures" / "stable" / "input.txt").read_text(encoding="utf-8")
+    generation = generate_tei_from_text(text, config)
+    assert generation.ok is True and generation.tei_xml is not None
+
+    annotations = AnnotationCollection(
+        version=1,
+        annotations=[
+            Annotation(
+                id="missing_target",
+                type="explicative",
+                anchor=AnnotationAnchor(kind="line", act="1", scene="1", line="99999"),
+                content="missing",
+                status="draft",
+                keywords=[],
+            )
+        ],
+    )
+
+    result = enrich_tei_with_annotations(generation.tei_xml, annotations)
+    assert result.ok is False
+    assert result.tei_xml is None
+    assert result.diagnostics
+    assert result.diagnostics[0].code == "E_ANN_TARGET_NOT_FOUND"
+    assert result.diagnostics[0].annotation_id == "missing_target"
+
+
+def test_service_enrich_tei_preserves_decimal_range_diagnostics() -> None:
+    root = _root()
+    config = load_config(root / "fixtures" / "shared_verse" / "thebaide_2_2" / "config.json")
+    text = (root / "fixtures" / "shared_verse" / "thebaide_2_2" / "input.txt").read_text(encoding="utf-8")
+    generation = generate_tei_from_text(text, config)
+    assert generation.ok is True and generation.tei_xml is not None
+
+    annotations = AnnotationCollection(
+        version=1,
+        annotations=[
+            Annotation(
+                id="range_shared",
+                type="dramaturgique",
+                anchor=AnnotationAnchor(kind="line_range", act="2", scene="2", start_line="441", end_line="441"),
+                content="shared range",
+                status="draft",
+                keywords=[],
+            )
+        ],
+    )
+
+    result = enrich_tei_with_annotations(generation.tei_xml, annotations)
+    assert result.ok is False
+    assert result.diagnostics
+    assert result.diagnostics[0].code == "E_ANN_RANGE_DECIMAL_UNSUPPORTED"
+    assert result.diagnostics[0].annotation_id == "range_shared"

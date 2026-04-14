@@ -40,13 +40,17 @@ The initial milestone was intentionally limited to:
 
 ## Scope of the current development phase
 
-The current focus is the first local desktop UI.
+The current focus is the first local desktop UI, plus a first editorial annotation layer.
 
 This UI must stay thin and rely on the existing core services.
 
 It should:
 - provide a minimal Tkinter desktop interface for text input, validation, TEI generation, HTML preview, and export
 - surface validator diagnostics clearly and help users correct them
+- support a first workflow for editorial annotations
+- store annotations in a separate structured file
+- enrich generated TEI with editorial notes
+- display notes in HTML outputs
 - preserve the current core-first architecture
 - pass the stable fixture tests
 
@@ -54,6 +58,8 @@ It should not yet aim at:
 - full legacy feature parity
 - Flask UI
 - LaTeX / ekdosis output
+- word-level annotation anchoring inside variant apparatus
+- note authoring directly inside `input.txt`
 
 ## Input format
 
@@ -77,11 +83,12 @@ The exact target behavior is documented in `docs/SPEC_V2.md` and in the fixtures
 ## Repository structure
 
 ```text
-src/ets/           core package
-tests/             test suite
-fixtures/          real inputs and expected outputs
-docs/              project documentation
-legacy/            archived historical code
+src/ets/              core package
+src/ets/annotations/  editorial annotation layer
+tests/                test suite
+fixtures/             real inputs and expected outputs
+docs/                 project documentation
+legacy/               archived historical code
 ```
 
 ## Recommended development workflow
@@ -151,6 +158,18 @@ The core now exposes two HTML outputs from generated TEI:
 
 See `docs/HTML_OUTPUTS.md` for the architecture and scope.
 
+## Editorial annotations
+
+The project now also prepares a first editorial annotation layer.
+
+Annotations are treated as a separate scholarly layer:
+- they are not written inside `input.txt`
+- they are stored in a separate structured file
+- they are injected after TEI generation
+- they are rendered in HTML outputs
+
+See `docs/ANNOTATIONS_V1.md`.
+
 ## Design principles
 
 - explicit domain model
@@ -181,11 +200,16 @@ See `docs/HTML_OUTPUTS.md` for the architecture and scope.
 - richer TEI witness metadata
 
 ### Milestone 4
-- difficult multi-segment verse cases
-- advanced edge-case handling
-- better TEI identifiers and `@who`
+- first Tkinter desktop UI
+- TEI and HTML outputs exposed in the interface
+- stable export workflow
 
 ### Milestone 5
+- editorial annotations V1
+- stable TEI identifiers for annotable elements
+- note rendering in HTML outputs
+
+### Milestone 6
 - Flask-based UI on top of the stable core
 
 ## Legacy material
