@@ -193,11 +193,11 @@
     </div>
   </xsl:template>
 
-  <xsl:template match="tei:div[@type='act']/tei:head[tei:app]">
+<xsl:template match="tei:div[@type='act']/tei:head[tei:app]">
     <div class="acte-titre">
-      <xsl:apply-templates select="tei:app"/>
+     <xsl:apply-templates/>
     </div>
-  </xsl:template>
+</xsl:template>
 
   <xsl:template match="tei:div[@type='scene']/tei:head[not(tei:app)]">
     <div class="scene-titre-sans-variation">
@@ -207,7 +207,7 @@
 
   <xsl:template match="tei:div[@type='scene']/tei:head[tei:app]">
     <div class="scene-titre">
-      <xsl:apply-templates select="tei:app"/>
+      <xsl:apply-templates/>
     </div>
   </xsl:template>
 

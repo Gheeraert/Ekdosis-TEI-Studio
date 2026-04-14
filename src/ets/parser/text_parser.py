@@ -34,6 +34,8 @@ def _split_parallel_blocks(text: str, witness_count: int) -> list[list[str]]:
             )
     return blocks
 
+def _normalize_inline_text(text: str) -> str:
+    return text.strip().replace("~", "\u00A0")
 
 def _extract_wrapped(block: list[str], pattern: re.Pattern[str]) -> list[str]:
     extracted: list[str] = []
@@ -41,14 +43,14 @@ def _extract_wrapped(block: list[str], pattern: re.Pattern[str]) -> list[str]:
         match = pattern.match(line.strip())
         if not match:
             raise ValueError(f"Malformed marker line: {line}")
-        extracted.append(match.group(1).strip())
+        extracted.append(_normalize_inline_text(match.group(1)))
     return extracted
 
 
 def _extract_cast(block: list[str]) -> list[str]:
     result: list[str] = []
     for line in block:
-        names = [part.strip() for part in _CAST_RE.findall(line)]
+        names = [_normalize_inline_text(part) for part in _CAST_RE.findall(line)]
         result.append(" ".join(name for name in names if name))
     return result
 
@@ -66,7 +68,7 @@ def _clean_verse_reading(raw: str) -> tuple[str, bool, bool, bool]:
     if whole_line_variant:
         text = text[5:]
 
-    text = text.strip().replace("~", "\u00A0")
+    text = _normalize_inline_text(text)
     return text, split_start, split_continue, whole_line_variant
 
 
