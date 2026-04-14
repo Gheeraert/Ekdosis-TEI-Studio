@@ -154,6 +154,128 @@ def test_validate_generated_tei_action_with_invalid_tei_keeps_state(monkeypatch:
         root.destroy()
 
 
+def test_output_tabs_tei_editable_html_readonly() -> None:
+    root = _make_root()
+    try:
+        window = MainWindow(root)
+        assert str(window.outputs.tei_text.cget("state")) == "normal"
+        assert str(window.outputs.html_text.cget("state")) == "disabled"
+    finally:
+        root.destroy()
+
+
+def test_manual_tei_edit_sets_dirty_flag() -> None:
+    root = _make_root()
+    try:
+        window = MainWindow(root)
+        window.outputs.set_tei("<TEI/>")
+        window.state.tei_dirty_by_user = False
+        window.outputs.tei_text.insert("end", "\n<!-- edit -->")
+        root.update_idletasks()
+
+        assert window.state.tei_dirty_by_user is True
+        assert "<!-- edit -->" in (window.state.tei_xml or "")
+    finally:
+        root.destroy()
+
+
+def test_generate_tei_warns_before_overwriting_manual_edit(monkeypatch: pytest.MonkeyPatch) -> None:
+    root = _make_root()
+    try:
+        window = MainWindow(root)
+        window.state.tei_dirty_by_user = True
+        called: list[str] = []
+        monkeypatch.setattr("tkinter.messagebox.askyesno", lambda *args, **kwargs: False)
+        monkeypatch.setattr(window, "_apply_tei_generation", lambda **kwargs: called.append("gen") or True)
+
+        window.action_generate_tei()
+        assert called == []
+    finally:
+        root.destroy()
+
+
+def test_export_tei_uses_visible_edited_tei(monkeypatch: pytest.MonkeyPatch) -> None:
+    root = _make_root()
+    try:
+        window = MainWindow(root)
+        window.outputs.set_tei("<TEI>edited</TEI>")
+        window.state.tei_xml = "<TEI>old</TEI>"
+
+        out_path = RUNTIME_DIR / f"export_tei_{uuid4().hex}.xml"
+        monkeypatch.setattr("tkinter.filedialog.asksaveasfilename", lambda **kwargs: str(out_path))
+        monkeypatch.setattr("tkinter.messagebox.showinfo", lambda *args, **kwargs: None)
+        captured: list[str] = []
+
+        def _fake_export(content: str, output_path: str | Path) -> Path:
+            captured.append(content)
+            path = Path(output_path)
+            path.write_text(content, encoding="utf-8")
+            return path
+
+        monkeypatch.setattr("ets.ui.tk.main_window.export_tei", _fake_export)
+        window.action_export_tei()
+
+        assert captured == ["<TEI>edited</TEI>"]
+    finally:
+        root.destroy()
+
+
+def test_validate_generated_tei_uses_visible_edited_tei(monkeypatch: pytest.MonkeyPatch) -> None:
+    root = _make_root()
+    try:
+        window = MainWindow(root)
+        window.outputs.set_tei("<TEI>edited</TEI>")
+        window.state.tei_xml = "<TEI>old</TEI>"
+
+        seen: list[str] = []
+
+        class _Result:
+            is_valid = False
+            schema_name = "tei_all.rng"
+            engine_name = "lxml-relaxng"
+            errors = []
+
+        monkeypatch.setattr("ets.ui.tk.main_window.validate_tei_xml", lambda xml_text: seen.append(xml_text) or _Result())
+        monkeypatch.setattr("tkinter.messagebox.showwarning", lambda *args, **kwargs: None)
+
+        window.action_validate_generated_tei()
+        assert seen == ["<TEI>edited</TEI>"]
+    finally:
+        root.destroy()
+
+
+def test_find_targets_active_tei_widget(monkeypatch: pytest.MonkeyPatch) -> None:
+    root = _make_root()
+    try:
+        window = MainWindow(root)
+        window.outputs.set_tei("alpha beta")
+        window.editor.set_text("gamma delta")
+        monkeypatch.setattr(window, "_active_text_widget", lambda: window.outputs.tei_text)
+
+        def _fake_dialog(parent: tk.Misc, *, on_find_next, on_replace, on_replace_all) -> None:  # type: ignore[no-untyped-def]
+            assert on_find_next("beta") is True
+
+        monkeypatch.setattr("ets.ui.tk.main_window.SearchReplaceDialog", _fake_dialog)
+        window.action_find()
+
+        selected = window.outputs.tei_text.get("sel.first", "sel.last")
+        assert selected == "beta"
+    finally:
+        root.destroy()
+
+
+def test_select_all_applies_to_active_tei_widget() -> None:
+    root = _make_root()
+    try:
+        window = MainWindow(root)
+        window.outputs.set_tei("abc")
+        window._active_text_widget = lambda: window.outputs.tei_text  # type: ignore[method-assign]
+        window.action_select_all()
+        assert window.outputs.tei_text.get("sel.first", "sel.last") == "abc"
+    finally:
+        root.destroy()
+
+
 def test_tools_menu_contains_manual_tei_validation_action() -> None:
     root = _make_root()
     try:

@@ -38,6 +38,7 @@ class UIState:
     config: EditionConfig | None = None
     tei_xml: str | None = None
     html_preview: str | None = None
+    tei_dirty_by_user: bool = False
     diagnostics: list[AppDiagnostic] = field(default_factory=list)
     outputs_stale: bool = False
 
@@ -89,7 +90,7 @@ class MainWindow(ttk.Frame):
         self.bottom.columnconfigure(0, weight=1)
         self.bottom.rowconfigure(0, weight=1)
 
-        self.outputs = OutputNotebook(self.bottom)
+        self.outputs = OutputNotebook(self.bottom, on_tei_edited=self._on_tei_widget_edited)
         self.outputs.grid(row=0, column=0, sticky="nsew")
 
         self.diagnostics = DiagnosticsPanel(self.bottom, on_navigate=self.editor.go_to_line)
@@ -116,6 +117,7 @@ class MainWindow(ttk.Frame):
 
         self._refresh_config_ui()
         self._install_menus()
+        self._install_shortcuts()
 
     def _install_menus(self) -> None:
         install_menus(
@@ -131,11 +133,11 @@ class MainWindow(ttk.Frame):
                 save_config_as=self.action_save_config_as,
                 load_config=self.action_load_config,
                 quit_app=self.action_quit,
-                undo=lambda: self.editor.text.event_generate("<<Undo>>"),
-                redo=lambda: self.editor.text.event_generate("<<Redo>>"),
-                cut=lambda: self.editor.text.event_generate("<<Cut>>"),
-                copy=lambda: self.editor.text.event_generate("<<Copy>>"),
-                paste=lambda: self.editor.text.event_generate("<<Paste>>"),
+                undo=self.action_undo,
+                redo=self.action_redo,
+                cut=self.action_cut,
+                copy=self.action_copy,
+                paste=self.action_paste,
                 select_all=self.action_select_all,
                 find=self.action_find,
                 replace=self.action_replace,
@@ -150,6 +152,44 @@ class MainWindow(ttk.Frame):
                 show_help=lambda: show_help_dialog(self.master),
             ),
         )
+
+    def _install_shortcuts(self) -> None:
+        self.master.bind_all("<Control-f>", self._shortcut_find, add="+")
+        self.master.bind_all("<Control-F>", self._shortcut_find, add="+")
+        self.master.bind_all("<Control-a>", self._shortcut_select_all, add="+")
+        self.master.bind_all("<Control-A>", self._shortcut_select_all, add="+")
+        self.master.bind_all("<Control-x>", self._shortcut_cut, add="+")
+        self.master.bind_all("<Control-X>", self._shortcut_cut, add="+")
+        self.master.bind_all("<Control-c>", self._shortcut_copy, add="+")
+        self.master.bind_all("<Control-C>", self._shortcut_copy, add="+")
+        self.master.bind_all("<Control-v>", self._shortcut_paste, add="+")
+        self.master.bind_all("<Control-V>", self._shortcut_paste, add="+")
+
+    def _active_text_widget(self) -> tk.Text | None:
+        focused = self.master.focus_get()
+        if isinstance(focused, tk.Text):
+            return focused
+        return None
+
+    def _shortcut_find(self, _event: tk.Event[tk.Misc]) -> str:
+        self.action_find()
+        return "break"
+
+    def _shortcut_select_all(self, _event: tk.Event[tk.Misc]) -> str:
+        self.action_select_all()
+        return "break"
+
+    def _shortcut_cut(self, _event: tk.Event[tk.Misc]) -> str:
+        self.action_cut()
+        return "break"
+
+    def _shortcut_copy(self, _event: tk.Event[tk.Misc]) -> str:
+        self.action_copy()
+        return "break"
+
+    def _shortcut_paste(self, _event: tk.Event[tk.Misc]) -> str:
+        self.action_paste()
+        return "break"
 
     def _refresh_config_ui(self) -> None:
         self.control.set_config_status(
@@ -179,6 +219,20 @@ class MainWindow(ttk.Frame):
 
     def _current_text(self) -> str:
         return self.editor.get_text()
+
+    def _current_tei_text(self) -> str:
+        return self.outputs.get_tei()
+
+    def _on_tei_widget_edited(self) -> None:
+        current = self._current_tei_text()
+        if not current.strip():
+            self.state.tei_xml = None
+            self.state.tei_dirty_by_user = False
+            self.state.outputs_stale = True
+            return
+        self.state.tei_xml = current
+        self.state.tei_dirty_by_user = True
+        self.state.outputs_stale = True
 
     def _suggest_basename(self) -> str:
         if self.state.config is not None:
@@ -226,6 +280,7 @@ class MainWindow(ttk.Frame):
             return
         self.state.tei_xml = None
         self.state.html_preview = None
+        self.state.tei_dirty_by_user = False
         self.state.outputs_stale = True
         self.outputs.set_tei("")
         self.outputs.set_html("")
@@ -250,6 +305,7 @@ class MainWindow(ttk.Frame):
 
         self.state.tei_xml = result.tei_xml
         self.outputs.set_tei(result.tei_xml)
+        self.state.tei_dirty_by_user = False
         self.state.html_preview = None
         self.outputs.set_html("")
         self.state.outputs_stale = False
@@ -425,14 +481,24 @@ class MainWindow(ttk.Frame):
             messagebox.showwarning("Validation", result.message or "Des erreurs ont été détectées.", parent=self.master)
 
     def action_generate_tei(self) -> None:
+        if self.state.tei_dirty_by_user:
+            confirm = messagebox.askyesno(
+                "Génération TEI",
+                "La TEI a été modifiée manuellement.\nLa régénération va écraser ces modifications.\nContinuer ?",
+                parent=self.master,
+            )
+            if not confirm:
+                return
         self._apply_tei_generation(show_error=True)
 
     def action_validate_generated_tei(self) -> None:
-        if not self.state.tei_xml:
+        current_tei = self._current_tei_text()
+        if not current_tei.strip():
             messagebox.showinfo("Validation TEI", "Aucune TEI générée à valider.", parent=self.master)
             return
 
-        result = validate_tei_xml(self.state.tei_xml)
+        self.state.tei_xml = current_tei
+        result = validate_tei_xml(current_tei)
         if result.is_valid:
             messagebox.showinfo(
                 "Validation TEI",
@@ -461,6 +527,14 @@ class MainWindow(ttk.Frame):
         )
 
     def action_preview_html(self) -> None:
+        if self.state.tei_dirty_by_user:
+            confirm = messagebox.askyesno(
+                "Aperçu HTML",
+                "La TEI a été modifiée manuellement.\nLa régénération va écraser ces modifications.\nContinuer ?",
+                parent=self.master,
+            )
+            if not confirm:
+                return
         if not self._apply_tei_generation(show_error=False):
             messagebox.showerror("Aperçu HTML", "Échec de génération TEI.", parent=self.master)
             return
@@ -531,6 +605,9 @@ class MainWindow(ttk.Frame):
         messagebox.showinfo("Autosave", "Enregistrement automatique restauré.", parent=self.master)
 
     def action_export_tei(self) -> None:
+        current_tei = self._current_tei_text()
+        if current_tei.strip():
+            self.state.tei_xml = current_tei
         self._export_content(
             title="Exporter le TEI",
             warning_message="Générez d'abord un TEI.",
@@ -552,13 +629,45 @@ class MainWindow(ttk.Frame):
             exporter=export_html,
         )
 
-    def action_select_all(self) -> None:
-        self.editor.text.tag_add("sel", "1.0", "end-1c")
-        self.editor.text.mark_set("insert", "1.0")
-        self.editor.text.see("insert")
+    def action_undo(self) -> None:
+        widget = self._active_text_widget()
+        if widget is None:
+            return
+        widget.event_generate("<<Undo>>")
 
-    def _search_next(self, needle: str) -> bool:
-        text = self.editor.text
+    def action_redo(self) -> None:
+        widget = self._active_text_widget()
+        if widget is None:
+            return
+        widget.event_generate("<<Redo>>")
+
+    def action_cut(self) -> None:
+        widget = self._active_text_widget()
+        if widget is None:
+            return
+        widget.event_generate("<<Cut>>")
+
+    def action_copy(self) -> None:
+        widget = self._active_text_widget()
+        if widget is None:
+            return
+        widget.event_generate("<<Copy>>")
+
+    def action_paste(self) -> None:
+        widget = self._active_text_widget()
+        if widget is None:
+            return
+        widget.event_generate("<<Paste>>")
+
+    def action_select_all(self) -> None:
+        widget = self._active_text_widget()
+        if widget is None:
+            widget = self.editor.text
+        widget.tag_add("sel", "1.0", "end-1c")
+        widget.mark_set("insert", "1.0")
+        widget.see("insert")
+
+    def _search_next_in(self, text: tk.Text, needle: str) -> bool:
         start = text.index("insert +1c")
         idx = text.search(needle, start, stopindex="end")
         if not idx:
@@ -573,26 +682,35 @@ class MainWindow(ttk.Frame):
         text.focus_set()
         return True
 
-    def _replace_one(self, needle: str, replacement: str) -> bool:
-        text = self.editor.text
+    def _is_widget_editable(self, text: tk.Text) -> bool:
+        return str(text.cget("state")) == "normal"
+
+    def _replace_one_in(self, text: tk.Text, pattern: str, replacement: str) -> bool:
+        if not self._is_widget_editable(text):
+            return False
+        if not pattern:
+            return False
         ranges = text.tag_ranges("sel")
-        if len(ranges) == 2 and text.get(ranges[0], ranges[1]) == needle:
+        if len(ranges) == 2 and text.get(ranges[0], ranges[1]) == pattern:
             text.delete(ranges[0], ranges[1])
             text.insert(ranges[0], replacement)
             return True
-        if not self._search_next(needle):
+        if not self._search_next_in(text, pattern):
             return False
-        return self._replace_one(needle, replacement)
+        return self._replace_one_in(text, pattern, replacement)
 
-    def _replace_all(self, needle: str, replacement: str) -> int:
-        text = self.editor.text
+    def _replace_all_in(self, text: tk.Text, pattern: str, replacement: str) -> int:
+        if not self._is_widget_editable(text):
+            return 0
+        if not pattern:
+            return 0
         count = 0
         start = "1.0"
         while True:
-            idx = text.search(needle, start, stopindex="end")
+            idx = text.search(pattern, start, stopindex="end")
             if not idx:
                 break
-            end = f"{idx}+{len(needle)}c"
+            end = f"{idx}+{len(pattern)}c"
             text.delete(idx, end)
             text.insert(idx, replacement)
             start = f"{idx}+{len(replacement)}c"
@@ -600,11 +718,13 @@ class MainWindow(ttk.Frame):
         return count
 
     def action_find(self) -> None:
+        target = self._active_text_widget() or self.editor.text
+
         SearchReplaceDialog(
             self.master,
-            on_find_next=self._search_next,
-            on_replace=self._replace_one,
-            on_replace_all=self._replace_all,
+            on_find_next=lambda needle: self._search_next_in(target, needle),
+            on_replace=lambda needle, replacement: self._replace_one_in(target, needle, replacement),
+            on_replace_all=lambda needle, replacement: self._replace_all_in(target, needle, replacement),
         )
 
     def action_replace(self) -> None:

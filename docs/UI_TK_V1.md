@@ -216,6 +216,110 @@ src/ets/
 
 Cette arborescence peut évoluer légèrement, mais doit rester lisible.
 
+## Édition manuelle de la TEI générée
+
+### Objectif
+
+Permettre à l’utilisateur de modifier directement le XML-TEI généré dans l’onglet TEI de la zone inférieure, sans rendre le HTML éditable.
+
+### Principes
+
+- L’onglet **TEI** de la zone inférieure devient **éditable**.
+- L’onglet **HTML** reste **strictement en lecture seule**.
+- La TEI affichée dans l’onglet TEI peut donc provenir :
+  - soit de la génération automatique à partir du texte source ;
+  - soit d’une modification manuelle ultérieure par l’utilisateur.
+
+### Règle de vérité fonctionnelle
+
+Une fois la TEI modifiée manuellement dans l’onglet TEI :
+
+- **l’export XML** doit porter sur cette version éditée ;
+- **la validation TEI** doit porter sur cette version éditée ;
+- les autres opérations qui consomment explicitement la TEI courante doivent utiliser cette version visible.
+
+En revanche :
+
+- une nouvelle action **Générer TEI** à partir du texte source remplace la TEI courante.
+
+### Avertissement avant régénération
+
+Si la TEI a été modifiée manuellement depuis la dernière génération automatique, l’application doit afficher un avertissement clair avant d’écraser cette version.
+
+Exemple attendu :
+
+> La TEI a été modifiée manuellement.  
+> La régénération va écraser ces modifications.  
+> Continuer ?
+
+Si l’utilisateur annule, la TEI éditée est conservée.
+
+### Règles d’édition
+
+- Le widget TEI doit permettre une édition normale :
+  - saisie clavier ;
+  - sélection ;
+  - copier ;
+  - couper ;
+  - coller ;
+  - suppression ;
+  - sélection globale.
+- Le widget HTML ne doit pas permettre d’édition manuelle.
+
+### Recherche et raccourcis clavier
+
+Les raccourcis clavier d’édition et de recherche ne doivent pas être limités à la zone de saisie principale.
+
+Ils doivent fonctionner également dans l’onglet **TEI**, lorsque celui-ci a le focus.
+
+En particulier :
+
+- `Ctrl+F` : rechercher dans le widget actif ;
+- `Ctrl+X` : couper dans le widget actif si l’édition est autorisée ;
+- `Ctrl+C` : copier dans le widget actif ;
+- `Ctrl+V` : coller dans le widget actif si l’édition est autorisée ;
+- `Ctrl+A` : tout sélectionner dans le widget actif.
+
+### Contraintes de comportement
+
+- Le comportement des raccourcis doit dépendre du **widget actuellement focalisé**.
+- Les actions d’édition ne doivent pas casser les autres zones de l’interface.
+- La recherche doit pouvoir s’appliquer à la zone TEI aussi naturellement qu’à la zone de saisie principale.
+- Le HTML ne doit pas devenir éditable du simple fait du partage des raccourcis.
+
+### État interne
+
+L’application doit distinguer au minimum :
+
+- une TEI générée automatiquement ;
+- une TEI modifiée manuellement après génération.
+
+Un indicateur d’état dédié peut être utilisé pour savoir si un avertissement doit être affiché avant régénération.
+
+### Hors périmètre pour cette phase
+
+Ne font pas partie de cette phase :
+
+- l’édition manuelle du HTML ;
+- un éditeur XML avancé avec coloration syntaxique ;
+- une validation XML en temps réel pendant la frappe ;
+- une synchronisation automatique bidirectionnelle entre TEI éditée et texte source ;
+- une conversion automatique TEI modifiée → texte source.
+
+### Critères d’acceptation
+
+La fonctionnalité est considérée comme correcte si :
+
+- l’onglet TEI est éditable ;
+- l’onglet HTML reste non éditable ;
+- `Ctrl+F`, `Ctrl+X`, `Ctrl+C`, `Ctrl+V`, `Ctrl+A` fonctionnent aussi dans la zone TEI ;
+- l’export XML utilise la TEI effectivement visible ;
+- la validation TEI utilise la TEI effectivement visible ;
+- une régénération TEI avertit l’utilisateur si la TEI a été modifiée à la main ;
+- l’annulation de cet avertissement préserve la TEI éditée.
+
+Le moteur de recherche de l’interface doit être généralisé au widget actuellement focalisé, et non limité à l’éditeur source principal.
+
 ## Stratégie de développement
 
 Le développement doit se faire par étapes courtes.
