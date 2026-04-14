@@ -5,6 +5,7 @@ from pathlib import Path
 import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
 from typing import Callable
+import webbrowser
 
 from ets.application import (
     AppDiagnostic,
@@ -13,13 +14,16 @@ from ets.application import (
     generate_html_preview_from_tei,
     generate_tei_from_text,
     load_config,
+    save_config,
+    suggest_output_basename,
     validate_text,
 )
 from ets.domain import EditionConfig
+from ets.infrastructure import AutosavePayload, AutosaveStore, LocalPreviewServer
 
 from .control_bar import ControlBar
 from .diagnostics_panel import DiagnosticsPanel
-from .dialogs import SearchReplaceDialog, show_about_dialog, show_help_dialog
+from .dialogs import SearchReplaceDialog, open_config_dialog, show_about_dialog, show_help_dialog
 from .editor import TextEditor
 from .helpers import diagnostic_line_numbers, format_config_status
 from .menus import MenuCallbacks, install_menus
@@ -40,11 +44,24 @@ class UIState:
 class MainWindow(ttk.Frame):
     """Main Tkinter application window for local text workflows."""
 
-    def __init__(self, master: tk.Tk) -> None:
+    AUTOSAVE_DELAY_MS = 2000
+
+    def __init__(
+        self,
+        master: tk.Tk,
+        *,
+        preview_server: LocalPreviewServer | None = None,
+        autosave_store: AutosaveStore | None = None,
+        open_browser: Callable[[str], bool] | None = None,
+    ) -> None:
         super().__init__(master, padding=6)
         self.master = master
         self.state = UIState()
         self._diagnostics_visible = True
+        self._preview_server = preview_server or LocalPreviewServer()
+        self._autosave_store = autosave_store or AutosaveStore()
+        self._open_browser = open_browser or webbrowser.open_new_tab
+        self._autosave_after_id: str | None = None
 
         self.master.title("Ekdosis TEI Studio v2")
         self.master.geometry("1200x850")
@@ -54,11 +71,31 @@ class MainWindow(ttk.Frame):
         self.master.columnconfigure(0, weight=1)
         self.master.rowconfigure(0, weight=1)
         self.columnconfigure(0, weight=1)
-        self.rowconfigure(0, weight=3)
-        self.rowconfigure(2, weight=2)
+        self.rowconfigure(0, weight=1)
+        self.rowconfigure(1, weight=0)
 
-        self.editor = TextEditor(self)
+        self.vertical_pane = ttk.Panedwindow(self, orient=tk.VERTICAL)
+        self.vertical_pane.grid(row=0, column=0, sticky="nsew")
+
+        self.top = ttk.Frame(self.vertical_pane)
+        self.top.columnconfigure(0, weight=1)
+        self.top.rowconfigure(0, weight=1)
+
+        self.editor = TextEditor(self.top)
         self.editor.grid(row=0, column=0, sticky="nsew")
+
+        self.bottom = ttk.Frame(self.vertical_pane)
+        self.bottom.columnconfigure(0, weight=1)
+        self.bottom.rowconfigure(0, weight=1)
+
+        self.outputs = OutputNotebook(self.bottom)
+        self.outputs.grid(row=0, column=0, sticky="nsew")
+
+        self.diagnostics = DiagnosticsPanel(self.bottom, on_navigate=self.editor.go_to_line)
+        self.diagnostics.grid(row=1, column=0, sticky="nsew", pady=(6, 0))
+
+        self.vertical_pane.add(self.top, weight=3)
+        self.vertical_pane.add(self.bottom, weight=2)
 
         self.control = ControlBar(
             self,
@@ -69,18 +106,7 @@ class MainWindow(ttk.Frame):
             on_export_tei=self.action_export_tei,
             on_export_html=self.action_export_html,
         )
-        self.control.grid(row=1, column=0, sticky="ew")
-
-        self.bottom = ttk.Frame(self)
-        self.bottom.grid(row=2, column=0, sticky="nsew", pady=(6, 0))
-        self.bottom.columnconfigure(0, weight=1)
-        self.bottom.rowconfigure(0, weight=1)
-
-        self.outputs = OutputNotebook(self.bottom)
-        self.outputs.grid(row=0, column=0, sticky="nsew")
-
-        self.diagnostics = DiagnosticsPanel(self.bottom, on_navigate=self.editor.go_to_line)
-        self.diagnostics.grid(row=1, column=0, sticky="nsew", pady=(6, 0))
+        self.control.grid(row=1, column=0, sticky="ew", pady=(6, 0))
 
         self.editor.text.bind("<KeyRelease>", self._on_editor_content_changed, add="+")
         self.editor.text.bind("<<Paste>>", self._on_editor_content_changed, add="+")
@@ -98,6 +124,10 @@ class MainWindow(ttk.Frame):
                 open_file=self.action_open_file,
                 save_file=self.action_save_file,
                 save_file_as=self.action_save_file_as,
+                restore_autosave=self.action_restore_autosave,
+                new_config=self.action_new_config,
+                edit_config=self.action_edit_config,
+                save_config_as=self.action_save_config_as,
                 load_config=self.action_load_config,
                 quit_app=self.action_quit,
                 undo=lambda: self.editor.text.event_generate("<<Undo>>"),
@@ -137,7 +167,7 @@ class MainWindow(ttk.Frame):
     def _ensure_config(self) -> bool:
         if self.state.config is not None:
             return True
-        messagebox.showerror("Configuration manquante", "Veuillez charger une configuration JSON.", parent=self.master)
+        messagebox.showerror("Configuration manquante", "Veuillez charger ou créer une configuration JSON.", parent=self.master)
         return False
 
     def _set_diagnostics(self, diagnostics: list[AppDiagnostic]) -> None:
@@ -148,6 +178,20 @@ class MainWindow(ttk.Frame):
     def _current_text(self) -> str:
         return self.editor.get_text()
 
+    def _suggest_basename(self) -> str:
+        if self.state.config is not None:
+            try:
+                return suggest_output_basename(self._current_text(), self.state.config)
+            except Exception:
+                pass
+        if self.state.current_file_path is not None:
+            return self.state.current_file_path.stem
+        return "document"
+
+    def _default_filename(self, extension: str, *, suffix: str = "") -> str:
+        base = self._suggest_basename()
+        return f"{base}{suffix}{extension}"
+
     def _write_current_file(self, target: Path) -> None:
         target.write_text(self._current_text(), encoding="utf-8")
         self.state.current_file_path = target
@@ -155,6 +199,25 @@ class MainWindow(ttk.Frame):
 
     def _on_editor_content_changed(self, _event: tk.Event[tk.Misc]) -> None:
         self.after_idle(lambda: self._invalidate_outputs(reason="text_changed"))
+        self._schedule_autosave()
+
+    def _schedule_autosave(self) -> None:
+        if self._autosave_after_id is not None:
+            self.after_cancel(self._autosave_after_id)
+        self._autosave_after_id = self.after(self.AUTOSAVE_DELAY_MS, self._perform_autosave)
+
+    def _perform_autosave(self) -> None:
+        self._autosave_after_id = None
+        payload = AutosavePayload(
+            text=self._current_text(),
+            current_file_path=str(self.state.current_file_path) if self.state.current_file_path else None,
+            config_path=str(self.state.config_path) if self.state.config_path else None,
+        )
+        try:
+            self._autosave_store.save(payload)
+        except OSError:
+            # Non-blocking by design: autosave failures must not interrupt editing.
+            return
 
     def _invalidate_outputs(self, *, reason: str) -> None:
         if self.state.tei_xml is None and self.state.html_preview is None and not self.state.diagnostics:
@@ -198,6 +261,7 @@ class MainWindow(ttk.Frame):
         default_extension: str,
         filetypes: list[tuple[str, str]],
         content: str | None,
+        initialfile: str,
         exporter: Callable[[str, str | Path], Path],
     ) -> None:
         if not content:
@@ -208,6 +272,7 @@ class MainWindow(ttk.Frame):
             title=title,
             defaultextension=default_extension,
             filetypes=filetypes,
+            initialfile=initialfile,
         )
         if not chosen:
             return
@@ -218,11 +283,19 @@ class MainWindow(ttk.Frame):
             return
         messagebox.showinfo(title, f"Fichier exporté:\n{target}", parent=self.master)
 
+    def _set_current_config(self, config: EditionConfig, config_path: Path | None) -> None:
+        self.state.config = config
+        self.state.config_path = config_path
+        self._invalidate_outputs(reason="config_changed")
+        self._refresh_config_ui()
+        self._schedule_autosave()
+
     def action_new_file(self) -> None:
         self.editor.clear()
         self._invalidate_outputs(reason="new_file")
         self.state.current_file_path = None
         self.master.title("Ekdosis TEI Studio v2")
+        self._schedule_autosave()
 
     def action_open_file(self) -> None:
         chosen = filedialog.askopenfilename(
@@ -242,6 +315,7 @@ class MainWindow(ttk.Frame):
         self._invalidate_outputs(reason="open_file")
         self.state.current_file_path = path
         self.master.title(f"Ekdosis TEI Studio v2 - {path.name}")
+        self._schedule_autosave()
 
     def action_save_file(self) -> None:
         if self.state.current_file_path is None:
@@ -258,6 +332,7 @@ class MainWindow(ttk.Frame):
             title="Enregistrer la transcription",
             defaultextension=".txt",
             filetypes=[("Text files", "*.txt"), ("All files", "*.*")],
+            initialfile=self._default_filename(".txt"),
         )
         if not chosen:
             return
@@ -265,6 +340,8 @@ class MainWindow(ttk.Frame):
             self._write_current_file(Path(chosen))
         except OSError as exc:
             messagebox.showerror("Erreur d'enregistrement", str(exc), parent=self.master)
+            return
+        self._schedule_autosave()
 
     def action_load_config(self) -> None:
         chosen = filedialog.askopenfilename(
@@ -279,11 +356,48 @@ class MainWindow(ttk.Frame):
         except ValueError as exc:
             messagebox.showerror("Configuration invalide", str(exc), parent=self.master)
             return
-        self.state.config_path = Path(chosen)
-        self.state.config = config
-        self._invalidate_outputs(reason="config_changed")
-        self._refresh_config_ui()
+        self._set_current_config(config, Path(chosen))
         messagebox.showinfo("Configuration chargée", "Configuration chargée avec succès.", parent=self.master)
+
+    def action_new_config(self) -> None:
+        config = open_config_dialog(self.master, None)
+        if config is None:
+            return
+        self._set_current_config(config, None)
+        messagebox.showinfo("Configuration", "Nouvelle configuration appliquée en mémoire.", parent=self.master)
+
+    def action_edit_config(self) -> None:
+        config = open_config_dialog(self.master, self.state.config)
+        if config is None:
+            return
+        self._set_current_config(config, self.state.config_path)
+        messagebox.showinfo("Configuration", "Configuration modifiée en mémoire.", parent=self.master)
+
+    def action_save_config_as(self) -> None:
+        if self.state.config is None:
+            messagebox.showwarning(
+                "Configuration",
+                "Aucune configuration à enregistrer. Créez ou chargez une configuration d'abord.",
+                parent=self.master,
+            )
+            return
+        chosen = filedialog.asksaveasfilename(
+            parent=self.master,
+            title="Enregistrer la configuration",
+            defaultextension=".json",
+            filetypes=[("JSON files", "*.json"), ("All files", "*.*")],
+            initialfile=self._default_filename(".json", suffix="_config"),
+        )
+        if not chosen:
+            return
+        try:
+            target = save_config(self.state.config, chosen)
+        except (OSError, ValueError) as exc:
+            messagebox.showerror("Configuration", str(exc), parent=self.master)
+            return
+        self.state.config_path = target
+        self._refresh_config_ui()
+        messagebox.showinfo("Configuration", f"Configuration enregistrée:\n{target}", parent=self.master)
 
     def _on_reference_changed(self) -> None:
         if self.state.config is None:
@@ -295,6 +409,7 @@ class MainWindow(ttk.Frame):
         self.state.config = replace(self.state.config, reference_witness=sigla.index(selected))
         self._invalidate_outputs(reason="reference_changed")
         self._refresh_config_ui()
+        self._schedule_autosave()
 
     def action_validate(self) -> None:
         if not self._ensure_config():
@@ -330,6 +445,55 @@ class MainWindow(ttk.Frame):
         self.state.html_preview = html_result.html
         self.outputs.set_html(html_result.html)
         self.state.outputs_stale = False
+        try:
+            preview_url = self._preview_server.publish_html(html_result.html)
+            self._open_browser(preview_url)
+        except OSError as exc:
+            messagebox.showerror("Aperçu HTML", f"Impossible de lancer le serveur local: {exc}", parent=self.master)
+
+    def action_restore_autosave(self) -> None:
+        try:
+            payload = self._autosave_store.load()
+        except (OSError, ValueError) as exc:
+            messagebox.showerror("Autosave", f"Impossible de lire l'enregistrement automatique: {exc}", parent=self.master)
+            return
+        if payload is None:
+            messagebox.showinfo("Autosave", "Aucun enregistrement automatique disponible.", parent=self.master)
+            return
+
+        current = self._current_text().strip()
+        if current:
+            confirm = messagebox.askyesno(
+                "Autosave",
+                "Remplacer le texte courant par le dernier enregistrement automatique ?",
+                parent=self.master,
+            )
+            if not confirm:
+                return
+
+        self.editor.set_text(payload.text)
+        self._invalidate_outputs(reason="open_file")
+
+        self.state.current_file_path = Path(payload.current_file_path) if payload.current_file_path else None
+        if self.state.current_file_path is not None:
+            self.master.title(f"Ekdosis TEI Studio v2 - {self.state.current_file_path.name}")
+        else:
+            self.master.title("Ekdosis TEI Studio v2")
+
+        if payload.config_path:
+            config_path = Path(payload.config_path)
+            if config_path.exists():
+                try:
+                    config = load_config(config_path)
+                except ValueError:
+                    config = None
+                if config is not None:
+                    self.state.config = config
+                    self.state.config_path = config_path
+                    self._refresh_config_ui()
+
+        self._schedule_autosave()
+        messagebox.showinfo("Autosave", "Enregistrement automatique restauré.", parent=self.master)
 
     def action_export_tei(self) -> None:
         self._export_content(
@@ -338,6 +502,7 @@ class MainWindow(ttk.Frame):
             default_extension=".xml",
             filetypes=[("XML files", "*.xml"), ("All files", "*.*")],
             content=self.state.tei_xml,
+            initialfile=self._default_filename(".xml"),
             exporter=export_tei,
         )
 
@@ -348,6 +513,7 @@ class MainWindow(ttk.Frame):
             default_extension=".html",
             filetypes=[("HTML files", "*.html"), ("All files", "*.*")],
             content=self.state.html_preview,
+            initialfile=self._default_filename(".html"),
             exporter=export_html,
         )
 
@@ -417,4 +583,12 @@ class MainWindow(ttk.Frame):
             self.diagnostics.grid_remove()
 
     def action_quit(self) -> None:
+        if self._autosave_after_id is not None:
+            self.after_cancel(self._autosave_after_id)
+            self._autosave_after_id = None
+        try:
+            self._perform_autosave()
+        except Exception:
+            pass
+        self._preview_server.stop()
         self.master.destroy()

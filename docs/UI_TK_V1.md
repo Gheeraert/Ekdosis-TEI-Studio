@@ -43,7 +43,14 @@ Ne pas implémenter dans cette phase :
 - l’export LaTeX/Ekdosis dans l’interface ;
 - des widgets complexes non indispensables ;
 - une logique métier dupliquée dans les fichiers UI ;
-- un système de persistance sophistiqué côté interface.
+- un système de persistance sophistiqué côté interface (historique complet, synchronisation complexe, autosave avancé, versioning, etc.).
+
+En revanche, une persistance locale simple de configuration est dans le périmètre :
+- charger une configuration ;
+- créer une configuration ;
+- modifier la configuration courante ;
+- enregistrer la configuration en JSON canonique.
+- enregistrer automatiquement la saisie au fil de la frappe et pouvoir la restaurer facilement
 
 ## Structure générale de la fenêtre
 

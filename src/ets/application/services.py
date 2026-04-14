@@ -8,9 +8,11 @@ from ets.core import run_pipeline_from_text
 from ets.domain import EditionConfig
 from ets.html import render_html_preview_from_tei
 from ets.parser import load_config as _load_config
+from ets.parser import save_config as _save_config
 from ets.validation import InputValidationError, ValidationReport, validate_input_text
 
 from .models import AppDiagnostic, GenerationResult, HtmlResult, ValidationResult
+from .naming import build_default_basename
 
 
 def _map_diagnostics(report: ValidationReport) -> list[AppDiagnostic]:
@@ -28,6 +30,11 @@ def _single_diagnostic(code: str, message: str) -> list[AppDiagnostic]:
 def load_config(config_path: str | Path) -> EditionConfig:
     """Load an EditionConfig from a JSON path."""
     return _load_config(config_path)
+
+
+def save_config(config: EditionConfig, output_path: str | Path) -> Path:
+    """Save config as canonical JSON and return resolved path."""
+    return _save_config(config, output_path)
 
 
 def validate_text(text: str, config: EditionConfig) -> ValidationResult:
@@ -104,3 +111,8 @@ def export_html(html: str, output_path: str | Path) -> Path:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(html, encoding="utf-8")
     return path.resolve()
+
+
+def suggest_output_basename(text: str, config: EditionConfig) -> str:
+    """Suggest a default output basename like Title_A1_S1of4."""
+    return build_default_basename(text, config)

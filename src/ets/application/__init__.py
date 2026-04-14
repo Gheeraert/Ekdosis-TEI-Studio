@@ -6,6 +6,8 @@ from .services import (
     generate_html_preview_from_text,
     generate_tei_from_text,
     load_config,
+    save_config,
+    suggest_output_basename,
     validate_text,
 )
 
@@ -15,11 +17,12 @@ __all__ = [
     "GenerationResult",
     "HtmlResult",
     "load_config",
+    "save_config",
     "validate_text",
     "generate_tei_from_text",
     "generate_html_preview_from_tei",
     "generate_html_preview_from_text",
     "export_tei",
     "export_html",
+    "suggest_output_basename",
 ]
-

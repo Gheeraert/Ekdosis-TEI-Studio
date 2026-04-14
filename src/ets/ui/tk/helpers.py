@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 from ets.application import AppDiagnostic
 from ets.domain import EditionConfig
@@ -25,4 +25,3 @@ def diagnostic_line_numbers(diagnostics: list[AppDiagnostic]) -> list[int]:
         seen.add(item.line_number)
         numbers.append(item.line_number)
     return sorted(numbers)
-

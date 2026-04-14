@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import tkinter as tk
 from dataclasses import dataclass
@@ -11,6 +11,10 @@ class MenuCallbacks:
     open_file: Callable[[], None]
     save_file: Callable[[], None]
     save_file_as: Callable[[], None]
+    restore_autosave: Callable[[], None]
+    new_config: Callable[[], None]
+    edit_config: Callable[[], None]
+    save_config_as: Callable[[], None]
     load_config: Callable[[], None]
     quit_app: Callable[[], None]
     undo: Callable[[], None]
@@ -39,9 +43,13 @@ def install_menus(root: tk.Tk, cb: MenuCallbacks) -> None:
     file_menu.add_command(label="Nouveau", command=cb.new_file)
     file_menu.add_command(label="Ouvrir", command=cb.open_file)
     file_menu.add_command(label="Enregistrer", command=cb.save_file)
-    file_menu.add_command(label="Enregistrer sous", command=cb.save_file_as)
+    file_menu.add_command(label="Enregistrer sous…", command=cb.save_file_as)
+    file_menu.add_command(label="Restaurer l'enregistrement automatique", command=cb.restore_autosave)
     file_menu.add_separator()
-    file_menu.add_command(label="Charger une configuration", command=cb.load_config)
+    file_menu.add_command(label="Nouvelle configuration…", command=cb.new_config)
+    file_menu.add_command(label="Modifier la configuration…", command=cb.edit_config)
+    file_menu.add_command(label="Enregistrer la configuration sous…", command=cb.save_config_as)
+    file_menu.add_command(label="Charger une configuration…", command=cb.load_config)
     file_menu.add_separator()
     file_menu.add_command(label="Quitter", command=cb.quit_app)
     menu.add_cascade(label="Fichier", menu=file_menu)
@@ -76,4 +84,3 @@ def install_menus(root: tk.Tk, cb: MenuCallbacks) -> None:
     help_menu.add_command(label="Aide syntaxe", command=cb.show_help)
     help_menu.add_command(label="À propos", command=cb.show_about)
     menu.add_cascade(label="Aide", menu=help_menu)
-
