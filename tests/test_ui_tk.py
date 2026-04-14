@@ -124,3 +124,56 @@ def test_restore_autosave_when_missing_is_safe(monkeypatch: pytest.MonkeyPatch) 
         assert called == ["info"]
     finally:
         root.destroy()
+
+
+def test_validate_generated_tei_action_without_tei_is_non_blocking(monkeypatch: pytest.MonkeyPatch) -> None:
+    root = _make_root()
+    try:
+        window = MainWindow(root)
+        called: list[str] = []
+        monkeypatch.setattr("tkinter.messagebox.showinfo", lambda *args, **kwargs: called.append("info"))
+        window.action_validate_generated_tei()
+        assert called == ["info"]
+    finally:
+        root.destroy()
+
+
+def test_validate_generated_tei_action_with_invalid_tei_keeps_state(monkeypatch: pytest.MonkeyPatch) -> None:
+    root = _make_root()
+    try:
+        window = MainWindow(root)
+        window.state.tei_xml = "<root/>"
+        warnings: list[str] = []
+        monkeypatch.setattr("tkinter.messagebox.showwarning", lambda *args, **kwargs: warnings.append("warn"))
+
+        window.action_validate_generated_tei()
+
+        assert warnings == ["warn"]
+        assert window.state.tei_xml == "<root/>"
+    finally:
+        root.destroy()
+
+
+def test_tools_menu_contains_manual_tei_validation_action() -> None:
+    root = _make_root()
+    try:
+        MainWindow(root)
+        menubar = root.nametowidget(str(root["menu"]))
+        tools_menu_widget = None
+        end = menubar.index("end")
+        assert end is not None
+        for i in range(end + 1):
+            if menubar.type(i) == "cascade" and menubar.entrycget(i, "label") == "Outils":
+                tools_menu_widget = root.nametowidget(menubar.entrycget(i, "menu"))
+                break
+        assert tools_menu_widget is not None
+
+        labels: list[str] = []
+        tools_end = tools_menu_widget.index("end")
+        assert tools_end is not None
+        for i in range(tools_end + 1):
+            if tools_menu_widget.type(i) == "command":
+                labels.append(tools_menu_widget.entrycget(i, "label"))
+        assert "Valider la TEI générée" in labels
+    finally:
+        root.destroy()

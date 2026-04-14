@@ -20,6 +20,7 @@ from ets.application import (
 )
 from ets.domain import EditionConfig
 from ets.infrastructure import AutosavePayload, AutosaveStore, LocalPreviewServer
+from ets.validation import validate_tei_xml
 
 from .control_bar import ControlBar
 from .diagnostics_panel import DiagnosticsPanel
@@ -139,6 +140,7 @@ class MainWindow(ttk.Frame):
                 find=self.action_find,
                 replace=self.action_replace,
                 validate=self.action_validate,
+                validate_generated_tei=self.action_validate_generated_tei,
                 generate_tei=self.action_generate_tei,
                 preview_html=self.action_preview_html,
                 export_tei=self.action_export_tei,
@@ -424,6 +426,39 @@ class MainWindow(ttk.Frame):
 
     def action_generate_tei(self) -> None:
         self._apply_tei_generation(show_error=True)
+
+    def action_validate_generated_tei(self) -> None:
+        if not self.state.tei_xml:
+            messagebox.showinfo("Validation TEI", "Aucune TEI générée à valider.", parent=self.master)
+            return
+
+        result = validate_tei_xml(self.state.tei_xml)
+        if result.is_valid:
+            messagebox.showinfo(
+                "Validation TEI",
+                f"TEI valide ({result.schema_name}, moteur {result.engine_name}).",
+                parent=self.master,
+            )
+            return
+
+        if result.errors:
+            lines = []
+            for issue in result.errors[:20]:
+                loc = ""
+                if issue.line is not None:
+                    loc = f" (ligne {issue.line}"
+                    if issue.column is not None:
+                        loc += f", colonne {issue.column}"
+                    loc += ")"
+                lines.append(f"- {issue.level}: {issue.message}{loc}")
+            details = "\n".join(lines)
+        else:
+            details = "- ERROR: validation échouée sans détail."
+        messagebox.showwarning(
+            "Validation TEI",
+            f"TEI invalide avec le schéma {result.schema_name}.\n\n{details}",
+            parent=self.master,
+        )
 
     def action_preview_html(self) -> None:
         if not self._apply_tei_generation(show_error=False):

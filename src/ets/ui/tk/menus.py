@@ -26,6 +26,7 @@ class MenuCallbacks:
     find: Callable[[], None]
     replace: Callable[[], None]
     validate: Callable[[], None]
+    validate_generated_tei: Callable[[], None]
     generate_tei: Callable[[], None]
     preview_html: Callable[[], None]
     export_tei: Callable[[], None]
@@ -69,6 +70,7 @@ def install_menus(root: tk.Tk, cb: MenuCallbacks) -> None:
 
     tools_menu = tk.Menu(menu, tearoff=False)
     tools_menu.add_command(label="Valider la saisie", command=cb.validate)
+    tools_menu.add_command(label="Valider la TEI générée", command=cb.validate_generated_tei)
     tools_menu.add_command(label="Générer le code XML-TEI", command=cb.generate_tei)
     tools_menu.add_command(label="Aperçu HTML", command=cb.preview_html)
     tools_menu.add_separator()

@@ -494,7 +494,7 @@ The first milestone is complete when the application can:
 9. export results
 10. pass the stable fixture test suite
 
-## 15. Subsequent milestone suggestions
+## 16. Subsequent milestone suggestions
 
 ### Milestone 2
 - explicit stage directions
@@ -517,3 +517,115 @@ The first milestone is complete when the application can:
 - Flask interface
 - TEI preview
 - editing workflow support
+
+## Validation TEI optionnelle, facultatitve, non bloquante
+
+### Objectif
+
+Ajouter un validateur XML-TEI local, autonome et non bloquant, utilisable à la demande depuis l’interface, sans l’intégrer au pipeline métier principal.
+
+Ce validateur a pour but :
+
+- de vérifier la conformité TEI d’un document XML généré ;
+- de signaler clairement les erreurs de validation ;
+- d’aider au diagnostic sans empêcher la génération, l’export ni la sauvegarde.
+
+### Principes
+
+- La validation TEI est **facultative**.
+- Elle n’est **jamais lancée automatiquement**.
+- Elle n’est **jamais bloquante**.
+- Elle est exposée comme un **utilitaire accessible par menu** dans l’interface locale.
+- Elle doit rester **indépendante de l’UI** et **réutilisable** dans un autre contexte applicatif.
+
+### Contraintes techniques
+
+- L’implémentation se fait en **Python**.
+- Le moteur de validation repose sur **lxml**.
+- Le validateur utilise un **schéma TEI générique**, non spécifique au projet.
+- On n’introduit **aucun schéma ad hoc propre à Ekdosis TEI Studio** à ce stade.
+- Le module de validation ne doit contenir **aucune logique métier de collation** ni dépendance à Tkinter.
+
+### Positionnement architectural
+
+Le validateur TEI constitue un module autonome.
+
+Il doit être conçu comme un service indépendant, par exemple dans une arborescence du type :
+
+- `src/ets/validation/tei_validator.py`
+
+L’interface Tkinter ne doit faire que :
+
+- appeler le validateur ;
+- transmettre le XML à valider ;
+- afficher le résultat.
+
+### Entrée
+
+Le validateur reçoit :
+
+- soit une chaîne XML déjà générée ;
+- soit éventuellement, à terme, un chemin vers un fichier XML.
+
+Pour la première implémentation, la validation peut se limiter au **XML-TEI généré en mémoire** par l’application.
+
+### Sortie attendue
+
+Le validateur renvoie un résultat structuré, exploitable par l’UI, contenant au minimum :
+
+- un booléen de validité ;
+- la liste des erreurs détectées ;
+- éventuellement la liste des avertissements ou messages de diagnostic ;
+- le nom ou le type du schéma utilisé.
+
+Exemple de structure attendue :
+
+- `is_valid`
+- `errors`
+- `schema_name`
+
+Les messages doivent être présentés de manière lisible, sans exception brute non contrôlée côté interface.
+
+### Comportement dans l’interface
+
+L’interface propose une action explicite du type :
+
+- `Outils > Valider la TEI`
+ou
+- `Validation > Valider la TEI générée`
+
+Cette action :
+
+1. vérifie qu’un XML TEI a bien été généré ;
+2. appelle le module de validation ;
+3. affiche un résultat lisible à l’utilisateur.
+
+### Règles d’usage
+
+- Si aucune TEI n’est disponible, l’application affiche un message simple et informatif.
+- Si la validation réussit, l’application affiche une confirmation sobre.
+- Si la validation échoue, l’application affiche les erreurs, mais **ne bloque rien** :
+  - pas d’interruption du flux ;
+  - pas d’annulation de l’export ;
+  - pas de destruction des résultats déjà générés.
+
+### Hors périmètre pour cette phase
+
+Ne font pas partie de cette première phase :
+
+- la validation automatique après génération ;
+- l’intégration de la validation dans le pipeline principal ;
+- la personnalisation fine d’un schéma TEI propre au projet ;
+- la correction automatique des erreurs ;
+- l’enrichissement sémantique du XML à partir des résultats de validation.
+
+### Critères d’acceptation
+
+La fonctionnalité sera considérée comme correcte si :
+
+- un utilisateur peut lancer manuellement la validation TEI depuis le menu ;
+- la validation repose sur `lxml` ;
+- le module de validation reste autonome ;
+- aucun schéma spécifique au projet n’est introduit ;
+- les erreurs sont affichées proprement ;
+- un échec de validation n’empêche ni la génération ni l’export.
