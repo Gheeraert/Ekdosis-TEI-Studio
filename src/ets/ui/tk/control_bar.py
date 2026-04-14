@@ -8,8 +8,6 @@ from typing import Callable
 class ControlBar(ttk.Frame):
     """Middle control bar for config, witness and generation actions."""
 
-    _WRAP_THRESHOLD = 1030
-
     def __init__(
         self,
         master: tk.Misc,
@@ -27,46 +25,41 @@ class ControlBar(ttk.Frame):
         self.config_status = tk.StringVar(value="Configuration: aucune")
         self.reference_var = tk.StringVar(value="")
 
+        # Ligne 1 : infos de configuration
         self.meta_row = ttk.Frame(self)
         self.meta_row.grid(row=0, column=0, sticky="ew")
-        self.meta_row.columnconfigure(1, weight=1)
+        self.meta_row.columnconfigure(0, weight=1)
 
-        self.buttons_row = ttk.Frame(self)
-        self.buttons_row.grid(row=1, column=0, sticky="ew", pady=(6, 0))
+        # Ligne 2 : témoin + boutons
+        self.actions_row = ttk.Frame(self)
+        self.actions_row.grid(row=1, column=0, sticky="ew", pady=(6, 0))
+        self.actions_row.columnconfigure(2, weight=1)
 
-        self.status_label = ttk.Label(self.meta_row, textvariable=self.config_status)
-        self.reference_label = ttk.Label(self.meta_row, text="Témoin de référence:")
-        self.reference_combo = ttk.Combobox(self.meta_row, state="readonly", textvariable=self.reference_var, width=12)
+        self.status_label = ttk.Label(self.meta_row, textvariable=self.config_status, anchor="w")
+        self.status_label.grid(row=0, column=0, sticky="ew")
+
+        self.reference_label = ttk.Label(self.actions_row, text="Témoin de référence :")
+        self.reference_label.grid(row=0, column=0, sticky="w")
+
+        self.reference_combo = ttk.Combobox(
+            self.actions_row,
+            state="readonly",
+            textvariable=self.reference_var,
+            width=8,
+        )
+        self.reference_combo.grid(row=0, column=1, sticky="w", padx=(6, 12))
         self.reference_combo.bind("<<ComboboxSelected>>", lambda _event: on_reference_change(), add="+")
 
-        self.validate_button = ttk.Button(self.buttons_row, text="Valider", command=on_validate)
-        self.generate_tei_button = ttk.Button(self.buttons_row, text="Générer TEI", command=on_generate_tei)
-        self.preview_html_button = ttk.Button(self.buttons_row, text="Aperçu HTML", command=on_preview_html)
-        self.export_tei_button = ttk.Button(self.buttons_row, text="Exporter TEI", command=on_export_tei)
-        self.export_html_button = ttk.Button(self.buttons_row, text="Exporter HTML", command=on_export_html)
+        self.buttons_frame = ttk.Frame(self.actions_row)
+        self.buttons_frame.grid(row=0, column=2, sticky="e")
+        for i in range(5):
+            self.buttons_frame.columnconfigure(i, weight=0)
 
-        self._layout_wrapped = True
-        self.bind("<Configure>", self._on_configure, add="+")
-        self.after_idle(lambda: self._relayout(self.winfo_width()))
-
-    def _on_configure(self, _event: tk.Event[tk.Misc]) -> None:
-        self._relayout(self.winfo_width())
-
-    def _clear_grid(self, frame: ttk.Frame) -> None:
-        for child in frame.winfo_children():
-            child.grid_forget()
-
-    def _relayout(self, width: int) -> None:
-        wrapped = width < self._WRAP_THRESHOLD
-        if wrapped == self._layout_wrapped and self.status_label.winfo_manager():
-            return
-
-        self._clear_grid(self.meta_row)
-        self._clear_grid(self.buttons_row)
-
-        self.status_label.grid(row=0, column=0, sticky="w", padx=(0, 12))
-        self.reference_label.grid(row=0, column=2, sticky="e")
-        self.reference_combo.grid(row=0, column=3, sticky="w", padx=(6, 0))
+        self.validate_button = ttk.Button(self.buttons_frame, text="Valider", command=on_validate)
+        self.generate_tei_button = ttk.Button(self.buttons_frame, text="Générer TEI", command=on_generate_tei)
+        self.preview_html_button = ttk.Button(self.buttons_frame, text="Aperçu HTML", command=on_preview_html)
+        self.export_tei_button = ttk.Button(self.buttons_frame, text="Exporter TEI", command=on_export_tei)
+        self.export_html_button = ttk.Button(self.buttons_frame, text="Exporter HTML", command=on_export_html)
 
         buttons = [
             self.validate_button,
@@ -75,20 +68,8 @@ class ControlBar(ttk.Frame):
             self.export_tei_button,
             self.export_html_button,
         ]
-
-        if wrapped:
-            for index, button in enumerate(buttons):
-                button.grid(row=0, column=index, padx=2, pady=1, sticky="ew")
-                self.buttons_row.columnconfigure(index, weight=1)
-            self.buttons_row.grid(row=1, column=0, sticky="ew", pady=(6, 0))
-        else:
-            for index in range(len(buttons)):
-                self.buttons_row.columnconfigure(index, weight=0)
-            for index, button in enumerate(buttons):
-                button.grid(row=0, column=index, padx=2)
-            self.buttons_row.grid(row=0, column=1, sticky="e")
-
-        self._layout_wrapped = wrapped
+        for index, button in enumerate(buttons):
+            button.grid(row=0, column=index, padx=2)
 
     def set_config_status(self, value: str) -> None:
         self.config_status.set(value)
