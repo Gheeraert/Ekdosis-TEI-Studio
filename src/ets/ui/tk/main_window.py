@@ -52,6 +52,18 @@ class UIState:
     annotations_path: Path | None = None
 
 
+def suggest_next_annotation_id(collection: AnnotationCollection) -> str:
+    numeric_suffixes: list[int] = []
+    existing = {annotation.id for annotation in collection.annotations}
+    for annotation_id in existing:
+        if len(annotation_id) >= 2 and annotation_id.startswith("n") and annotation_id[1:].isdigit():
+            numeric_suffixes.append(int(annotation_id[1:]))
+    candidate = max(numeric_suffixes, default=0) + 1
+    while f"n{candidate}" in existing:
+        candidate += 1
+    return f"n{candidate}"
+
+
 class MainWindow(ttk.Frame):
     """Main Tkinter application window for local text workflows."""
 
@@ -575,7 +587,8 @@ class MainWindow(ttk.Frame):
         messagebox.showinfo("Annotations", f"Annotations enregistrées:\n{written}", parent=self.master)
 
     def action_add_annotation(self) -> None:
-        payload = open_annotation_dialog(self.master)
+        initial_payload: dict[str, object] = {"id": suggest_next_annotation_id(self.state.annotations)}
+        payload = open_annotation_dialog(self.master, initial=initial_payload, id_readonly=True)
         if payload is None:
             return
         try:
@@ -595,16 +608,12 @@ class MainWindow(ttk.Frame):
         if current is None:
             messagebox.showerror("Annotations", "Annotation introuvable dans l'état courant.", parent=self.master)
             return
-        payload = open_annotation_dialog(self.master, initial=self._annotation_to_payload(current))
+        payload = open_annotation_dialog(self.master, initial=self._annotation_to_payload(current), id_readonly=True)
         if payload is None:
             return
         try:
             updated = parse_annotation(payload)
-            if updated.id == current.id:
-                collection = update_annotation(self.state.annotations, updated)
-            else:
-                without_old = delete_annotation(self.state.annotations, current.id)
-                collection = create_annotation(without_old, updated)
+            collection = update_annotation(self.state.annotations, updated)
         except AnnotationValidationError as exc:
             messagebox.showerror("Annotations", self._format_annotation_error(exc), parent=self.master)
             return

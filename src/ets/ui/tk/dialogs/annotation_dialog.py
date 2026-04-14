@@ -5,7 +5,7 @@ from tkinter import ttk
 
 
 class AnnotationDialog(tk.Toplevel):
-    def __init__(self, parent: tk.Misc, initial: dict[str, object] | None = None) -> None:
+    def __init__(self, parent: tk.Misc, initial: dict[str, object] | None = None, *, id_readonly: bool = False) -> None:
         super().__init__(parent)
         self.title("Annotation")
         self.transient(parent.winfo_toplevel())
@@ -32,7 +32,10 @@ class AnnotationDialog(tk.Toplevel):
         self.keywords_var = tk.StringVar(value=", ".join(self._initial.get("keywords", [])))  # type: ignore[arg-type]
 
         row = 0
-        row = self._add_entry(frame, row, "ID", self.id_var)
+        ttk.Label(frame, text="ID").grid(row=row, column=0, sticky="w", padx=(0, 6), pady=2)
+        self.id_entry = ttk.Entry(frame, textvariable=self.id_var, state="readonly" if id_readonly else "normal")
+        self.id_entry.grid(row=row, column=1, sticky="ew", pady=2)
+        row += 1
         row = self._add_combo(
             frame,
             row,
@@ -139,7 +142,9 @@ class AnnotationDialog(tk.Toplevel):
         self.destroy()
 
 
-def open_annotation_dialog(parent: tk.Misc, initial: dict[str, object] | None = None) -> dict[str, object] | None:
-    dialog = AnnotationDialog(parent, initial=initial)
+def open_annotation_dialog(
+    parent: tk.Misc, initial: dict[str, object] | None = None, *, id_readonly: bool = False
+) -> dict[str, object] | None:
+    dialog = AnnotationDialog(parent, initial=initial, id_readonly=id_readonly)
     parent.wait_window(dialog)
     return dialog.result

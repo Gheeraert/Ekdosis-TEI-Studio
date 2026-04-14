@@ -6,14 +6,46 @@ from uuid import uuid4
 
 import pytest
 
+from ets.annotations import Annotation, AnnotationAnchor, AnnotationCollection
 from ets.application import AppDiagnostic, load_annotations
 from ets.infrastructure import AutosavePayload, AutosaveStore
 from ets.ui.tk.helpers import diagnostic_line_numbers, format_config_status
-from ets.ui.tk.main_window import MainWindow
+from ets.ui.tk.main_window import MainWindow, suggest_next_annotation_id
 
 
 RUNTIME_DIR = Path(__file__).resolve().parents[1] / "tests" / "_runtime"
 RUNTIME_DIR.mkdir(exist_ok=True)
+
+
+def _collection_with_ids(*ids: str) -> AnnotationCollection:
+    annotations = [
+        Annotation(
+            id=item,
+            type="explicative",
+            anchor=AnnotationAnchor(kind="line", act="1", scene="1", line="1"),
+            content="x",
+            status="draft",
+            keywords=[],
+        )
+        for item in ids
+    ]
+    return AnnotationCollection(version=1, annotations=annotations)
+
+
+def test_suggest_next_annotation_id_empty_collection() -> None:
+    assert suggest_next_annotation_id(_collection_with_ids()) == "n1"
+
+
+def test_suggest_next_annotation_id_sequential_ids() -> None:
+    assert suggest_next_annotation_id(_collection_with_ids("n1", "n2", "n3")) == "n4"
+
+
+def test_suggest_next_annotation_id_with_gaps() -> None:
+    assert suggest_next_annotation_id(_collection_with_ids("n1", "n3", "n4")) == "n5"
+
+
+def test_suggest_next_annotation_id_with_mixed_ids() -> None:
+    assert suggest_next_annotation_id(_collection_with_ids("note_old", "n7")) == "n8"
 
 
 def _make_root() -> tk.Tk:
@@ -337,35 +369,53 @@ def test_annotation_crud_actions_update_state(monkeypatch: pytest.MonkeyPatch) -
         window._set_annotations(collection, fixture)
 
         add_payload = {
-            "id": "n_added",
+            "id": "n4",
             "type": "explicative",
             "anchor": {"kind": "line", "act": "1", "scene": "1", "line": "1"},
             "content": "ajout",
             "status": "draft",
             "keywords": [],
         }
-        monkeypatch.setattr("ets.ui.tk.main_window.open_annotation_dialog", lambda *args, **kwargs: add_payload)
+        captured_add_kwargs: dict[str, object] = {}
+
+        def _fake_add_dialog(*args, **kwargs):  # type: ignore[no-untyped-def]
+            captured_add_kwargs.update(kwargs)
+            return add_payload
+
+        monkeypatch.setattr("ets.ui.tk.main_window.open_annotation_dialog", _fake_add_dialog)
         window.action_add_annotation()
-        assert any(item.id == "n_added" for item in window.state.annotations.annotations)
+        assert captured_add_kwargs.get("id_readonly") is True
+        assert isinstance(captured_add_kwargs.get("initial"), dict)
+        assert captured_add_kwargs["initial"]["id"] == "n4"  # type: ignore[index]
+        assert any(item.id == "n4" for item in window.state.annotations.annotations)
 
         edit_payload = {
-            "id": "n_added",
+            "id": "n4",
             "type": "dramaturgique",
             "anchor": {"kind": "line", "act": "1", "scene": "1", "line": "1"},
             "content": "modif",
             "status": "reviewed",
             "keywords": [],
         }
-        window.outputs.annotations_panel.tree.selection_set("n_added")
-        monkeypatch.setattr("ets.ui.tk.main_window.open_annotation_dialog", lambda *args, **kwargs: edit_payload)
+        captured_edit_kwargs: dict[str, object] = {}
+
+        def _fake_edit_dialog(*args, **kwargs):  # type: ignore[no-untyped-def]
+            captured_edit_kwargs.update(kwargs)
+            return edit_payload
+
+        window.outputs.annotations_panel.tree.selection_set("n4")
+        monkeypatch.setattr("ets.ui.tk.main_window.open_annotation_dialog", _fake_edit_dialog)
         window.action_edit_annotation()
-        edited = [item for item in window.state.annotations.annotations if item.id == "n_added"][0]
+        assert captured_edit_kwargs.get("id_readonly") is True
+        assert captured_edit_kwargs["initial"]["id"] == "n4"  # type: ignore[index]
+        edited = [item for item in window.state.annotations.annotations if item.id == "n4"][0]
         assert edited.type == "dramaturgique"
         assert edited.content == "modif"
+        assert edited.id == "n4"
 
         monkeypatch.setattr("tkinter.messagebox.askyesno", lambda *args, **kwargs: True)
-        window.outputs.annotations_panel.tree.selection_set("n_added")
+        window.outputs.annotations_panel.tree.selection_set("n4")
         window.action_delete_annotation()
-        assert all(item.id != "n_added" for item in window.state.annotations.annotations)
+        assert all(item.id != "n4" for item in window.state.annotations.annotations)
     finally:
         root.destroy()
