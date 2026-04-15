@@ -21,6 +21,7 @@ class SiteConfig:
     show_xml_download: bool = False
     publish_notices: bool = True
     include_metadata: bool = True
+    resolve_notice_xincludes: bool = True
     project_name: str = ""
     editor: str = ""
     credits: str = ""
@@ -43,11 +44,60 @@ class NoticeEntry:
     source_path: Path
     slug: str
     title: str
+    subtitle: str | None
     author: str | None
     document_type: str
+    authors: tuple[str, ...] = ()
+    notice_kind: str = "standalone"
     has_text_body: bool = False
     related_play_slug: str | None = None
     xml_download_relpath: str | None = None
+    document: "NoticeDocument | None" = None
+
+
+@dataclass(frozen=True)
+class NoticeNote:
+    note_id: str
+    label: str
+    text: str
+
+
+@dataclass(frozen=True)
+class NoticeSection:
+    section_id: str
+    title: str
+    kind: str
+    level: int
+    paragraphs: tuple[str, ...] = ()
+    items: tuple[str, ...] = ()
+    children: tuple["NoticeSection", ...] = ()
+
+
+@dataclass(frozen=True)
+class NoticeTocEntry:
+    entry_id: str
+    title: str
+    level: int
+    children: tuple["NoticeTocEntry", ...] = ()
+
+
+@dataclass(frozen=True)
+class NoticeDocument:
+    source_path: Path
+    slug: str
+    title: str
+    subtitle: str | None
+    authors: tuple[str, ...]
+    text_type: str
+    notice_kind: str
+    has_text_body: bool
+    front_title_page: tuple[str, ...] = ()
+    sections: tuple[NoticeSection, ...] = ()
+    toc: tuple[NoticeTocEntry, ...] = ()
+    notes: tuple[NoticeNote, ...] = ()
+    include_warnings: tuple[str, ...] = ()
+    included_documents: tuple[Path, ...] = ()
+    related_play_slug: str | None = None
 
 
 @dataclass(frozen=True)

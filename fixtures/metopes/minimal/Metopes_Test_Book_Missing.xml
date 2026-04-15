@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI
+  xmlns="http://www.tei-c.org/ns/1.0"
+  xmlns:xi="http://www.w3.org/2001/XInclude"
+  change="commons_edition">
+  <teiHeader>
+    <fileDesc>
+      <titleStmt>
+        <title type="main">Livre Métopes avec include manquant</title>
+      </titleStmt>
+      <publicationStmt>
+        <p>Fixture de test</p>
+      </publicationStmt>
+      <sourceDesc>
+        <p>Fixture de test</p>
+      </sourceDesc>
+    </fileDesc>
+  </teiHeader>
+  <text type="book" xml:id="book-missing">
+    <group type="book">
+      <group type="introduction">
+        <xi:include href="Ch01_Introduction_test.xml" xpointer="text"/>
+      </group>
+      <group type="chapter">
+        <xi:include href="Missing_Chapter.xml" xpointer="text"/>
+      </group>
+    </group>
+  </text>
+</TEI>

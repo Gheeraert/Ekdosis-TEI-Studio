@@ -19,6 +19,27 @@ The first implementation milestone now provides:
 
 This milestone intentionally keeps notice rendering as a separate path prepared for a later dedicated transformation.
 
+## Current MÃ©topes notice subset (implemented)
+
+The current ETS Site Builder implementation supports a documented first subset for MÃ©topes notices:
+- standalone notice/chapter TEI files (`text` with `front`/`body`);
+- master volume TEI files (`text type="book"`) with hierarchical `group` structures;
+- optional local `xi:include` resolution with `href` and optional `xpointer="text"` semantics;
+- extraction of `titleStmt/title`, optional subtitle, authors, text type, and title page lines;
+- extraction of sections and basic table of contents from `group`/`div` hierarchies;
+- rendering of `p`, inline `hi` (including italic), `note`, and simple `list`/`item`.
+
+Implemented `xi:include` strategy:
+- resolution is local-only (relative paths from the current XML file);
+- remote URIs are ignored with warnings;
+- missing or unreadable local includes are non-blocking and reported as warnings;
+- build remains deterministic and does not fetch network resources.
+
+Out of scope at this stage:
+- exhaustive support for all COMMONS/MÃ©topes TEI variants;
+- advanced tables, rich figures, full bibliography semantics, and complete publication semantics;
+- full XSLT-equivalent rendering parity with existing MÃ©topes publication pipelines.
+
 ## Editorial inputs
 
 The module is expected to support two complementary input families:

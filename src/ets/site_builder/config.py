@@ -44,6 +44,7 @@ def site_config_from_dict(payload: dict[str, Any], *, base_dir: Path | None = No
         show_xml_download=bool(payload.get("show_xml_download", False)),
         publish_notices=bool(payload.get("publish_notices", True)),
         include_metadata=bool(payload.get("include_metadata", True)),
+        resolve_notice_xincludes=bool(payload.get("resolve_notice_xincludes", True)),
         project_name=str(payload.get("project_name", "")),
         editor=str(payload.get("editor", "")),
         credits=str(payload.get("credits", "")),

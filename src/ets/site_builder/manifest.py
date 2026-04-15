@@ -28,6 +28,20 @@ def _with_download_paths(config: SiteConfig, plays: list[PlayEntry], notices: li
     return mapped_plays, mapped_notices
 
 
+def _associate_notices_with_plays(plays: list[PlayEntry], notices: list[NoticeEntry]) -> list[NoticeEntry]:
+    play_slugs = {play.slug for play in plays}
+    mapped: list[NoticeEntry] = []
+    for notice in notices:
+        if notice.related_play_slug:
+            mapped.append(notice)
+            continue
+        if notice.slug in play_slugs:
+            mapped.append(replace(notice, related_play_slug=notice.slug))
+            continue
+        mapped.append(notice)
+    return mapped
+
+
 def build_site_manifest(config: SiteConfig) -> SiteManifest:
     warnings: list[str] = []
 
@@ -48,10 +62,16 @@ def build_site_manifest(config: SiteConfig) -> SiteManifest:
                 warnings.append(f"No notice XML files found in '{config.notice_xml_dir}'.")
             for xml_path in xml_files:
                 try:
-                    notices.append(extract_notice_entry(xml_path))
+                    notices.append(
+                        extract_notice_entry(
+                            xml_path,
+                            resolve_xincludes=config.resolve_notice_xincludes,
+                        )
+                    )
                 except SiteBuilderExtractionError as exc:
                     warnings.append(str(exc))
 
+    notices = _associate_notices_with_plays(plays, notices)
     plays, notices = _with_download_paths(config, plays, notices)
 
     pages: list[SitePage] = [SitePage(kind="index", title=config.site_title, output_relpath="index.html")]
@@ -66,9 +86,10 @@ def build_site_manifest(config: SiteConfig) -> SiteManifest:
         )
     if config.publish_notices:
         for notice in notices:
+            notice_page_kind = "notice_volume" if notice.notice_kind == "master_volume" else "notice"
             pages.append(
                 SitePage(
-                    kind="notice",
+                    kind=notice_page_kind,
                     title=notice.title,
                     output_relpath=f"notices/{notice.slug}.html",
                     source_slug=notice.slug,
@@ -82,7 +103,11 @@ def build_site_manifest(config: SiteConfig) -> SiteManifest:
     )
     if config.publish_notices:
         navigation.extend(
-            NavigationItem(label=f"Notice - {notice.title}", href=f"notices/{notice.slug}.html", kind="notice")
+            NavigationItem(
+                label=f"Notice - {notice.title}",
+                href=f"notices/{notice.slug}.html",
+                kind="notice_volume" if notice.notice_kind == "master_volume" else "notice",
+            )
             for notice in notices
         )
 

@@ -1,8 +1,8 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import html
 
-from .models import NoticeEntry, PlayEntry, SiteManifest
+from .models import NoticeDocument, NoticeEntry, NoticeSection, NoticeTocEntry, PlayEntry, SiteManifest
 
 
 def _nav_html(manifest: SiteManifest, current_href: str) -> str:
@@ -17,10 +17,10 @@ def _nav_html(manifest: SiteManifest, current_href: str) -> str:
 
 def _layout(manifest: SiteManifest, *, page_title: str, current_href: str, content_html: str) -> str:
     return f"""<!doctype html>
-<html lang="fr">
+<html lang=\"fr\">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset=\"utf-8\">
+  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">
   <title>{html.escape(page_title)}</title>
   <style>
     body {{ font-family: Georgia, 'Times New Roman', serif; margin: 0; color: #1f2328; }}
@@ -31,7 +31,13 @@ def _layout(manifest: SiteManifest, *, page_title: str, current_href: str, conte
     nav li {{ margin: 0.4rem 0; }}
     section {{ padding: 1rem 1.25rem 2rem; }}
     .meta {{ color: #505a67; }}
-    .placeholder {{ border-left: 4px solid #8ea3bf; padding: 0.75rem; background: #f5f8fc; }}
+    .notice-meta {{ margin: 1rem 0; padding: 0.75rem; background: #f8fafc; border-left: 4px solid #9aaeca; }}
+    .notice-toc {{ margin: 1rem 0 1.5rem; padding: 0.75rem; border: 1px solid #e0e5eb; background: #fcfdff; }}
+    .notice-toc ul {{ margin: 0.4rem 0 0; padding-left: 1.2rem; }}
+    .notice-section {{ margin: 1.5rem 0; }}
+    .notice-section h3, .notice-section h4, .notice-section h5 {{ margin-bottom: 0.6rem; }}
+    .notice-notes {{ margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #dde3ea; }}
+    .notice-notes ol {{ padding-left: 1.4rem; }}
     @media (max-width: 900px) {{
       main {{ grid-template-columns: 1fr; }}
       nav {{ border-right: none; border-bottom: 1px solid #eceef1; }}
@@ -44,7 +50,7 @@ def _layout(manifest: SiteManifest, *, page_title: str, current_href: str, conte
     <p>{html.escape(manifest.config.site_subtitle)}</p>
   </header>
   <main>
-    <nav aria-label="Navigation principale">{_nav_html(manifest, current_href=current_href)}</nav>
+    <nav aria-label=\"Navigation principale\">{_nav_html(manifest, current_href=current_href)}</nav>
     <section>{content_html}</section>
   </main>
 </body>
@@ -110,25 +116,100 @@ def render_play_page(manifest: SiteManifest, play: PlayEntry) -> str:
     )
 
 
-def render_notice_page(manifest: SiteManifest, notice: NoticeEntry) -> str:
-    lines = [f"<h2>{html.escape(notice.title)}</h2>"]
-    if manifest.config.include_metadata:
-        if notice.author:
-            lines.append(f'<p class="meta">Auteur: {html.escape(notice.author)}</p>')
-        lines.append(f'<p class="meta">Type: {html.escape(notice.document_type)}</p>')
-    if manifest.config.show_xml_download and notice.xml_download_relpath:
-        lines.append(
+def _render_toc_entries(entries: tuple[NoticeTocEntry, ...]) -> str:
+    if not entries:
+        return ""
+    blocks: list[str] = ["<ul>"]
+    for entry in entries:
+        blocks.append(
+            f'<li><a href="#{html.escape(entry.entry_id, quote=True)}">{html.escape(entry.title)}</a>{_render_toc_entries(entry.children)}</li>'
+        )
+    blocks.append("</ul>")
+    return "".join(blocks)
+
+
+def _heading_for_level(level: int) -> str:
+    if level <= 1:
+        return "h3"
+    if level == 2:
+        return "h4"
+    return "h5"
+
+
+def _render_notice_section(section: NoticeSection) -> str:
+    heading = _heading_for_level(section.level)
+    chunks: list[str] = [
+        f'<article class="notice-section level-{section.level}" id="{html.escape(section.section_id, quote=True)}">',
+        f'<{heading}>{html.escape(section.title)}</{heading}>',
+    ]
+    chunks.extend(section.paragraphs)
+    if section.items:
+        chunks.append("<ul>")
+        chunks.extend(f"<li>{item}</li>" for item in section.items)
+        chunks.append("</ul>")
+    for child in section.children:
+        chunks.append(_render_notice_section(child))
+    chunks.append("</article>")
+    return "".join(chunks)
+
+
+def _render_notice_document(notice: NoticeEntry, document: NoticeDocument) -> str:
+    lines: list[str] = [f"<h2>{html.escape(notice.title)}</h2>"]
+    if notice.subtitle:
+        lines.append(f"<p class=\"meta\">{html.escape(notice.subtitle)}</p>")
+
+    meta_lines: list[str] = []
+    if notice.authors:
+        meta_lines.append(f"<p><strong>Auteur(s):</strong> {html.escape(', '.join(notice.authors))}</p>")
+    meta_lines.append(f"<p><strong>Type:</strong> {html.escape(document.text_type)}</p>")
+    meta_lines.append(f"<p><strong>Modèle notice:</strong> {html.escape(document.notice_kind)}</p>")
+    if document.related_play_slug:
+        meta_lines.append(f"<p><strong>Pièce associée:</strong> {html.escape(document.related_play_slug)}</p>")
+    if notice.xml_download_relpath:
+        meta_lines.append(
             f'<p><a href="../{html.escape(notice.xml_download_relpath, quote=True)}" download>Télécharger le XML</a></p>'
         )
-    lines.append(
-        "<div class=\"placeholder\">"
-        "Rendu notice dédié prévu (voie distincte Métopes -> HTML). "
-        "Ce jalon publie une page autonome prête à recevoir la transformation."
-        "</div>"
-    )
+    lines.append(f'<div class="notice-meta">{"".join(meta_lines)}</div>')
+
+    if document.front_title_page:
+        lines.append("<div class=\"notice-front\">")
+        lines.extend(f"<p>{html.escape(item)}</p>" for item in document.front_title_page)
+        lines.append("</div>")
+
+    if document.toc:
+        lines.append("<div class=\"notice-toc\"><h3>Sommaire</h3>")
+        lines.append(_render_toc_entries(document.toc))
+        lines.append("</div>")
+
+    if document.sections:
+        lines.extend(_render_notice_section(section) for section in document.sections)
+    else:
+        lines.append("<p class=\"meta\">Aucune section textuelle détectée.</p>")
+
+    if document.notes:
+        lines.append("<section class=\"notice-notes\"><h3>Notes</h3><ol>")
+        for note in document.notes:
+            lines.append(
+                f'<li id="note-{html.escape(note.note_id, quote=True)}"><strong>[{html.escape(note.label)}]</strong> {html.escape(note.text)}</li>'
+            )
+        lines.append("</ol></section>")
+
+    if document.include_warnings:
+        lines.append("<section class=\"notice-warnings\"><h3>Inclure (xi:include)</h3><ul>")
+        lines.extend(f"<li>{html.escape(item)}</li>" for item in document.include_warnings)
+        lines.append("</ul></section>")
+
+    return "".join(lines)
+
+
+def render_notice_page(manifest: SiteManifest, notice: NoticeEntry) -> str:
+    if notice.document is not None:
+        content = _render_notice_document(notice, notice.document)
+    else:
+        content = f"<h2>{html.escape(notice.title)}</h2><p class=\"meta\">Notice sans document structuré.</p>"
     return _layout(
         manifest,
         page_title=notice.title,
         current_href=f"notices/{notice.slug}.html",
-        content_html="".join(lines),
+        content_html=content,
     )
