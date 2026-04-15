@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 from dataclasses import replace
 from pathlib import Path
@@ -42,6 +42,8 @@ def test_render_notice_page_outputs_structured_metopes_html() -> None:
     assert "Notes" in html_page
     assert "Note de bas de page de démonstration." in html_page
     assert "Télécharger le XML" in html_page
+    assert 'href="#doc-body"' in html_page
+    assert 'id="doc-body"' in html_page
 
 
 def test_render_notice_page_renders_lists_from_metopes_chapter() -> None:
@@ -64,3 +66,28 @@ def test_render_notice_page_renders_lists_from_metopes_chapter() -> None:
 
     assert "Premier item" in html_page
     assert "Deuxième item" in html_page
+
+
+def test_render_notice_page_nested_toc_for_master_volume() -> None:
+    config = site_config_from_dict(
+        {
+            "site_title": "ETS Demo",
+            "dramatic_xml_dir": str(ROOT / "fixtures" / "site_builder" / "minimal" / "dramatic"),
+            "notice_xml_dir": str(MINIMAL),
+            "output_dir": str(ROOT / "tests" / "_runtime" / "site_builder_render_master"),
+        }
+    )
+    notice = extract_notice_entry(MINIMAL / "Metopes_Test_Book.xml")
+    manifest = SiteManifest(
+        config=config,
+        notices=(notice,),
+        navigation=(NavigationItem(label=notice.title, href=f"notices/{notice.slug}.html", kind="notice_volume"),),
+    )
+
+    html_page = render_notice_page(manifest, notice)
+
+    assert "Sommaire" in html_page
+    assert "notice-group" in html_page
+    assert "notice-included-document" in html_page
+    assert "Ch01_Introduction_test.xml" in html_page
+    assert 'href="#grp1-introduction"' in html_page

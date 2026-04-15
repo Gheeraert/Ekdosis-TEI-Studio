@@ -35,6 +35,9 @@ def _layout(manifest: SiteManifest, *, page_title: str, current_href: str, conte
     .notice-toc {{ margin: 1rem 0 1.5rem; padding: 0.75rem; border: 1px solid #e0e5eb; background: #fcfdff; }}
     .notice-toc ul {{ margin: 0.4rem 0 0; padding-left: 1.2rem; }}
     .notice-section {{ margin: 1.5rem 0; }}
+    .notice-group {{ margin: 1.2rem 0; padding: 0.5rem 0.8rem; border-left: 4px solid #8ca7c7; background: #f8fbff; }}
+    .notice-included-document {{ margin: 1.2rem 0; padding: 0.8rem; border: 1px solid #d7dfea; background: #ffffff; }}
+    .notice-included-document .doc-meta {{ margin: 0.4rem 0 0.8rem; color: #4c5a6b; }}
     .notice-section h3, .notice-section h4, .notice-section h5 {{ margin-bottom: 0.6rem; }}
     .notice-notes {{ margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #dde3ea; }}
     .notice-notes ol {{ padding-left: 1.4rem; }}
@@ -138,10 +141,32 @@ def _heading_for_level(level: int) -> str:
 
 def _render_notice_section(section: NoticeSection) -> str:
     heading = _heading_for_level(section.level)
-    chunks: list[str] = [
-        f'<article class="notice-section level-{section.level}" id="{html.escape(section.section_id, quote=True)}">',
-        f'<{heading}>{html.escape(section.title)}</{heading}>',
-    ]
+    if section.node_kind == "group":
+        css = "notice-section notice-group"
+        heading_tag = "h3" if section.level <= 1 else "h4"
+    elif section.node_kind == "included_document":
+        css = "notice-section notice-included-document"
+        heading_tag = "h4" if section.level <= 2 else "h5"
+    else:
+        css = f"notice-section level-{section.level}"
+        heading_tag = heading
+
+    chunks: list[str] = [f'<article class="{css}" id="{html.escape(section.section_id, quote=True)}">']
+    chunks.append(f'<{heading_tag}>{html.escape(section.title)}</{heading_tag}>')
+
+    if section.node_kind == "included_document":
+        doc_meta: list[str] = []
+        if section.subtitle:
+            doc_meta.append(html.escape(section.subtitle))
+        if section.text_type:
+            doc_meta.append(f"type: {html.escape(section.text_type)}")
+        if section.authors:
+            doc_meta.append(f"auteur(s): {html.escape(', '.join(section.authors))}")
+        if section.source_path is not None:
+            doc_meta.append(f"source: {html.escape(section.source_path.name)}")
+        if doc_meta:
+            chunks.append(f'<p class="doc-meta">{" | ".join(doc_meta)}</p>')
+
     chunks.extend(section.paragraphs)
     if section.items:
         chunks.append("<ul>")

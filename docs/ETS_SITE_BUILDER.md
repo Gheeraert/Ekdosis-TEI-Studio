@@ -149,3 +149,18 @@ The first implementation should not:
 - depend on a database
 - require manual menu maintenance
 - reproduce the entire historical website by hand
+
+## Metopes hierarchy refinement (current)
+
+The current refinement keeps master-volume structure explicit instead of flattening included files too early.
+
+Implemented distinction in extraction and rendering:
+- structural master groups (`group`) are preserved as container nodes;
+- included editorial documents from local `xi:include` are preserved as first-class nodes;
+- internal sections of included documents are extracted as nested section nodes;
+- TOC is generated from the same nested hierarchy with stable deterministic anchors.
+
+Still intentionally out of scope:
+- full generic Commons/Metopes coverage;
+- exhaustive handling of complex tables, figures, and bibliography semantics;
+- full parity with complete XSLT publication pipelines.

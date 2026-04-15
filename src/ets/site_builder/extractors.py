@@ -1,24 +1,15 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import html
 import re
 import unicodedata
-from copy import deepcopy
 from pathlib import Path
 
 from lxml import etree
 
-from .models import (
-    NoticeDocument,
-    NoticeEntry,
-    NoticeNote,
-    NoticeSection,
-    NoticeTocEntry,
-    PlayEntry,
-)
+from .models import NoticeDocument, NoticeEntry, NoticeNote, NoticeSection, NoticeTocEntry, PlayEntry
 
 
-TEI_NS = "http://www.tei-c.org/ns/1.0"
 XML_NS = "http://www.w3.org/XML/1998/namespace"
 XI_NS = "http://www.w3.org/2001/XInclude"
 
@@ -71,8 +62,7 @@ def _has_text_body(tree: etree._ElementTree) -> bool:
     bodies = tree.xpath("//*[local-name()='text']/*[local-name()='body']")
     if not bodies:
         return False
-    body = bodies[0]
-    return bool(" ".join(body.itertext()).strip())
+    return bool(" ".join(bodies[0].itertext()).strip())
 
 
 def _parse_tree(xml_path: Path) -> etree._ElementTree:
@@ -140,10 +130,6 @@ def _extract_titles(tree: etree._ElementTree) -> tuple[str, str | None]:
     return title or "", subtitle
 
 
-def _is_master_volume(tree: etree._ElementTree) -> bool:
-    return bool(tree.xpath("//*[local-name()='text' and @type='book']"))
-
-
 def _collect_front_title_page(tree: etree._ElementTree) -> tuple[str, ...]:
     lines: list[str] = []
     nodes = tree.xpath(
@@ -187,7 +173,9 @@ def _render_children_inline(node: etree._Element, notes: dict[str, NoticeNote], 
             if note_id not in notes:
                 notes[note_id] = NoticeNote(note_id=note_id, label=label, text=note_text)
                 note_order.append(note_id)
-            fragments.append(f'<sup class="note-ref"><a href="#note-{html.escape(note_id, quote=True)}">[{html.escape(label)}]</a></sup>')
+            fragments.append(
+                f'<sup class="note-ref"><a href="#note-{html.escape(note_id, quote=True)}">[{html.escape(label)}]</a></sup>'
+            )
         else:
             fragments.append(_render_children_inline(child, notes, note_order))
 
@@ -197,18 +185,29 @@ def _render_children_inline(node: etree._Element, notes: dict[str, NoticeNote], 
     return "".join(fragments)
 
 
-def _section_id(node: etree._Element, fallback: str) -> str:
-    xml_id = node.get(f"{{{XML_NS}}}id")
-    if xml_id:
-        return _slugify(xml_id)
-    return fallback
+def _is_safe_local_href(href: str) -> bool:
+    cleaned = href.strip()
+    if not cleaned:
+        return False
+    lowered = cleaned.lower()
+    if lowered.startswith(("http://", "https://", "ftp://", "file://", "data:")):
+        return False
+    if ":" in cleaned and not re.match(r"^[A-Za-z]:[\\/]", cleaned):
+        return False
+    return True
+
+
+def _anchor_from_title(title: str, fallback: str) -> str:
+    slug = _slugify(title)
+    return slug if slug and slug != "untitled" else fallback
 
 
 def _extract_section_from_div(
     node: etree._Element,
     *,
     level: int,
-    fallback_id: str,
+    node_kind: str,
+    path_token: str,
     notes: dict[str, NoticeNote],
     note_order: list[str],
 ) -> NoticeSection:
@@ -216,11 +215,15 @@ def _extract_section_from_div(
     if not title:
         title = (node.get("type") or "section").strip() or "section"
 
+    xml_id = node.get(f"{{{XML_NS}}}id")
+    anchor = _anchor_from_title(title, fallback=f"{path_token}-section")
+    section_id = _slugify(xml_id) if xml_id else f"{path_token}-{anchor}"
+
     paragraphs: list[str] = []
     items: list[str] = []
     children: list[NoticeSection] = []
 
-    child_index = 0
+    div_index = 0
     for child in node:
         name = _localname(child)
         if name == "head":
@@ -236,30 +239,35 @@ def _extract_section_from_div(
                     if item_html.strip():
                         items.append(item_html)
         elif name == "div":
-            child_index += 1
+            div_index += 1
             children.append(
                 _extract_section_from_div(
                     child,
                     level=level + 1,
-                    fallback_id=f"{fallback_id}-{child_index}",
+                    node_kind="section",
+                    path_token=f"{path_token}-s{div_index}",
                     notes=notes,
                     note_order=note_order,
                 )
             )
 
     return NoticeSection(
-        section_id=_section_id(node, fallback_id),
+        section_id=section_id,
         title=title,
         kind=(node.get("type") or "div").strip() or "div",
         level=level,
+        node_kind=node_kind,
         paragraphs=tuple(paragraphs),
         items=tuple(items),
         children=tuple(children),
     )
 
 
-def _extract_standalone_sections(
+def _extract_text_sections(
     text_node: etree._Element,
+    *,
+    level: int,
+    path_token: str,
     notes: dict[str, NoticeNote],
     note_order: list[str],
 ) -> tuple[NoticeSection, ...]:
@@ -268,16 +276,17 @@ def _extract_standalone_sections(
         return ()
     body = body_nodes[0]
 
-    sections: list[NoticeSection] = []
     top_divs = body.xpath("./*[local-name()='div']")
     if top_divs:
-        for i, div in enumerate(top_divs, start=1):
+        sections: list[NoticeSection] = []
+        for index, div in enumerate(top_divs, start=1):
             if isinstance(div, etree._Element):
                 sections.append(
                     _extract_section_from_div(
                         div,
-                        level=1,
-                        fallback_id=f"sec-{i}",
+                        level=level,
+                        node_kind="section",
+                        path_token=f"{path_token}-d{index}",
                         notes=notes,
                         note_order=note_order,
                     )
@@ -302,13 +311,15 @@ def _extract_standalone_sections(
     if not paragraphs and not items:
         return ()
 
+    section_id = f"{path_token}-body"
     title = (text_node.get("type") or "notice").strip() or "notice"
     return (
         NoticeSection(
-            section_id="body",
+            section_id=section_id,
             title=title,
             kind="body",
-            level=1,
+            level=level,
+            node_kind="section",
             paragraphs=tuple(paragraphs),
             items=tuple(items),
             children=(),
@@ -316,189 +327,23 @@ def _extract_standalone_sections(
     )
 
 
-def _is_safe_local_href(href: str) -> bool:
-    cleaned = href.strip()
-    if not cleaned:
-        return False
-    lowered = cleaned.lower()
-    if lowered.startswith(("http://", "https://", "ftp://", "file://", "data:")):
-        return False
-    if ":" in cleaned and not re.match(r"^[A-Za-z]:[\\/]", cleaned):
-        return False
-    return True
-
-
-def _extract_text_from_include(include_path: Path) -> etree._Element | None:
-    if not include_path.exists() or not include_path.is_file():
-        return None
-    include_tree = _parse_tree(include_path)
-    text_nodes = include_tree.xpath("//*[local-name()='text']")
-    if text_nodes:
-        return deepcopy(text_nodes[0])
-    root = include_tree.getroot()
-    return deepcopy(root) if root is not None else None
-
-
-def _resolve_local_xincludes(
+def _extract_notice_core(
     tree: etree._ElementTree,
     *,
     source_path: Path,
-    enabled: bool,
-) -> tuple[etree._ElementTree, tuple[str, ...], tuple[Path, ...]]:
-    if not enabled:
-        return tree, (), ()
-
-    warnings: list[str] = []
-    included: list[Path] = []
-    pending = list(tree.xpath("//*[local-name()='include' and namespace-uri()=$ns]", ns=XI_NS))
-
-    for include in pending:
-        if not isinstance(include, etree._Element):
-            continue
-        href = (include.get("href") or "").strip()
-        if not _is_safe_local_href(href):
-            warnings.append(f"Skipped non-local xi:include href '{href}' in '{source_path.name}'.")
-            continue
-
-        resolved = (source_path.parent / href).resolve()
-        extracted = _extract_text_from_include(resolved)
-        if extracted is None:
-            warnings.append(f"Could not resolve xi:include '{href}' from '{source_path.name}'.")
-            continue
-
-        parent = include.getparent()
-        if parent is None:
-            warnings.append(f"xi:include without parent ignored in '{source_path.name}'.")
-            continue
-
-        idx = parent.index(include)
-        parent.remove(include)
-        parent.insert(idx, extracted)
-        included.append(resolved)
-
-    return tree, tuple(warnings), tuple(included)
-
-
-def _extract_sections_from_group(
-    node: etree._Element,
-    *,
-    level: int,
-    fallback_id: str,
-    notes: dict[str, NoticeNote],
-    note_order: list[str],
-) -> NoticeSection:
-    title = _normalize_ws(" ".join(node.xpath("./*[local-name()='head'][1]//text()")))
-    if not title:
-        text_titles = node.xpath("./*[local-name()='text']//*[local-name()='front']//*[local-name()='div'][@type='titlePage']//*[local-name()='p'][1]//text()")
-        if text_titles:
-            title = _normalize_ws(" ".join(text_titles))
-    if not title:
-        text_titles = node.xpath("./*[local-name()='text']//*[local-name()='body']//*[local-name()='head'][1]//text()")
-        if text_titles:
-            title = _normalize_ws(" ".join(text_titles))
-    if not title:
-        title = (node.get("type") or "group").strip() or "group"
-
-    paragraphs: list[str] = []
-    items: list[str] = []
-    children: list[NoticeSection] = []
-
-    direct_texts = node.xpath("./*[local-name()='text']")
-    for text_node in direct_texts:
-        if not isinstance(text_node, etree._Element):
-            continue
-        child_sections = _extract_standalone_sections(text_node, notes, note_order)
-        for child in child_sections:
-            paragraphs.extend(child.paragraphs)
-            items.extend(child.items)
-            children.extend(child.children)
-
-    group_index = 0
-    for child in node:
-        if _localname(child) == "group":
-            group_index += 1
-            children.append(
-                _extract_sections_from_group(
-                    child,
-                    level=level + 1,
-                    fallback_id=f"{fallback_id}-{group_index}",
-                    notes=notes,
-                    note_order=note_order,
-                )
-            )
-
-    return NoticeSection(
-        section_id=_section_id(node, fallback_id),
-        title=title,
-        kind=(node.get("type") or "group").strip() or "group",
-        level=level,
-        paragraphs=tuple(paragraphs),
-        items=tuple(items),
-        children=tuple(children),
-    )
-
-
-def _build_toc_from_sections(sections: tuple[NoticeSection, ...]) -> tuple[NoticeTocEntry, ...]:
-    def convert(section: NoticeSection) -> NoticeTocEntry:
-        return NoticeTocEntry(
-            entry_id=section.section_id,
-            title=section.title,
-            level=section.level,
-            children=tuple(convert(child) for child in section.children),
-        )
-
-    return tuple(convert(section) for section in sections)
-
-
-def extract_notice_document(xml_path: Path, *, resolve_xincludes: bool = True) -> NoticeDocument:
-    tree = _parse_tree(xml_path)
-    tree, include_warnings, included_documents = _resolve_local_xincludes(
-        tree,
-        source_path=xml_path,
-        enabled=resolve_xincludes,
-    )
-
+    slug_seed: str | None,
+    resolve_xincludes: bool,
+) -> NoticeDocument:
     title, subtitle = _extract_titles(tree)
     authors = _extract_author_list(tree)
     text_type = _first_text(tree, ("string((//*[local-name()='text']/@type)[1])",)) or "notice"
     xml_id = _first_text(tree, ("string(/*/@xml:id)", "string(/*/@id)"))
-    slug = _fallback_slug(xml_path, xml_id or title)
+    slug = _fallback_slug(source_path, slug_seed or xml_id or title)
 
     notes: dict[str, NoticeNote] = {}
     note_order: list[str] = []
-
-    is_master = _is_master_volume(tree)
-    if is_master:
-        root_groups = tree.xpath("//*[local-name()='text' and @type='book']/*[local-name()='group'][1]")
-        sections: list[NoticeSection] = []
-        if root_groups:
-            root_group = root_groups[0]
-            child_groups = root_group.xpath("./*[local-name()='group']")
-            for i, child in enumerate(child_groups, start=1):
-                if isinstance(child, etree._Element):
-                    sections.append(
-                        _extract_sections_from_group(
-                            child,
-                            level=1,
-                            fallback_id=f"grp-{i}",
-                            notes=notes,
-                            note_order=note_order,
-                        )
-                    )
-        notice_kind = "master_volume"
-        has_body = bool(sections)
-    else:
-        text_nodes = tree.xpath("//*[local-name()='text'][1]")
-        sections = []
-        if text_nodes and isinstance(text_nodes[0], etree._Element):
-            sections.extend(_extract_standalone_sections(text_nodes[0], notes, note_order))
-        notice_kind = "standalone"
-        has_body = _has_text_body(tree)
-
-    ordered_notes = tuple(notes[note_id] for note_id in note_order if note_id in notes)
-    front_title_page = _collect_front_title_page(tree)
-    if not title and front_title_page:
-        title = front_title_page[0]
+    warnings: list[str] = []
+    included_paths: list[Path] = []
 
     related = _first_text(
         tree,
@@ -510,23 +355,184 @@ def extract_notice_document(xml_path: Path, *, resolve_xincludes: bool = True) -
     )
     related_slug = _slugify(related) if related else _derive_related_play_slug(slug)
 
-    sections_tuple = tuple(sections)
+    is_master = bool(tree.xpath("//*[local-name()='text' and @type='book']"))
+
+    def extract_included_document(
+        include_node: etree._Element,
+        *,
+        level: int,
+        path_token: str,
+    ) -> NoticeSection | None:
+        href = (include_node.get("href") or "").strip()
+        if not resolve_xincludes:
+            warnings.append(f"xi:include resolution disabled for '{href}' in '{source_path.name}'.")
+            return None
+        if not _is_safe_local_href(href):
+            warnings.append(f"Skipped non-local xi:include href '{href}' in '{source_path.name}'.")
+            return None
+
+        include_path = (source_path.parent / href).resolve()
+        if not include_path.exists() or not include_path.is_file():
+            warnings.append(f"Could not resolve xi:include '{href}' from '{source_path.name}'.")
+            return NoticeSection(
+                section_id=f"{path_token}-missing",
+                title=f"Include manquant: {href}",
+                kind="missing_include",
+                level=level,
+                node_kind="included_document",
+                source_path=include_path,
+                paragraphs=(),
+                items=(),
+                children=(),
+            )
+
+        include_tree = _parse_tree(include_path)
+        text_nodes = include_tree.xpath("//*[local-name()='text']")
+        if not text_nodes:
+            warnings.append(f"Included file '{href}' has no TEI text node.")
+            return None
+
+        included_doc = _extract_notice_core(
+            include_tree,
+            source_path=include_path,
+            slug_seed=include_path.stem,
+            resolve_xincludes=False,
+        )
+        included_paths.append(include_path)
+
+        section_id = f"{path_token}-{_anchor_from_title(included_doc.title, include_path.stem)}"
+        merged_warnings = list(included_doc.include_warnings)
+        if merged_warnings:
+            warnings.extend(merged_warnings)
+
+        return NoticeSection(
+            section_id=section_id,
+            title=included_doc.title,
+            kind="included_document",
+            level=level,
+            node_kind="included_document",
+            subtitle=included_doc.subtitle,
+            authors=included_doc.authors,
+            text_type=included_doc.text_type,
+            source_path=include_path,
+            paragraphs=(),
+            items=(),
+            children=included_doc.sections,
+        )
+
+    def extract_group(node: etree._Element, *, level: int, path_token: str) -> NoticeSection:
+        title = _normalize_ws(" ".join(node.xpath("./*[local-name()='head'][1]//text()")))
+        if not title:
+            title = (node.get("type") or "group").strip() or "group"
+
+        group_anchor = _anchor_from_title(title, f"group-{path_token}")
+        section_id = f"{path_token}-{group_anchor}"
+
+        children: list[NoticeSection] = []
+        group_index = 0
+        include_index = 0
+
+        for child in node:
+            lname = _localname(child)
+            if lname == "group":
+                group_index += 1
+                children.append(extract_group(child, level=level + 1, path_token=f"{path_token}-g{group_index}"))
+            elif lname == "include" and child.tag.startswith("{" + XI_NS + "}"):
+                include_index += 1
+                included_node = extract_included_document(
+                    child,
+                    level=level + 1,
+                    path_token=f"{path_token}-i{include_index}",
+                )
+                if included_node is not None:
+                    children.append(included_node)
+            elif lname == "text":
+                children.extend(
+                    _extract_text_sections(
+                        child,
+                        level=level + 1,
+                        path_token=f"{path_token}-text",
+                        notes=notes,
+                        note_order=note_order,
+                    )
+                )
+
+        return NoticeSection(
+            section_id=section_id,
+            title=title,
+            kind=(node.get("type") or "group").strip() or "group",
+            level=level,
+            node_kind="group",
+            children=tuple(children),
+        )
+
+    if is_master:
+        text_nodes = tree.xpath("//*[local-name()='text' and @type='book'][1]")
+        root_groups: list[NoticeSection] = []
+        if text_nodes:
+            top_groups = text_nodes[0].xpath("./*[local-name()='group']/*[local-name()='group']")
+            if not top_groups:
+                top_groups = text_nodes[0].xpath("./*[local-name()='group']")
+            for idx, grp in enumerate(top_groups, start=1):
+                if isinstance(grp, etree._Element):
+                    root_groups.append(extract_group(grp, level=1, path_token=f"grp{idx}"))
+        sections = tuple(root_groups)
+        notice_kind = "master_volume"
+        has_body = bool(sections)
+    else:
+        text_nodes = tree.xpath("//*[local-name()='text'][1]")
+        sections = ()
+        if text_nodes and isinstance(text_nodes[0], etree._Element):
+            sections = _extract_text_sections(
+                text_nodes[0],
+                level=1,
+                path_token="doc",
+                notes=notes,
+                note_order=note_order,
+            )
+        notice_kind = "standalone"
+        has_body = _has_text_body(tree)
+
+    front_title_page = _collect_front_title_page(tree)
+    if not title and front_title_page:
+        title = front_title_page[0]
+
+    ordered_notes = tuple(notes[nid] for nid in note_order if nid in notes)
+
+    def to_toc(section: NoticeSection) -> NoticeTocEntry:
+        return NoticeTocEntry(
+            entry_id=section.section_id,
+            title=section.title,
+            level=section.level,
+            children=tuple(to_toc(child) for child in section.children),
+        )
+
     return NoticeDocument(
-        source_path=xml_path.resolve(),
+        source_path=source_path.resolve(),
         slug=slug,
-        title=title or xml_path.stem,
+        title=title or source_path.stem,
         subtitle=subtitle,
         authors=authors,
         text_type=text_type,
         notice_kind=notice_kind,
         has_text_body=has_body,
         front_title_page=front_title_page,
-        sections=sections_tuple,
-        toc=_build_toc_from_sections(sections_tuple),
+        sections=sections,
+        toc=tuple(to_toc(section) for section in sections),
         notes=ordered_notes,
-        include_warnings=include_warnings,
-        included_documents=included_documents,
+        include_warnings=tuple(warnings),
+        included_documents=tuple(included_paths),
         related_play_slug=related_slug,
+    )
+
+
+def extract_notice_document(xml_path: Path, *, resolve_xincludes: bool = True) -> NoticeDocument:
+    tree = _parse_tree(xml_path)
+    return _extract_notice_core(
+        tree,
+        source_path=xml_path,
+        slug_seed=None,
+        resolve_xincludes=resolve_xincludes,
     )
 
 

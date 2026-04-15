@@ -68,6 +68,11 @@ class NoticeSection:
     title: str
     kind: str
     level: int
+    node_kind: str = "section"
+    subtitle: str | None = None
+    authors: tuple[str, ...] = ()
+    text_type: str | None = None
+    source_path: Path | None = None
     paragraphs: tuple[str, ...] = ()
     items: tuple[str, ...] = ()
     children: tuple["NoticeSection", ...] = ()
