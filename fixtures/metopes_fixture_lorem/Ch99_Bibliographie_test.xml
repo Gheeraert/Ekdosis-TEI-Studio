@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0" change="commons_edition">
+  <teiHeader>
+    <fileDesc>
+      <titleStmt>
+        <title type="main">Bibliographie</title>
+      </titleStmt>
+      <publicationStmt>
+        <ref target="Metopes_Test_Book.xml" type="volume_xml"/>
+      </publicationStmt>
+      <sourceDesc>
+        <p>Fixture synthétique.</p>
+      </sourceDesc>
+    </fileDesc>
+  </teiHeader>
+  <text type="bibliography" xml:id="text">
+    <body>
+      <listBibl>
+        <bibl>Durand, Jeanne, <hi rend="italic">Titre fictif</hi>, Rouen, PURH, 2026.</bibl>
+        <bibl>Martin, Claire, <hi rend="italic">Autre titre fictif</hi>, Paris, Exemple, 2024.</bibl>
+      </listBibl>
+    </body>
+  </text>
+</TEI>

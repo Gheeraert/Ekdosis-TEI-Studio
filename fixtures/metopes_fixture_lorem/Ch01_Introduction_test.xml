@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0" change="commons_edition">
+  <teiHeader>
+    <fileDesc>
+      <titleStmt>
+        <title type="main">Introduction</title>
+        <author role="aut">
+          <persName>
+            <forename>Jeanne</forename>
+            <surname>Durand</surname>
+          </persName>
+        </author>
+      </titleStmt>
+      <publicationStmt>
+        <ref target="Metopes_Test_Book.xml" type="volume_xml"/>
+      </publicationStmt>
+      <sourceDesc>
+        <p>COMMONS/Métopes : fixture synthétique.</p>
+      </sourceDesc>
+    </fileDesc>
+    <profileDesc>
+      <langUsage>
+        <language ident="fr-FR"/>
+      </langUsage>
+    </profileDesc>
+  </teiHeader>
+  <text type="introduction" xml:id="text">
+    <front>
+      <div type="titlePage">
+        <p rend="title-main">Introduction</p>
+        <p rend="author-aut">Jeanne Durand</p>
+      </div>
+    </front>
+    <body>
+      <p xml:id="intro-p1">Ce texte d'introduction est volontairement simple : il permet de tester l'affichage d'une page autonome de notice ou de chapitre introductif.</p>
+      <p xml:id="intro-p2">Il contient une <hi rend="italic">mise en forme italique</hi>, une note<note n="1" place="foot" xml:id="ftn1"><p>Note de bas de page de démonstration.</p></note> et quelques caractères accentués pour éprouver les chemins de rendu.</p>
+    </body>
+  </text>
+</TEI>

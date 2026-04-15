@@ -1,4 +1,4 @@
-# SPEC_V2.md
+# SPECS_V2.md
 
 ## 1. Purpose
 
@@ -11,8 +11,8 @@ The rewrite must prioritize:
 - modularity
 - testability
 - robustness on edge cases
-- compatibility with future interfaces, especially Flask
-- clean support for a local desktop UI and editorial annotations
+- compatibility with future interfaces,
+- compatibility with a future static publication layer
 
 ## 2. Functional objective
 
@@ -25,7 +25,8 @@ The user must be able to:
 - encode a dramatic text in a lightweight syntax
 - process one scene, multiple scenes, or eventually an entire act
 - generate TEI reliably
-- enrich the generated TEI with editorial annotations
+
+At project level, the architecture must also remain compatible with a later publication workflow in which dramatic TEI files and independent scholarly notice files are published together.
 
 ## 3. Input model
 
@@ -288,7 +289,6 @@ Later versions may add:
 - richer `teiHeader`
 - explicit witness declarations
 - analytic annotation for implicit stage directions
-- editorial annotation enrichment
 
 ## 9. Validation requirements
 
@@ -355,11 +355,9 @@ src/
     parser/
     collation/
     tei/
-    annotations/
-    application/
-    ui/
     validation/
     render/
+    site_builder/
     cli.py
 tests/
 fixtures/
@@ -369,23 +367,21 @@ legacy/
 
 ## 12. Interface policy
 
-The core must remain usable independently from any GUI.
+The core must not depend on any GUI.
 
-### 12.1 Current interface scope
-The project may include:
-- a local Tkinter desktop UI
+### 12.1 Forbidden
+- mixing GUI code with parsing, collation, validation, or TEI generation
+- rebuilding the legacy monolith
+- making interface code the source of truth
+
+### 12.2 Allowed
+- CLI entry point
 - file-based workflow
 - fixture-driven testing
-- later, a Flask presentation layer
+- separate Tkinter or Flask presentation layers built on top of application services
 
-### 12.2 Constraints
-Interfaces must remain thin:
-- no business logic in the UI
-- no direct XML generation in UI code
-- no duplication of parser/collation/annotation validation logic
-
-### 12.3 Future interfaces
-Once the core is stable, Flask may be added as a separate presentation layer.
+### 12.3 Rule
+Any interface must remain a thin layer over modular services.
 
 ## 13. Legacy code policy
 
@@ -401,13 +397,9 @@ The first milestone is complete when the application can:
 1. load the stable fixture input
 2. read its witness configuration
 3. parse acts, scenes, cast, speakers, and ordinary verse blocks
-4. validate malformed blocks and token-count inconsistencies
-5. collate witness lines against a reference witness
-6. generate minimal TEI
-7. expose these actions through a simple Tkinter interface
-8. display TEI and HTML preview outputs
-9. keep the core usable independently from the UI
-10. pass the stable fixture test suite
+4. collate witness lines against a reference witness
+5. generate minimal TEI
+6. pass the stable fixture test suite
 
 ## 15. Subsequent milestone suggestions
 
@@ -424,179 +416,80 @@ The first milestone is complete when the application can:
 - richer witness metadata
 
 ### Milestone 4
-- stable Tkinter UI workflow
-- better diagnostics display
-- export stability
+- difficult shared verse chains
+- advanced alignment strategies
+- better identifiers and TEI enrichment
 
 ### Milestone 5
-- editorial annotations V1
-- stable TEI identifiers for annotable elements
-- HTML rendering of notes
-
-### Milestone 6
-- annotation-content Markdown subset to TEI conversion
-- annotation rendering improvements
-- richer editorial note workflows
-
-### Milestone 7
 - Flask interface
 - TEI preview
 - editing workflow support
 
-## 16. Editorial annotations (V1)
 
-### 16.1 General principle
+## 16. Static publication layer — ETS Site Builder
 
-Editorial annotations are in scope, but they must remain a **separate editorial layer**.
+### 16.1 Purpose
 
-Therefore:
+ETS Site Builder is a planned autonomous publication module.
 
-- do not add note syntax inside `input.txt`
-- do not alter tokenization or collation rules for note support
-- do not anchor notes to raw source offsets
-- do not mix note authoring with witness transcription
+Its responsibility is to generate a complete static scholarly website from XML editorial sources, while remaining compatible with the modular ETS architecture.
 
-A separate annotation file, e.g. `annotations.json`, must be used.
+### 16.2 Supported editorial source families
 
-See `docs/ANNOTATIONS_V1.md`.
+The publication layer must be designed to support at least two distinct XML source families:
 
-### 16.2 Initial supported targets
+1. **dramatic TEI produced by ETS**;
+2. **paratextual TEI notices produced with Métopes**.
 
-V1 supports:
-- note on a single verse line
-- note on a range of verse lines
-- note on an explicit stage direction
+A notice is an editorial document attached to a play, but distinct from the dramatic TEI itself.
+It may contain scholarly paratexts such as:
+- notice,
+- introduction,
+- bibliography,
+- annexes,
+- editorial metadata.
 
-V1 does not yet support:
-- note on a word or phrase inside a verse
-- note directly targeting `<app>`, `<lem>`, or `<rdg>`
-- note syntax embedded in `input.txt`
+### 16.3 Architectural rule
 
-### 16.3 Storage model
+The dramatic TEI and the notice TEI must remain separate source objects.
 
-Annotations should be stored in a dedicated structured file separate from:
-- `input.txt`
-- `config.json`
+The site builder may aggregate them at publication time, but should not assume that they share the same schema, the same internal divisions, or the same generation pipeline.
 
-A JSON-based format is acceptable for V1 and should remain readable and stable.
+### 16.4 Minimal publication responsibilities
 
-### 16.4 Anchoring model
+A first implementation of ETS Site Builder should be able to:
+- load a set of dramatic TEI files,
+- load optional notice TEI files produced with Métopes,
+- associate notices with plays through explicit configuration or stable identifiers,
+- extract publication metadata,
+- generate a home page,
+- generate one page per play,
+- generate derived act or scene pages when available,
+- generate a notice page for each play when notice XML is present,
+- generate navigation menus automatically,
+- optionally expose XML download links,
+- emit a fully static output directory.
 
-Annotations must use editorially meaningful anchors, such as:
-- act number
-- scene number
-- line number
-- stage direction index
+### 16.5 Notice rendering model
 
-The preferred anchor kinds for V1 are:
-- `line`
-- `line_range`
-- `stage`
+The rendering of Métopes notices may take direct inspiration from the **Impressions** project, which documents a static publication workflow based on:
+- TEI Métopes input,
+- optional `xi:include` resolution,
+- TEI → HTML transformation through XSLT,
+- generated table of contents and structured navigation,
+- lightweight GUI-based editorial parameter input.
 
-### 16.5 TEI integration
+ETS Site Builder does not need to reproduce Impressions exactly, but it should preserve the same broad logic:
+- XML-first,
+- static output,
+- deterministic build,
+- no database,
+- no CMS.
 
-Annotation support must be implemented as a **post-generation TEI enrichment step**.
+### 16.6 Non-goals
 
-Expected sequence:
-1. generate TEI through the normal pipeline
-2. parse the TEI
-3. resolve annotation anchors
-4. inject `<note>` elements
-5. serialize enriched TEI
-
-Do not refactor the whole TEI generator around note support in this phase.
-
-### 16.6 Stable identifiers
-
-Annotatable TEI elements should receive stable `xml:id` values when possible.
-
-Recommended conventions:
-- line: `A{act}S{scene}L{line}`
-- explicit stage direction: `A{act}S{scene}ST{index}`
-
-### 16.7 UI integration
-
-The Tkinter UI may expose annotation workflows, but must remain thin.
-
-Allowed in V1:
-- annotation list display
-- add / edit / delete actions
-- load / save annotation file actions
-
-Not required in V1:
-- free text selection anchoring inside the raw source editor
-- advanced WYSIWYG note editing
-
-### 16.8 HTML rendering
-
-If generated TEI contains editorial notes, HTML outputs should render:
-- visible note calls
-- readable note contents
-
-For V1, a simple rendering model is acceptable:
-- end-of-scene notes
-- end-of-document notes
-- simple footnote-like blocks
-
-### 16.9 Testing and fixtures
-
-Annotation support must include dedicated tests and at least one dedicated fixture.
-
-Typical tests include:
-- annotation JSON validation
-- duplicate ID rejection
-- anchor resolution
-- TEI note injection
-- HTML note rendering
-- diagnostics when a target is missing
-
-## 17. Annotation content markup (V1)
-
-### 17.1 General principle
-
-Annotation content may include a limited Markdown-inspired syntax.
-
-This syntax is an **authoring convenience**, not the canonical model.
-TEI remains the canonical output model.
-
-See `docs/ANNOTATION_MARKDOWN_V1.md`.
-
-### 17.2 Supported subset
-
-The first version should support only a small editorially useful subset, including:
-- italic
-- bold
-- small caps
-- superscript
-- subscript
-- hyperlinks
-- paragraph breaks on blank lines
-
-### 17.3 Conversion rule
-
-Supported annotation markup must be converted to TEI during annotation enrichment, inside `<note>` content.
-
-The expected pipeline is:
-1. annotation content is written in the UI
-2. it is stored as text in `annotations.json`
-3. TEI is generated normally
-4. annotation enrichment resolves anchors
-5. supported inline markup is converted into TEI nodes inside `<note>`
-6. enriched TEI is serialized
-7. HTML rendering consumes the resulting TEI structure
-
-### 17.4 Out of scope
-
-The following are out of scope for V1:
-- full Pandoc Markdown support
-- lists, tables, images, raw HTML
-- arbitrary classes/attributes
-- nested complex Markdown structures
-- markdown parsing outside annotation content
-
-### 17.5 Validation policy
-
-Markdown conversion should be conservative:
-- valid supported syntax -> convert to TEI
-- malformed syntax -> preserve as literal text
-- never generate malformed TEI from partial markdown parsing
+The site builder must not initially:
+- rewrite Métopes TEI into ETS dramatic TEI,
+- merge both XML sources physically into one master TEI file,
+- depend on a database or CMS,
+- require manual maintenance of navigation structures.

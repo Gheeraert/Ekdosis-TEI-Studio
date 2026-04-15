@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0" xml:id="andromaque-notice">
+  <teiHeader>
+    <fileDesc>
+      <titleStmt>
+        <title>Notice Andromaque</title>
+        <author>Equipe éditoriale</author>
+      </titleStmt>
+      <publicationStmt>
+        <p>Test fixture</p>
+      </publicationStmt>
+      <sourceDesc>
+        <p>Source fixture</p>
+      </sourceDesc>
+    </fileDesc>
+    <profileDesc>
+      <textClass>
+        <idno type="play">andromaque</idno>
+      </textClass>
+    </profileDesc>
+  </teiHeader>
+  <text>
+    <body>
+      <div type="notice">
+        <head>Présentation</head>
+        <p>Notice savante minimale.</p>
+      </div>
+    </body>
+  </text>
+</TEI>

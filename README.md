@@ -16,50 +16,57 @@ This new version starts from a different principle:
 
 **plain text input -> structured parsing -> domain model -> collation -> TEI output**
 
-It now also includes:
-- a first local **Tkinter desktop UI**
-- a first **editorial annotation layer**
-- a limited **Markdown-inspired authoring syntax for annotation content**
+The long-term target is broader than TEI generation alone. The project is meant to support:
+- a stable modular TEI engine,
+- local and/or web interfaces built on top of that engine,
+- a static publication layer called **ETS Site Builder**.
 
 ## Main objective
 
 The project aims to support scholarly editing workflows for classical drama, especially when several textual witnesses must be collated and encoded in TEI.
 
-The application should be able to:
+The core engine should be able to:
 - parse a structured plain-text encoding format
 - identify dramatic structure
 - manage a configurable number of witnesses
 - identify a reference witness used as lemma
 - align and collate variant readings
 - generate valid XML-TEI
-- enrich the generated TEI with editorial annotations
 - remain robust in the presence of difficult editorial cases
 
-## Scope of the current development phase
+## Scope of the first development phase
 
-The current focus is the first local desktop UI, plus a first editorial annotation layer.
-
-This UI must stay thin and rely on the existing core services.
+The first milestone is intentionally limited.
 
 It should:
-- provide a minimal Tkinter desktop interface for text input, validation, TEI generation, HTML preview, and export
-- surface validator diagnostics clearly and help users correct them
-- support a first workflow for editorial annotations
-- store annotations in a separate structured file
-- enrich generated TEI with editorial notes
-- support a limited Markdown-inspired syntax in annotation content
-- convert supported annotation markup to TEI during annotation enrichment
-- display notes in downstream HTML outputs once TEI rendering support is in place
-- preserve the current core-first architecture
+- read plain-text fixture inputs
+- parse acts, scenes, cast lists, speaker changes, explicit stage directions, and ordinary verse blocks
+- collate witness lines with a reference witness
+- produce minimal XML-TEI
 - pass the stable fixture tests
 
 It should not yet aim at:
 - full legacy feature parity
-- broad Flask UI work
-- word-level annotation anchoring inside variant apparatus
-- note authoring directly inside `input.txt`
-- full Pandoc Markdown support
-- LaTeX / ekdosis output for annotations
+- advanced LaTeX / ekdosis output
+- large-scale publication polish before the core is stable
+
+Presentation work is allowed only if it remains a separate layer over the core.
+
+## Future publication layer: ETS Site Builder
+
+A planned autonomous module, **ETS Site Builder**, will extend the project from TEI generation to full static scholarly publication.
+
+Its purpose is to build a complete website automatically from XML editorial sources, with generated navigation, metadata display, assets management, and optional download links.
+
+A key project assumption is that each play may be accompanied by a **separate TEI notice produced with Métopes**.
+
+This means the publication workflow must support at least two XML inputs per play:
+- the dramatic TEI produced by ETS,
+- the scholarly notice TEI produced outside ETS with Métopes.
+
+The long-term goal is not only to preview TEI locally, but to publish a complete static site in one step, without manually maintaining menus or page links.
+
+The notice visualization layer may take direct inspiration from the **Impressions** project, which already follows a TEI Métopes → static HTML book model with XSLT transformation, generated table of contents, previous/next navigation, and a lightweight GUI for editorial parameters.
 
 ## Input format
 
@@ -83,35 +90,18 @@ The exact target behavior is documented in `docs/SPEC_V2.md` and in the fixtures
 ## Repository structure
 
 ```text
-src/ets/              core package
-src/ets/annotations/  editorial annotation layer
-src/ets/ui/           local interface code
-tests/                test suite
-fixtures/             real inputs and expected outputs
-docs/                 project documentation
-legacy/               archived historical code
+src/ets/           core package
+tests/             test suite
+fixtures/          real inputs and expected outputs
+docs/              project documentation
+legacy/            archived historical code
 ```
 
-## Editorial annotations
+A later publication-oriented subpackage is expected under:
 
-The project now prepares a first editorial annotation layer.
-
-Annotations are treated as a separate scholarly layer:
-- they are not written inside `input.txt`
-- they are stored in a separate structured file
-- they are injected after TEI generation
-- they are rendered downstream from the enriched TEI
-
-See `docs/ANNOTATIONS_V1.md`.
-
-## Annotation content markup
-
-Annotation content may use a limited Markdown-inspired authoring syntax.
-
-This syntax is only an input convenience.
-It must be converted to TEI during annotation enrichment.
-
-See `docs/ANNOTATION_MARKDOWN_V1.md`.
+```text
+src/ets/site_builder/
+```
 
 ## Recommended development workflow
 
@@ -164,18 +154,19 @@ The stable fixture should be the first development target.
 - richer TEI witness metadata
 
 ### Milestone 4
-- first Tkinter desktop UI
-- TEI and HTML outputs exposed in the interface
-- stable export workflow
+- difficult multi-segment verse cases
+- advanced edge-case handling
+- better TEI identifiers and `@who`
 
 ### Milestone 5
-- editorial annotations V1
-- stable TEI identifiers for annotable elements
-- limited Markdown-to-TEI conversion for annotation content
-- note rendering in HTML outputs
+- Flask-based UI on top of the stable core
 
 ### Milestone 6
-- Flask-based UI on top of the stable core
+- ETS Site Builder
+- automatic navigation generation
+- static site build from TEI inputs
+- optional XML downloads
+- integration of one Métopes notice per play
 
 ## Legacy material
 
@@ -186,7 +177,7 @@ It is not the foundation of the new architecture.
 
 Use Python with type hints and pytest.
 
-A simple CLI target may still be useful, for example:
+A simple first CLI target is expected, for example:
 
 ```bash
 python -m ets.cli --input fixtures/stable/input.txt --config fixtures/stable/config.json --output out.xml

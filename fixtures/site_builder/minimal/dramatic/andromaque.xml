@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0" xml:id="andromaque">
+  <teiHeader>
+    <fileDesc>
+      <titleStmt>
+        <title>Andromaque</title>
+        <author>Jean Racine</author>
+      </titleStmt>
+      <publicationStmt>
+        <p>Test fixture</p>
+      </publicationStmt>
+      <sourceDesc>
+        <p>Source fixture</p>
+      </sourceDesc>
+    </fileDesc>
+  </teiHeader>
+  <text>
+    <body>
+      <div type="act" n="1">
+        <div type="scene" n="1">
+          <sp>
+            <speaker>ORESTE</speaker>
+            <l>Pour qui sont ces serpents qui sifflent sur vos têtes ?</l>
+          </sp>
+        </div>
+      </div>
+    </body>
+  </text>
+</TEI>

@@ -26,6 +26,25 @@ Les textes seront accompagnés de :
 - bibliographies
 - textes annexes
 
+## Notices par pièce
+
+Chaque pièce publiée sur la plateforme sera accompagnée d'une **notice savante autonome**.
+
+Cette notice sera produite comme **fichier XML-TEI issu de Métopes**.
+
+Elle pourra contenir selon les cas :
+- notice générale
+- introduction
+- bibliographie
+- annexes
+- autres paratextes scientifiques
+
+Le site de publication devra donc articuler, pour chaque pièce :
+- le texte dramatique édité
+- l'apparat de variantes
+- la notice savante
+- les métadonnées et téléchargements associés
+
 ---
 
 ## Choix des textes
@@ -114,3 +133,19 @@ $$fin$$
 #IOCASTE#
 
 ILs sont sortis, Olympe~? Ah mortelles douleurs~!
+
+
+---
+
+## Publication statique
+
+Le chantier **ETS Site Builder** a pour but de générer automatiquement un site statique complet à partir des XML éditoriaux.
+
+Le site devra :
+- générer automatiquement la navigation,
+- éviter toute maintenance manuelle du menu,
+- permettre l'affichage de métadonnées éditoriales,
+- permettre, selon configuration, le téléchargement des XML,
+- agréger dans une même publication le texte dramatique ETS et la notice TEI Métopes.
+
+Pour la visualisation des notices, on pourra s'inspirer du projet **Impressions**, pensé comme un générateur de livre web statique à partir d'un XML TEI Métopes.

@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI
+  xmlns="http://www.tei-c.org/ns/1.0"
+  xmlns:xi="http://www.w3.org/2001/XInclude"
+  change="commons_edition">
+  <teiHeader>
+    <fileDesc>
+      <titleStmt>
+        <title type="main">Livre de démonstration Métopes</title>
+        <title type="sub">Fixture TEI pour ETS Site Builder</title>
+        <author role="pbd">
+          <persName>
+            <forename>Jeanne</forename>
+            <surname>Durand</surname>
+          </persName>
+        </author>
+      </titleStmt>
+      <publicationStmt>
+        <ab type="expression">
+          <bibl>
+            <publisher>PURH</publisher>
+            <pubPlace>Mont-Saint-Aignan</pubPlace>
+          </bibl>
+        </ab>
+        <ab type="book">
+          <bibl>
+            <idno type="ISBN-13">979-10-240-0000-0</idno>
+            <date type="publishing" when="2026-01-01"/>
+          </bibl>
+        </ab>
+        <ab subtype="HTML" type="digital_online">
+          <bibl>
+            <ref target="#" type="site"/>
+          </bibl>
+        </ab>
+      </publicationStmt>
+      <sourceDesc>
+        <p>Fixture synthétique inspirée d'un export COMMONS/Métopes.</p>
+      </sourceDesc>
+    </fileDesc>
+    <profileDesc>
+      <langUsage>
+        <language ident="fr-FR"/>
+      </langUsage>
+      <abstract rend="resume" xml:lang="fr">
+        <p>Ce volume factice sert à tester la détection des notices, des titres et de la navigation.</p>
+      </abstract>
+    </profileDesc>
+    <revisionDesc>
+      <change when="2026-04-15">Création d'une fixture de test pour ETS Site Builder.</change>
+    </revisionDesc>
+  </teiHeader>
+  <text type="book" xml:id="book">
+    <front/>
+    <group type="book">
+      <group type="introduction">
+        <xi:include href="Ch01_Introduction_test.xml" xpointer="text"/>
+      </group>
+      <group type="section1">
+        <head>Première partie : Démonstration</head>
+        <group type="chapter">
+          <xi:include href="Ch02_Sections_et_titres.xml" xpointer="text"/>
+        </group>
+      </group>
+      <group type="bibliography">
+        <xi:include href="Ch99_Bibliographie_test.xml" xpointer="text"/>
+      </group>
+    </group>
+    <back/>
+  </text>
+</TEI>

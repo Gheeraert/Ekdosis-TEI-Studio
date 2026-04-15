@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0" change="commons_edition">
+  <teiHeader>
+    <fileDesc>
+      <titleStmt>
+        <title type="main">Chapitre de test : titres et sections</title>
+        <author role="aut">
+          <persName>
+            <forename>Jeanne</forename>
+            <surname>Durand</surname>
+          </persName>
+        </author>
+      </titleStmt>
+      <publicationStmt>
+        <ref target="Metopes_Test_Book.xml" type="volume_xml"/>
+      </publicationStmt>
+      <sourceDesc>
+        <p>COMMONS/Métopes : fixture synthétique pour les niveaux de titres.</p>
+      </sourceDesc>
+    </fileDesc>
+    <profileDesc>
+      <langUsage>
+        <language ident="fr-FR"/>
+      </langUsage>
+      <abstract rend="resume" xml:lang="fr">
+        <p>Chapitre de démonstration pour tester l'extraction des titres hiérarchiques.</p>
+      </abstract>
+    </profileDesc>
+  </teiHeader>
+  <text type="chapter" xml:id="text">
+    <front>
+      <div type="titlePage">
+        <p rend="title-main">Chapitre de test : titres et sections</p>
+        <p rend="author-aut">Jeanne Durand</p>
+      </div>
+    </front>
+    <body>
+      <div type="section1" xml:id="s1">
+        <head>1. Premier niveau</head>
+        <p xml:id="p1">Lorem ipsum éditorial : un premier paragraphe pour vérifier qu'un chapitre peut être rendu comme page autonome.</p>
+        <p xml:id="p2">Ce paragraphe contient une citation courte, une <hi rend="italic">locution latine</hi> et une note<note n="1" place="foot" xml:id="ch1-ftn1"><p>Première note de chapitre.</p></note>.</p>
+        <div type="section2" xml:id="s1-1">
+          <head>1.1. Deuxième niveau</head>
+          <p xml:id="p3">Le deuxième niveau sert à tester la génération d'une table des matières locale et l'affichage de sous-titres.</p>
+          <list>
+            <item>Premier item</item>
+            <item>Deuxième item</item>
+            <item>Troisième item</item>
+          </list>
+          <div type="section3" xml:id="s1-1-1">
+            <head>1.1.1. Troisième niveau</head>
+            <p xml:id="p4">Ce troisième niveau est utile pour tester les rendus plus fins, sans aller jusqu'à une fragmentation excessive.</p>
+            <quote>
+              <p>Une brève citation de démonstration, simplement pour voir comment le HTML la porte.</p>
+            </quote>
+          </div>
+        </div>
+      </div>
+      <div type="section1" xml:id="s2">
+        <head>2. Second niveau principal</head>
+        <p xml:id="p5">Cette seconde grande section vérifie qu'un document possède plusieurs blocs de même niveau.</p>
+        <div type="section2" xml:id="s2-1">
+          <head>2.1. Sous-section complémentaire</head>
+          <p xml:id="p6">On peut y ajouter un <ref target="https://example.org">lien externe de test</ref> et quelques petites capitales comme <hi rend="small-caps">TEI</hi>.</p>
+        </div>
+      </div>
+    </body>
+  </text>
+</TEI>
