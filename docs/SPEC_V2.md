@@ -486,6 +486,49 @@ ETS Site Builder does not need to reproduce Impressions exactly, but it should p
 - no database,
 - no CMS.
 
+
+
+### 16.5.1 Current documented Métopes subset
+
+For the next implementation stages, support for Métopes notices must remain intentionally limited to a documented, testable subset.
+
+Two input situations are especially relevant:
+
+1. a **master volume file** with `text type="book"`, nested `group` elements, and optional `xi:include` references to component files;
+2. a **standalone notice or chapter file** with a `text` node, optional `front`, `titlePage`, `body`, paragraphs, inline highlighting, and notes.
+
+A first operational implementation may therefore limit itself to:
+- optional `xi:include` resolution,
+- extraction of hierarchical `group` structures,
+- extraction of `head` and `title`,
+- support for `front/titlePage`,
+- support for `body/p`,
+- support for inline `hi`,
+- support for notes,
+- minimal structured HTML rendering.
+
+Full generic support for all possible Métopes encodings is not required at this stage.
+
+### 16.5.2 Fixture policy for Métopes material
+
+The repository should maintain two complementary fixture families for Métopes-related work:
+
+- `fixtures/metopes/minimal/` for very small synthetic fixtures used in stable unit and integration tests;
+- `fixtures/metopes/realistic/` for real or lightly adapted Métopes files used in broader integration tests.
+
+These fixtures are part of the behavioral specification for ETS Site Builder and should guide implementation choices.
+
+### 16.5.3 Association rule between play TEI and notice TEI
+
+The association between a dramatic TEI play and a Métopes notice must initially remain explicit and deterministic.
+
+Acceptable first strategies include:
+- direct configuration,
+- a stable shared slug,
+- a documented filename convention.
+
+The first implementations must not rely on opaque heuristics or undocumented guessing to associate plays and notices.
+
 ### 16.6 Non-goals
 
 The site builder must not initially:

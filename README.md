@@ -68,6 +68,38 @@ The long-term goal is not only to preview TEI locally, but to publish a complete
 
 The notice visualization layer may take direct inspiration from the **Impressions** project, which already follows a TEI Métopes → static HTML book model with XSLT transformation, generated table of contents, previous/next navigation, and a lightweight GUI for editorial parameters.
 
+
+
+## Current documented Métopes subset for ETS Site Builder
+
+For the next development steps, the notice layer should target a deliberately limited Métopes subset.
+
+Two source situations are considered especially important:
+
+1. a **master Métopes volume** with `text type="book"`, nested `group` elements, and optional `xi:include` references;
+2. a **standalone notice or chapter file** with a `text` node, optional `front`, `titlePage`, `body`, paragraphs, inline highlighting, and notes.
+
+The first implementation stages should focus on:
+- optional `xi:include` resolution,
+- extraction of hierarchical `group` structures,
+- extraction of `head` and `title`,
+- support for `front/titlePage`,
+- support for `body/p`,
+- support for inline `hi`,
+- support for notes,
+- minimal deterministic HTML rendering.
+
+This is enough for a first serious publication slice and for realistic automated tests. Full generic Métopes coverage is not required at this stage.
+
+The repository is also expected to maintain two complementary Métopes fixture families:
+- `fixtures/metopes/minimal/` for small synthetic tests;
+- `fixtures/metopes/realistic/` for integration tests on real or lightly adapted Métopes files.
+
+In early ETS Site Builder milestones, the relation between a dramatic TEI play and a Métopes notice should remain explicit and simple:
+- direct configuration,
+- shared slug,
+- or stable filename convention.
+
 ## Input format
 
 The historical project uses a lightweight text syntax inspired by Markdown.

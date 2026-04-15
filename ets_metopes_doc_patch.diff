@@ -1,0 +1,264 @@
+--- a/AGENTS.md
++++ b/AGENTS.md
+@@ -106,6 +106,41 @@
+ - generate navigation automatically,
+
+ - publish a static site without manual menu maintenance.
+
+ 
+
++
+
++
+
++## Métopes notice handling — current documented subset
+
++
+
++For the next ETS Site Builder milestones, Métopes support must stay deliberately narrow and explicit.
+
++
+
++Treat the following two kinds of Métopes inputs as valid and important fixtures:
+
++
+
++1. a **master volume file** with `text type="book"`, hierarchical `group` elements, and optional `xi:include` references to component files;
+
++2. a **standalone notice or chapter file** such as an introduction, with a `text` node, optional `front`, a `titlePage`, a `body`, paragraphs, inline highlighting, and footnotes.
+
++
+
++For the first implementation stages of notice rendering, prioritize support for the following subset only:
+
++- optional `xi:include` resolution,
+
++- hierarchical `group` extraction,
+
++- `head` and `title` extraction,
+
++- `front/titlePage`,
+
++- `body/p`,
+
++- inline `hi`,
+
++- footnotes or notes,
+
++- minimal structured HTML rendering.
+
++
+
++Do not attempt full generic Métopes coverage from the start.
+
++
+
++Fixture policy for Métopes material:
+
++- `fixtures/metopes/minimal/` should contain very small synthetic fixtures used for stable, fast tests;
+
++- `fixtures/metopes/realistic/` should contain real or lightly adapted Métopes examples used for integration-level tests.
+
++
+
++Association between a dramatic TEI play and a Métopes notice must not be treated as magical inference.
+
++In the first implementations, prefer one of:
+
++- explicit configuration,
+
++- a stable shared slug,
+
++- a documented filename convention.
+
++
+
++Do not invent complex automatic matching heuristics unless they are explicitly specified in the fixtures or docs.
+
++
+
+ ## Expected repository structure
+
+ 
+
+ - `src/ets/domain/` for domain model
+
+--- a/README.md
++++ b/README.md
+@@ -67,6 +67,38 @@
+ The long-term goal is not only to preview TEI locally, but to publish a complete static site in one step, without manually maintaining menus or page links.
+
+ 
+
+ The notice visualization layer may take direct inspiration from the **Impressions** project, which already follows a TEI Métopes → static HTML book model with XSLT transformation, generated table of contents, previous/next navigation, and a lightweight GUI for editorial parameters.
+
++
+
++
+
++
+
++## Current documented Métopes subset for ETS Site Builder
+
++
+
++For the next development steps, the notice layer should target a deliberately limited Métopes subset.
+
++
+
++Two source situations are considered especially important:
+
++
+
++1. a **master Métopes volume** with `text type="book"`, nested `group` elements, and optional `xi:include` references;
+
++2. a **standalone notice or chapter file** with a `text` node, optional `front`, `titlePage`, `body`, paragraphs, inline highlighting, and notes.
+
++
+
++The first implementation stages should focus on:
+
++- optional `xi:include` resolution,
+
++- extraction of hierarchical `group` structures,
+
++- extraction of `head` and `title`,
+
++- support for `front/titlePage`,
+
++- support for `body/p`,
+
++- support for inline `hi`,
+
++- support for notes,
+
++- minimal deterministic HTML rendering.
+
++
+
++This is enough for a first serious publication slice and for realistic automated tests. Full generic Métopes coverage is not required at this stage.
+
++
+
++The repository is also expected to maintain two complementary Métopes fixture families:
+
++- `fixtures/metopes/minimal/` for small synthetic tests;
+
++- `fixtures/metopes/realistic/` for integration tests on real or lightly adapted Métopes files.
+
++
+
++In early ETS Site Builder milestones, the relation between a dramatic TEI play and a Métopes notice should remain explicit and simple:
+
++- direct configuration,
+
++- shared slug,
+
++- or stable filename convention.
+
+ 
+
+ ## Input format
+
+ 
+
+--- a/docs/SPEC_V2.md
++++ b/docs/SPEC_V2.md
+@@ -486,6 +486,49 @@
+ - no database,
+
+ - no CMS.
+
+ 
+
++
+
++
+
++### 16.5.1 Current documented Métopes subset
+
++
+
++For the next implementation stages, support for Métopes notices must remain intentionally limited to a documented, testable subset.
+
++
+
++Two input situations are especially relevant:
+
++
+
++1. a **master volume file** with `text type="book"`, nested `group` elements, and optional `xi:include` references to component files;
+
++2. a **standalone notice or chapter file** with a `text` node, optional `front`, `titlePage`, `body`, paragraphs, inline highlighting, and notes.
+
++
+
++A first operational implementation may therefore limit itself to:
+
++- optional `xi:include` resolution,
+
++- extraction of hierarchical `group` structures,
+
++- extraction of `head` and `title`,
+
++- support for `front/titlePage`,
+
++- support for `body/p`,
+
++- support for inline `hi`,
+
++- support for notes,
+
++- minimal structured HTML rendering.
+
++
+
++Full generic support for all possible Métopes encodings is not required at this stage.
+
++
+
++### 16.5.2 Fixture policy for Métopes material
+
++
+
++The repository should maintain two complementary fixture families for Métopes-related work:
+
++
+
++- `fixtures/metopes/minimal/` for very small synthetic fixtures used in stable unit and integration tests;
+
++- `fixtures/metopes/realistic/` for real or lightly adapted Métopes files used in broader integration tests.
+
++
+
++These fixtures are part of the behavioral specification for ETS Site Builder and should guide implementation choices.
+
++
+
++### 16.5.3 Association rule between play TEI and notice TEI
+
++
+
++The association between a dramatic TEI play and a Métopes notice must initially remain explicit and deterministic.
+
++
+
++Acceptable first strategies include:
+
++- direct configuration,
+
++- a stable shared slug,
+
++- a documented filename convention.
+
++
+
++The first implementations must not rely on opaque heuristics or undocumented guessing to associate plays and notices.
+
++
+
+ ### 16.6 Non-goals
+
+ 
+
+ The site builder must not initially:

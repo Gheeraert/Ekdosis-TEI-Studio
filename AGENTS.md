@@ -106,6 +106,41 @@ The site builder should eventually be able to:
 - generate navigation automatically,
 - publish a static site without manual menu maintenance.
 
+
+
+## Métopes notice handling — current documented subset
+
+For the next ETS Site Builder milestones, Métopes support must stay deliberately narrow and explicit.
+
+Treat the following two kinds of Métopes inputs as valid and important fixtures:
+
+1. a **master volume file** with `text type="book"`, hierarchical `group` elements, and optional `xi:include` references to component files;
+2. a **standalone notice or chapter file** such as an introduction, with a `text` node, optional `front`, a `titlePage`, a `body`, paragraphs, inline highlighting, and footnotes.
+
+For the first implementation stages of notice rendering, prioritize support for the following subset only:
+- optional `xi:include` resolution,
+- hierarchical `group` extraction,
+- `head` and `title` extraction,
+- `front/titlePage`,
+- `body/p`,
+- inline `hi`,
+- footnotes or notes,
+- minimal structured HTML rendering.
+
+Do not attempt full generic Métopes coverage from the start.
+
+Fixture policy for Métopes material:
+- `fixtures/metopes/minimal/` should contain very small synthetic fixtures used for stable, fast tests;
+- `fixtures/metopes/realistic/` should contain real or lightly adapted Métopes examples used for integration-level tests.
+
+Association between a dramatic TEI play and a Métopes notice must not be treated as magical inference.
+In the first implementations, prefer one of:
+- explicit configuration,
+- a stable shared slug,
+- a documented filename convention.
+
+Do not invent complex automatic matching heuristics unless they are explicitly specified in the fixtures or docs.
+
 ## Expected repository structure
 
 - `src/ets/domain/` for domain model
