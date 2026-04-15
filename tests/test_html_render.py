@@ -61,6 +61,30 @@ def _annotated_markdown_tei_xml() -> str:
     return inject_annotations_into_tei(tei_xml, annotations)
 
 
+def _annotated_long_note_tei_xml() -> str:
+    root = Path(__file__).resolve().parents[1]
+    fixture = root / "fixtures" / "annotations" / "berenice_1_1"
+    tei_xml = run_pipeline(
+        input_path=fixture / "input.txt",
+        config_path=fixture / "config.json",
+    )
+    very_long_note = " ".join(["developpement"] * 40) + " [source](https://example.org)"
+    annotations = AnnotationCollection(
+        version=1,
+        annotations=[
+            Annotation(
+                id="n_long_html",
+                type="explicative",
+                anchor=AnnotationAnchor(kind="line", act="1", scene="1", line="1"),
+                content=very_long_note,
+                status="draft",
+                keywords=[],
+            )
+        ],
+    )
+    return inject_annotations_into_tei(tei_xml, annotations)
+
+
 def test_html_preview_transforms_stable_tei_fixture() -> None:
     preview = render_html_preview_from_tei(_stable_tei_xml())
     doc = lxml_html.document_fromstring(preview)
@@ -152,6 +176,42 @@ def test_html_preview_renders_note_calls_notes_block_numbering_and_backlinks() -
     assert doc.xpath("//li[@id='note-1']//a[contains(@class, 'note-backlink') and @href='#noteref-1-A1S1L1']")
     assert doc.xpath("//li[@id='note-2']//a[contains(@class, 'note-backlink') and @href='#noteref-2-A1S1L2']")
     assert doc.xpath("//li[@id='note-3']//a[contains(@class, 'note-backlink') and @href='#noteref-3-A1S1ST1']")
+
+
+def test_html_note_call_has_native_preview_attributes() -> None:
+    preview = render_html_preview_from_tei(_annotated_fixture_tei_xml())
+    doc = lxml_html.document_fromstring(preview)
+
+    link = doc.xpath("//sup[@id='noteref-1-A1S1L1']/a")[0]
+    assert link.get("title") == "Ouverture solennelle de la scene."
+    assert link.get("aria-label") == "Note 1: Ouverture solennelle de la scene."
+
+
+def test_html_note_call_preview_is_plain_text_not_raw_xml() -> None:
+    preview = render_html_preview_from_tei(_annotated_markdown_tei_xml())
+    doc = lxml_html.document_fromstring(preview)
+
+    title = doc.xpath("//sup[@id='noteref-1-A1S1L1']/a/@title")[0]
+    assert "<" not in title
+    assert ">" not in title
+    assert "*" not in title
+
+
+def test_html_note_call_preview_truncates_long_notes() -> None:
+    preview = render_html_preview_from_tei(_annotated_long_note_tei_xml())
+    doc = lxml_html.document_fromstring(preview)
+
+    title = doc.xpath("//sup[@id='noteref-1-A1S1L1']/a/@title")[0]
+    assert title.endswith("…")
+    assert len(title) == 201
+
+
+def test_html_note_call_preview_keeps_short_notes_untruncated() -> None:
+    preview = render_html_preview_from_tei(_annotated_fixture_tei_xml())
+    doc = lxml_html.document_fromstring(preview)
+
+    title = doc.xpath("//sup[@id='noteref-1-A1S1L1']/a/@title")[0]
+    assert not title.endswith("…")
 
 
 def test_html_preview_renders_structured_tei_inside_note_body() -> None:

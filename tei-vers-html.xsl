@@ -187,17 +187,23 @@
             margin-left: 14em;
           }
           .note-call {
-            margin-left: 0.2em;
-            font-size: 0.8em;
+            margin-left: 0.25em;
+            font-size: 0.86em;
             line-height: 1;
           }
           .note-call a {
             text-decoration: none;
-            color: #6b4f2f;
+            color: #5b3f1f;
+            font-weight: 600;
           }
           .note-call a:hover,
           .note-call a:focus {
-            text-decoration: underline;
+            text-decoration: none;
+            border-bottom: 1px solid #5b3f1f;
+          }
+          .note-call a:focus-visible {
+            outline: 1px solid #7a5a2d;
+            outline-offset: 1px;
           }
           .notes {
             margin: 1.5em 0 0 9em;
@@ -440,8 +446,19 @@
     <xsl:if test="$target-id != ''">
       <xsl:for-each select="ancestor::tei:TEI//tei:note[@target and contains(concat(' ', normalize-space(@target), ' '), concat(' #', $target-id, ' '))]">
         <xsl:variable name="note-number" select="count(preceding::tei:note[@target]) + 1"/>
+        <xsl:variable name="note-preview-full" select="normalize-space(string(.))"/>
+        <xsl:variable name="note-preview">
+          <xsl:choose>
+            <xsl:when test="string-length($note-preview-full) &gt; 200">
+              <xsl:value-of select="concat(substring($note-preview-full, 1, 200), '…')"/>
+            </xsl:when>
+            <xsl:otherwise>
+              <xsl:value-of select="$note-preview-full"/>
+            </xsl:otherwise>
+          </xsl:choose>
+        </xsl:variable>
         <sup class="note-call" id="noteref-{$note-number}-{$target-id}">
-          <a href="#note-{$note-number}">
+          <a href="#note-{$note-number}" title="{$note-preview}" aria-label="Note {$note-number}: {$note-preview}">
             <xsl:value-of select="$note-number"/>
           </a>
         </sup>
