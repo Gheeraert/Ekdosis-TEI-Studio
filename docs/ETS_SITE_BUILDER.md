@@ -14,14 +14,14 @@ The first implementation milestone now provides:
 - a dedicated `ets.site_builder` package with typed dataclasses and a simple config loader;
 - defensive XML extractors for dramatic TEI and Métopes notices;
 - automatic manifest generation for plays, notices, pages, and navigation;
-- a minimal static HTML renderer (home, play, notice placeholder page);
+- a minimal static HTML renderer (home, play, notice page);
 - a build orchestrator that cleans the output directory before each regeneration, writes pages, copies optional assets, and returns a structured build result.
 
 This milestone intentionally keeps notice rendering as a separate path prepared for a later dedicated transformation.
 
-## Current MÃ©topes notice subset (implemented)
+## Current Métopes notice subset (implemented)
 
-The current ETS Site Builder implementation supports a documented first subset for MÃ©topes notices:
+The current ETS Site Builder implementation supports a documented first subset for Métopes notices:
 - standalone notice/chapter TEI files (`text` with `front`/`body`);
 - master volume TEI files (`text type="book"`) with hierarchical `group` structures;
 - optional local `xi:include` resolution with `href` and optional `xpointer="text"` semantics;
@@ -36,9 +36,9 @@ Implemented `xi:include` strategy:
 - build remains deterministic and does not fetch network resources.
 
 Out of scope at this stage:
-- exhaustive support for all COMMONS/MÃ©topes TEI variants;
+- exhaustive support for all COMMONS/Métopes TEI variants;
 - advanced tables, rich figures, full bibliography semantics, and complete publication semantics;
-- full XSLT-equivalent rendering parity with existing MÃ©topes publication pipelines.
+- full XSLT-equivalent rendering parity with existing Métopes publication pipelines.
 
 ## Editorial inputs
 
@@ -116,6 +116,10 @@ Publication dataclasses:
 - `SiteManifest`
 - `PlayEntry`
 - `NoticeEntry`
+- `NoticeDocument`
+- `NoticeSection`
+- `NoticeTocEntry`
+- `NoticeNote`
 - `SitePage`
 - `NavigationItem`
 - `BuildResult`
