@@ -22,6 +22,9 @@
         <link href="https://fonts.googleapis.com/css2?family=EB+Garamond&amp;display=swap" rel="stylesheet"/>
         <link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro&amp;display=swap" rel="stylesheet"/>
         <style>
+          html {
+            scroll-behavior: smooth;
+          }
           body {
             font-family: 'IM Fell DW Pica', Georgia, serif;
             background: #fdf6e3;
@@ -68,6 +71,19 @@
           }
           .bold {
             font-weight: bold;
+          }
+          .smallcaps {
+            font-variant: small-caps;
+          }
+          .superscript {
+            vertical-align: super;
+            font-size: 0.8em;
+            line-height: 0;
+          }
+          .subscript {
+            vertical-align: sub;
+            font-size: 0.8em;
+            line-height: 0;
           }
           .underline {
             text-decoration: underline;
@@ -170,6 +186,53 @@
           .vers-decale {
             margin-left: 14em;
           }
+          .note-call {
+            margin-left: 0.2em;
+            font-size: 0.8em;
+            line-height: 1;
+          }
+          .note-call a {
+            text-decoration: none;
+            color: #6b4f2f;
+          }
+          .note-call a:hover,
+          .note-call a:focus {
+            text-decoration: underline;
+          }
+          .notes {
+            margin: 1.5em 0 0 9em;
+            padding-top: 0.5em;
+            border-top: 1px solid #ccbba6;
+          }
+          .notes-title {
+            font-size: 1.05em;
+            margin-bottom: 0.6em;
+          }
+          .note-item {
+            margin-bottom: 0.7em;
+            padding: 0.25em 0.4em;
+            border-radius: 4px;
+          }
+          .note-item p {
+            margin: 0.35em 0;
+          }
+          .note-item:target {
+            background: #fff5d9;
+            box-shadow: 0 0 0 1px #e7d8be inset;
+          }
+          .note-backlink {
+            margin-left: 0.45em;
+            text-decoration: none;
+          }
+          .note-backlink:hover,
+          .note-backlink:focus {
+            text-decoration: underline;
+          }
+          @media (prefers-reduced-motion: reduce) {
+            html {
+              scroll-behavior: auto;
+            }
+          }
         </style>
         <link rel="icon" href="https://www.normandie.fr/sites/default/files/2021-03/favicon.ico" type="image/x-icon"/>
       </head>
@@ -211,6 +274,18 @@
     </div>
   </xsl:template>
 
+  <xsl:template match="tei:div[@type='scene']">
+    <xsl:apply-templates select="node()[not(self::tei:note)]"/>
+    <xsl:if test="tei:note[@target]">
+      <section class="notes">
+        <h2 class="notes-title">Notes</h2>
+        <ol>
+          <xsl:apply-templates select="tei:note[@target]" mode="note-item"/>
+        </ol>
+      </section>
+    </xsl:if>
+  </xsl:template>
+
   <xsl:template match="tei:stage[@type='DI']">
     <xsl:variable name="func" select="substring-after(@ana, '#')"/>
     <xsl:variable name="label">
@@ -230,6 +305,7 @@
     </xsl:variable>
     <div class="stage-implicite" data-type="{$func}" data-label="{$label}">
       <xsl:apply-templates select="tei:l"/>
+      <xsl:call-template name="render-note-calls"/>
     </div>
   </xsl:template>
 
@@ -254,7 +330,10 @@
   </xsl:template>
 
   <xsl:template match="tei:stage[not(@type='DI') and not(@type='characters') and not(@type='personnages')]">
-    <p class="didascalie"><em><xsl:apply-templates/></em></p>
+    <p class="didascalie">
+      <em><xsl:apply-templates/></em>
+      <xsl:call-template name="render-note-calls"/>
+    </p>
   </xsl:template>
 
   <xsl:template match="tei:sp">
@@ -304,6 +383,7 @@
       </xsl:choose>
       <span class="texte-vers">
         <xsl:apply-templates/>
+        <xsl:call-template name="render-note-calls"/>
       </span>
     </div>
   </xsl:template>
@@ -328,6 +408,18 @@
     </span>
   </xsl:template>
 
+  <xsl:template match="tei:ref">
+    <a href="{@target}">
+      <xsl:apply-templates/>
+    </a>
+  </xsl:template>
+
+  <xsl:template match="tei:p">
+    <p>
+      <xsl:apply-templates/>
+    </p>
+  </xsl:template>
+
   <xsl:template match="tei:metadonnees">
     <div class="bloc-credit">
       <div class="ligne-logos-gauche">
@@ -342,6 +434,40 @@
       <xsl:apply-templates/>
     </div>
   </xsl:template>
+
+  <xsl:template name="render-note-calls">
+    <xsl:variable name="target-id" select="@xml:id"/>
+    <xsl:if test="$target-id != ''">
+      <xsl:for-each select="ancestor::tei:TEI//tei:note[@target and contains(concat(' ', normalize-space(@target), ' '), concat(' #', $target-id, ' '))]">
+        <xsl:variable name="note-number" select="count(preceding::tei:note[@target]) + 1"/>
+        <sup class="note-call" id="noteref-{$note-number}-{$target-id}">
+          <a href="#note-{$note-number}">
+            <xsl:value-of select="$note-number"/>
+          </a>
+        </sup>
+      </xsl:for-each>
+    </xsl:if>
+  </xsl:template>
+
+  <xsl:template match="tei:note" mode="note-item">
+    <xsl:variable name="note-number" select="count(preceding::tei:note[@target]) + 1"/>
+    <xsl:variable name="first-target" select="substring-before(concat(normalize-space(substring-after(normalize-space(@target), '#')), ' '), ' ')"/>
+    <li id="note-{$note-number}" class="note-item">
+      <xsl:choose>
+        <xsl:when test="tei:p">
+          <xsl:apply-templates/>
+        </xsl:when>
+        <xsl:otherwise>
+          <p><xsl:apply-templates/></p>
+        </xsl:otherwise>
+      </xsl:choose>
+      <xsl:if test="$first-target != ''">
+        <a href="#noteref-{$note-number}-{$first-target}" class="note-backlink">&#8617;</a>
+      </xsl:if>
+    </li>
+  </xsl:template>
+
+  <xsl:template match="tei:note"/>
 
   <xsl:template match="tei:rdg"/>
 </xsl:stylesheet>
