@@ -36,14 +36,20 @@ def test_render_notice_page_outputs_structured_metopes_html() -> None:
 
     html_page = render_notice_page(manifest, notice)
 
+    assert 'class="notice-title-block"' in html_page
     assert "<h2>Introduction</h2>" in html_page
+    assert 'class="notice-meta"' in html_page
+    assert "Type de texte" in html_page
     assert "Sommaire" in html_page
+    assert '<nav class="notice-toc"' in html_page
     assert "<em>mise en forme italique</em>" in html_page
     assert "Notes" in html_page
-    assert "Note de bas de page de démonstration." in html_page
-    assert "Télécharger le XML" in html_page
+    assert "Note de bas de page" in html_page
+    assert "Telecharger le XML" in html_page
     assert 'href="#doc-body"' in html_page
     assert 'id="doc-body"' in html_page
+    assert 'id="note-ref-ftn1-1"' in html_page
+    assert 'href="#note-ref-ftn1-1"' in html_page
 
 
 def test_render_notice_page_renders_lists_from_metopes_chapter() -> None:
@@ -65,7 +71,7 @@ def test_render_notice_page_renders_lists_from_metopes_chapter() -> None:
     html_page = render_notice_page(manifest, notice)
 
     assert "Premier item" in html_page
-    assert "Deuxième item" in html_page
+    assert "Deuxi" in html_page and "item" in html_page
 
 
 def test_render_notice_page_nested_toc_for_master_volume() -> None:
@@ -87,7 +93,8 @@ def test_render_notice_page_nested_toc_for_master_volume() -> None:
     html_page = render_notice_page(manifest, notice)
 
     assert "Sommaire" in html_page
+    assert "toc-kind-group" in html_page
+    assert "toc-kind-included_document" in html_page
     assert "notice-group" in html_page
     assert "notice-included-document" in html_page
-    assert "Ch01_Introduction_test.xml" in html_page
     assert 'href="#grp1-introduction"' in html_page

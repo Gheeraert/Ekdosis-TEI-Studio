@@ -164,3 +164,14 @@ Still intentionally out of scope:
 - full generic Commons/Metopes coverage;
 - exhaustive handling of complex tables, figures, and bibliography semantics;
 - full parity with complete XSLT publication pipelines.
+
+## Editorial rendering refinement (long notices)
+
+Current notice rendering now emphasizes editorial readability for long-form pages:
+- clearer title framing (title, subtitle, byline);
+- grouped metadata block with stable labels;
+- nested TOC with visual distinction between parts (`group`), included documents, and internal sections;
+- improved section rhythm and hierarchy for long reading;
+- note rendering with simple return links to the first note call.
+
+This remains a lightweight static HTML layer and does not aim at full visual production polish or full XSLT parity.
