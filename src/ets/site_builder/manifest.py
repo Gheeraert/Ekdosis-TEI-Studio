@@ -42,6 +42,33 @@ def _associate_notices_with_plays(plays: list[PlayEntry], notices: list[NoticeEn
     return mapped
 
 
+def _apply_explicit_play_notice_map(
+    notices: list[NoticeEntry],
+    *,
+    play_notice_map: tuple[tuple[str, str], ...],
+    warnings: list[str],
+) -> list[NoticeEntry]:
+    if not play_notice_map:
+        return notices
+
+    notice_by_slug = {notice.slug: notice for notice in notices}
+    mapped: list[NoticeEntry] = []
+    for notice in notices:
+        mapped.append(notice)
+
+    for play_slug, notice_slug in play_notice_map:
+        target = notice_by_slug.get(notice_slug)
+        if target is None:
+            warnings.append(
+                f"Configured play_notice_map entry '{play_slug} -> {notice_slug}' ignored: notice slug not found."
+            )
+            continue
+        replaced = replace(target, related_play_slug=play_slug)
+        mapped = [replaced if item.slug == notice_slug else item for item in mapped]
+        notice_by_slug[notice_slug] = replaced
+    return mapped
+
+
 def build_site_manifest(config: SiteConfig) -> SiteManifest:
     warnings: list[str] = []
 
@@ -72,6 +99,18 @@ def build_site_manifest(config: SiteConfig) -> SiteManifest:
                     warnings.append(str(exc))
 
     notices = _associate_notices_with_plays(plays, notices)
+    notices = _apply_explicit_play_notice_map(
+        notices,
+        play_notice_map=config.play_notice_map,
+        warnings=warnings,
+    )
+    if config.play_notice_map:
+        play_slugs = {play.slug for play in plays}
+        for play_slug, notice_slug in config.play_notice_map:
+            if play_slug not in play_slugs:
+                warnings.append(
+                    f"Configured play_notice_map entry '{play_slug} -> {notice_slug}' references unknown play slug."
+                )
     plays, notices = _with_download_paths(config, plays, notices)
 
     pages: list[SitePage] = [SitePage(kind="index", title=config.site_title, output_relpath="index.html")]

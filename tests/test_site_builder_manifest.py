@@ -37,3 +37,25 @@ def test_manifest_builds_navigation_and_notice_entries() -> None:
     assert {play.slug for play in manifest.plays} == {"andromaque", "berenice"}
     assert manifest.notices[0].slug == "andromaque-notice"
     assert manifest.notices[0].related_play_slug == "andromaque"
+
+
+def test_manifest_reports_invalid_explicit_mapping_entries() -> None:
+    config = site_config_from_dict(
+        {
+            "site_title": "ETS Demo",
+            "site_subtitle": "Publication test",
+            "dramatic_xml_dir": str(ROOT / "fixtures" / "site_builder" / "minimal" / "dramatic"),
+            "notice_xml_dir": str(ROOT / "fixtures" / "site_builder" / "minimal" / "notices"),
+            "output_dir": str(ROOT / "tests" / "_runtime" / "site_builder_manifest_invalid_map"),
+            "publish_notices": True,
+            "play_notice_map": {
+                "missing-play": "andromaque-notice",
+                "andromaque": "missing-notice",
+            },
+        }
+    )
+
+    manifest = build_site_manifest(config)
+
+    assert any("unknown play slug" in warning for warning in manifest.warnings)
+    assert any("notice slug not found" in warning for warning in manifest.warnings)

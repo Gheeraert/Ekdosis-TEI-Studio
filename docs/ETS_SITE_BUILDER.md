@@ -175,3 +175,22 @@ Current notice rendering now emphasizes editorial readability for long-form page
 - note rendering with simple return links to the first note call.
 
 This remains a lightweight static HTML layer and does not aim at full visual production polish or full XSLT parity.
+
+## Publication configuration layer (current)
+
+ETS Site Builder now exposes a stronger publication configuration layer, loadable from Python dict or JSON file.
+
+Currently configurable:
+- site identity: `site_title`, `site_subtitle`, `project_name`, `editor`, `credits`, optional `homepage_intro`;
+- source/output paths: `dramatic_xml_dir`, `notice_xml_dir`, `output_dir`;
+- branding/assets: `assets.logos` (or `assets.logo_files`), `assets.directories` (or `assets.asset_directories`);
+- publication switches: `show_xml_download`, `publish_notices`, `include_metadata`, `resolve_notice_xincludes`;
+- explicit play/notice pairing: `play_notice_map`.
+
+`play_notice_map` is explicit and deterministic (`play_slug -> notice_slug`) and intentionally avoids fuzzy matching.
+Invalid mapping references are reported as manifest warnings.
+
+Still deferred:
+- UI-driven config editing;
+- advanced schema/validation system beyond typed loading and explicit runtime checks;
+- complex publication orchestration beyond current builder flow.

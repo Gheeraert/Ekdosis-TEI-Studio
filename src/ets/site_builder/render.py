@@ -111,9 +111,15 @@ def render_home_page(manifest: SiteManifest) -> str:
         if manifest.config.publish_notices and manifest.notices
         else ""
     )
+    intro_block = (
+        f"<p>{html.escape(manifest.config.homepage_intro)}</p>"
+        if manifest.config.homepage_intro
+        else ""
+    )
     content = (
         f"<h2>Accueil</h2>"
         f"<p>{html.escape(manifest.config.project_name)}</p>"
+        f"{intro_block}"
         f"<h3>Pieces</h3><ul>{play_items}</ul>"
         f"{notices_block}"
     )

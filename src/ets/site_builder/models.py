@@ -25,6 +25,8 @@ class SiteConfig:
     project_name: str = ""
     editor: str = ""
     credits: str = ""
+    homepage_intro: str = ""
+    play_notice_map: tuple[tuple[str, str], ...] = ()
 
 
 @dataclass(frozen=True)
