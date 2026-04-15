@@ -12,6 +12,7 @@ from ets.application import (
     AppDiagnostic,
     create_annotation,
     delete_annotation,
+    enrich_tei_with_annotations,
     parse_annotation,
     export_html,
     export_tei,
@@ -317,17 +318,11 @@ class MainWindow(ttk.Frame):
                 starts[block_index] = current_start_line
         return starts
 
-    def _annotation_source_line_map(self) -> dict[str, list[int]]:
-        if self.state.config is None:
-            return {}
-        text = self._current_text()
-        if not text.strip():
-            return {}
-        try:
-            play = parse_play(text, self.state.config)
-        except ValueError:
-            return {}
-
+    def _build_annotation_indices(
+        self, text: str
+    ) -> tuple[dict[tuple[str, str, str], int], dict[tuple[str, str, int], int], dict[int, int]]:
+        assert self.state.config is not None
+        play = parse_play(text, self.state.config)
         block_start_lines = self._split_parallel_blocks_with_start_lines(text, len(self.state.config.witnesses))
         verse_index: dict[tuple[str, str, str], int] = {}
         stage_index: dict[tuple[str, str, int], int] = {}
@@ -350,6 +345,51 @@ class MainWindow(ttk.Frame):
                         elif hasattr(element, "block_index"):
                             stage_counter += 1
                             stage_index[(act_label, scene_label, stage_counter)] = element.block_index
+        return verse_index, stage_index, block_start_lines
+
+    def resolve_current_editor_position_to_annotation_anchor(self) -> dict[str, object] | None:
+        if self.state.config is None:
+            return None
+        text = self._current_text()
+        if not text.strip():
+            return None
+        try:
+            verse_index, stage_index, block_start_lines = self._build_annotation_indices(text)
+        except ValueError:
+            return None
+        if not block_start_lines:
+            return None
+
+        cursor_line = self.editor.current_line_number()
+        line_count = max(1, len(text.splitlines()))
+        sorted_starts = sorted(block_start_lines.items(), key=lambda item: item[1])
+        cursor_block: int | None = None
+        for position, (block_index, start_line) in enumerate(sorted_starts):
+            next_start = sorted_starts[position + 1][1] if position + 1 < len(sorted_starts) else line_count + 1
+            if start_line <= cursor_line < next_start:
+                cursor_block = block_index
+                break
+        if cursor_block is None:
+            return None
+
+        for (act, scene, line), block_index in verse_index.items():
+            if block_index == cursor_block:
+                return {"kind": "line", "act": act, "scene": scene, "line": line}
+        for (act, scene, stage_number), block_index in stage_index.items():
+            if block_index == cursor_block:
+                return {"kind": "stage", "act": act, "scene": scene, "stage_index": stage_number}
+        return None
+
+    def _annotation_source_line_map(self) -> dict[str, list[int]]:
+        if self.state.config is None:
+            return {}
+        text = self._current_text()
+        if not text.strip():
+            return {}
+        try:
+            verse_index, stage_index, block_start_lines = self._build_annotation_indices(text)
+        except ValueError:
+            return {}
 
         mapped: dict[str, list[int]] = {}
         for annotation in self.state.annotations.annotations:
@@ -522,13 +562,21 @@ class MainWindow(ttk.Frame):
         if reason in {"text_changed", "new_file", "open_file", "config_changed", "reference_changed"}:
             self._set_diagnostics([])
 
+    def _maybe_enrich_tei_with_annotations(self, tei_xml: str) -> tuple[str | None, list[AppDiagnostic], str | None]:
+        if not self.state.annotations.annotations:
+            return tei_xml, [], None
+        enrichment = enrich_tei_with_annotations(tei_xml, self.state.annotations)
+        if not enrichment.ok or enrichment.tei_xml is None:
+            return None, enrichment.diagnostics, enrichment.message or "Échec de l'enrichissement TEI."
+        return enrichment.tei_xml, enrichment.diagnostics, None
+
     def _apply_tei_generation(self, *, show_error: bool = True) -> bool:
         if not self._ensure_config():
             return False
         assert self.state.config is not None
         result = generate_tei_from_text(self._current_text(), self.state.config)
-        self._set_diagnostics(result.diagnostics)
         if not result.ok or result.tei_xml is None:
+            self._set_diagnostics(result.diagnostics)
             self.state.tei_xml = None
             self.state.html_preview = None
             self.state.outputs_stale = True
@@ -538,8 +586,21 @@ class MainWindow(ttk.Frame):
                 messagebox.showerror("Génération TEI", result.message or "Échec de génération TEI.", parent=self.master)
             return False
 
-        self.state.tei_xml = result.tei_xml
-        self.outputs.set_tei(result.tei_xml)
+        enriched_tei, enrichment_diagnostics, enrichment_error = self._maybe_enrich_tei_with_annotations(result.tei_xml)
+        if enriched_tei is None:
+            self._set_diagnostics(result.diagnostics + enrichment_diagnostics)
+            self.state.tei_xml = None
+            self.state.html_preview = None
+            self.state.outputs_stale = True
+            self.outputs.set_tei("")
+            self.outputs.set_html("")
+            if show_error:
+                messagebox.showerror("Génération TEI", enrichment_error or "Échec de l'enrichissement TEI.", parent=self.master)
+            return False
+
+        self._set_diagnostics(result.diagnostics + enrichment_diagnostics)
+        self.state.tei_xml = enriched_tei
+        self.outputs.set_tei(enriched_tei)
         self.state.tei_dirty_by_user = False
         self.state.html_preview = None
         self.outputs.set_html("")
@@ -738,7 +799,18 @@ class MainWindow(ttk.Frame):
         messagebox.showinfo("Annotations", f"Annotations enregistrées:\n{written}", parent=self.master)
 
     def action_add_annotation(self) -> None:
-        initial_payload: dict[str, object] = {"id": suggest_next_annotation_id(self.state.annotations)}
+        resolved_anchor = self.resolve_current_editor_position_to_annotation_anchor()
+        if resolved_anchor is None:
+            messagebox.showinfo(
+                "Annotations",
+                "La ligne courante ne correspond pas a un vers ni a une didascalie annotable.",
+                parent=self.master,
+            )
+            return
+        initial_payload: dict[str, object] = {
+            "id": suggest_next_annotation_id(self.state.annotations),
+            "anchor": resolved_anchor,
+        }
         payload = open_annotation_dialog(self.master, initial=initial_payload, id_readonly=True)
         if payload is None:
             return
@@ -858,17 +930,13 @@ class MainWindow(ttk.Frame):
         )
 
     def action_preview_html(self) -> None:
-        if self.state.tei_dirty_by_user:
-            confirm = messagebox.askyesno(
-                "Aperçu HTML",
-                "La TEI a été modifiée manuellement.\nLa régénération va écraser ces modifications.\nContinuer ?",
-                parent=self.master,
-            )
-            if not confirm:
+        current_tei = self._current_tei_text()
+        if current_tei.strip():
+            self.state.tei_xml = current_tei
+        elif self.state.tei_xml is None:
+            if not self._apply_tei_generation(show_error=False):
+                messagebox.showerror("Aperçu HTML", "Échec de génération TEI.", parent=self.master)
                 return
-        if not self._apply_tei_generation(show_error=False):
-            messagebox.showerror("Aperçu HTML", "Échec de génération TEI.", parent=self.master)
-            return
         if self.state.tei_xml is None:
             return
 
@@ -950,12 +1018,32 @@ class MainWindow(ttk.Frame):
         )
 
     def action_export_html(self) -> None:
+        current_tei = self._current_tei_text()
+        if current_tei.strip():
+            self.state.tei_xml = current_tei
+        elif self.state.tei_xml is None:
+            if not self._apply_tei_generation(show_error=False):
+                messagebox.showerror("Exporter le HTML", "Échec de génération TEI.", parent=self.master)
+                return
+        if self.state.tei_xml is None:
+            messagebox.showwarning("Exporter le HTML", "Générez d'abord un TEI.", parent=self.master)
+            return
+
+        html_result = generate_html_preview_from_tei(self.state.tei_xml)
+        if not html_result.ok or html_result.html is None:
+            if html_result.diagnostics:
+                self._set_diagnostics(html_result.diagnostics)
+            messagebox.showerror("Exporter le HTML", html_result.message or "Échec de génération HTML.", parent=self.master)
+            return
+        self.state.html_preview = html_result.html
+        self.outputs.set_html(html_result.html)
+
         self._export_content(
             title="Exporter le HTML",
             warning_message="Générez d'abord un aperçu HTML.",
             default_extension=".html",
             filetypes=[("HTML files", "*.html"), ("All files", "*.*")],
-            content=self.state.html_preview,
+            content=html_result.html,
             initialfile=self._default_filename(".html"),
             exporter=export_html,
         )

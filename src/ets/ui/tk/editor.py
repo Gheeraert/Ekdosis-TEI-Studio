@@ -87,6 +87,10 @@ class TextEditor(ttk.Frame):
         self.text.see(index)
         self.text.focus_set()
 
+    def current_line_number(self) -> int:
+        index = self.text.index("insert")
+        return int(index.split(".", maxsplit=1)[0])
+
     def clear_diagnostic_highlights(self) -> None:
         self.text.tag_remove("diag_error", "1.0", "end")
 

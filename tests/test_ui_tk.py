@@ -7,7 +7,7 @@ from uuid import uuid4
 import pytest
 
 from ets.annotations import Annotation, AnnotationAnchor, AnnotationCollection
-from ets.application import AppDiagnostic, load_annotations, load_config
+from ets.application import AppDiagnostic, GenerationResult, load_annotations, load_config
 from ets.infrastructure import AutosavePayload, AutosaveStore
 from ets.ui.tk.helpers import diagnostic_line_numbers, format_config_status
 from ets.ui.tk.main_window import MainWindow, suggest_next_annotation_id
@@ -55,6 +55,17 @@ def _make_root() -> tk.Tk:
         pytest.skip(f"Tk not available in this environment: {exc}")
     root.withdraw()
     return root
+
+
+def _annotations_fixture_dir() -> Path:
+    return Path(__file__).resolve().parents[1] / "fixtures" / "annotations" / "berenice_1_1"
+
+
+def _load_annotation_fixture_in_window(window: MainWindow) -> Path:
+    fixture_dir = _annotations_fixture_dir()
+    window.state.config = load_config(fixture_dir / "config.json")
+    window.editor.set_text((fixture_dir / "input.txt").read_text(encoding="utf-8"))
+    return fixture_dir
 
 
 def test_tk_main_window_smoke_instantiation() -> None:
@@ -356,6 +367,124 @@ def test_load_annotations_action_updates_state_and_panel(monkeypatch: pytest.Mon
         assert len(window.state.annotations.annotations) == 3
         assert window.outputs.annotation_row_count() == 3
         assert window.state.annotations_path == fixture
+        first_anchor = window.outputs.annotations_panel.tree.item("n1", "values")[2]
+        assert str(first_anchor).startswith("Acte 1, scene 1, vers")
+    finally:
+        root.destroy()
+
+
+def test_generate_tei_with_loaded_annotations_stores_enriched_tei() -> None:
+    root = _make_root()
+    try:
+        window = MainWindow(root)
+        fixture_dir = _annotations_fixture_dir()
+        window.state.config = load_config(fixture_dir / "config.json")
+        window.editor.set_text((fixture_dir / "input.txt").read_text(encoding="utf-8"))
+        window._set_annotations(load_annotations(fixture_dir / "annotations.json"), fixture_dir / "annotations.json")
+
+        window.action_generate_tei()
+
+        assert window.state.tei_xml is not None
+        assert "<note " in window.state.tei_xml
+        assert "<note " in window.outputs.get_tei()
+    finally:
+        root.destroy()
+
+
+def test_preview_html_uses_enriched_tei_when_annotations_are_loaded(monkeypatch: pytest.MonkeyPatch) -> None:
+    root = _make_root()
+    try:
+        window = MainWindow(root)
+        fixture_dir = _annotations_fixture_dir()
+        window.state.config = load_config(fixture_dir / "config.json")
+        window.editor.set_text((fixture_dir / "input.txt").read_text(encoding="utf-8"))
+        window._set_annotations(load_annotations(fixture_dir / "annotations.json"), fixture_dir / "annotations.json")
+        monkeypatch.setattr(window._preview_server, "publish_html", lambda html: "http://localhost/preview")
+        monkeypatch.setattr(window, "_open_browser", lambda url: True)
+
+        window.action_generate_tei()
+        window.action_preview_html()
+
+        assert window.state.html_preview is not None
+        assert 'class="note-call"' in window.state.html_preview
+        assert 'class="notes"' in window.state.html_preview
+    finally:
+        root.destroy()
+
+
+def test_export_html_uses_current_enriched_tei(monkeypatch: pytest.MonkeyPatch) -> None:
+    root = _make_root()
+    try:
+        window = MainWindow(root)
+        fixture_dir = _annotations_fixture_dir()
+        window.state.config = load_config(fixture_dir / "config.json")
+        window.editor.set_text((fixture_dir / "input.txt").read_text(encoding="utf-8"))
+        window._set_annotations(load_annotations(fixture_dir / "annotations.json"), fixture_dir / "annotations.json")
+
+        out_path = RUNTIME_DIR / f"export_html_{uuid4().hex}.html"
+        monkeypatch.setattr("tkinter.filedialog.asksaveasfilename", lambda **kwargs: str(out_path))
+        monkeypatch.setattr("tkinter.messagebox.showinfo", lambda *args, **kwargs: None)
+        captured: list[str] = []
+
+        def _fake_export(content: str, output_path: str | Path) -> Path:
+            captured.append(content)
+            path = Path(output_path)
+            path.write_text(content, encoding="utf-8")
+            return path
+
+        monkeypatch.setattr("ets.ui.tk.main_window.export_html", _fake_export)
+        window.action_export_html()
+
+        assert captured
+        assert 'class="note-call"' in captured[0]
+        assert 'class="notes"' in captured[0]
+    finally:
+        root.destroy()
+
+
+def test_generate_tei_without_annotations_remains_plain() -> None:
+    root = _make_root()
+    try:
+        window = MainWindow(root)
+        fixture_dir = _annotations_fixture_dir()
+        window.state.config = load_config(fixture_dir / "config.json")
+        window.editor.set_text((fixture_dir / "input.txt").read_text(encoding="utf-8"))
+
+        window.action_generate_tei()
+
+        assert window.state.tei_xml is not None
+        assert "<note " not in window.state.tei_xml
+    finally:
+        root.destroy()
+
+
+def test_enrichment_failure_surfaces_diagnostics_without_raw_fallback(monkeypatch: pytest.MonkeyPatch) -> None:
+    root = _make_root()
+    try:
+        window = MainWindow(root)
+        fixture_dir = _annotations_fixture_dir()
+        window.state.config = load_config(fixture_dir / "config.json")
+        window.editor.set_text((fixture_dir / "input.txt").read_text(encoding="utf-8"))
+        window._set_annotations(load_annotations(fixture_dir / "annotations.json"), fixture_dir / "annotations.json")
+
+        monkeypatch.setattr(
+            "ets.ui.tk.main_window.enrich_tei_with_annotations",
+            lambda tei_xml, annotations: GenerationResult(
+                ok=False,
+                tei_xml=None,
+                diagnostics=[AppDiagnostic(level="ERROR", code="E_TEST_ENRICH", message="Enrichment failed")],
+                message="Enrichment failed",
+            ),
+        )
+        errors: list[str] = []
+        monkeypatch.setattr("tkinter.messagebox.showerror", lambda title, message, **kwargs: errors.append(message))
+
+        window.action_generate_tei()
+
+        assert window.state.tei_xml is None
+        assert window.outputs.get_tei().strip() == ""
+        assert any(item.code == "E_TEST_ENRICH" for item in window.state.diagnostics)
+        assert errors
     finally:
         root.destroy()
 
@@ -364,9 +493,11 @@ def test_annotation_crud_actions_update_state(monkeypatch: pytest.MonkeyPatch) -
     root = _make_root()
     try:
         window = MainWindow(root)
-        fixture = Path(__file__).resolve().parents[1] / "fixtures" / "annotations" / "berenice_1_1" / "annotations.json"
+        fixture_dir = _load_annotation_fixture_in_window(window)
+        fixture = fixture_dir / "annotations.json"
         collection = load_annotations(fixture)
         window._set_annotations(collection, fixture)
+        window.editor.text.mark_set("insert", "13.0")
 
         add_payload = {
             "id": "n4",
@@ -454,7 +585,7 @@ def test_annotation_crud_triggers_highlight_refresh(monkeypatch: pytest.MonkeyPa
     root = _make_root()
     try:
         window = MainWindow(root)
-        fixture_dir = Path(__file__).resolve().parents[1] / "fixtures" / "annotations" / "berenice_1_1"
+        fixture_dir = _load_annotation_fixture_in_window(window)
         collection = load_annotations(fixture_dir / "annotations.json")
         refresh_calls: list[str] = []
         monkeypatch.setattr(window, "_refresh_annotation_highlights", lambda *args, **kwargs: refresh_calls.append("refresh"))
@@ -471,6 +602,7 @@ def test_annotation_crud_triggers_highlight_refresh(monkeypatch: pytest.MonkeyPa
             "status": "draft",
             "keywords": [],
         }
+        window.editor.text.mark_set("insert", "13.0")
         monkeypatch.setattr("ets.ui.tk.main_window.open_annotation_dialog", lambda *args, **kwargs: add_payload)
         window.action_add_annotation()
         assert refresh_calls
@@ -494,6 +626,109 @@ def test_annotation_crud_triggers_highlight_refresh(monkeypatch: pytest.MonkeyPa
         window.outputs.annotations_panel.tree.selection_set("n4")
         window.action_delete_annotation()
         assert refresh_calls
+    finally:
+        root.destroy()
+
+
+def test_add_annotation_prefills_anchor_from_current_verse_line(monkeypatch: pytest.MonkeyPatch) -> None:
+    root = _make_root()
+    try:
+        window = MainWindow(root)
+        _load_annotation_fixture_in_window(window)
+        window.editor.text.mark_set("insert", "14.0")
+        captured: dict[str, object] = {}
+
+        def _fake_dialog(*args, **kwargs):  # type: ignore[no-untyped-def]
+            captured.update(kwargs)
+            return None
+
+        monkeypatch.setattr("ets.ui.tk.main_window.open_annotation_dialog", _fake_dialog)
+        window.action_add_annotation()
+
+        initial = captured["initial"]  # type: ignore[index]
+        assert isinstance(initial, dict)
+        assert initial["anchor"] == {"kind": "line", "act": "1", "scene": "1", "line": "1"}  # type: ignore[index]
+    finally:
+        root.destroy()
+
+
+def test_add_annotation_prefills_anchor_from_current_stage_line(monkeypatch: pytest.MonkeyPatch) -> None:
+    root = _make_root()
+    try:
+        window = MainWindow(root)
+        _load_annotation_fixture_in_window(window)
+        window.editor.text.mark_set("insert", "17.0")
+        captured: dict[str, object] = {}
+
+        def _fake_dialog(*args, **kwargs):  # type: ignore[no-untyped-def]
+            captured.update(kwargs)
+            return None
+
+        monkeypatch.setattr("ets.ui.tk.main_window.open_annotation_dialog", _fake_dialog)
+        window.action_add_annotation()
+
+        initial = captured["initial"]  # type: ignore[index]
+        assert isinstance(initial, dict)
+        assert initial["anchor"] == {"kind": "stage", "act": "1", "scene": "1", "stage_index": 1}  # type: ignore[index]
+    finally:
+        root.destroy()
+
+
+def test_add_annotation_on_non_annotatable_line_shows_message_and_does_not_open_dialog(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    root = _make_root()
+    try:
+        window = MainWindow(root)
+        _load_annotation_fixture_in_window(window)
+        window.editor.text.mark_set("insert", "10.0")
+        infos: list[str] = []
+        opened: list[bool] = []
+        monkeypatch.setattr("tkinter.messagebox.showinfo", lambda _title, message, **kwargs: infos.append(message))
+        monkeypatch.setattr(
+            "ets.ui.tk.main_window.open_annotation_dialog",
+            lambda *args, **kwargs: opened.append(True) or None,
+        )
+
+        window.action_add_annotation()
+
+        assert infos
+        assert "ne correspond pas a un vers" in infos[-1]
+        assert opened == []
+    finally:
+        root.destroy()
+
+
+def test_add_annotation_from_editor_position_saves_canonical_anchor(monkeypatch: pytest.MonkeyPatch) -> None:
+    root = _make_root()
+    try:
+        window = MainWindow(root)
+        fixture_dir = _load_annotation_fixture_in_window(window)
+        window._set_annotations(load_annotations(fixture_dir / "annotations.json"), fixture_dir / "annotations.json")
+        window.editor.text.mark_set("insert", "14.0")
+
+        def _fake_dialog(*args, **kwargs):  # type: ignore[no-untyped-def]
+            initial = kwargs["initial"]
+            assert isinstance(initial, dict)
+            return {
+                "id": initial["id"],
+                "type": "explicative",
+                "anchor": initial["anchor"],
+                "content": "note auto",
+                "status": "draft",
+                "keywords": [],
+            }
+
+        monkeypatch.setattr("ets.ui.tk.main_window.open_annotation_dialog", _fake_dialog)
+        window.action_add_annotation()
+
+        added = next(item for item in window.state.annotations.annotations if item.id == "n4")
+        assert added.anchor.kind == "line"
+        assert added.anchor.act == "1"
+        assert added.anchor.scene == "1"
+        assert added.anchor.line == "1"
+        serialized = window._annotation_to_payload(added)
+        assert set(serialized["anchor"].keys()) == {"kind", "act", "scene", "line"}  # type: ignore[index]
     finally:
         root.destroy()
 

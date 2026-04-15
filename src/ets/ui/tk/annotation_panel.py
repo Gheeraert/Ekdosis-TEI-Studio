@@ -10,11 +10,11 @@ from ets.annotations import AnnotationCollection
 def _anchor_summary(annotation: object) -> str:
     anchor = getattr(annotation, "anchor")
     if anchor.kind == "line":
-        return f"{anchor.kind} A{anchor.act} S{anchor.scene} L{anchor.line}"
+        return f"Acte {anchor.act}, scene {anchor.scene}, vers {anchor.line}"
     if anchor.kind == "line_range":
-        return f"{anchor.kind} A{anchor.act} S{anchor.scene} L{anchor.start_line}-{anchor.end_line}"
+        return f"Acte {anchor.act}, scene {anchor.scene}, vers {anchor.start_line}-{anchor.end_line}"
     if anchor.kind == "stage":
-        return f"{anchor.kind} A{anchor.act} S{anchor.scene} ST{anchor.stage_index}"
+        return f"Acte {anchor.act}, scene {anchor.scene}, didascalie {anchor.stage_index}"
     return anchor.kind
 
 
