@@ -232,3 +232,12 @@ The test suite now includes realistic integration validation against `fixtures/m
 
 Current validation covers end-to-end publication flow (config -> manifest -> extraction -> rendering -> static build),
 including explicit play/notice mapping, page generation, links between play and notice pages, and deterministic output paths.
+
+## Application service entry point (current)
+
+ETS Site Builder now also exposes an application/service entry point intended for future UI integration:
+- a thin service wrapper around existing config + builder logic;
+- structured request/result objects with explicit success/error state;
+- stable access to output directory, generated pages, copied assets, counts, and warnings.
+
+This remains fully UI-independent. UI integration itself is still deferred.

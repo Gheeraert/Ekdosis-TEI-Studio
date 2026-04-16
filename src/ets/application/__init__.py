@@ -1,4 +1,6 @@
 from .models import AppDiagnostic, GenerationResult, HtmlResult, ValidationResult
+from .site_builder_models import SiteBuildRequest, SiteBuildServiceResult
+from .site_builder_service import SiteBuilderService, build_site_from_config_dict, build_site_from_config_file
 from .services import (
     create_annotation,
     delete_annotation,
@@ -39,4 +41,9 @@ __all__ = [
     "export_tei",
     "export_html",
     "suggest_output_basename",
+    "SiteBuildRequest",
+    "SiteBuildServiceResult",
+    "SiteBuilderService",
+    "build_site_from_config_dict",
+    "build_site_from_config_file",
 ]
