@@ -17,7 +17,7 @@ The first implementation milestone now provides:
 - a minimal static HTML renderer (home, play, notice page);
 - a build orchestrator that cleans the output directory before each regeneration, writes pages, copies optional assets, and returns a structured build result.
 
-This milestone intentionally keeps notice rendering as a separate path prepared for a later dedicated transformation.
+This milestone keeps notice rendering on a dedicated path, now already structured for publication, while remaining intentionally limited to the documented subset.
 
 ## Current Métopes notice subset (implemented)
 
@@ -223,3 +223,12 @@ Still intentionally deferred:
 - advanced visual design and final publication styling;
 - richer asset pipeline (fingerprinting, transformations, CDN logic);
 - UI integration and end-user publication wizard.
+
+## Realistic integration coverage (current)
+
+The test suite now includes realistic integration validation against `fixtures/metopes/realistic/`:
+- a real master-volume notice (`text type="book"`) with hierarchical `group` and local `xi:include`;
+- a real standalone introduction notice.
+
+Current validation covers end-to-end publication flow (config -> manifest -> extraction -> rendering -> static build),
+including explicit play/notice mapping, page generation, links between play and notice pages, and deterministic output paths.
