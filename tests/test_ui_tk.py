@@ -365,6 +365,8 @@ def test_action_build_publication_site_success_routes_through_service(monkeypatc
         called: list[str] = []
 
         monkeypatch.setattr("tkinter.filedialog.askopenfilename", lambda **kwargs: config_path)
+        monkeypatch.setattr("tkinter.messagebox.showerror", lambda *args, **kwargs: None)
+        monkeypatch.setattr("tkinter.messagebox.showwarning", lambda *args, **kwargs: None)
 
         def _fake_build(path: str) -> SiteBuildServiceResult:
             called.append(path)
@@ -400,6 +402,8 @@ def test_action_build_publication_site_failure_shows_error(monkeypatch: pytest.M
         config_path = str(RUNTIME_DIR / "site_builder_config_invalid.json")
         errors: list[str] = []
         monkeypatch.setattr("tkinter.filedialog.askopenfilename", lambda **kwargs: config_path)
+        monkeypatch.setattr("tkinter.messagebox.showinfo", lambda *args, **kwargs: None)
+        monkeypatch.setattr("tkinter.messagebox.showwarning", lambda *args, **kwargs: None)
         monkeypatch.setattr(
             "ets.ui.tk.main_window.build_site_from_config_file",
             lambda _path: SiteBuildServiceResult(
@@ -416,6 +420,66 @@ def test_action_build_publication_site_failure_shows_error(monkeypatch: pytest.M
         assert errors
         assert "Site build configuration failed." in errors[-1]
         assert "site_title" in errors[-1]
+    finally:
+        root.destroy()
+
+
+def test_action_build_publication_site_surfaces_warnings(monkeypatch: pytest.MonkeyPatch) -> None:
+    root = _make_root()
+    try:
+        window = MainWindow(root)
+        config_path = str(RUNTIME_DIR / "site_builder_config_warning.json")
+        warnings: list[str] = []
+        called: list[str] = []
+
+        monkeypatch.setattr("tkinter.filedialog.askopenfilename", lambda **kwargs: config_path)
+        monkeypatch.setattr("tkinter.messagebox.showinfo", lambda *args, **kwargs: None)
+        monkeypatch.setattr("tkinter.messagebox.showerror", lambda *args, **kwargs: None)
+
+        def _fake_build(path: str) -> SiteBuildServiceResult:
+            called.append(path)
+            return SiteBuildServiceResult(
+                ok=True,
+                output_dir=RUNTIME_DIR.resolve(),
+                generated_pages=(RUNTIME_DIR / "index.html",),
+                copied_assets=(),
+                warnings=("Configured play_notice_map entry references unknown play slug.",),
+                play_count=2,
+                notice_count=1,
+                message="ok",
+                generated_page_relpaths=("index.html",),
+            )
+
+        monkeypatch.setattr("ets.ui.tk.main_window.build_site_from_config_file", _fake_build)
+        monkeypatch.setattr("tkinter.messagebox.showwarning", lambda _title, message, **kwargs: warnings.append(message))
+
+        window.action_build_publication_site()
+
+        assert called == [config_path]
+        assert warnings
+        assert "Avertissements" in warnings[-1]
+        assert "unknown play slug" in warnings[-1]
+    finally:
+        root.destroy()
+
+
+def test_action_build_publication_site_cancelled_file_dialog_does_nothing(monkeypatch: pytest.MonkeyPatch) -> None:
+    root = _make_root()
+    try:
+        window = MainWindow(root)
+        called: list[str] = []
+        monkeypatch.setattr("tkinter.filedialog.askopenfilename", lambda **kwargs: "")
+        monkeypatch.setattr(
+            "ets.ui.tk.main_window.build_site_from_config_file",
+            lambda _path: called.append("service") or SiteBuildServiceResult(ok=False),
+        )
+        monkeypatch.setattr("tkinter.messagebox.showinfo", lambda *args, **kwargs: called.append("info"))
+        monkeypatch.setattr("tkinter.messagebox.showwarning", lambda *args, **kwargs: called.append("warn"))
+        monkeypatch.setattr("tkinter.messagebox.showerror", lambda *args, **kwargs: called.append("error"))
+
+        window.action_build_publication_site()
+
+        assert called == []
     finally:
         root.destroy()
 

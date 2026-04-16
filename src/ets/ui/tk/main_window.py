@@ -1059,7 +1059,15 @@ class MainWindow(ttk.Frame):
         if not chosen:
             return
 
-        result = build_site_from_config_file(chosen)
+        try:
+            result = build_site_from_config_file(chosen)
+        except Exception as exc:  # pragma: no cover - defensive UI boundary
+            messagebox.showerror(
+                "Génération du site",
+                f"Échec de génération du site.\n\n{exc}",
+                parent=self.master,
+            )
+            return
         if not result.ok:
             detail = result.error_detail or "Erreur inconnue."
             messagebox.showerror(
@@ -1069,10 +1077,10 @@ class MainWindow(ttk.Frame):
             )
             return
 
-        assert result.output_dir is not None
+        output_dir_text = str(result.output_dir) if result.output_dir is not None else "(inconnu)"
         base_message = (
             "Génération du site terminée.\n\n"
-            f"Dossier de sortie: {result.output_dir}\n"
+            f"Dossier de sortie: {output_dir_text}\n"
             f"Pages générées: {len(result.generated_pages)}\n"
             f"Pièces détectées: {result.play_count}\n"
             f"Notices détectées: {result.notice_count}"
