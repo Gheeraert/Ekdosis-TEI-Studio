@@ -1,14 +1,22 @@
 from __future__ import annotations
 
 import json
+import shutil
 from pathlib import Path
 from uuid import uuid4
 
 from ets.application import (
+    DramaticDocumentInput,
+    DramaticPlayInput,
+    NoticeInput,
+    SiteAssetsInput,
     SiteBuildRequest,
     SiteBuilderService,
+    SiteIdentityInput,
+    SitePublicationRequest,
     build_site_from_config_dict,
     build_site_from_config_file,
+    build_site_from_publication_request,
 )
 
 
@@ -118,3 +126,85 @@ def test_site_builder_service_fails_cleanly_on_invalid_config() -> None:
     assert result.error_detail is not None
     assert "site_title" in result.error_detail
 
+
+def test_site_builder_service_build_from_publication_request_supports_grouping_order_and_assets() -> None:
+    base = _runtime_dir("app_site_builder_service_publication_request")
+    output_dir = base / "site"
+    dramatic_pool = base / "dramatic_pool"
+    dramatic_pool.mkdir(parents=True, exist_ok=True)
+    andromaque_a1 = dramatic_pool / "andromaque_A1.xml"
+    andromaque_a2 = dramatic_pool / "andromaque_A2.xml"
+    berenice_a1 = dramatic_pool / "berenice_A1.xml"
+    shutil.copy2(DRAMATIC_FIXTURES / "andromaque.xml", andromaque_a1)
+    shutil.copy2(DRAMATIC_FIXTURES / "andromaque.xml", andromaque_a2)
+    shutil.copy2(DRAMATIC_FIXTURES / "berenice.xml", berenice_a1)
+
+    logo_file = base / "logo.txt"
+    logo_file.write_text("ETS", encoding="utf-8")
+    assets_dir = base / "brand"
+    assets_dir.mkdir(parents=True, exist_ok=True)
+    (assets_dir / "palette.txt").write_text("bleu", encoding="utf-8")
+
+    request = SitePublicationRequest(
+        identity=SiteIdentityInput(
+            site_title="ETS Publication Request",
+            site_subtitle="Service-level request",
+            project_name="ETS",
+        ),
+        output_dir=output_dir,
+        plays=(
+            DramaticPlayInput(
+                play_slug="andromaque",
+                documents=(
+                    DramaticDocumentInput(source_path=andromaque_a1),
+                    DramaticDocumentInput(source_path=andromaque_a2),
+                ),
+                related_notice_slug="andromaque-notice",
+            ),
+            DramaticPlayInput(
+                play_slug="berenice",
+                documents=(DramaticDocumentInput(source_path=berenice_a1),),
+            ),
+        ),
+        play_order=("berenice", "andromaque"),
+        notices=(NoticeInput(source_path=MINIMAL_NOTICES / "andromaque-notice.xml"),),
+        assets=SiteAssetsInput(
+            logo_files=(logo_file,),
+            asset_directories=(assets_dir,),
+        ),
+        show_xml_download=True,
+        publish_notices=True,
+    )
+
+    result = build_site_from_publication_request(request)
+
+    assert result.ok is True
+    assert result.play_count == 2
+    assert result.notice_count == 1
+    assert "plays/berenice.html" in result.generated_page_relpaths
+    assert "plays/andromaque.html" in result.generated_page_relpaths
+    assert result.generated_page_relpaths.index("plays/berenice.html") < result.generated_page_relpaths.index(
+        "plays/andromaque.html"
+    )
+    assert any("only the first file is used" in warning for warning in result.warnings)
+    assert (output_dir / "assets" / "logos" / "logo.txt").exists()
+    assert (output_dir / "assets" / "brand" / "palette.txt").exists()
+    assert (output_dir / "xml" / "dramatic" / "andromaque.xml").exists()
+    assert (output_dir / "xml" / "notices" / "andromaque-notice.xml").exists()
+
+
+def test_site_builder_service_build_from_publication_request_fails_cleanly_on_invalid_request() -> None:
+    base = _runtime_dir("app_site_builder_service_publication_request_invalid")
+    request = SitePublicationRequest(
+        identity=SiteIdentityInput(site_title="   "),
+        output_dir=base / "site",
+        plays=(),
+    )
+
+    service = SiteBuilderService()
+    result = service.build_from_publication_request(request)
+
+    assert result.ok is False
+    assert result.error_code == "E_SITE_REQUEST"
+    assert result.error_detail is not None
+    assert "site title is required" in result.error_detail.lower()

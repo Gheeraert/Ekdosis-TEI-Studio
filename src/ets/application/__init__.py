@@ -1,6 +1,20 @@
 from .models import AppDiagnostic, GenerationResult, HtmlResult, ValidationResult
-from .site_builder_models import SiteBuildRequest, SiteBuildServiceResult
-from .site_builder_service import SiteBuilderService, build_site_from_config_dict, build_site_from_config_file
+from .site_builder_models import (
+    DramaticDocumentInput,
+    DramaticPlayInput,
+    NoticeInput,
+    SiteAssetsInput,
+    SiteBuildRequest,
+    SiteBuildServiceResult,
+    SiteIdentityInput,
+    SitePublicationRequest,
+)
+from .site_builder_service import (
+    SiteBuilderService,
+    build_site_from_config_dict,
+    build_site_from_config_file,
+    build_site_from_publication_request,
+)
 from .services import (
     create_annotation,
     delete_annotation,
@@ -43,7 +57,14 @@ __all__ = [
     "suggest_output_basename",
     "SiteBuildRequest",
     "SiteBuildServiceResult",
+    "SiteIdentityInput",
+    "SiteAssetsInput",
+    "DramaticDocumentInput",
+    "DramaticPlayInput",
+    "NoticeInput",
+    "SitePublicationRequest",
     "SiteBuilderService",
     "build_site_from_config_dict",
     "build_site_from_config_file",
+    "build_site_from_publication_request",
 ]

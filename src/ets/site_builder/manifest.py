@@ -28,6 +28,29 @@ def _with_download_paths(config: SiteConfig, plays: list[PlayEntry], notices: li
     return mapped_plays, mapped_notices
 
 
+def _order_plays(plays: list[PlayEntry], *, play_order: tuple[str, ...], warnings: list[str]) -> list[PlayEntry]:
+    if not play_order:
+        return plays
+
+    play_by_slug = {play.slug: play for play in plays}
+    ordered: list[PlayEntry] = []
+    seen: set[str] = set()
+
+    for slug in play_order:
+        target = play_by_slug.get(slug)
+        if target is None:
+            warnings.append(f"Configured play_order slug '{slug}' not found among detected plays.")
+            continue
+        ordered.append(target)
+        seen.add(slug)
+
+    for play in plays:
+        if play.slug in seen:
+            continue
+        ordered.append(play)
+    return ordered
+
+
 def _associate_notices_with_plays(plays: list[PlayEntry], notices: list[NoticeEntry]) -> list[NoticeEntry]:
     play_slugs = {play.slug for play in plays}
     mapped: list[NoticeEntry] = []
@@ -78,6 +101,7 @@ def build_site_manifest(config: SiteConfig) -> SiteManifest:
             plays.append(extract_play_entry(xml_path))
         except SiteBuilderExtractionError as exc:
             warnings.append(str(exc))
+    plays = _order_plays(plays, play_order=config.play_order, warnings=warnings)
 
     notices: list[NoticeEntry] = []
     if config.publish_notices:

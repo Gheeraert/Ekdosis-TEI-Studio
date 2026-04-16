@@ -27,6 +27,7 @@ class SiteConfig:
     credits: str = ""
     homepage_intro: str = ""
     play_notice_map: tuple[tuple[str, str], ...] = ()
+    play_order: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)

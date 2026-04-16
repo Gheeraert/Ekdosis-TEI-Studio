@@ -66,6 +66,23 @@ def _coerce_play_notice_map(raw_mapping: Any) -> tuple[tuple[str, str], ...]:
     return tuple(sorted(pairs, key=lambda item: item[0]))
 
 
+def _coerce_play_order(raw_order: Any) -> tuple[str, ...]:
+    if raw_order is None:
+        return ()
+    if not isinstance(raw_order, (list, tuple)):
+        raise ValueError("Invalid site configuration: 'play_order' must be a list.")
+
+    ordered: list[str] = []
+    seen: set[str] = set()
+    for value in raw_order:
+        slug = _normalize_identifier(str(value))
+        if not slug or slug in seen:
+            continue
+        seen.add(slug)
+        ordered.append(slug)
+    return tuple(ordered)
+
+
 def site_config_from_dict(payload: dict[str, Any], *, base_dir: Path | None = None) -> SiteConfig:
     assets_raw = payload.get("assets", {})
     if not isinstance(assets_raw, dict):
@@ -104,6 +121,7 @@ def site_config_from_dict(payload: dict[str, Any], *, base_dir: Path | None = No
         credits=_normalize_text(payload.get("credits", ""), field_name="credits"),
         homepage_intro=_normalize_text(payload.get("homepage_intro", ""), field_name="homepage_intro"),
         play_notice_map=_coerce_play_notice_map(payload.get("play_notice_map")),
+        play_order=_coerce_play_order(payload.get("play_order")),
     )
     return config
 

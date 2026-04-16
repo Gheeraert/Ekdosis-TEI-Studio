@@ -242,6 +242,17 @@ ETS Site Builder now also exposes an application/service entry point intended fo
 
 This remains fully UI-independent. UI integration itself is still deferred.
 
+The service layer now supports two complementary entry styles:
+- JSON/dict config entry points (`build_site_from_config_file`, `build_site_from_config_dict`) kept for backward compatibility;
+- a richer structured publication request (`SitePublicationRequest`) intended as the primary base for future Tkinter publication dialogs.
+
+Current structured-request normalization supports:
+- explicit play grouping with one or more dramatic XML files per play (current builder scope uses the first file per play and reports a warning when extras are provided);
+- explicit play ordering (`play_order`);
+- multiple notice XML inputs (master volume and/or standalone notice files);
+- explicit play/notice associations;
+- site identity, assets, publication options, and output directory wiring.
+
 ## First Tkinter bridge (current)
 
 A first lightweight UI bridge is now available in the Tkinter application:
