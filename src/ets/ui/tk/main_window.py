@@ -10,6 +10,7 @@ import webbrowser
 from ets.annotations import Annotation, AnnotationCollection, AnnotationValidationError
 from ets.application import (
     AppDiagnostic,
+    build_site_from_config_file,
     create_annotation,
     delete_annotation,
     enrich_tei_with_annotations,
@@ -203,6 +204,7 @@ class MainWindow(ttk.Frame):
                 preview_html=self.action_preview_html,
                 export_tei=self.action_export_tei,
                 export_html=self.action_export_html,
+                build_publication_site=self.action_build_publication_site,
                 add_annotation=self.action_add_annotation,
                 edit_annotation=self.action_edit_annotation,
                 delete_annotation=self.action_delete_annotation,
@@ -1047,6 +1049,44 @@ class MainWindow(ttk.Frame):
             initialfile=self._default_filename(".html"),
             exporter=export_html,
         )
+
+    def action_build_publication_site(self) -> None:
+        chosen = filedialog.askopenfilename(
+            parent=self.master,
+            title="Choisir la configuration du site (JSON)",
+            filetypes=[("JSON files", "*.json"), ("All files", "*.*")],
+        )
+        if not chosen:
+            return
+
+        result = build_site_from_config_file(chosen)
+        if not result.ok:
+            detail = result.error_detail or "Erreur inconnue."
+            messagebox.showerror(
+                "Génération du site",
+                f"{result.message or 'Échec de génération du site.'}\n\n{detail}",
+                parent=self.master,
+            )
+            return
+
+        assert result.output_dir is not None
+        base_message = (
+            "Génération du site terminée.\n\n"
+            f"Dossier de sortie: {result.output_dir}\n"
+            f"Pages générées: {len(result.generated_pages)}\n"
+            f"Pièces détectées: {result.play_count}\n"
+            f"Notices détectées: {result.notice_count}"
+        )
+        if result.warnings:
+            warning_lines = "\n".join(f"- {item}" for item in result.warnings[:20])
+            messagebox.showwarning(
+                "Génération du site (avec avertissements)",
+                f"{base_message}\n\nAvertissements:\n{warning_lines}",
+                parent=self.master,
+            )
+            return
+
+        messagebox.showinfo("Génération du site", base_message, parent=self.master)
 
     def action_undo(self) -> None:
         widget = self._active_text_widget()

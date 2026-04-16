@@ -8,6 +8,7 @@ import pytest
 
 from ets.annotations import Annotation, AnnotationAnchor, AnnotationCollection
 from ets.application import AppDiagnostic, GenerationResult, load_annotations, load_config
+from ets.application.site_builder_models import SiteBuildServiceResult
 from ets.infrastructure import AutosavePayload, AutosaveStore
 from ets.ui.tk.helpers import diagnostic_line_numbers, format_config_status
 from ets.ui.tk.main_window import MainWindow, suggest_next_annotation_id
@@ -350,6 +351,71 @@ def test_tools_menu_contains_manual_tei_validation_action() -> None:
             if tools_menu_widget.type(i) == "command":
                 labels.append(tools_menu_widget.entrycget(i, "label"))
         assert "Valider la TEI générée" in labels
+        assert "Générer le site de publication…" in labels
+    finally:
+        root.destroy()
+
+
+def test_action_build_publication_site_success_routes_through_service(monkeypatch: pytest.MonkeyPatch) -> None:
+    root = _make_root()
+    try:
+        window = MainWindow(root)
+        config_path = str(RUNTIME_DIR / "site_builder_config.json")
+        messages: list[str] = []
+        called: list[str] = []
+
+        monkeypatch.setattr("tkinter.filedialog.askopenfilename", lambda **kwargs: config_path)
+
+        def _fake_build(path: str) -> SiteBuildServiceResult:
+            called.append(path)
+            return SiteBuildServiceResult(
+                ok=True,
+                output_dir=RUNTIME_DIR.resolve(),
+                generated_pages=(RUNTIME_DIR / "index.html", RUNTIME_DIR / "plays" / "andromaque.html"),
+                copied_assets=(),
+                warnings=(),
+                play_count=1,
+                notice_count=1,
+                message="ok",
+                generated_page_relpaths=("index.html", "plays/andromaque.html"),
+            )
+
+        monkeypatch.setattr("ets.ui.tk.main_window.build_site_from_config_file", _fake_build)
+        monkeypatch.setattr("tkinter.messagebox.showinfo", lambda _title, message, **kwargs: messages.append(message))
+
+        window.action_build_publication_site()
+
+        assert called == [config_path]
+        assert messages
+        assert "Génération du site terminée." in messages[-1]
+        assert "Pages générées: 2" in messages[-1]
+    finally:
+        root.destroy()
+
+
+def test_action_build_publication_site_failure_shows_error(monkeypatch: pytest.MonkeyPatch) -> None:
+    root = _make_root()
+    try:
+        window = MainWindow(root)
+        config_path = str(RUNTIME_DIR / "site_builder_config_invalid.json")
+        errors: list[str] = []
+        monkeypatch.setattr("tkinter.filedialog.askopenfilename", lambda **kwargs: config_path)
+        monkeypatch.setattr(
+            "ets.ui.tk.main_window.build_site_from_config_file",
+            lambda _path: SiteBuildServiceResult(
+                ok=False,
+                message="Site build configuration failed.",
+                error_code="E_SITE_CONFIG",
+                error_detail="Invalid site configuration: 'site_title' is required.",
+            ),
+        )
+        monkeypatch.setattr("tkinter.messagebox.showerror", lambda _title, message, **kwargs: errors.append(message))
+
+        window.action_build_publication_site()
+
+        assert errors
+        assert "Site build configuration failed." in errors[-1]
+        assert "site_title" in errors[-1]
     finally:
         root.destroy()
 

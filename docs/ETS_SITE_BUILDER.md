@@ -241,3 +241,12 @@ ETS Site Builder now also exposes an application/service entry point intended fo
 - stable access to output directory, generated pages, copied assets, counts, and warnings.
 
 This remains fully UI-independent. UI integration itself is still deferred.
+
+## First Tkinter bridge (current)
+
+A first lightweight UI bridge is now available in the Tkinter application:
+- one menu action to select a site-builder JSON configuration file;
+- one service-layer call (`build_site_from_config_file`) to run the publication build;
+- basic success/warning/error feedback for output path, counts, and warnings.
+
+This remains intentionally minimal and is not a full publication UI.
