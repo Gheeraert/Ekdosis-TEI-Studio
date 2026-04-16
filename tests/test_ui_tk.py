@@ -596,6 +596,53 @@ def test_publication_dialog_validation_error_is_non_blocking(monkeypatch: pytest
         root.destroy()
 
 
+def _collect_widget_texts(widget: tk.Misc) -> list[str]:
+    texts: list[str] = []
+    if hasattr(widget, "cget"):
+        try:
+            text = widget.cget("text")
+        except tk.TclError:
+            text = ""
+        if isinstance(text, str) and text:
+            texts.append(text)
+    for child in widget.winfo_children():
+        texts.extend(_collect_widget_texts(child))
+    return texts
+
+
+def test_publication_dialog_uses_scrollable_body_and_fixed_action_bar() -> None:
+    root = _make_root()
+    try:
+        dialog = PublicationDialog(root)
+        root.update_idletasks()
+
+        assert isinstance(dialog._scroll_canvas, tk.Canvas)
+        assert dialog._scroll_canvas.master is not dialog.action_bar
+        assert dialog.action_bar.master is dialog
+        assert dialog.action_bar.grid_info()["row"] == 1
+        dialog.destroy()
+    finally:
+        root.destroy()
+
+
+def test_publication_dialog_contains_clarified_labels_and_hints() -> None:
+    root = _make_root()
+    try:
+        dialog = PublicationDialog(root)
+        root.update_idletasks()
+        all_text = "\n".join(_collect_widget_texts(dialog))
+
+        assert "Identifiant de pièce (slug)" in all_text
+        assert "Ajoutez les fichiers d'une même pièce avec le même slug" in all_text
+        assert "Fichier maître de notice Métopes" in all_text
+        assert "Ordre de navigation des pièces" in all_text
+        assert "Dossier d'assets statiques" in all_text
+        assert "slug_piece|slug_notice" in all_text
+        dialog.destroy()
+    finally:
+        root.destroy()
+
+
 def test_load_annotations_action_updates_state_and_panel(monkeypatch: pytest.MonkeyPatch) -> None:
     root = _make_root()
     try:

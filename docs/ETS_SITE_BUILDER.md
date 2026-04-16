@@ -267,3 +267,7 @@ The dialog builds a rich in-memory `SitePublicationRequest` and calls the applic
 The previous JSON config loading path remains supported as a transitional/developer workflow, but it is no longer the primary end-user path.
 
 This UI remains intentionally limited and is not yet a full publication wizard.
+Recent ergonomic refinements keep the main form scrollable while preserving a fixed bottom action bar,
+so `Annuler` / `Générer le site` remain accessible on limited-height screens.
+Key labels and inline hints were also clarified for play slug grouping, notice master vs additional files,
+play ordering, assets directory purpose, and play/notice mapping syntax.

@@ -39,6 +39,8 @@ class PublicationDialog(tk.Toplevel):
         self.transient(parent)
         self.grab_set()
         self.resizable(True, True)
+        self.geometry("980x720")
+        self.minsize(840, 560)
         self.result: SitePublicationRequest | None = None
 
         self.vars = _PublicationVars(
@@ -61,27 +63,62 @@ class PublicationDialog(tk.Toplevel):
         self._notice_paths: list[Path] = []
         self._logo_paths: list[Path] = []
 
-        frame = ttk.Frame(self, padding=10)
-        frame.grid(sticky="nsew")
         self.columnconfigure(0, weight=1)
         self.rowconfigure(0, weight=1)
-        frame.columnconfigure(0, weight=1)
+        self.rowconfigure(1, weight=0)
 
-        self._build_identity_section(frame, row=0)
-        self._build_dramatic_section(frame, row=1)
-        self._build_notice_section(frame, row=2)
-        self._build_assets_section(frame, row=3)
-        self._build_output_section(frame, row=4)
-        self._build_mapping_section(frame, row=5)
-        self._build_options_section(frame, row=6)
+        self._scroll_canvas, form = self._build_scrollable_form()
 
-        buttons = ttk.Frame(frame)
-        buttons.grid(row=7, column=0, sticky="e", pady=(10, 0))
+        self._build_identity_section(form, row=0)
+        self._build_dramatic_section(form, row=1)
+        self._build_notice_section(form, row=2)
+        self._build_assets_section(form, row=3)
+        self._build_output_section(form, row=4)
+        self._build_mapping_section(form, row=5)
+        self._build_options_section(form, row=6)
+
+        self.action_bar = ttk.Frame(self, padding=(10, 8, 10, 10))
+        self.action_bar.grid(row=1, column=0, sticky="ew")
+        self.action_bar.columnconfigure(0, weight=1)
+        buttons = ttk.Frame(self.action_bar)
+        buttons.grid(row=0, column=1, sticky="e")
         ttk.Button(buttons, text="Annuler", command=self._on_cancel).grid(row=0, column=0, padx=(0, 6))
         ttk.Button(buttons, text="Générer le site", command=self._on_validate).grid(row=0, column=1)
 
+    def _build_scrollable_form(self) -> tuple[tk.Canvas, ttk.Frame]:
+        container = ttk.Frame(self, padding=(10, 10, 10, 0))
+        container.grid(row=0, column=0, sticky="nsew")
+        container.columnconfigure(0, weight=1)
+        container.rowconfigure(0, weight=1)
+
+        canvas = tk.Canvas(container, highlightthickness=0, borderwidth=0)
+        canvas.grid(row=0, column=0, sticky="nsew")
+        scrollbar = ttk.Scrollbar(container, orient="vertical", command=canvas.yview)
+        scrollbar.grid(row=0, column=1, sticky="ns", padx=(8, 0))
+        canvas.configure(yscrollcommand=scrollbar.set)
+
+        form = ttk.Frame(canvas)
+        form.columnconfigure(0, weight=1)
+        window_id = canvas.create_window((0, 0), window=form, anchor="nw")
+
+        def _sync_scroll_region(_event: tk.Event[tk.Misc]) -> None:
+            canvas.configure(scrollregion=canvas.bbox("all"))
+
+        def _sync_width(event: tk.Event[tk.Misc]) -> None:
+            canvas.itemconfigure(window_id, width=event.width)
+
+        def _on_mousewheel(event: tk.Event[tk.Misc]) -> None:
+            delta = getattr(event, "delta", 0)
+            if delta:
+                canvas.yview_scroll(int(-delta / 120), "units")
+
+        form.bind("<Configure>", _sync_scroll_region)
+        canvas.bind("<Configure>", _sync_width)
+        canvas.bind("<MouseWheel>", _on_mousewheel)
+        return canvas, form
+
     def _build_identity_section(self, parent: ttk.Frame, *, row: int) -> None:
-        box = ttk.LabelFrame(parent, text="Identité du site")
+        box = ttk.LabelFrame(parent, text="Identité éditoriale du site")
         box.grid(row=row, column=0, sticky="ew", pady=(0, 8))
         box.columnconfigure(1, weight=1)
         self._add_entry(box, 0, "Titre du site", self.vars.site_title)
@@ -94,7 +131,7 @@ class PublicationDialog(tk.Toplevel):
         self.homepage_intro.grid(row=5, column=1, sticky="ew", pady=2)
 
     def _build_dramatic_section(self, parent: ttk.Frame, *, row: int) -> None:
-        box = ttk.LabelFrame(parent, text="XML dramatiques (groupés par pièce)")
+        box = ttk.LabelFrame(parent, text="XML dramatiques (regroupés par pièce)")
         box.grid(row=row, column=0, sticky="nsew", pady=(0, 8))
         box.columnconfigure(0, weight=1)
         box.rowconfigure(1, weight=1)
@@ -102,25 +139,31 @@ class PublicationDialog(tk.Toplevel):
         controls = ttk.Frame(box)
         controls.grid(row=0, column=0, sticky="ew", pady=(0, 4))
         controls.columnconfigure(1, weight=1)
-        ttk.Label(controls, text="Slug de pièce").grid(row=0, column=0, sticky="w", padx=(0, 6))
+        ttk.Label(controls, text="Identifiant de pièce (slug)").grid(row=0, column=0, sticky="w", padx=(0, 6))
         ttk.Entry(controls, textvariable=self.vars.play_slug).grid(row=0, column=1, sticky="ew", padx=(0, 6))
         ttk.Button(controls, text="Ajouter XML…", command=self._add_dramatic_files).grid(row=0, column=2, padx=(0, 6))
         ttk.Button(controls, text="Supprimer sélection", command=self._remove_dramatic_selected).grid(row=0, column=3)
+        ttk.Label(
+            box,
+            text="Ajoutez les fichiers d'une même pièce avec le même slug (ex: andromaque).",
+            wraplength=850,
+            justify="left",
+        ).grid(row=1, column=0, sticky="w", pady=(0, 4))
 
         lists = ttk.Frame(box)
-        lists.grid(row=1, column=0, sticky="nsew")
+        lists.grid(row=2, column=0, sticky="nsew")
         lists.columnconfigure(0, weight=2)
         lists.columnconfigure(1, weight=1)
         lists.rowconfigure(0, weight=1)
 
-        self.dramatic_list = tk.Listbox(lists, height=6, selectmode=tk.EXTENDED)
+        self.dramatic_list = tk.Listbox(lists, height=5, selectmode=tk.EXTENDED)
         self.dramatic_list.grid(row=0, column=0, sticky="nsew", padx=(0, 8))
 
-        order_box = ttk.LabelFrame(lists, text="Ordre des pièces")
+        order_box = ttk.LabelFrame(lists, text="Ordre de navigation des pièces")
         order_box.grid(row=0, column=1, sticky="nsew")
         order_box.columnconfigure(0, weight=1)
         order_box.rowconfigure(0, weight=1)
-        self.play_order_list = tk.Listbox(order_box, height=6, selectmode=tk.SINGLE, exportselection=False)
+        self.play_order_list = tk.Listbox(order_box, height=5, selectmode=tk.SINGLE, exportselection=False)
         self.play_order_list.grid(row=0, column=0, sticky="nsew", padx=4, pady=4)
         order_buttons = ttk.Frame(order_box)
         order_buttons.grid(row=1, column=0, sticky="e", padx=4, pady=(0, 4))
@@ -128,17 +171,23 @@ class PublicationDialog(tk.Toplevel):
         ttk.Button(order_buttons, text="Descendre", command=self._move_play_order_down).grid(row=0, column=1)
 
     def _build_notice_section(self, parent: ttk.Frame, *, row: int) -> None:
-        box = ttk.LabelFrame(parent, text="Notices XML")
+        box = ttk.LabelFrame(parent, text="Notices XML Métopes")
         box.grid(row=row, column=0, sticky="ew", pady=(0, 8))
         box.columnconfigure(1, weight=1)
-        ttk.Label(box, text="Notice maître").grid(row=0, column=0, sticky="w", padx=(0, 6), pady=2)
+        ttk.Label(box, text="Fichier maître de notice Métopes").grid(row=0, column=0, sticky="w", padx=(0, 6), pady=2)
         ttk.Entry(box, textvariable=self.vars.master_notice).grid(row=0, column=1, sticky="ew", pady=2)
         ttk.Button(box, text="Choisir…", command=self._choose_master_notice).grid(row=0, column=2, padx=(6, 0), pady=2)
+        ttk.Label(
+            box,
+            text="Ajoutez ensuite des notices complémentaires (introduction, chapitre, etc.) si nécessaire.",
+            wraplength=850,
+            justify="left",
+        ).grid(row=1, column=0, columnspan=3, sticky="w", pady=(0, 4))
 
         extras = ttk.Frame(box)
-        extras.grid(row=1, column=0, columnspan=3, sticky="ew")
+        extras.grid(row=2, column=0, columnspan=3, sticky="ew")
         extras.columnconfigure(0, weight=1)
-        self.notice_list = tk.Listbox(extras, height=4, selectmode=tk.EXTENDED)
+        self.notice_list = tk.Listbox(extras, height=3, selectmode=tk.EXTENDED)
         self.notice_list.grid(row=0, column=0, sticky="ew")
         notice_buttons = ttk.Frame(extras)
         notice_buttons.grid(row=0, column=1, sticky="ns", padx=(6, 0))
@@ -146,18 +195,24 @@ class PublicationDialog(tk.Toplevel):
         ttk.Button(notice_buttons, text="Supprimer", command=self._remove_notice_selected).grid(row=1, column=0)
 
     def _build_assets_section(self, parent: ttk.Frame, *, row: int) -> None:
-        box = ttk.LabelFrame(parent, text="Assets (optionnel)")
+        box = ttk.LabelFrame(parent, text="Logos et assets (optionnel)")
         box.grid(row=row, column=0, sticky="ew", pady=(0, 8))
         box.columnconfigure(1, weight=1)
 
-        ttk.Label(box, text="Dossier assets").grid(row=0, column=0, sticky="w", padx=(0, 6), pady=2)
+        ttk.Label(box, text="Dossier d'assets statiques").grid(row=0, column=0, sticky="w", padx=(0, 6), pady=2)
         ttk.Entry(box, textvariable=self.vars.asset_directory).grid(row=0, column=1, sticky="ew", pady=2)
         ttk.Button(box, text="Choisir…", command=self._choose_asset_directory).grid(row=0, column=2, padx=(6, 0), pady=2)
+        ttk.Label(
+            box,
+            text="Le dossier est copié tel quel dans la publication (images, CSS, JS, etc.).",
+            wraplength=850,
+            justify="left",
+        ).grid(row=1, column=0, columnspan=3, sticky="w", pady=(0, 4))
 
         logos = ttk.Frame(box)
-        logos.grid(row=1, column=0, columnspan=3, sticky="ew")
+        logos.grid(row=2, column=0, columnspan=3, sticky="ew")
         logos.columnconfigure(0, weight=1)
-        self.logo_list = tk.Listbox(logos, height=3, selectmode=tk.EXTENDED)
+        self.logo_list = tk.Listbox(logos, height=2, selectmode=tk.EXTENDED)
         self.logo_list.grid(row=0, column=0, sticky="ew")
         logo_buttons = ttk.Frame(logos)
         logo_buttons.grid(row=0, column=1, sticky="ns", padx=(6, 0))
@@ -175,7 +230,12 @@ class PublicationDialog(tk.Toplevel):
     def _build_mapping_section(self, parent: ttk.Frame, *, row: int) -> None:
         box = ttk.LabelFrame(parent, text="Associations pièce -> notice (optionnel)")
         box.grid(row=row, column=0, sticky="ew", pady=(0, 8))
-        ttk.Label(box, text="Une association par ligne: play_slug|notice_slug").grid(row=0, column=0, sticky="w", pady=(0, 4))
+        ttk.Label(
+            box,
+            text="Une association par ligne: slug_piece|slug_notice (ex: andromaque|intro-andromaque)",
+            wraplength=850,
+            justify="left",
+        ).grid(row=0, column=0, sticky="w", pady=(0, 4))
         self.mapping_text = tk.Text(box, height=3, wrap="word")
         self.mapping_text.grid(row=1, column=0, sticky="ew")
 
@@ -433,4 +493,3 @@ def open_publication_dialog(parent: tk.Misc) -> SitePublicationRequest | None:
     dialog = PublicationDialog(parent)
     parent.wait_window(dialog)
     return dialog.result
-
