@@ -10,7 +10,7 @@ import webbrowser
 from ets.annotations import Annotation, AnnotationCollection, AnnotationValidationError
 from ets.application import (
     AppDiagnostic,
-    build_site_from_config_file,
+    build_site_from_publication_request,
     create_annotation,
     delete_annotation,
     enrich_tei_with_annotations,
@@ -34,7 +34,14 @@ from ets.validation import validate_tei_xml
 
 from .control_bar import ControlBar
 from .diagnostics_panel import DiagnosticsPanel
-from .dialogs import SearchReplaceDialog, open_annotation_dialog, open_config_dialog, show_about_dialog, show_help_dialog
+from .dialogs import (
+    SearchReplaceDialog,
+    open_annotation_dialog,
+    open_config_dialog,
+    open_publication_dialog,
+    show_about_dialog,
+    show_help_dialog,
+)
 from .editor import TextEditor
 from .helpers import diagnostic_line_numbers, format_config_status
 from .menus import MenuCallbacks, install_menus
@@ -1051,16 +1058,12 @@ class MainWindow(ttk.Frame):
         )
 
     def action_build_publication_site(self) -> None:
-        chosen = filedialog.askopenfilename(
-            parent=self.master,
-            title="Choisir la configuration du site (JSON)",
-            filetypes=[("JSON files", "*.json"), ("All files", "*.*")],
-        )
-        if not chosen:
+        request = open_publication_dialog(self.master)
+        if request is None:
             return
 
         try:
-            result = build_site_from_config_file(chosen)
+            result = build_site_from_publication_request(request)
         except Exception as exc:  # pragma: no cover - defensive UI boundary
             messagebox.showerror(
                 "Génération du site",

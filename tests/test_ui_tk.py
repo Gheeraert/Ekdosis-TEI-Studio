@@ -7,11 +7,21 @@ from uuid import uuid4
 import pytest
 
 from ets.annotations import Annotation, AnnotationAnchor, AnnotationCollection
-from ets.application import AppDiagnostic, GenerationResult, load_annotations, load_config
+from ets.application import (
+    AppDiagnostic,
+    DramaticDocumentInput,
+    DramaticPlayInput,
+    GenerationResult,
+    SiteIdentityInput,
+    SitePublicationRequest,
+    load_annotations,
+    load_config,
+)
 from ets.application.site_builder_models import SiteBuildServiceResult
 from ets.infrastructure import AutosavePayload, AutosaveStore
 from ets.ui.tk.helpers import diagnostic_line_numbers, format_config_status
 from ets.ui.tk.main_window import MainWindow, suggest_next_annotation_id
+from ets.ui.tk.dialogs.publication_dialog import PublicationDialog
 
 
 RUNTIME_DIR = Path(__file__).resolve().parents[1] / "tests" / "_runtime"
@@ -360,16 +370,24 @@ def test_action_build_publication_site_success_routes_through_service(monkeypatc
     root = _make_root()
     try:
         window = MainWindow(root)
-        config_path = str(RUNTIME_DIR / "site_builder_config.json")
+        request = SitePublicationRequest(
+            identity=SiteIdentityInput(site_title="ETS"),
+            output_dir=RUNTIME_DIR,
+            plays=(
+                DramaticPlayInput(
+                    play_slug="andromaque",
+                    documents=(DramaticDocumentInput(source_path=RUNTIME_DIR / "andromaque.xml"),),
+                ),
+            ),
+        )
         messages: list[str] = []
-        called: list[str] = []
-
-        monkeypatch.setattr("tkinter.filedialog.askopenfilename", lambda **kwargs: config_path)
+        called: list[SitePublicationRequest] = []
+        monkeypatch.setattr("ets.ui.tk.main_window.open_publication_dialog", lambda _parent: request)
         monkeypatch.setattr("tkinter.messagebox.showerror", lambda *args, **kwargs: None)
         monkeypatch.setattr("tkinter.messagebox.showwarning", lambda *args, **kwargs: None)
 
-        def _fake_build(path: str) -> SiteBuildServiceResult:
-            called.append(path)
+        def _fake_build(payload: SitePublicationRequest) -> SiteBuildServiceResult:
+            called.append(payload)
             return SiteBuildServiceResult(
                 ok=True,
                 output_dir=RUNTIME_DIR.resolve(),
@@ -382,12 +400,12 @@ def test_action_build_publication_site_success_routes_through_service(monkeypatc
                 generated_page_relpaths=("index.html", "plays/andromaque.html"),
             )
 
-        monkeypatch.setattr("ets.ui.tk.main_window.build_site_from_config_file", _fake_build)
+        monkeypatch.setattr("ets.ui.tk.main_window.build_site_from_publication_request", _fake_build)
         monkeypatch.setattr("tkinter.messagebox.showinfo", lambda _title, message, **kwargs: messages.append(message))
 
         window.action_build_publication_site()
 
-        assert called == [config_path]
+        assert called == [request]
         assert messages
         assert "Génération du site terminée." in messages[-1]
         assert "Pages générées: 2" in messages[-1]
@@ -399,14 +417,23 @@ def test_action_build_publication_site_failure_shows_error(monkeypatch: pytest.M
     root = _make_root()
     try:
         window = MainWindow(root)
-        config_path = str(RUNTIME_DIR / "site_builder_config_invalid.json")
+        request = SitePublicationRequest(
+            identity=SiteIdentityInput(site_title="ETS"),
+            output_dir=RUNTIME_DIR,
+            plays=(
+                DramaticPlayInput(
+                    play_slug="andromaque",
+                    documents=(DramaticDocumentInput(source_path=RUNTIME_DIR / "andromaque.xml"),),
+                ),
+            ),
+        )
         errors: list[str] = []
-        monkeypatch.setattr("tkinter.filedialog.askopenfilename", lambda **kwargs: config_path)
+        monkeypatch.setattr("ets.ui.tk.main_window.open_publication_dialog", lambda _parent: request)
         monkeypatch.setattr("tkinter.messagebox.showinfo", lambda *args, **kwargs: None)
         monkeypatch.setattr("tkinter.messagebox.showwarning", lambda *args, **kwargs: None)
         monkeypatch.setattr(
-            "ets.ui.tk.main_window.build_site_from_config_file",
-            lambda _path: SiteBuildServiceResult(
+            "ets.ui.tk.main_window.build_site_from_publication_request",
+            lambda _request: SiteBuildServiceResult(
                 ok=False,
                 message="Site build configuration failed.",
                 error_code="E_SITE_CONFIG",
@@ -428,16 +455,24 @@ def test_action_build_publication_site_surfaces_warnings(monkeypatch: pytest.Mon
     root = _make_root()
     try:
         window = MainWindow(root)
-        config_path = str(RUNTIME_DIR / "site_builder_config_warning.json")
+        request = SitePublicationRequest(
+            identity=SiteIdentityInput(site_title="ETS"),
+            output_dir=RUNTIME_DIR,
+            plays=(
+                DramaticPlayInput(
+                    play_slug="andromaque",
+                    documents=(DramaticDocumentInput(source_path=RUNTIME_DIR / "andromaque.xml"),),
+                ),
+            ),
+        )
         warnings: list[str] = []
-        called: list[str] = []
-
-        monkeypatch.setattr("tkinter.filedialog.askopenfilename", lambda **kwargs: config_path)
+        called: list[SitePublicationRequest] = []
+        monkeypatch.setattr("ets.ui.tk.main_window.open_publication_dialog", lambda _parent: request)
         monkeypatch.setattr("tkinter.messagebox.showinfo", lambda *args, **kwargs: None)
         monkeypatch.setattr("tkinter.messagebox.showerror", lambda *args, **kwargs: None)
 
-        def _fake_build(path: str) -> SiteBuildServiceResult:
-            called.append(path)
+        def _fake_build(payload: SitePublicationRequest) -> SiteBuildServiceResult:
+            called.append(payload)
             return SiteBuildServiceResult(
                 ok=True,
                 output_dir=RUNTIME_DIR.resolve(),
@@ -450,12 +485,12 @@ def test_action_build_publication_site_surfaces_warnings(monkeypatch: pytest.Mon
                 generated_page_relpaths=("index.html",),
             )
 
-        monkeypatch.setattr("ets.ui.tk.main_window.build_site_from_config_file", _fake_build)
+        monkeypatch.setattr("ets.ui.tk.main_window.build_site_from_publication_request", _fake_build)
         monkeypatch.setattr("tkinter.messagebox.showwarning", lambda _title, message, **kwargs: warnings.append(message))
 
         window.action_build_publication_site()
 
-        assert called == [config_path]
+        assert called == [request]
         assert warnings
         assert "Avertissements" in warnings[-1]
         assert "unknown play slug" in warnings[-1]
@@ -463,15 +498,15 @@ def test_action_build_publication_site_surfaces_warnings(monkeypatch: pytest.Mon
         root.destroy()
 
 
-def test_action_build_publication_site_cancelled_file_dialog_does_nothing(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_action_build_publication_site_cancelled_dialog_does_nothing(monkeypatch: pytest.MonkeyPatch) -> None:
     root = _make_root()
     try:
         window = MainWindow(root)
         called: list[str] = []
-        monkeypatch.setattr("tkinter.filedialog.askopenfilename", lambda **kwargs: "")
+        monkeypatch.setattr("ets.ui.tk.main_window.open_publication_dialog", lambda _parent: None)
         monkeypatch.setattr(
-            "ets.ui.tk.main_window.build_site_from_config_file",
-            lambda _path: called.append("service") or SiteBuildServiceResult(ok=False),
+            "ets.ui.tk.main_window.build_site_from_publication_request",
+            lambda _request: called.append("service") or SiteBuildServiceResult(ok=False),
         )
         monkeypatch.setattr("tkinter.messagebox.showinfo", lambda *args, **kwargs: called.append("info"))
         monkeypatch.setattr("tkinter.messagebox.showwarning", lambda *args, **kwargs: called.append("warn"))
@@ -480,6 +515,83 @@ def test_action_build_publication_site_cancelled_file_dialog_does_nothing(monkey
         window.action_build_publication_site()
 
         assert called == []
+    finally:
+        root.destroy()
+
+
+def test_publication_dialog_builds_rich_request_object(monkeypatch: pytest.MonkeyPatch) -> None:
+    root = _make_root()
+    try:
+        runtime = RUNTIME_DIR / f"publication_dialog_{uuid4().hex}"
+        runtime.mkdir(parents=True, exist_ok=True)
+        dramatic_a1 = runtime / "andromaque_A1.xml"
+        dramatic_a2 = runtime / "andromaque_A2.xml"
+        dramatic_b1 = runtime / "berenice_A1.xml"
+        notice_master = runtime / "master_notice.xml"
+        notice_intro = runtime / "notice_intro.xml"
+        logo = runtime / "logo.png"
+        asset_dir = runtime / "assets"
+        output_dir = runtime / "site_out"
+        for path in (dramatic_a1, dramatic_a2, dramatic_b1, notice_master, notice_intro, logo):
+            path.write_text("<xml/>", encoding="utf-8")
+        asset_dir.mkdir(parents=True, exist_ok=True)
+
+        dialog = PublicationDialog(root)
+        monkeypatch.setattr("tkinter.messagebox.showerror", lambda *args, **kwargs: None)
+        dialog.vars.site_title.set("ETS Publication")
+        dialog.vars.site_subtitle.set("Corpus test")
+        dialog.vars.project_name.set("ETS")
+        dialog.vars.editor.set("Equipe ETS")
+        dialog.vars.credits.set("Credits")
+        dialog.homepage_intro.insert("1.0", "Introduction accueil")
+        dialog.vars.output_dir.set(str(output_dir))
+        dialog.vars.asset_directory.set(str(asset_dir))
+        dialog.vars.master_notice.set(str(notice_master))
+        dialog._notice_paths = [notice_intro]
+        dialog.notice_list.insert(tk.END, str(notice_intro))
+        dialog._logo_paths = [logo]
+        dialog.logo_list.insert(tk.END, str(logo))
+        dialog._add_dramatic_entries("andromaque", (dramatic_a1, dramatic_a2))
+        dialog._add_dramatic_entries("berenice", (dramatic_b1,))
+        dialog.play_order_list.delete(0, tk.END)
+        dialog.play_order_list.insert(tk.END, "berenice")
+        dialog.play_order_list.insert(tk.END, "andromaque")
+        dialog.mapping_text.insert("1.0", "andromaque|master-notice\n")
+        dialog.vars.show_xml_download.set(True)
+        dialog.vars.publish_notices.set(True)
+
+        dialog._on_validate()
+
+        request = dialog.result
+        assert request is not None
+        assert request.identity.site_title == "ETS Publication"
+        assert request.identity.homepage_intro == "Introduction accueil"
+        assert request.play_order == ("berenice", "andromaque")
+        assert len(request.plays) == 2
+        assert request.plays[0].play_slug == "berenice"
+        assert request.plays[1].play_slug == "andromaque"
+        assert len(request.plays[1].documents) == 2
+        assert len(request.notices) == 2
+        assert request.assets.logo_files == (logo,)
+        assert request.assets.asset_directories == (asset_dir.resolve(),)
+        assert request.play_notice_map == (("andromaque", "master-notice"),)
+    finally:
+        root.destroy()
+
+
+def test_publication_dialog_validation_error_is_non_blocking(monkeypatch: pytest.MonkeyPatch) -> None:
+    root = _make_root()
+    try:
+        dialog = PublicationDialog(root)
+        errors: list[str] = []
+        monkeypatch.setattr("tkinter.messagebox.showerror", lambda _title, message, **kwargs: errors.append(message))
+
+        dialog._on_validate()
+
+        assert errors
+        assert "titre du site" in errors[-1].lower()
+        assert dialog.result is None
+        dialog.destroy()
     finally:
         root.destroy()
 

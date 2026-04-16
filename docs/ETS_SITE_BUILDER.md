@@ -253,11 +253,17 @@ Current structured-request normalization supports:
 - explicit play/notice associations;
 - site identity, assets, publication options, and output directory wiring.
 
-## First Tkinter bridge (current)
+## First Tkinter publication dialog (current)
 
-A first lightweight UI bridge is now available in the Tkinter application:
-- one menu action to select a site-builder JSON configuration file;
-- one service-layer call (`build_site_from_config_file`) to run the publication build;
-- basic success/warning/error feedback for output path, counts, and warnings.
+The Tkinter application now includes a first real publication dialog:
+- site identity fields (title, subtitle, intro, editor/credits);
+- dramatic XML inputs with explicit play grouping;
+- explicit play ordering controls;
+- notice XML inputs (master + optional additional files);
+- output directory and optional assets/logos;
+- optional explicit play/notice mapping lines.
 
-This remains intentionally minimal and is not a full publication UI.
+The dialog builds a rich in-memory `SitePublicationRequest` and calls the application service layer (`build_site_from_publication_request`).
+The previous JSON config loading path remains supported as a transitional/developer workflow, but it is no longer the primary end-user path.
+
+This UI remains intentionally limited and is not yet a full publication wizard.
