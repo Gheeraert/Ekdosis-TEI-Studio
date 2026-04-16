@@ -10,6 +10,7 @@ import webbrowser
 from ets.annotations import Annotation, AnnotationCollection, AnnotationValidationError
 from ets.application import (
     AppDiagnostic,
+    merge_dramatic_tei_files,
     build_site_from_publication_request,
     create_annotation,
     delete_annotation,
@@ -38,6 +39,7 @@ from .dialogs import (
     SearchReplaceDialog,
     open_annotation_dialog,
     open_config_dialog,
+    open_dramatic_merge_dialog,
     open_publication_dialog,
     show_about_dialog,
     show_help_dialog,
@@ -211,6 +213,7 @@ class MainWindow(ttk.Frame):
                 preview_html=self.action_preview_html,
                 export_tei=self.action_export_tei,
                 export_html=self.action_export_html,
+                merge_dramatic_tei=self.action_merge_dramatic_tei,
                 build_publication_site=self.action_build_publication_site,
                 add_annotation=self.action_add_annotation,
                 edit_annotation=self.action_edit_annotation,
@@ -1098,6 +1101,47 @@ class MainWindow(ttk.Frame):
             return
 
         messagebox.showinfo("Génération du site", base_message, parent=self.master)
+
+    def action_merge_dramatic_tei(self) -> None:
+        request = open_dramatic_merge_dialog(self.master)
+        if request is None:
+            return
+
+        try:
+            result = merge_dramatic_tei_files(request)
+        except Exception as exc:  # pragma: no cover - defensive UI boundary
+            messagebox.showerror(
+                "Fusion XML dramatiques",
+                f"Echec de la fusion XML dramatique.\n\n{exc}",
+                parent=self.master,
+            )
+            return
+
+        if not result.ok:
+            detail = result.error_detail or "Erreur inconnue."
+            messagebox.showerror(
+                "Fusion XML dramatiques",
+                f"{result.message or 'Echec de la fusion XML dramatique.'}\n\n{detail}",
+                parent=self.master,
+            )
+            return
+
+        output_text = str(result.output_path) if result.output_path is not None else "(inconnu)"
+        base_message = (
+            "Fusion XML dramatique terminée.\n\n"
+            f"Fichier de sortie: {output_text}\n"
+            f"Actes fusionnes: {result.merged_act_count}"
+        )
+        if result.warnings:
+            warning_lines = "\n".join(f"- {item}" for item in result.warnings[:20])
+            messagebox.showwarning(
+                "Fusion XML dramatiques (avec avertissements)",
+                f"{base_message}\n\nAvertissements:\n{warning_lines}",
+                parent=self.master,
+            )
+            return
+
+        messagebox.showinfo("Fusion XML dramatiques", base_message, parent=self.master)
 
     def action_undo(self) -> None:
         widget = self._active_text_widget()

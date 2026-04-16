@@ -303,3 +303,21 @@ Recent ergonomic refinements keep the main form scrollable while preserving a fi
 so `Annuler` / `Générer le site` remain accessible on limited-height screens.
 Key labels and inline hints were also clarified for play slug grouping, notice master vs additional files,
 play ordering, assets directory purpose, and play/notice mapping syntax.
+
+## First Tkinter dramatic merge entry point (current)
+
+The Tkinter UI now also exposes a lightweight action for dramatic TEI act merge:
+- menu entry under `Outils`: `Fusionner des XML dramatiques…`;
+- compact dedicated dialog to:
+  - select multiple dramatic XML files,
+  - reorder files explicitly (up/down),
+  - remove selected files,
+  - choose one output XML file path.
+
+The dialog remains intentionally thin and calls the application service layer (`merge_dramatic_tei_files`) rather than merge core internals.
+User feedback is explicit and structured (`success`, `warnings`, `failure`) via standard message boxes.
+
+Still intentionally out of scope:
+- advanced merge options in UI (metadata reconciliation, xml:id policy controls);
+- automatic chronology inference from filenames;
+- publication builder integration beyond this standalone merge bridge.

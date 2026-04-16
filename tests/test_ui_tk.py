@@ -9,6 +9,8 @@ import pytest
 from ets.annotations import Annotation, AnnotationAnchor, AnnotationCollection
 from ets.application import (
     AppDiagnostic,
+    DramaticTeiMergeRequest,
+    DramaticTeiMergeServiceResult,
     DramaticDocumentInput,
     DramaticPlayInput,
     GenerationResult,
@@ -361,7 +363,135 @@ def test_tools_menu_contains_manual_tei_validation_action() -> None:
             if tools_menu_widget.type(i) == "command":
                 labels.append(tools_menu_widget.entrycget(i, "label"))
         assert "Valider la TEI générée" in labels
+        assert "Fusionner des XML dramatiques…" in labels
         assert "Générer le site de publication…" in labels
+    finally:
+        root.destroy()
+
+
+def test_action_merge_dramatic_tei_success_routes_through_service(monkeypatch: pytest.MonkeyPatch) -> None:
+    root = _make_root()
+    try:
+        window = MainWindow(root)
+        request = DramaticTeiMergeRequest(
+            act_xml_paths=(RUNTIME_DIR / "act1.xml", RUNTIME_DIR / "act2.xml"),
+            output_path=RUNTIME_DIR / "merged.xml",
+        )
+        messages: list[str] = []
+        called: list[DramaticTeiMergeRequest] = []
+        monkeypatch.setattr("ets.ui.tk.main_window.open_dramatic_merge_dialog", lambda _parent: request)
+        monkeypatch.setattr("tkinter.messagebox.showerror", lambda *args, **kwargs: None)
+        monkeypatch.setattr("tkinter.messagebox.showwarning", lambda *args, **kwargs: None)
+
+        def _fake_merge(payload: DramaticTeiMergeRequest) -> DramaticTeiMergeServiceResult:
+            called.append(payload)
+            return DramaticTeiMergeServiceResult(
+                ok=True,
+                output_path=(RUNTIME_DIR / "merged.xml").resolve(),
+                merged_act_count=2,
+                warnings=(),
+                message="ok",
+            )
+
+        monkeypatch.setattr("ets.ui.tk.main_window.merge_dramatic_tei_files", _fake_merge)
+        monkeypatch.setattr("tkinter.messagebox.showinfo", lambda _title, message, **kwargs: messages.append(message))
+
+        window.action_merge_dramatic_tei()
+
+        assert called == [request]
+        assert messages
+        assert "Fusion XML dramatique" in messages[-1]
+        assert "Actes fusionnes: 2" in messages[-1]
+    finally:
+        root.destroy()
+
+
+def test_action_merge_dramatic_tei_failure_shows_error(monkeypatch: pytest.MonkeyPatch) -> None:
+    root = _make_root()
+    try:
+        window = MainWindow(root)
+        request = DramaticTeiMergeRequest(
+            act_xml_paths=(RUNTIME_DIR / "act1.xml", RUNTIME_DIR / "act2.xml"),
+            output_path=RUNTIME_DIR / "merged.xml",
+        )
+        errors: list[str] = []
+        monkeypatch.setattr("ets.ui.tk.main_window.open_dramatic_merge_dialog", lambda _parent: request)
+        monkeypatch.setattr("tkinter.messagebox.showinfo", lambda *args, **kwargs: None)
+        monkeypatch.setattr("tkinter.messagebox.showwarning", lambda *args, **kwargs: None)
+        monkeypatch.setattr(
+            "ets.ui.tk.main_window.merge_dramatic_tei_files",
+            lambda _request: DramaticTeiMergeServiceResult(
+                ok=False,
+                message="Dramatic TEI merge failed.",
+                error_code="E_DRAMATIC_TEI_MERGE",
+                error_detail="title differs",
+            ),
+        )
+        monkeypatch.setattr("tkinter.messagebox.showerror", lambda _title, message, **kwargs: errors.append(message))
+
+        window.action_merge_dramatic_tei()
+
+        assert errors
+        assert "Dramatic TEI merge failed." in errors[-1]
+        assert "title differs" in errors[-1]
+    finally:
+        root.destroy()
+
+
+def test_action_merge_dramatic_tei_surfaces_warnings(monkeypatch: pytest.MonkeyPatch) -> None:
+    root = _make_root()
+    try:
+        window = MainWindow(root)
+        request = DramaticTeiMergeRequest(
+            act_xml_paths=(RUNTIME_DIR / "act1.xml", RUNTIME_DIR / "act2.xml"),
+            output_path=RUNTIME_DIR / "merged.xml",
+        )
+        warnings: list[str] = []
+        called: list[DramaticTeiMergeRequest] = []
+        monkeypatch.setattr("ets.ui.tk.main_window.open_dramatic_merge_dialog", lambda _parent: request)
+        monkeypatch.setattr("tkinter.messagebox.showinfo", lambda *args, **kwargs: None)
+        monkeypatch.setattr("tkinter.messagebox.showerror", lambda *args, **kwargs: None)
+
+        def _fake_merge(payload: DramaticTeiMergeRequest) -> DramaticTeiMergeServiceResult:
+            called.append(payload)
+            return DramaticTeiMergeServiceResult(
+                ok=True,
+                output_path=(RUNTIME_DIR / "merged.xml").resolve(),
+                merged_act_count=2,
+                warnings=("Header differs for 'act2.xml'.",),
+                message="ok",
+            )
+
+        monkeypatch.setattr("ets.ui.tk.main_window.merge_dramatic_tei_files", _fake_merge)
+        monkeypatch.setattr("tkinter.messagebox.showwarning", lambda _title, message, **kwargs: warnings.append(message))
+
+        window.action_merge_dramatic_tei()
+
+        assert called == [request]
+        assert warnings
+        assert "Avertissements" in warnings[-1]
+        assert "Header differs for 'act2.xml'." in warnings[-1]
+    finally:
+        root.destroy()
+
+
+def test_action_merge_dramatic_tei_cancelled_dialog_does_nothing(monkeypatch: pytest.MonkeyPatch) -> None:
+    root = _make_root()
+    try:
+        window = MainWindow(root)
+        called: list[str] = []
+        monkeypatch.setattr("ets.ui.tk.main_window.open_dramatic_merge_dialog", lambda _parent: None)
+        monkeypatch.setattr(
+            "ets.ui.tk.main_window.merge_dramatic_tei_files",
+            lambda _request: called.append("service") or DramaticTeiMergeServiceResult(ok=False),
+        )
+        monkeypatch.setattr("tkinter.messagebox.showinfo", lambda *args, **kwargs: called.append("info"))
+        monkeypatch.setattr("tkinter.messagebox.showwarning", lambda *args, **kwargs: called.append("warn"))
+        monkeypatch.setattr("tkinter.messagebox.showerror", lambda *args, **kwargs: called.append("error"))
+
+        window.action_merge_dramatic_tei()
+
+        assert called == []
     finally:
         root.destroy()
 
