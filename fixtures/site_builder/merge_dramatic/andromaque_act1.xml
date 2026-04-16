@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0" xml:id="andromaque">
+  <teiHeader>
+    <fileDesc>
+      <titleStmt>
+        <title>Andromaque</title>
+        <author>Jean Racine</author>
+      </titleStmt>
+      <publicationStmt>
+        <p>Acte 1 fixture</p>
+      </publicationStmt>
+      <sourceDesc>
+        <listWit>
+          <witness xml:id="A">A</witness>
+          <witness xml:id="B">B</witness>
+        </listWit>
+      </sourceDesc>
+    </fileDesc>
+  </teiHeader>
+  <text>
+    <body>
+      <div type="act" n="1" xml:id="act">
+        <div type="scene" n="1" xml:id="scene">
+          <sp>
+            <speaker>ORESTE</speaker>
+            <l xml:id="line_1">Pour qui sont ces serpents.</l>
+          </sp>
+        </div>
+      </div>
+    </body>
+  </text>
+</TEI>

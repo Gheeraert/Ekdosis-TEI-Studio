@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0" xml:id="berenice">
+  <teiHeader>
+    <fileDesc>
+      <titleStmt>
+        <title>Berenice</title>
+        <author>Jean Racine</author>
+      </titleStmt>
+      <publicationStmt>
+        <p>Incompatible title fixture</p>
+      </publicationStmt>
+      <sourceDesc>
+        <listWit>
+          <witness xml:id="A">A</witness>
+        </listWit>
+      </sourceDesc>
+    </fileDesc>
+  </teiHeader>
+  <text>
+    <body>
+      <div type="act" n="1">
+        <div type="scene" n="1">
+          <sp>
+            <speaker>ANTIOCHUS</speaker>
+            <l>Dans l'Orient desert quel devint mon ennui.</l>
+          </sp>
+        </div>
+      </div>
+    </body>
+  </text>
+</TEI>

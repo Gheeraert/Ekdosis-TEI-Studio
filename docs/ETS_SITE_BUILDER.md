@@ -195,6 +195,38 @@ Still deferred:
 - advanced schema/validation system beyond typed loading and explicit runtime checks;
 - complex publication orchestration beyond current builder flow.
 
+## Dramatic TEI act merge module (current)
+
+ETS now includes a dedicated XML-aware merge module for dramatic TEI act files.
+
+Purpose:
+- merge multiple act-level dramatic TEI files into one play-level dramatic TEI file;
+- provide a fallback when full-play generation in one run is not yet stable;
+- support migration of existing act-level TEI corpora before site publication.
+
+Current strategy:
+- parser-based merge with `lxml` (no regex or string concatenation);
+- explicit input order is respected exactly;
+- first file `teiHeader` is kept as merge base;
+- later header differences are reported as warnings;
+- incompatible title/author metadata causes a clear merge failure.
+
+`xml:id` handling:
+- deterministic collision strategy (default: rename only on collision);
+- renamed IDs are prefixed by ordered input index (for example `a2_...`);
+- TEI reference attributes (`target`, `wit`, `ana`, `who`, etc.) are updated when internal IDs are renamed;
+- merged output prevents accidental duplicate `xml:id`.
+
+Public API:
+- core merge: `ets.site_builder.merge_dramatic_tei_acts(DramaticTeiMergeRequest)`;
+- application service wrapper: `ets.application.merge_dramatic_tei_files(...)` / `DramaticTeiMergeService`.
+
+Deliberate limits (current):
+- no GUI dialog in this milestone;
+- no automatic act order inference from filenames;
+- no advanced bibliographic reconciliation between headers;
+- no broad site builder redesign in this scope.
+
 ## Site-level publication build (current)
 
 The builder now produces a coherent static publication tree from config + XML sources:
