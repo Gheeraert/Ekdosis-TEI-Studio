@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import shutil
+import time
 from pathlib import Path
 
 from .config import load_site_config
@@ -28,7 +29,24 @@ def _prepare_output_dir(output_root: Path) -> None:
         raise ValueError(f"Refusing to clean unsafe output directory: {resolved}")
 
     if resolved.exists():
-        shutil.rmtree(resolved)
+        def _on_remove_error(func, path, excinfo):  # type: ignore[no-untyped-def]
+            target = Path(path)
+            try:
+                target.chmod(0o666)
+            except OSError:
+                pass
+            last_error: Exception | None = None
+            for _ in range(5):
+                try:
+                    func(path)
+                    return
+                except OSError as error:
+                    last_error = error
+                    time.sleep(0.05)
+            if last_error is not None:
+                raise last_error
+
+        shutil.rmtree(resolved, onexc=_on_remove_error)
     resolved.mkdir(parents=True, exist_ok=True)
 
 

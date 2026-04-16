@@ -9,6 +9,14 @@ from .models import NoticeDocument, NoticeEntry, NoticeSection, PlayEntry, SiteM
 NOTE_REF_PATTERN = re.compile(r'<sup class="note-ref"><a href="#note-([^"]+)">\[([^\]]+)\]</a></sup>')
 
 
+def _asset_prefix(current_href: str) -> str:
+    path = current_href.strip("/")
+    if not path or "/" not in path:
+        return ""
+    depth = len(path.split("/")) - 1
+    return "../" * depth
+
+
 def _nav_html(manifest: SiteManifest, current_href: str) -> str:
     items: list[str] = []
     for item in manifest.navigation:
@@ -17,6 +25,21 @@ def _nav_html(manifest: SiteManifest, current_href: str) -> str:
         current_attr = ' aria-current="page"' if item.href == current_href else ""
         items.append(f'<li><a href="{escaped_href}"{current_attr}>{escaped_label}</a></li>')
     return "<ul>" + "".join(items) + "</ul>"
+
+
+def _branding_html(manifest: SiteManifest, current_href: str) -> str:
+    logos = manifest.config.assets.logo_files
+    if not logos:
+        return ""
+    prefix = _asset_prefix(current_href)
+    images = "".join(
+        (
+            f'<img src="{html.escape(prefix + "assets/logos/" + logo.name, quote=True)}" '
+            f'alt="{html.escape(manifest.config.site_title)}" loading="lazy">'
+        )
+        for logo in logos
+    )
+    return f'<div class="branding" aria-label="Identite visuelle">{images}</div>'
 
 
 def _layout(manifest: SiteManifest, *, page_title: str, current_href: str, content_html: str) -> str:
@@ -35,6 +58,8 @@ def _layout(manifest: SiteManifest, *, page_title: str, current_href: str, conte
     nav li {{ margin: 0.4rem 0; }}
     section {{ padding: 1rem 1.25rem 2.5rem; max-width: 980px; }}
     .meta {{ color: #505a67; }}
+    .branding {{ margin-top: 0.65rem; display: flex; gap: 0.65rem; align-items: center; flex-wrap: wrap; }}
+    .branding img {{ max-height: 54px; width: auto; border: 1px solid #dfe4eb; background: #fff; padding: 0.2rem; border-radius: 4px; }}
 
     .notice-title-block {{ margin: 0.2rem 0 1rem; padding-bottom: 0.7rem; border-bottom: 1px solid #dde3ea; }}
     .notice-title-block h2 {{ margin: 0 0 0.4rem; }}
@@ -80,6 +105,7 @@ def _layout(manifest: SiteManifest, *, page_title: str, current_href: str, conte
   <header>
     <h1>{html.escape(manifest.config.site_title)}</h1>
     <p>{html.escape(manifest.config.site_subtitle)}</p>
+    {_branding_html(manifest, current_href)}
   </header>
   <main>
     <nav aria-label=\"Navigation principale\">{_nav_html(manifest, current_href=current_href)}</nav>
@@ -285,11 +311,29 @@ def _render_metadata_block(notice: NoticeEntry, document: NoticeDocument) -> str
     return "".join(chunks)
 
 
-def _render_notice_document(notice: NoticeEntry, document: NoticeDocument) -> str:
+def _associated_play_link(manifest: SiteManifest, related_play_slug: str | None) -> str:
+    if not related_play_slug:
+        return ""
+    for play in manifest.plays:
+        if play.slug == related_play_slug:
+            return (
+                f'<p><a href="../plays/{html.escape(play.slug, quote=True)}.html">'
+                f'Aller a la piece associee: {html.escape(play.title)}</a></p>'
+            )
+    return (
+        f'<p><a href="../plays/{html.escape(related_play_slug, quote=True)}.html">'
+        f'Aller a la piece associee ({html.escape(related_play_slug)})</a></p>'
+    )
+
+
+def _render_notice_document(manifest: SiteManifest, notice: NoticeEntry, document: NoticeDocument) -> str:
     ref_counts: dict[str, int] = {}
     first_refs: dict[str, str] = {}
 
     lines: list[str] = [_render_title_block(notice, document), _render_metadata_block(notice, document)]
+    play_link = _associated_play_link(manifest, notice.related_play_slug)
+    if play_link:
+        lines.append(play_link)
 
     if document.front_title_page:
         lines.append("<div class=\"notice-front\">")
@@ -331,9 +375,13 @@ def _render_notice_document(notice: NoticeEntry, document: NoticeDocument) -> st
 
 def render_notice_page(manifest: SiteManifest, notice: NoticeEntry) -> str:
     if notice.document is not None:
-        content = _render_notice_document(notice, notice.document)
+        content = _render_notice_document(manifest, notice, notice.document)
     else:
-        content = f'<h2>{html.escape(notice.title)}</h2><p class="meta">Notice sans document structure.</p>'
+        content = (
+            f'<h2>{html.escape(notice.title)}</h2>'
+            f"{_associated_play_link(manifest, notice.related_play_slug)}"
+            '<p class="meta">Notice sans document structure.</p>'
+        )
     return _layout(
         manifest,
         page_title=notice.title,

@@ -194,3 +194,32 @@ Still deferred:
 - UI-driven config editing;
 - advanced schema/validation system beyond typed loading and explicit runtime checks;
 - complex publication orchestration beyond current builder flow.
+
+## Site-level publication build (current)
+
+The builder now produces a coherent static publication tree from config + XML sources:
+- `index.html` home page with site identity, optional subtitle, and optional `homepage_intro`;
+- one page per dramatic TEI play under `plays/`;
+- one page per notice under `notices/` when notice publication is enabled.
+
+Navigation is generated from the manifest and remains deterministic.
+
+Explicit play/notice association uses `play_notice_map` from configuration:
+- play pages link to their associated notice when available;
+- notice pages link back to the associated play;
+- invalid mapping entries produce warnings without stopping the build.
+
+When `show_xml_download` is enabled, XML sources are copied into:
+- `xml/dramatic/`
+- `xml/notices/`
+
+and pages expose deterministic download links.
+
+Branding assets are also copied deterministically:
+- logo files to `assets/logos/`;
+- configured asset directories to `assets/<directory-name>/`.
+
+Still intentionally deferred:
+- advanced visual design and final publication styling;
+- richer asset pipeline (fingerprinting, transformations, CDN logic);
+- UI integration and end-user publication wizard.
