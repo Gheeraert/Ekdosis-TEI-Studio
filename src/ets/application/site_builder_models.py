@@ -10,6 +10,12 @@ class SiteBuildRequest:
 
 
 @dataclass(frozen=True)
+class SiteHomepageSectionInput:
+    title: str
+    paragraphs: tuple[str, ...] = ()
+
+
+@dataclass(frozen=True)
 class SiteIdentityInput:
     site_title: str
     site_subtitle: str = ""
@@ -17,6 +23,7 @@ class SiteIdentityInput:
     editor: str = ""
     credits: str = ""
     homepage_intro: str = ""
+    homepage_sections: tuple[SiteHomepageSectionInput, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -55,6 +62,7 @@ class SitePublicationRequest:
     include_metadata: bool = True
     resolve_notice_xincludes: bool = True
     play_notice_map: tuple[tuple[str, str], ...] = ()
+    general_notice_slug: str = ""
 
 
 @dataclass(frozen=True)

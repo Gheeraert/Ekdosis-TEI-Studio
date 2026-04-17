@@ -12,6 +12,7 @@ from ets.application import (
     SiteAssetsInput,
     SiteBuildRequest,
     SiteBuilderService,
+    SiteHomepageSectionInput,
     SiteIdentityInput,
     SitePublicationRequest,
     build_site_from_config_dict,
@@ -208,3 +209,41 @@ def test_site_builder_service_build_from_publication_request_fails_cleanly_on_in
     assert result.error_code == "E_SITE_REQUEST"
     assert result.error_detail is not None
     assert "site title is required" in result.error_detail.lower()
+
+
+def test_site_builder_service_publication_request_supports_general_notice_and_home_sections() -> None:
+    base = _runtime_dir("app_site_builder_service_publication_request_general_notice")
+    output_dir = base / "site"
+    request = SitePublicationRequest(
+        identity=SiteIdentityInput(
+            site_title="ETS Publication Request Editorial",
+            homepage_sections=(
+                SiteHomepageSectionInput(
+                    title="Cadre scientifique",
+                    paragraphs=("Edition en cours de consolidation.",),
+                ),
+            ),
+        ),
+        output_dir=output_dir,
+        plays=(
+            DramaticPlayInput(
+                play_slug="andromaque",
+                documents=(DramaticDocumentInput(source_path=DRAMATIC_FIXTURES / "andromaque.xml"),),
+                related_notice_slug="introduction",
+            ),
+        ),
+        notices=(
+            NoticeInput(source_path=REALISTIC_NOTICES / "Ch01_Introduction.xml"),
+            NoticeInput(source_path=REALISTIC_NOTICES / "Heraldique_et_Papaute_volII.xml"),
+        ),
+        general_notice_slug="heraldique-et-papaute",
+        publish_notices=True,
+    )
+
+    result = build_site_from_publication_request(request)
+
+    assert result.ok is True
+    assert "notices/heraldique-et-papaute.html" in result.generated_page_relpaths
+    home_html = (output_dir / "index.html").read_text(encoding="utf-8")
+    assert "Cadre scientifique" in home_html
+    assert "Notice generale" in home_html

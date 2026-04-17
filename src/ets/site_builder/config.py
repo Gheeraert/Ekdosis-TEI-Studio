@@ -6,7 +6,7 @@ import unicodedata
 from pathlib import Path
 from typing import Any
 
-from .models import AssetConfig, SiteConfig
+from .models import AssetConfig, HomePageSection, SiteConfig
 
 
 def _resolve_path(value: str | Path, base_dir: Path | None = None) -> Path:
@@ -83,6 +83,40 @@ def _coerce_play_order(raw_order: Any) -> tuple[str, ...]:
     return tuple(ordered)
 
 
+def _coerce_homepage_sections(raw_sections: Any) -> tuple[HomePageSection, ...]:
+    if raw_sections is None:
+        return ()
+    if not isinstance(raw_sections, (list, tuple)):
+        raise ValueError("Invalid site configuration: 'homepage_sections' must be a list.")
+
+    sections: list[HomePageSection] = []
+    for index, item in enumerate(raw_sections):
+        if not isinstance(item, dict):
+            raise ValueError(
+                f"Invalid site configuration: homepage_sections[{index}] must be an object."
+            )
+        title = _normalize_text(item.get("title", ""), field_name=f"homepage_sections[{index}].title")
+        if not title:
+            raise ValueError(
+                f"Invalid site configuration: homepage_sections[{index}].title is required."
+            )
+        raw_paragraphs = item.get("paragraphs", [])
+        if not isinstance(raw_paragraphs, (list, tuple)):
+            raise ValueError(
+                f"Invalid site configuration: homepage_sections[{index}].paragraphs must be a list."
+            )
+        paragraphs: list[str] = []
+        for paragraph_index, paragraph in enumerate(raw_paragraphs):
+            text = _normalize_text(
+                paragraph,
+                field_name=f"homepage_sections[{index}].paragraphs[{paragraph_index}]",
+            )
+            if text:
+                paragraphs.append(text)
+        sections.append(HomePageSection(title=title, paragraphs=tuple(paragraphs)))
+    return tuple(sections)
+
+
 def site_config_from_dict(payload: dict[str, Any], *, base_dir: Path | None = None) -> SiteConfig:
     assets_raw = payload.get("assets", {})
     if not isinstance(assets_raw, dict):
@@ -120,6 +154,10 @@ def site_config_from_dict(payload: dict[str, Any], *, base_dir: Path | None = No
         editor=_normalize_text(payload.get("editor", ""), field_name="editor"),
         credits=_normalize_text(payload.get("credits", ""), field_name="credits"),
         homepage_intro=_normalize_text(payload.get("homepage_intro", ""), field_name="homepage_intro"),
+        homepage_sections=_coerce_homepage_sections(payload.get("homepage_sections")),
+        general_notice_slug=_normalize_identifier(
+            _normalize_text(payload.get("general_notice_slug", ""), field_name="general_notice_slug")
+        ),
         play_notice_map=_coerce_play_notice_map(payload.get("play_notice_map")),
         play_order=_coerce_play_order(payload.get("play_order")),
     )

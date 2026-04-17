@@ -27,6 +27,15 @@ def _find_notice(manifest: SiteManifest, slug: str):
     return next(notice for notice in manifest.notices if notice.slug == slug)
 
 
+def _flatten_navigation(items: tuple[NavigationItem, ...]) -> tuple[NavigationItem, ...]:
+    flattened: list[NavigationItem] = []
+    for item in items:
+        flattened.append(item)
+        if item.children:
+            flattened.extend(_flatten_navigation(item.children))
+    return tuple(flattened)
+
+
 def _has_node_kind_recursive(sections, node_kind: str) -> bool:
     for section in sections:
         if section.node_kind == node_kind:
@@ -60,7 +69,7 @@ def test_realistic_master_volume_manifest_shape_and_local_xinclude_resolution() 
     assert _has_node_kind_recursive(document.sections, "included_document")
     assert any("Could not resolve xi:include" in warning for warning in document.include_warnings)
     assert any(page.output_relpath == "notices/heraldique-et-papaute.html" for page in manifest.pages)
-    assert any(item.kind == "notice_volume" for item in manifest.navigation)
+    assert any(item.kind == "notice_volume" for item in _flatten_navigation(manifest.navigation))
 
 
 def test_realistic_standalone_notice_extraction_and_rendering() -> None:

@@ -9,7 +9,7 @@ from lxml import etree, html as lxml_html
 
 from ets.html import HtmlExportOptions, render_html_export_from_tei
 
-from .models import NoticeDocument, NoticeEntry, NoticeSection, PlayEntry, SiteManifest
+from .models import HomePageSection, NavigationItem, NoticeDocument, NoticeEntry, NoticeSection, PlayEntry, SiteManifest
 
 
 NOTE_REF_PATTERN = re.compile(r'<sup class="note-ref"><a href="#note-([^"]+)">\[([^\]]+)\]</a></sup>')
@@ -24,14 +24,50 @@ def _asset_prefix(current_href: str) -> str:
     return "../" * depth
 
 
+def _kind_class(kind: str) -> str:
+    return re.sub(r"[^a-z0-9_-]+", "-", kind.lower()).strip("-") or "item"
+
+
+def _nav_item_contains_current(item: NavigationItem, current_href: str) -> bool:
+    if item.href == current_href:
+        return True
+    return any(_nav_item_contains_current(child, current_href) for child in item.children)
+
+
+def _nav_label_html(item: NavigationItem, current_href: str) -> str:
+    escaped_label = html.escape(item.label)
+    if not item.href:
+        return f'<span class="nav-label">{escaped_label}</span>'
+
+    current_attr = ""
+    if item.href == current_href and item.kind not in {"act", "scene"}:
+        current_attr = ' aria-current="page"'
+    href = item.href
+    if href and not href.startswith(("#", "/", "http://", "https://")):
+        href = f"{_asset_prefix(current_href)}{href}"
+    escaped_href = html.escape(href, quote=True)
+    return f'<a href="{escaped_href}"{current_attr}>{escaped_label}</a>'
+
+
+def _nav_item_html(item: NavigationItem, current_href: str) -> str:
+    kind_class = _kind_class(item.kind)
+    if not item.children:
+        return f'<li class="nav-item nav-kind-{kind_class}">{_nav_label_html(item, current_href)}</li>'
+
+    child_items = "".join(_nav_item_html(child, current_href) for child in item.children)
+    open_attr = " open" if _nav_item_contains_current(item, current_href) else ""
+    return (
+        f'<li class="nav-item nav-kind-{kind_class} nav-branch">'
+        f'<details class="nav-details"{open_attr}>'
+        f'<summary class="nav-summary">{_nav_label_html(item, current_href)}</summary>'
+        f'<ul class="site-nav nested">{child_items}</ul>'
+        f"</details></li>"
+    )
+
+
 def _nav_html(manifest: SiteManifest, current_href: str, sidebar_extra_html: str = "") -> str:
-    items: list[str] = []
-    for item in manifest.navigation:
-        escaped_label = html.escape(item.label)
-        escaped_href = html.escape(item.href, quote=True)
-        current_attr = ' aria-current="page"' if item.href == current_href else ""
-        items.append(f'<li><a href="{escaped_href}"{current_attr}>{escaped_label}</a></li>')
-    return f'<ul class="site-nav">{"".join(items)}</ul>{sidebar_extra_html}'
+    items = "".join(_nav_item_html(item, current_href) for item in manifest.navigation)
+    return f'<ul class="site-nav">{items}</ul>{sidebar_extra_html}'
 
 
 def _branding_html(manifest: SiteManifest, current_href: str) -> str:
@@ -71,8 +107,30 @@ def _layout(
     main {{ display: grid; grid-template-columns: 280px 1fr; gap: 1rem; min-height: 100vh; }}
     nav {{ border-right: 1px solid #eceef1; padding: 1rem 1.25rem; }}
     nav ul {{ margin: 0; padding-left: 1.1rem; }}
-    nav li {{ margin: 0.4rem 0; }}
+    nav li {{ margin: 0.35rem 0; }}
     .site-nav {{ margin-bottom: 1rem; }}
+    .site-nav.nested {{ margin-top: 0.35rem; }}
+    .nav-item > a, .nav-summary a {{ color: #1e3a5f; text-decoration: none; }}
+    .nav-item > a:hover, .nav-summary a:hover {{ text-decoration: underline; }}
+    .nav-label {{ color: #2d3d51; font-weight: 600; }}
+    .nav-summary {{ cursor: pointer; }}
+    .nav-summary::marker {{ color: #66778c; }}
+    .nav-summary a[aria-current="page"], .nav-item > a[aria-current="page"] {{ font-weight: 700; }}
+
+    .home-overview {{ margin-bottom: 1.4rem; }}
+    .home-overview h2 {{ margin-bottom: 0.45rem; }}
+    .home-overview .home-project {{ margin: 0.25rem 0 0.55rem; color: #304257; }}
+    .home-overview dl {{ margin: 0; display: grid; grid-template-columns: 180px 1fr; gap: 0.35rem 0.9rem; }}
+    .home-overview dt {{ font-weight: 600; color: #304257; }}
+    .home-overview dd {{ margin: 0; color: #2e3946; }}
+    .home-editorial-section {{ margin: 1.1rem 0 1.35rem; }}
+    .home-editorial-section h3 {{ margin-bottom: 0.45rem; }}
+    .home-editorial-section p {{ margin: 0.4rem 0; }}
+    .home-plays {{ margin-top: 1.3rem; }}
+    .home-play-list {{ margin: 0.45rem 0 0; padding-left: 1.15rem; }}
+    .home-play-list li {{ margin: 0.45rem 0; }}
+    .home-play-links {{ color: #3f5065; font-size: 0.95rem; }}
+    .home-general-notice {{ margin: 1rem 0 1.25rem; padding: 0.85rem 1rem; border: 1px solid #dce4ed; border-radius: 6px; background: #f8fafc; }}
     section {{ padding: 1rem 1.25rem 2.5rem; max-width: 980px; }}
     .meta {{ color: #505a67; }}
     .play-structure-nav {{ border-top: 1px solid #e3e8ef; padding-top: 0.85rem; }}
@@ -121,6 +179,7 @@ def _layout(
       nav {{ border-right: none; border-bottom: 1px solid #eceef1; }}
       .notice-meta dl {{ grid-template-columns: 1fr; }}
       .notice-meta dt {{ margin-top: 0.25rem; }}
+      .home-overview dl {{ grid-template-columns: 1fr; }}
     }}
   </style>
 </head>
@@ -403,32 +462,86 @@ def _play_reading_html(play: PlayEntry) -> tuple[str, str, str]:
     return _play_structure_nav_html(acts), dramatic_html, asset_html
 
 
+def _homepage_sections(manifest: SiteManifest) -> tuple[HomePageSection, ...]:
+    if manifest.config.homepage_sections:
+        return manifest.config.homepage_sections
+    if manifest.config.homepage_intro:
+        return (HomePageSection(title="Presentation", paragraphs=(manifest.config.homepage_intro,)),)
+    return ()
+
+
+def _render_home_overview(manifest: SiteManifest) -> str:
+    identity_rows: list[tuple[str, str]] = []
+    if manifest.config.editor:
+        identity_rows.append(("Responsable editorial", html.escape(manifest.config.editor)))
+    if manifest.config.credits:
+        identity_rows.append(("Soutiens et credits", html.escape(manifest.config.credits)))
+
+    rows_html = ""
+    if identity_rows:
+        rows = "".join(f"<dt>{label}</dt><dd>{value}</dd>" for label, value in identity_rows)
+        rows_html = f"<dl>{rows}</dl>"
+
+    project_html = (
+        f'<p class="home-project">{html.escape(manifest.config.project_name)}</p>'
+        if manifest.config.project_name
+        else ""
+    )
+    return f'<header class="home-overview"><h2>Accueil</h2>{project_html}{rows_html}</header>'
+
+
+def _render_home_editorial_sections(manifest: SiteManifest) -> str:
+    blocks: list[str] = []
+    for section in _homepage_sections(manifest):
+        paragraphs = "".join(f"<p>{html.escape(paragraph)}</p>" for paragraph in section.paragraphs)
+        blocks.append(
+            f'<article class="home-editorial-section"><h3>{html.escape(section.title)}</h3>{paragraphs}</article>'
+        )
+    return "".join(blocks)
+
+
+def _render_home_play_list(manifest: SiteManifest) -> str:
+    if not manifest.plays:
+        return '<section class="home-plays" id="pieces"><h3>Pieces</h3><p class="meta">Aucune piece detectee.</p></section>'
+
+    items: list[str] = []
+    for play in manifest.plays:
+        links = [f'<a href="{html.escape(f"plays/{play.slug}.html", quote=True)}">Lire</a>']
+        notice = _notice_for_play(manifest, play.slug)
+        if notice is not None:
+            links.append(
+                f'<a href="{html.escape(f"notices/{notice.slug}.html", quote=True)}">Notice de piece</a>'
+            )
+        links_html = " | ".join(links)
+        items.append(
+            f"<li><strong>{html.escape(play.title)}</strong><br><span class=\"home-play-links\">{links_html}</span></li>"
+        )
+    return f'<section class="home-plays" id="pieces"><h3>Pieces</h3><ul class="home-play-list">{"".join(items)}</ul></section>'
+
+
+def _render_home_general_notice(manifest: SiteManifest) -> str:
+    if manifest.general_notice_slug is None:
+        return ""
+    for notice in manifest.notices:
+        if notice.slug == manifest.general_notice_slug:
+            return (
+                f'<section class="home-general-notice">'
+                f"<h3>Notice generale</h3>"
+                f'<p><a href="{html.escape(f"notices/{notice.slug}.html", quote=True)}">'
+                f"{html.escape(notice.title)}</a></p>"
+                f"</section>"
+            )
+    return ""
+
+
 def render_home_page(manifest: SiteManifest) -> str:
-    play_items = "".join(
-        f'<li><a href="{html.escape(f"plays/{play.slug}.html", quote=True)}">{html.escape(play.title)}</a></li>'
-        for play in manifest.plays
-    )
-    notice_items = "".join(
-        f'<li><a href="{html.escape(f"notices/{notice.slug}.html", quote=True)}">{html.escape(notice.title)}</a></li>'
-        for notice in manifest.notices
-    )
-    notices_block = (
-        f"<h3>Notices</h3><ul>{notice_items}</ul>"
-        if manifest.config.publish_notices and manifest.notices
-        else ""
-    )
-    intro_block = (
-        f"<p>{html.escape(manifest.config.homepage_intro)}</p>"
-        if manifest.config.homepage_intro
-        else ""
-    )
-    content = (
-        f"<h2>Accueil</h2>"
-        f"<p>{html.escape(manifest.config.project_name)}</p>"
-        f"{intro_block}"
-        f"<h3>Pieces</h3><ul>{play_items}</ul>"
-        f"{notices_block}"
-    )
+    blocks: list[str] = [
+        _render_home_overview(manifest),
+        _render_home_editorial_sections(manifest),
+        _render_home_general_notice(manifest),
+        _render_home_play_list(manifest),
+    ]
+    content = "".join(blocks)
     return _layout(manifest, page_title=manifest.config.site_title, current_href="index.html", content_html=content)
 
 

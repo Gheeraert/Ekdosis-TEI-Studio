@@ -199,6 +199,14 @@ def _normalize_publication_request(
         "editor": request.identity.editor,
         "credits": request.identity.credits,
         "homepage_intro": request.identity.homepage_intro,
+        "homepage_sections": [
+            {
+                "title": section.title,
+                "paragraphs": [paragraph for paragraph in section.paragraphs],
+            }
+            for section in request.identity.homepage_sections
+            if section.title.strip()
+        ],
         "dramatic_xml_dir": str(dramatic_dir),
         "notice_xml_dir": notice_dir_value,
         "output_dir": str(request.output_dir),
@@ -207,6 +215,7 @@ def _normalize_publication_request(
         "include_metadata": request.include_metadata,
         "resolve_notice_xincludes": request.resolve_notice_xincludes,
         "play_notice_map": mapping_dict,
+        "general_notice_slug": _normalize_identifier(request.general_notice_slug),
         "play_order": list(normalized_order),
         "assets": {
             "logos": [str(path) for path in request.assets.logo_files],

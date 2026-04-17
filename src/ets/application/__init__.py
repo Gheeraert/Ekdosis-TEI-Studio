@@ -16,6 +16,7 @@ from .site_builder_models import (
     SiteAssetsInput,
     SiteBuildRequest,
     SiteBuildServiceResult,
+    SiteHomepageSectionInput,
     SiteIdentityInput,
     SitePublicationRequest,
 )
@@ -85,6 +86,7 @@ __all__ = [
     "suggest_output_basename",
     "SiteBuildRequest",
     "SiteBuildServiceResult",
+    "SiteHomepageSectionInput",
     "SiteIdentityInput",
     "SiteAssetsInput",
     "DramaticDocumentInput",

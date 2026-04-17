@@ -40,6 +40,8 @@ def test_site_config_from_dict_normalizes_paths_and_defaults() -> None:
     assert config.assets.asset_directories == ()
     assert config.play_notice_map == ()
     assert config.homepage_intro == ""
+    assert config.homepage_sections == ()
+    assert config.general_notice_slug == ""
 
 
 def test_site_config_loads_from_json_and_resolves_relative_paths() -> None:
@@ -88,6 +90,35 @@ def test_site_config_supports_explicit_play_notice_mapping() -> None:
     assert manifest.notices[0].related_play_slug == "andromaque"
 
 
+def test_site_config_supports_general_notice_and_homepage_sections() -> None:
+    config = site_config_from_dict(
+        {
+            "site_title": "ETS Editorial",
+            "dramatic_xml_dir": str(ROOT / "fixtures" / "site_builder" / "minimal" / "dramatic"),
+            "notice_xml_dir": str(ROOT / "fixtures" / "metopes" / "minimal"),
+            "output_dir": str(ROOT / "tests" / "_runtime" / "site_builder_config_editorial"),
+            "general_notice_slug": "Bibliographie",
+            "homepage_sections": [
+                {
+                    "title": "Cadre scientifique",
+                    "paragraphs": [
+                        "Edition produite dans un cadre collectif.",
+                        "Validation continue par l'equipe editoriale.",
+                    ],
+                }
+            ],
+        }
+    )
+
+    assert config.general_notice_slug == "bibliographie"
+    assert len(config.homepage_sections) == 1
+    assert config.homepage_sections[0].title == "Cadre scientifique"
+    assert config.homepage_sections[0].paragraphs == (
+        "Edition produite dans un cadre collectif.",
+        "Validation continue par l'equipe editoriale.",
+    )
+
+
 def test_site_config_invalid_required_fields_fail_cleanly() -> None:
     with pytest.raises(ValueError, match="site_title"):
         site_config_from_dict(
@@ -116,5 +147,17 @@ def test_site_config_invalid_play_notice_map_fails_cleanly() -> None:
                 "dramatic_xml_dir": ".",
                 "output_dir": "out/site",
                 "play_notice_map": ["not-a-dict"],
+            }
+        )
+
+
+def test_site_config_invalid_homepage_sections_fail_cleanly() -> None:
+    with pytest.raises(ValueError, match="homepage_sections"):
+        site_config_from_dict(
+            {
+                "site_title": "ETS",
+                "dramatic_xml_dir": ".",
+                "output_dir": "out/site",
+                "homepage_sections": {"title": "not-a-list"},
             }
         )

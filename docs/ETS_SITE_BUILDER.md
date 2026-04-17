@@ -263,6 +263,18 @@ Still intentionally deferred:
 - UI integration and end-user publication wizard.
 - full publication polish of dramatic pages beyond this functional reading/navigation milestone.
 
+## Editorial site-structure milestone (current)
+
+ETS Site Builder now supports a richer editorial publication structure without changing the core dramatic rendering pipeline.
+
+New capabilities:
+- optional structured home-page editorial sections (`homepage_sections`) in addition to `homepage_intro`;
+- optional site-level general notice selection (`general_notice_slug`) independent from play-level notices;
+- hierarchical navigation generation with explicit site-level content, play branches, play notices, and act/scene subtree nodes.
+
+Navigation is now emitted with semantic nested structure (`details`/`summary` + nested lists) so it is technically ready for later expand/collapse visual refinement.
+This milestone focuses on editorial/site hierarchy and keeps final CSS/theme polish for a later dedicated pass.
+
 ## Realistic integration coverage (current)
 
 The test suite now includes realistic integration validation against `fixtures/metopes/realistic/`:

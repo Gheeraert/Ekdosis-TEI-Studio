@@ -11,6 +11,12 @@ class AssetConfig:
 
 
 @dataclass(frozen=True)
+class HomePageSection:
+    title: str
+    paragraphs: tuple[str, ...] = ()
+
+
+@dataclass(frozen=True)
 class SiteConfig:
     site_title: str
     site_subtitle: str = ""
@@ -26,6 +32,8 @@ class SiteConfig:
     editor: str = ""
     credits: str = ""
     homepage_intro: str = ""
+    homepage_sections: tuple[HomePageSection, ...] = ()
+    general_notice_slug: str = ""
     play_notice_map: tuple[tuple[str, str], ...] = ()
     play_order: tuple[str, ...] = ()
 
@@ -121,6 +129,7 @@ class NavigationItem:
     label: str
     href: str
     kind: str
+    children: tuple["NavigationItem", ...] = ()
 
 
 @dataclass(frozen=True)
@@ -130,6 +139,7 @@ class SiteManifest:
     notices: tuple[NoticeEntry, ...] = ()
     pages: tuple[SitePage, ...] = ()
     navigation: tuple[NavigationItem, ...] = ()
+    general_notice_slug: str | None = None
     warnings: tuple[str, ...] = ()
 
 

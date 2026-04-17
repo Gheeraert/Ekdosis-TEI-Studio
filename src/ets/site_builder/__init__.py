@@ -11,6 +11,7 @@ from .manifest import build_site_manifest
 from .models import (
     AssetConfig,
     BuildResult,
+    HomePageSection,
     NavigationItem,
     NoticeDocument,
     NoticeEntry,
@@ -29,6 +30,7 @@ __all__ = [
     "DramaticTeiMergeError",
     "DramaticTeiMergeRequest",
     "DramaticTeiMergeResult",
+    "HomePageSection",
     "NavigationItem",
     "NoticeDocument",
     "NoticeEntry",

@@ -92,6 +92,186 @@ def _apply_explicit_play_notice_map(
     return mapped
 
 
+def _apply_general_notice_selection(
+    notices: list[NoticeEntry],
+    *,
+    general_notice_slug: str,
+    warnings: list[str],
+) -> tuple[list[NoticeEntry], str | None]:
+    if not general_notice_slug:
+        return notices, None
+
+    notice_by_slug = {notice.slug: notice for notice in notices}
+    target = notice_by_slug.get(general_notice_slug)
+    if target is None:
+        warnings.append(
+            f"Configured general_notice_slug '{general_notice_slug}' not found among detected notices."
+        )
+        return notices, None
+
+    if target.related_play_slug is None:
+        return notices, target.slug
+
+    warnings.append(
+        f"Configured general_notice_slug '{general_notice_slug}' overrides play association "
+        f"('{target.related_play_slug}') for that notice."
+    )
+    updated = replace(target, related_play_slug=None)
+    remapped = [updated if notice.slug == updated.slug else notice for notice in notices]
+    return remapped, updated.slug
+
+
+def _normalize_division_label(raw_label: str) -> str:
+    cleaned = " ".join(raw_label.split())
+    if not cleaned:
+        return ""
+    parts = cleaned.split(" ", 1)
+    kind = parts[0].lower()
+    suffix = parts[1] if len(parts) > 1 else ""
+    if kind.startswith("act"):
+        prefix = "Acte"
+    elif kind.startswith("scene"):
+        prefix = "Scene"
+    else:
+        prefix = parts[0].capitalize()
+    return f"{prefix} {suffix}".strip()
+
+
+def _play_division_tree(play: PlayEntry) -> tuple[tuple[str, tuple[str, ...]], ...]:
+    acts: list[tuple[str, tuple[str, ...]]] = []
+    current_act_label: str | None = None
+    current_scenes: list[str] = []
+
+    def flush_current() -> None:
+        nonlocal current_act_label, current_scenes
+        if current_act_label is None:
+            return
+        acts.append((current_act_label, tuple(current_scenes)))
+        current_act_label = None
+        current_scenes = []
+
+    for division in play.main_divisions:
+        label = _normalize_division_label(division)
+        lowered = division.strip().lower()
+        if lowered.startswith("act"):
+            flush_current()
+            current_act_label = label or "Acte"
+            current_scenes = []
+            continue
+        if lowered.startswith("scene"):
+            if current_act_label is None:
+                current_act_label = "Scenes"
+                current_scenes = []
+            current_scenes.append(label or "Scene")
+
+    flush_current()
+    return tuple(acts)
+
+
+def _build_navigation_tree(
+    *,
+    plays: list[PlayEntry],
+    notices: list[NoticeEntry],
+    general_notice_slug: str | None,
+) -> tuple[NavigationItem, ...]:
+    navigation: list[NavigationItem] = [NavigationItem(label="Accueil", href="index.html", kind="index")]
+
+    notice_by_play_slug: dict[str, NoticeEntry] = {}
+    for notice in notices:
+        if notice.related_play_slug and notice.related_play_slug not in notice_by_play_slug:
+            notice_by_play_slug[notice.related_play_slug] = notice
+
+    if general_notice_slug:
+        navigation.append(
+            NavigationItem(
+                label="Notice generale",
+                href=f"notices/{general_notice_slug}.html",
+                kind="notice_general",
+            )
+        )
+
+    play_nodes: list[NavigationItem] = []
+    for play in plays:
+        children: list[NavigationItem] = [
+            NavigationItem(
+                label="Lecture",
+                href=f"plays/{play.slug}.html",
+                kind="play_page",
+            )
+        ]
+
+        related_notice = notice_by_play_slug.get(play.slug)
+        if related_notice is not None:
+            children.append(
+                NavigationItem(
+                    label="Notice de piece",
+                    href=f"notices/{related_notice.slug}.html",
+                    kind="notice",
+                )
+            )
+
+        for act_label, scenes in _play_division_tree(play):
+            scene_nodes = tuple(
+                NavigationItem(
+                    label=scene_label,
+                    href=f"plays/{play.slug}.html",
+                    kind="scene",
+                )
+                for scene_label in scenes
+            )
+            children.append(
+                NavigationItem(
+                    label=act_label,
+                    href=f"plays/{play.slug}.html",
+                    kind="act",
+                    children=scene_nodes,
+                )
+            )
+
+        play_nodes.append(
+            NavigationItem(
+                label=play.title,
+                href="",
+                kind="play_group",
+                children=tuple(children),
+            )
+        )
+
+    if play_nodes:
+        navigation.append(
+            NavigationItem(
+                label="Pieces",
+                href="",
+                kind="plays_group",
+                children=tuple(play_nodes),
+            )
+        )
+
+    uncategorized_notices = [
+        notice
+        for notice in notices
+        if notice.related_play_slug is None and notice.slug != (general_notice_slug or "")
+    ]
+    if uncategorized_notices:
+        navigation.append(
+            NavigationItem(
+                label="Notices",
+                href="",
+                kind="notices_group",
+                children=tuple(
+                    NavigationItem(
+                        label=notice.title,
+                        href=f"notices/{notice.slug}.html",
+                        kind="notice_volume" if notice.notice_kind == "master_volume" else "notice",
+                    )
+                    for notice in uncategorized_notices
+                ),
+            )
+        )
+
+    return tuple(navigation)
+
+
 def build_site_manifest(config: SiteConfig) -> SiteManifest:
     warnings: list[str] = []
 
@@ -128,6 +308,11 @@ def build_site_manifest(config: SiteConfig) -> SiteManifest:
         play_notice_map=config.play_notice_map,
         warnings=warnings,
     )
+    notices, general_notice_slug = _apply_general_notice_selection(
+        notices,
+        general_notice_slug=config.general_notice_slug,
+        warnings=warnings,
+    )
     if config.play_notice_map:
         play_slugs = {play.slug for play in plays}
         for play_slug, notice_slug in config.play_notice_map:
@@ -149,7 +334,10 @@ def build_site_manifest(config: SiteConfig) -> SiteManifest:
         )
     if config.publish_notices:
         for notice in notices:
-            notice_page_kind = "notice_volume" if notice.notice_kind == "master_volume" else "notice"
+            if notice.slug == general_notice_slug:
+                notice_page_kind = "notice_general"
+            else:
+                notice_page_kind = "notice_volume" if notice.notice_kind == "master_volume" else "notice"
             pages.append(
                 SitePage(
                     kind=notice_page_kind,
@@ -159,26 +347,18 @@ def build_site_manifest(config: SiteConfig) -> SiteManifest:
                 )
             )
 
-    navigation: list[NavigationItem] = [NavigationItem(label="Accueil", href="index.html", kind="index")]
-    navigation.extend(
-        NavigationItem(label=play.title, href=f"plays/{play.slug}.html", kind="play")
-        for play in plays
+    navigation = _build_navigation_tree(
+        plays=plays,
+        notices=notices if config.publish_notices else [],
+        general_notice_slug=general_notice_slug if config.publish_notices else None,
     )
-    if config.publish_notices:
-        navigation.extend(
-            NavigationItem(
-                label=f"Notice - {notice.title}",
-                href=f"notices/{notice.slug}.html",
-                kind="notice_volume" if notice.notice_kind == "master_volume" else "notice",
-            )
-            for notice in notices
-        )
 
     return SiteManifest(
         config=config,
         plays=tuple(plays),
         notices=tuple(notices),
         pages=tuple(pages),
-        navigation=tuple(navigation),
+        navigation=navigation,
+        general_notice_slug=general_notice_slug if config.publish_notices else None,
         warnings=tuple(warnings),
     )

@@ -4,9 +4,19 @@ from pathlib import Path
 
 from ets.site_builder.config import site_config_from_dict
 from ets.site_builder.manifest import build_site_manifest
+from ets.site_builder.models import NavigationItem
 
 
 ROOT = Path(__file__).resolve().parents[1]
+
+
+def _flatten_navigation(items: tuple[NavigationItem, ...]) -> tuple[NavigationItem, ...]:
+    flattened: list[NavigationItem] = []
+    for item in items:
+        flattened.append(item)
+        if item.children:
+            flattened.extend(_flatten_navigation(item.children))
+    return tuple(flattened)
 
 
 def test_manifest_distinguishes_metopes_volume_and_standalone_notice() -> None:
@@ -24,7 +34,7 @@ def test_manifest_distinguishes_metopes_volume_and_standalone_notice() -> None:
     manifest = build_site_manifest(config)
 
     kinds = {notice.notice_kind for notice in manifest.notices}
-    nav_kinds = {item.kind for item in manifest.navigation if item.kind.startswith("notice")}
+    nav_kinds = {item.kind for item in _flatten_navigation(manifest.navigation) if item.kind.startswith("notice")}
     page_kinds = {page.kind for page in manifest.pages if page.kind.startswith("notice")}
 
     assert "standalone" in kinds

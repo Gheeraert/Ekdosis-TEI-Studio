@@ -12,6 +12,7 @@ from ets.site_builder.config import site_config_from_dict
 
 ROOT = Path(__file__).resolve().parents[1]
 FIXTURE_ROOT = ROOT / "fixtures" / "site_builder" / "minimal"
+METOPES_MINIMAL = ROOT / "fixtures" / "metopes" / "minimal"
 RUNTIME_ROOT = ROOT / "tests" / "_runtime"
 
 
@@ -76,6 +77,7 @@ def test_builder_generates_cross_links_and_home_intro_from_explicit_mapping() ->
     notice_html = (output_dir / "notices" / "andromaque-notice.html").read_text(encoding="utf-8")
 
     assert "Bienvenue sur l&#x27;edition de demonstration." in home_html
+    assert 'class="home-overview"' in home_html
     assert "../notices/andromaque-notice.html" in play_html
     assert "../plays/andromaque.html" in notice_html
     assert "Pour qui sont ces serpents" in play_html
@@ -86,6 +88,8 @@ def test_builder_generates_cross_links_and_home_intro_from_explicit_mapping() ->
     assert doc.xpath("//main/nav//div[contains(@class, 'play-structure-nav')]")
     assert not doc.xpath("//section//aside[contains(@class, 'play-structure-nav')]")
     assert doc.xpath("//section[@id='contenu-editorial' and contains(@class, 'dramatic-content')]")
+    assert doc.xpath("//main/nav//details[contains(@class, 'nav-details')]")
+    assert doc.xpath("//main/nav//ul[contains(@class, 'site-nav') and contains(@class, 'nested')]")
     assert "IM Fell DW Pica" in play_html
     assert ".vers-container" in play_html
     assert "#container {" not in play_html
@@ -229,6 +233,57 @@ def test_builder_output_paths_are_deterministic() -> None:
         "plays/berenice.html",
         "notices/andromaque-notice.html",
     }
+
+
+def test_builder_supports_general_notice_home_editorial_sections_and_hierarchical_navigation() -> None:
+    base_dir = _runtime_dir("site_builder_general_notice")
+    output_dir = base_dir / "site_general_notice"
+    config = site_config_from_dict(
+        {
+            "site_title": "ETS Editorial Demo",
+            "site_subtitle": "Structure editoriale",
+            "dramatic_xml_dir": str(FIXTURE_ROOT / "dramatic"),
+            "notice_xml_dir": str(METOPES_MINIMAL),
+            "output_dir": str(output_dir),
+            "publish_notices": True,
+            "play_notice_map": {"andromaque": "introduction"},
+            "general_notice_slug": "bibliographie",
+            "homepage_sections": [
+                {
+                    "title": "Presentation du projet",
+                    "paragraphs": [
+                        "Edition numerique en cours de publication.",
+                        "Corpus dramatique annote et collatable.",
+                    ],
+                },
+                {
+                    "title": "Cadre institutionnel",
+                    "paragraphs": ["Soutien scientifique et institutionnel explicite."],
+                },
+            ],
+        }
+    )
+
+    result = build_static_site(config)
+
+    assert (output_dir / "notices" / "bibliographie.html").exists()
+    assert (output_dir / "notices" / "introduction.html").exists()
+    home_html = (output_dir / "index.html").read_text(encoding="utf-8")
+    play_html = (output_dir / "plays" / "andromaque.html").read_text(encoding="utf-8")
+
+    assert "Presentation du projet" in home_html
+    assert "Cadre institutionnel" in home_html
+    assert "Notice generale" in home_html
+    assert 'href="notices/bibliographie.html"' in home_html
+    assert result.notice_count >= 2
+
+    doc = lxml_html.document_fromstring(play_html)
+    assert doc.xpath("//main/nav//a[@href='../notices/bibliographie.html']")
+    assert doc.xpath("//main/nav//span[contains(@class, 'nav-label') and contains(., 'Pieces')]")
+    assert doc.xpath("//main/nav//a[contains(., 'Lecture')]")
+    assert doc.xpath("//main/nav//a[contains(., 'Notice de piece')]")
+    assert doc.xpath("//main/nav//a[contains(., 'Acte 1')]")
+    assert doc.xpath("//main/nav//a[contains(., 'Scene 1')]")
 
 
 def test_play_page_keeps_xml_download_and_embeds_transformed_text() -> None:
