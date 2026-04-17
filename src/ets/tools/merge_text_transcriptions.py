@@ -3,7 +3,6 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 
-
 @dataclass(frozen=True)
 class TextTranscriptionMergeRequest:
     input_paths: tuple[Path, ...]
@@ -21,9 +20,6 @@ class TextTranscriptionMergeOutcome:
 class TextTranscriptionMergeError(ValueError):
     """Raised when a text transcription merge request is invalid."""
 
-
-from pathlib import Path
-
 def merge_text_transcription_files(request: TextTranscriptionMergeRequest) -> TextTranscriptionMergeOutcome:
     if len(request.input_paths) < 2:
         raise TextTranscriptionMergeError("At least two input transcription files are required.")
@@ -31,9 +27,11 @@ def merge_text_transcription_files(request: TextTranscriptionMergeRequest) -> Te
     resolved_inputs = tuple(Path(path).resolve() for path in request.input_paths)
     output_path = Path(request.output_path).resolve()
 
-    chunks = [path.read_text(encoding="utf-8").rstrip("\n\r") for path in resolved_inputs]
+    # On nettoie seulement les fins de fichier pour éviter l'accumulation anarchique
+    chunks = [path.read_text(encoding="utf-8").rstrip("\r\n") for path in resolved_inputs]
 
-    boundary = request.separator if request.separator else "\n"
+    # Même sans séparateur explicite, on impose une ligne vide entre deux fichiers
+    boundary = request.separator if request.separator else "\n\n"
     merged_text = boundary.join(chunks) + "\n"
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
