@@ -1,0 +1,40 @@
+{
+    "Prénom de l'auteur": "Jean",
+    "Nom de l'auteur": "Racine",
+    "Titre de la pièce": "La Thébaïde ou les frères ennemis",
+    "Numéro de l'acte": "2",
+    "Numéro de la scène": "2",
+    "Nombre de scènes dans l'acte": "5",
+    "Numéro du vers de départ": 343,
+    "Noms des personnages (séparés par virgule)": "",
+    "Nombre de témoins": 5,
+    "Nom de l'éditeur (vous)": "Fourquet-Gracieux",
+    "Prénom de l'éditeur": "Claire",
+    "Temoins": [
+        {
+            "abbr": "A",
+            "year": "1664",
+            "desc": "La Thebayde, ov les freres ennemis. Tragedie, Paris, Claude Barbin, 1664, avec privilège du roy, RES YF 3204."
+        },
+        {
+            "abbr": "B",
+            "year": "1676",
+            "desc": "Oeuvres de Racine, tome premier, Paris, C. Barbin, 1676, avec privilege du Roy, p. 1-66. Cote : Rf 4460 (1)"
+        },
+        {
+            "abbr": "C",
+            "year": "1687",
+            "desc": "Oeuvres de Racine, tome premier, Paris, Denys Thierry, 1687, p. 1-66. Cote : Res-Y-3223"
+        },
+        {
+            "abbr": "D",
+            "year": "1697",
+            "desc": "Oeuvres de Racine, tome premier, vol. 1, Paris, C. Barbin, 1697, avec privilege du Roy.  RES-P-YF-86 (1)"
+        },
+        {
+            "abbr": "E",
+            "year": "1664-rég.",
+            "desc": "La Thebayde, ov les freres ennemis. Tragedie, Paris, Claude Barbin, 1664, avec privilège du roy, RES YF 3204. Version régularisée"
+        }
+    ]
+}

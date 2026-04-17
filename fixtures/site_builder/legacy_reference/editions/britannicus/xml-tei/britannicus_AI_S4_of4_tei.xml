@@ -1,0 +1,463 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0">
+  <teiHeader>
+    <fileDesc>
+      <titleStmt>
+        <title>Britannicus</title>
+        <author>Jean Racine</author>
+        <editor>Caroline Labrune</editor>
+      </titleStmt>
+      <publicationStmt>
+        <publisher>Presses de l'Université de Rouen et du Havre</publisher>
+        <pubPlace>Rouen</pubPlace>
+       <date>30 juillet 2025</date>
+      </publicationStmt>
+      <sourceDesc>
+        <p>généré par Ekdosis-TEI Studio – Acte I, Scène 4</p>
+      </sourceDesc>
+    </fileDesc>
+  </teiHeader>
+  <text>
+    <body>
+  <div type="scene" n="4">
+    <head><app>
+        <lem wit="#A #C #D #E">SCENE IV. </lem>
+        <rdg wit="#B">SCENE. IV. </rdg>
+      </app></head>
+    <stage type='personnages'>BRITANNICUS, NARCISSE.</stage>
+    <sp>
+      <speaker>BRITANNICUS.</speaker>
+<l n="305">
+LA 
+      <app>
+        <lem wit="#A #B #D #E">croiray-je, </lem>
+        <rdg wit="#C">croirai-je, </rdg>
+      </app>
+Narcisse&#160;? Et dois-je sur sa 
+      <app>
+        <lem wit="#A #B #D #E">foy </lem>
+        <rdg wit="#C">foi </rdg>
+      </app>
+</l>
+
+<l n="306">
+La prendre pour arbitre entre son fils &amp; 
+      <app>
+        <lem wit="#A #B #D #E">moy&#160;? </lem>
+        <rdg wit="#C">moi&#160;? </rdg>
+      </app>
+</l>
+
+<l n="307">
+Qu’en dis-tu&#160;? N’est-ce pas cette 
+      <app>
+        <lem wit="#A #B #C #E">mesme </lem>
+        <rdg wit="#D">même </rdg>
+      </app>
+Agrippine, </l>
+
+<l n="308">
+Que mon Pere épousa jadis pour ma 
+      <app>
+        <lem wit="#A #D #E">ruine, </lem>
+        <rdg wit="#B #C">ruïne, </rdg>
+      </app>
+</l>
+
+<l n="309">
+Et qui, si je t’en crois, a de ses derniers jours </l>
+
+<l n="310">
+Trop lents pour ses desseins 
+      <app>
+        <lem wit="#A #E">precipité </lem>
+        <rdg wit="#B #C #D">précipité </rdg>
+      </app>
+le cours&#160;? </l>
+
+    </sp>
+    <sp>
+      <speaker>NARCISSE.</speaker>
+<l n="311">
+N’importe. Elle se sent comme vous outragée. </l>
+
+<l n="312">
+A vous donner Junie elle s’est engagée. </l>
+
+<l n="313">
+
+      <app>
+        <lem wit="#A #B #D #E">Unissez </lem>
+        <rdg wit="#C">Unissés </rdg>
+      </app>
+vos 
+      <app>
+        <lem wit="#A #E">chagrins. </lem>
+        <rdg wit="#B #C #D">chagrins, </rdg>
+      </app>
+
+      <app>
+        <lem wit="#A #B #E">Liez </lem>
+        <rdg wit="#C">Liés </rdg>
+        <rdg wit="#D">liez </rdg>
+      </app>
+vos interests. </l>
+
+<l n="314">
+Ce Palais retentit en vain de vos regrets. </l>
+
+<l n="315">
+
+      <app>
+        <lem wit="#A #B #C #E">Tant&#160;que&#160;l’on </lem>
+        <rdg wit="#D">Tandis&#160;qu’on </rdg>
+      </app>
+vous verra d’une voix suppliante, </l>
+
+<l n="316">
+Semer 
+      <app>
+        <lem wit="#A #B #D #E">icy </lem>
+        <rdg wit="#C">ici </rdg>
+      </app>
+la plainte, &amp; non pas l’épouvante, </l>
+
+<l n="317">
+Que vos ressentimens se 
+      <app>
+        <lem wit="#B #C #D #E">perdront </lem>
+        <rdg wit="#A">perdrõt </rdg>
+      </app>
+en discours, </l>
+
+<l n="318">
+Il n’en faut point douter, vous vous 
+      <app>
+        <lem wit="#A #B #D #E">plaindrez </lem>
+        <rdg wit="#C">plaindrés </rdg>
+      </app>
+toûjours. </l>
+
+    </sp>
+    <sp>
+      <speaker>BRITANNICUS.</speaker>
+<l n="319">
+Ah, Narcisse&#160;! Tu sçais si de la servitude </l>
+
+<l n="320">
+Je pretens faire encore une longue habitude. </l>
+
+<l n="321">
+Tu sçais si pour jamais de ma chûte étonné </l>
+
+<l n="322">
+Je renonce 
+      <app>
+        <lem wit="#A #B #E">aux&#160;grandeurs, </lem>
+        <rdg wit="#C #D">à&#160;l’Empire, </rdg>
+      </app>
+où 
+      <app>
+        <lem wit="#A #E">j’étois </lem>
+        <rdg wit="#B #C #D">j’estois </rdg>
+      </app>
+destiné. </l>
+
+<l n="323">
+Mais je suis seul encor. Les amis de mon Pere </l>
+
+<l n="324">
+Sont autant d’inconnus 
+      <app>
+        <lem wit="#A #E">qu’écarte </lem>
+        <rdg wit="#B #C #D">que&#160;glace </rdg>
+      </app>
+ma misere. </l>
+
+<l n="325">
+Et ma jeunesse 
+      <app>
+        <lem wit="#A #B #C #E">mesme </lem>
+        <rdg wit="#D">même </rdg>
+      </app>
+
+      <app>
+        <lem wit="#A #E">éloigne </lem>
+        <rdg wit="#B #C #D">écarte </rdg>
+      </app>
+loin de 
+      <app>
+        <lem wit="#A #B #D #E">moy </lem>
+        <rdg wit="#C">moi </rdg>
+      </app>
+</l>
+
+<l n="326">
+Tous ceux qui dans le cœur me reservent leur 
+      <app>
+        <lem wit="#A #B #D #E">foy. </lem>
+        <rdg wit="#C">foi. </rdg>
+      </app>
+</l>
+
+<l n="327">
+Pour 
+      <app>
+        <lem wit="#A #B #D #E">moy </lem>
+        <rdg wit="#C">moi </rdg>
+      </app>
+depuis un an, qu’un peu 
+      <app>
+        <lem wit="#A #B #E">d’experiance </lem>
+        <rdg wit="#C #D">d’experience </rdg>
+      </app>
+</l>
+
+<l n="328">
+M’a donné de mon sort la triste connoissance, </l>
+
+<l n="329">
+Que vois-je autour de 
+      <app>
+        <lem wit="#A #B #D #E">moy, </lem>
+        <rdg wit="#C">moi, </rdg>
+      </app>
+que des Amis vendus </l>
+
+<l n="330">
+Qui sont de tous mes pas les témoins 
+      <app>
+        <lem wit="#A #E">assidus&#160;? </lem>
+        <rdg wit="#B #C #D">assidus, </rdg>
+      </app>
+</l>
+
+<l n="331">
+Qui choisis par Neron pour ce commerce infame </l>
+
+<l n="332">
+Trafiquent avec 
+      <app>
+        <lem wit="#A #B #D #E">luy </lem>
+        <rdg wit="#C">lui </rdg>
+      </app>
+des secrets de mon ame&#160;? </l>
+
+<l n="333">
+
+      <app>
+        <lem wit="#A #B #D #E">Quoy </lem>
+        <rdg wit="#C">Quoi </rdg>
+      </app>
+qu’il en soit, Narcisse, on me vend tous les jours. </l>
+
+<l n="334">
+Il 
+      <app>
+        <lem wit="#A #E">prevoit </lem>
+        <rdg wit="#B #C #D">prévoit </rdg>
+      </app>
+mes desseins, il entend mes discours. </l>
+
+<l n="335">
+Comme 
+      <app>
+        <lem wit="#A #B #D #E">toy </lem>
+        <rdg wit="#C">toi </rdg>
+      </app>
+dans mon cœur il sçait ce qui se passe. </l>
+
+<l n="336.1">
+Que t’en 
+      <app>
+        <lem wit="#A #E">semble </lem>
+        <rdg wit="#B #C #D">semble, </rdg>
+      </app>
+Narcisse&#160;? </l>
+    </sp>
+    <sp>
+      <speaker>NARCISSE.</speaker>
+<l n="336.2">
+
+      <app>
+        <lem wit="#A #E">Ah&#160;! </lem>
+        <rdg wit="#B #C #D">Ah&#160;? </rdg>
+      </app>
+Quelle ame 
+      <app>
+        <lem wit="#A #B #D #E">assez </lem>
+        <rdg wit="#C">assés </rdg>
+      </app>
+basse... </l>
+<l n="337">
+C’est à vous de choisir des 
+      <app>
+        <lem wit="#A #C #D #E">Confidens </lem>
+        <rdg wit="#B">Confidents </rdg>
+      </app>
+discrets, </l>
+
+<l n="338">
+Seigneur, &amp; de ne pas prodiguer vos secrets. </l>
+
+    </sp>
+    <sp>
+      <speaker>BRITANNICUS.</speaker>
+<l n="339">
+Narcisse, tu dis 
+      <app>
+        <lem wit="#A #B #D #E">vray. </lem>
+        <rdg wit="#C">vrai. </rdg>
+      </app>
+Mais cette défiance </l>
+
+<l n="340">
+Est toûjours d’un grand 
+      <app>
+        <lem wit="#A #D #E">cœur </lem>
+        <rdg wit="#B #C">Cœur </rdg>
+      </app>
+la derniere 
+      <app>
+        <lem wit="#A #E">science, </lem>
+        <rdg wit="#B #C #D">science. </rdg>
+      </app>
+</l>
+
+<l n="341">
+On le trompe long-temps. Mais enfin je te 
+      <app>
+        <lem wit="#A #B #D #E">croy. </lem>
+        <rdg wit="#C">croi. </rdg>
+      </app>
+</l>
+
+<l n="342">
+Ou plûtost je 
+      <app>
+        <lem wit="#A #B #E">fay </lem>
+        <rdg wit="#C">fai </rdg>
+        <rdg wit="#D">fais </rdg>
+      </app>
+vœu de ne croire que 
+      <app>
+        <lem wit="#A #B #D #E">toy. </lem>
+        <rdg wit="#C">toi. </rdg>
+      </app>
+</l>
+
+<l n="343">
+Mon Pere, il m’en souvient, m’assura de ton zele. </l>
+
+<l n="344">
+Seul de ses Affranchis tu m’es toûjours 
+      <app>
+        <lem wit="#A #E">fidelle. </lem>
+        <rdg wit="#B #C #D">fidele. </rdg>
+      </app>
+</l>
+
+<l n="345">
+Tes yeux sur ma conduite incessamment ouverts </l>
+
+<l n="346">
+M’ont sauvé 
+      <app>
+        <lem wit="#A #B #D #E">jusqu’icy </lem>
+        <rdg wit="#C">jusqu’ici </rdg>
+      </app>
+de mille écueils couverts. </l>
+
+<l n="347">
+Va donc voir si le bruit de ce nouvel orage </l>
+
+<l n="348">
+Aura de nos Amis excité le courage. </l>
+
+<l n="349">
+Examine leurs yeux. Observe leurs discours. </l>
+
+<l n="350">
+
+      <app>
+        <lem wit="#A #B #D #E">Voy </lem>
+        <rdg wit="#C">Voi </rdg>
+      </app>
+si j’en puis attendre un 
+      <app>
+        <lem wit="#A #B #C #E">fidelle </lem>
+        <rdg wit="#D">fidele </rdg>
+      </app>
+secours. </l>
+
+<l n="351">
+Sur&#160;tout dans ce Palais remarque avec adresse </l>
+
+<l n="352">
+Avec quel soin Neron fait garder la Princesse. </l>
+
+<l n="353">
+
+      <app>
+        <lem wit="#A #B #E">Sache </lem>
+        <rdg wit="#C #D">Sçache </rdg>
+      </app>
+si du peril ses beaux yeux sont remis, </l>
+
+<l n="354">
+Et si son entretien m’est encore permis. </l>
+
+<l n="355">
+Cependant de Neron je vais trouver la 
+      <app>
+        <lem wit="#A #E">mere </lem>
+        <rdg wit="#B #C #D">Mere </rdg>
+      </app>
+</l>
+
+<l n="356">
+
+      <app>
+        <lem wit="#A #B #D #E">Chez </lem>
+        <rdg wit="#C">Chés </rdg>
+      </app>
+Pallas comme 
+      <app>
+        <lem wit="#A #B #D #E">toy </lem>
+        <rdg wit="#C">toi </rdg>
+      </app>
+
+      <app>
+        <lem wit="#A #B #E">l’Affranchy </lem>
+        <rdg wit="#C #D">l’Affranchi </rdg>
+      </app>
+de mon 
+      <app>
+        <lem wit="#A #E">pere. </lem>
+        <rdg wit="#B #C #D">Pere. </rdg>
+      </app>
+</l>
+
+<l n="357">
+Je vais la voir, 
+      <app>
+        <lem wit="#A #B #D #E">l’aigrir, </lem>
+        <rdg wit="#C">l’aigrir. </rdg>
+      </app>
+la suivre, &amp; s’il se peut </l>
+
+<l n="358">
+M’engager sous son nom plus loin qu’elle ne veut. </l>
+
+      <stage type="stage-direction">
+
+      <app>
+        <lem wit="#A #E">(lacune) </lem>
+        <rdg wit="#B #C #D">Fin&#160;du&#160;premier&#160;Acte. </rdg>
+      </app>
+      </stage>
+
+</sp>
+</div>
+</body></text>
+</TEI>

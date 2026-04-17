@@ -1,0 +1,447 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0">
+  <teiHeader>
+    <fileDesc>
+      <titleStmt>
+        <title>La Thébaïde ou les frères ennemis</title>
+        <author>Jean Racine</author>
+        <editor>Claire Fourquet-Gracieux</editor>
+      </titleStmt>
+      <publicationStmt>
+        <publisher>Presses de l'Université de Rouen et du Havre</publisher>
+        <pubPlace>Rouen</pubPlace>
+       <date>13 juillet 2025</date>
+      </publicationStmt>
+      <sourceDesc>
+        <p>généré par Ekdosis-TEI Studio – Acte 1, Scène 1</p>
+      </sourceDesc>
+    </fileDesc>
+  </teiHeader>
+  <text>
+    <body>
+<div type="act" n="1">
+    <head><app>
+        <lem wit="#A #B #C #E">ACTE I. </lem>
+        <rdg wit="#D">ACTE PREMIER. </rdg>
+      </app></head>
+  <div type="scene" n="1">
+    <head>SCENE PREMIERE.</head>
+    <stage type='personnages'><app>
+        <lem wit="#C #D #E">JOCASTE, OLYMPE. </lem>
+        <rdg wit="#A">IOCASTE, OLYMPE. </rdg>
+        <rdg wit="#B">IOCASTE, OLYMPE.. </rdg>
+      </app></stage>
+    <sp>
+      <speaker><app>
+        <lem wit="#E">JOCASTE </lem>
+        <rdg wit="#A">IOCASTE </rdg>
+        <rdg wit="#B #C">IOCASTE. </rdg>
+        <rdg wit="#D">JOCASTE. </rdg>
+      </app></speaker>
+<l n="1">
+ILs sont sortis, Olympe&#160;? Ah mortelles douleurs&#160;! </l>
+
+<l n="2">
+
+      <app>
+        <lem wit="#B #C #D #E">Qu’un </lem>
+        <rdg wit="#A">Qv’vn </rdg>
+      </app>
+moment de repos me va couster de 
+      <app>
+        <lem wit="#A #D #E">pleurs&#160;! </lem>
+        <rdg wit="#B #C">pleurs, </rdg>
+      </app>
+</l>
+
+<l n="3">
+Mes yeux depuis six mois estoient 
+      <app>
+        <lem wit="#B #C #D #E">ouverts </lem>
+        <rdg wit="#A">ouuerts </rdg>
+      </app>
+aux 
+      <app>
+        <lem wit="#A #E">larmes, </lem>
+        <rdg wit="#B">larmes&#160;! </rdg>
+        <rdg wit="#C">larmes&#160;? </rdg>
+        <rdg wit="#D">larmes&#160;; </rdg>
+      </app>
+</l>
+
+<l n="4">
+Et le sommeil les ferme en de telles allarmes&#160;? </l>
+
+<l n="5">
+
+      <app>
+        <lem wit="#E">Il&#160;devoit&#160;bien&#160;plutost </lem>
+        <rdg wit="#A">Il&#160;deuoit&#160;bien&#160;plutost </rdg>
+        <rdg wit="#B #C">Il&#160;devoit&#160;bien&#160;plûtost </rdg>
+        <rdg wit="#D">Puisse&#160;plûtost&#160;la&#160;mort </rdg>
+      </app>
+les fermer pour jamais, </l>
+
+<l n="6">
+
+      <app>
+        <lem wit="#B #C #E">Que&#160;de&#160;favoriser </lem>
+        <rdg wit="#A">Que&#160;de&#160;fauoriser </rdg>
+        <rdg wit="#D">Et&#160;m’empescher&#160;de&#160;voir </rdg>
+      </app>
+le plus noir des forfaits. </l>
+
+<l n="7.1">
+Mais en 
+      <app>
+        <lem wit="#A #E">sont&#160;ils </lem>
+        <rdg wit="#B #C #D">sont-ils </rdg>
+      </app>
+aux mains&#160;? </l>
+    </sp>
+    <sp>
+      <speaker>OLYMPE.</speaker>
+<l n="7.2">
+Du haut de la muraille, </l>
+<l n="8">
+
+      <app>
+        <lem wit="#B #C #D #E">Je </lem>
+        <rdg wit="#A">Ie </rdg>
+      </app>
+les ay veûs déja tous rangez en 
+      <app>
+        <lem wit="#A #B #C #E">bataille, </lem>
+        <rdg wit="#D">bataille. </rdg>
+      </app>
+</l>
+
+<l n="9">
+
+      <app>
+        <lem wit="#A #E">I’ay </lem>
+        <rdg wit="#B #C #D">J’ay </rdg>
+      </app>
+veu déja le fer briller de toutes parts, </l>
+
+<l n="10">
+Et pour vous 
+      <app>
+        <lem wit="#B #C #D #E">avertir, </lem>
+        <rdg wit="#A">auertir, </rdg>
+      </app>
+j’ay quitté les 
+      <app>
+        <lem wit="#A #E">rempars. </lem>
+        <rdg wit="#B #C #D">remparts. </rdg>
+      </app>
+</l>
+
+<l n="11">
+
+      <app>
+        <lem wit="#A #E">I’ay </lem>
+        <rdg wit="#B #C #D">J’ay </rdg>
+      </app>
+veu le fer en main Etéocle 
+      <app>
+        <lem wit="#A #E">luy&#160;mesme&#160;; </lem>
+        <rdg wit="#B #C">luy-mesme, </rdg>
+        <rdg wit="#D">luy-même, </rdg>
+      </app>
+</l>
+
+<l n="12">
+Il marche des premiers, &amp; 
+      <app>
+        <lem wit="#B #C #D #E">d’une </lem>
+        <rdg wit="#A">d’vne </rdg>
+      </app>
+ardeur 
+      <app>
+        <lem wit="#A #E">extréme </lem>
+        <rdg wit="#B #C #D">extrême, </rdg>
+      </app>
+</l>
+
+<l n="13">
+Il montre aux plus hardis à 
+      <app>
+        <lem wit="#B #C #D #E">braver </lem>
+        <rdg wit="#A">brauer </rdg>
+      </app>
+le danger. </l>
+
+    </sp>
+    <sp>
+      <speaker><app>
+        <lem wit="#C #D #E">JOCASTE. </lem>
+        <rdg wit="#A #B">IOCASTE. </rdg>
+      </app></speaker>
+<l n="14">
+N’en doutons plus, Olympe, ils se vont 
+      <app>
+        <lem wit="#A #E">égorger, </lem>
+        <rdg wit="#B #C #D">égorger. </rdg>
+      </app>
+</l>
+
+      <stage type="stage-direction">
+
+      <app>
+        <lem wit="#A #E">à&#160;vn&#160;Page. </lem>
+        <rdg wit="#B #C #D">(lacune) </rdg>
+      </app>
+      </stage>
+
+<l n="15">
+      <app>
+        <lem wit="#E">Que l’on aille au plus viste avertir la Princesse,</lem>
+        <rdg wit="#A">Que l’on aille au plus viste auertir la Princesse,</rdg>
+        <rdg wit="#B">Que l’on coure avertir &amp; haster la Princesse,</rdg>
+        <rdg wit="#C">Que l’on coure avertir &amp; haster la Princesse,</rdg>
+        <rdg wit="#D">Que l’on coure avertir &amp; haster la Princesse,</rdg>
+      </app>
+</l>
+
+<l n="16">
+
+      <app>
+        <lem wit="#B #C #D #E">Je </lem>
+        <rdg wit="#A">Ie </rdg>
+      </app>
+l’attens. 
+      <app>
+        <lem wit="#B #C #D #E">Juste </lem>
+        <rdg wit="#A">Iuste </rdg>
+      </app>
+Ciel&#160;! 
+      <app>
+        <lem wit="#A #E">soustenez </lem>
+        <rdg wit="#B #C #D">soûtenez </rdg>
+      </app>
+ma foiblesse, </l>
+
+<l n="17">
+Il 
+      <app>
+        <lem wit="#A #B #C #E">faut,&#160;il&#160;faut&#160;courir </lem>
+        <rdg wit="#D">faut&#160;courir,&#160;Olympe, </rdg>
+      </app>
+
+      <app>
+        <lem wit="#A #B #E">apres </lem>
+        <rdg wit="#C #D">aprés </rdg>
+      </app>
+ces inhumains, </l>
+
+<l n="18">
+Il les faut separer, ou mourir par leurs mains. </l>
+
+<l n="19">
+Nous 
+      <app>
+        <lem wit="#A #B #D #E">voicy </lem>
+        <rdg wit="#C">voici </rdg>
+      </app>
+donc, 
+      <app>
+        <lem wit="#A #B #C #E">Olympe, </lem>
+        <rdg wit="#D">helas&#160;! </rdg>
+      </app>
+à ce 
+      <app>
+        <lem wit="#A #E">iour </lem>
+        <rdg wit="#B #C #D">jour </rdg>
+      </app>
+
+      <app>
+        <lem wit="#A #E">détestable </lem>
+        <rdg wit="#B #C #D">detestable </rdg>
+      </app>
+</l>
+
+<l n="20">
+Dont la seule frayeur me rendoit 
+      <app>
+        <lem wit="#A #E">miserable, </lem>
+        <rdg wit="#B #C #D">miserable. </rdg>
+      </app>
+</l>
+
+<l n="21">
+
+      <app>
+        <lem wit="#A #E">Ny </lem>
+        <rdg wit="#B #C #D">Ni </rdg>
+      </app>
+prieres, 
+      <app>
+        <lem wit="#A #E">ny </lem>
+        <rdg wit="#B #C #D">ni </rdg>
+      </app>
+
+      <app>
+        <lem wit="#A #E">pleurs, </lem>
+        <rdg wit="#B #C #D">pleurs </rdg>
+      </app>
+ne m’ont de rien 
+      <app>
+        <lem wit="#B #E">servy, </lem>
+        <rdg wit="#A">seruy, </rdg>
+        <rdg wit="#C #D">servi, </rdg>
+      </app>
+</l>
+
+<l n="22">
+Et le 
+      <app>
+        <lem wit="#A #E">couroux </lem>
+        <rdg wit="#B #C #D">courroux </rdg>
+      </app>
+du sort vouloit estre 
+      <app>
+        <lem wit="#B #E">assouvy. </lem>
+        <rdg wit="#A">assouuy. </rdg>
+        <rdg wit="#C #D">assouvi. </rdg>
+      </app>
+</l>
+
+<l n="23">
+O 
+      <app>
+        <lem wit="#A #E">toy,&#160;qui&#160;que&#160;tu&#160;sois </lem>
+        <rdg wit="#B #C">toy,&#160;qui&#160;que&#160;tu&#160;sois, </rdg>
+        <rdg wit="#D">toy,&#160;Soleil,&#160;ô&#160;toy, </rdg>
+      </app>
+qui rens le jour au monde, </l>
+
+<l n="24">
+Que ne 
+      <app>
+        <lem wit="#A #E">l’as&#160;tu </lem>
+        <rdg wit="#B #C #D">l’as-tu </rdg>
+      </app>
+laissé dans 
+      <app>
+        <lem wit="#B #C #D #E">une </lem>
+        <rdg wit="#A">vne </rdg>
+      </app>
+nuit profonde&#160;? </l>
+
+<l n="25">
+A de si noirs forfaits, prestes-tu tes rayons, </l>
+
+<l n="26">
+Et 
+      <app>
+        <lem wit="#A #E">peus-tu </lem>
+        <rdg wit="#B #C #D">peux-tu </rdg>
+      </app>
+sans horreur voir ce que nous voyons&#160;? </l>
+
+<l n="27">
+Mais ces Monstres, helas&#160;! ne 
+      <app>
+        <lem wit="#E">t’espouvantent </lem>
+        <rdg wit="#A">t’espouuantent </rdg>
+        <rdg wit="#B #C #D">t’épouvantent </rdg>
+      </app>
+
+      <app>
+        <lem wit="#A #D #E">gueres, </lem>
+        <rdg wit="#B #C">gueres. </rdg>
+      </app>
+</l>
+
+<l n="28">
+
+      <app>
+        <lem wit="#A #B #C #E">Le&#160;seul&#160;sang&#160;de&#160;Lajus </lem>
+        <rdg wit="#D">La&#160;race&#160;de&#160;Lajus </rdg>
+      </app>
+les a rendus 
+      <app>
+        <lem wit="#A #E">vulgaires&#160;; </lem>
+        <rdg wit="#B #C #D">vulgaires. </rdg>
+      </app>
+</l>
+
+<l n="29">
+Tu 
+      <app>
+        <lem wit="#A #E">peus </lem>
+        <rdg wit="#B #C #D">peux </rdg>
+      </app>
+voir sans frayeur les crimes de mes Fils, </l>
+
+<l n="30">
+
+      <app>
+        <lem wit="#A #B #E">Apres </lem>
+        <rdg wit="#C #D">Aprés </rdg>
+      </app>
+ceux que le Pere &amp; la Mere ont commis&#160;: </l>
+
+<l n="31">
+Tu ne t’estonnes pas si mes Fils sont perfides, </l>
+
+<l n="32">
+S’ils sont tous deux méchans, &amp; s’ils sont parricides, </l>
+
+<l n="33">
+Tu sçais qu’ils sont sortis 
+      <app>
+        <lem wit="#B #C #D #E">d’un </lem>
+        <rdg wit="#A">d’vn </rdg>
+      </app>
+sang incestueux, </l>
+
+<l n="34">
+Et tu t’estonnerois s’ils estoient vertueux. </l>
+
+<l n="35">
+      <app>
+        <lem wit="#E">Ce sang en leur donnant la lumiere céleste,</lem>
+        <rdg wit="#A">Ce sang en leur donnant la lumiere céleste,</rdg>
+        <rdg wit="#B">(lacune)</rdg>
+        <rdg wit="#C">(lacune)</rdg>
+        <rdg wit="#D">(lacune)</rdg>
+      </app>
+</l>
+
+<l n="36">
+      <app>
+        <lem wit="#E">Leur donna pour le crime une pente funeste,</lem>
+        <rdg wit="#A">Leur donna pour le crime vne pente funeste,</rdg>
+        <rdg wit="#B">(lacune)</rdg>
+        <rdg wit="#C">(lacune)</rdg>
+        <rdg wit="#D">(lacune)</rdg>
+      </app>
+</l>
+
+<l n="37">
+      <app>
+        <lem wit="#E">Et leurs cœurs infectez de ce fatal poison,</lem>
+        <rdg wit="#A">Et leurs cœurs infectez de ce fatal poison,</rdg>
+        <rdg wit="#B">(lacune)</rdg>
+        <rdg wit="#C">(lacune)</rdg>
+        <rdg wit="#D">(lacune)</rdg>
+      </app>
+</l>
+
+<l n="38">
+      <app>
+        <lem wit="#E">S’ouvrirent à la haine avant qu’à la raison.</lem>
+        <rdg wit="#A">S’ouurirent à la haine auant qu’à la raison.</rdg>
+        <rdg wit="#B">(lacune)</rdg>
+        <rdg wit="#C">(lacune)</rdg>
+        <rdg wit="#D">(lacune)</rdg>
+      </app>
+</l>
+
+</sp>
+</div>
+</div>
+</body></text>
+</TEI>

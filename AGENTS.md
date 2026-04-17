@@ -34,6 +34,9 @@ When making decisions, use these sources in this order:
 5. `docs/ETS_SITE_BUILDER.md` and publication-specific docs  
    These define the future static publication layer and how dramatic TEI must coexist with other XML editorial sources such as Métopes notices.
 
+6. `docs/SITE_BUILDER_TARGET.md`  
+   This file defines the next publication target: richer editorial structure, visual quality requirements, legacy inspiration, and phased implementation priorities.
+
 ## Immediate objective
 
 Build a minimal, well-tested Python core that can:
@@ -78,6 +81,9 @@ UI work and publication work are allowed **only as separate layers on top of the
   - collation
   - TEI generation
   - validation
+  - application/services
+  - UI
+  - publication rendering
 - Use typed Python
 - Prefer dataclasses for domain objects
 - Keep functions small and testable
@@ -102,44 +108,26 @@ These two sources must be treated as distinct editorial objects and must not be 
 
 The site builder should eventually be able to:
 - associate one play TEI with one notice TEI,
-- extract metadata from both,
+- support one general notice independent from the plays,
+- extract metadata from all editorial sources,
 - generate navigation automatically,
-- publish a static site without manual menu maintenance.
+- publish a static site without manual menu maintenance,
+- persist and reload publication configuration from the UI.
 
+## Visual publication requirements
 
+ETS Site Builder is no longer allowed to settle for purely functional placeholder rendering.
 
-## Métopes notice handling — current documented subset
+When publication pages are implemented or revised, contributors must pay attention not only to correctness but also to **editorial legibility, hierarchy, sobriety, and elegance**.
 
-For the next ETS Site Builder milestones, Métopes support must stay deliberately narrow and explicit.
+The intended public is not a technical audience alone. It includes literary scholars, editors, readers accustomed to high-quality critical editions, and users who will immediately perceive visual awkwardness, clumsy spacing, weak hierarchy, or degraded typographic rendering.
 
-Treat the following two kinds of Métopes inputs as valid and important fixtures:
-
-1. a **master volume file** with `text type="book"`, hierarchical `group` elements, and optional `xi:include` references to component files;
-2. a **standalone notice or chapter file** such as an introduction, with a `text` node, optional `front`, a `titlePage`, a `body`, paragraphs, inline highlighting, and footnotes.
-
-For the first implementation stages of notice rendering, prioritize support for the following subset only:
-- optional `xi:include` resolution,
-- hierarchical `group` extraction,
-- `head` and `title` extraction,
-- `front/titlePage`,
-- `body/p`,
-- inline `hi`,
-- footnotes or notes,
-- minimal structured HTML rendering.
-
-Do not attempt full generic Métopes coverage from the start.
-
-Fixture policy for Métopes material:
-- `fixtures/metopes/minimal/` should contain very small synthetic fixtures used for stable, fast tests;
-- `fixtures/metopes/realistic/` should contain real or lightly adapted Métopes examples used for integration-level tests.
-
-Association between a dramatic TEI play and a Métopes notice must not be treated as magical inference.
-In the first implementations, prefer one of:
-- explicit configuration,
-- a stable shared slug,
-- a documented filename convention.
-
-Do not invent complex automatic matching heuristics unless they are explicitly specified in the fixtures or docs.
+Therefore:
+- reuse the real ETS XML -> HTML rendering engines when they already exist;
+- do not replace them with poor preview-like approximations;
+- do not accept a layout that is merely “working” if it visibly harms reading quality;
+- treat navigation, spacing, hierarchy, and typographic rhythm as part of correctness for the publication layer;
+- use legacy publication outputs as inspiration, not as architecture to copy.
 
 ## Expected repository structure
 
@@ -148,11 +136,15 @@ Do not invent complex automatic matching heuristics unless they are explicitly s
 - `src/ets/collation/` for tokenization and variant alignment
 - `src/ets/tei/` for TEI generation
 - `src/ets/validation/` for structural and XML validation
+- `src/ets/application/` for service-layer entry points
+- `src/ets/ui/` for desktop or web UI glue
 - `src/ets/site_builder/` for static publication services
+- `src/ets/tools/` for autonomous utility tools
 - `tests/` for pytest test suite
 - `fixtures/` for real inputs and expected outputs
-- `legacy/` for archived historical code
+- `legacy/` for archived historical code and publication references
 - `docs/ETS_SITE_BUILDER.md` for publication architecture
+- `docs/SITE_BUILDER_TARGET.md` for the next publication target and phased roadmap
 
 ## Testing rules
 
@@ -161,6 +153,7 @@ Do not invent complex automatic matching heuristics unless they are explicitly s
 - Add regression tests for every bug fixed
 - The first target is to pass the stable fixture exactly or with a documented XML normalization strategy
 - Keep unit tests and integration tests separate
+- For publication work, include structural HTML assertions and, where appropriate, targeted visual/UX regression checks
 
 ## TEI principles
 
@@ -184,6 +177,14 @@ Do not extend the old architecture.
 Do not copy large chunks blindly.
 Prefer reimplementation from specification and fixtures.
 
+Legacy publication outputs and legacy deployed sites may, however, be used as **visual and editorial reference material**.
+They are valuable for:
+- layout hierarchy,
+- menu logic,
+- collapsible navigation ideas,
+- color and typographic tone,
+- identifying what a literary editorial public will expect.
+
 ## How to work
 
 When implementing:
@@ -192,9 +193,11 @@ When implementing:
 3. implement the smallest coherent slice
 4. add or update tests
 5. keep the code modular
+6. for publication/UI work, verify the actual reading experience, not just machine correctness
 
 When uncertain, prefer:
 - fixture behavior
 - explicit domain modeling
 - simplicity
 - deterministic output
+- existing ETS rendering engines over approximations

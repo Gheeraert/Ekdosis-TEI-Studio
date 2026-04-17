@@ -1,0 +1,388 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0">
+  <teiHeader>
+    <fileDesc>
+      <titleStmt>
+        <title>Britannicus</title>
+        <author>Jean Racine</author>
+        <editor>Caroline Labrune</editor>
+      </titleStmt>
+      <publicationStmt>
+        <publisher>Presses de l'Université de Rouen et du Havre</publisher>
+        <pubPlace>Rouen</pubPlace>
+       <date>31 juillet 2025</date>
+      </publicationStmt>
+      <sourceDesc>
+        <p>généré par Ekdosis-TEI Studio – Acte 5, Scène 9</p>
+      </sourceDesc>
+    </fileDesc>
+  </teiHeader>
+  <text>
+    <body>
+  <div type="scene" n="9">
+    <head>SCENE DERNIERE.</head>
+    <stage type='personnages'>AGRIPPINE, BURRHUS, ALBINE.</stage>
+    <sp>
+      <speaker>ALBINE.</speaker>
+<l n="1737">
+AH Madame&#160;! ah Seigneur&#160;! 
+      <app>
+        <lem wit="#A #B #D #E">Courez </lem>
+        <rdg wit="#C">Courés </rdg>
+      </app>
+vers 
+      <app>
+        <lem wit="#A #B #E">l’Empereur&#160;; </lem>
+        <rdg wit="#C #D">l’Empereur. </rdg>
+      </app>
+</l>
+
+<l n="1738">
+
+      <app>
+        <lem wit="#A #B #D #E">Venez </lem>
+        <rdg wit="#C">Venés </rdg>
+      </app>
+sauver Cesar de sa propre fureur. </l>
+
+<l n="1739">
+Il se voit pour jamais separé de Junie. </l>
+
+    </sp>
+    <sp>
+      <speaker>AGRIPPINE.</speaker>
+<l n="1740">
+
+      <app>
+        <lem wit="#A #B #D #E">Quoy </lem>
+        <rdg wit="#C">Quoi </rdg>
+      </app>
+Junie elle-mesme a terminé sa vie&#160;? </l>
+
+    </sp>
+    <sp>
+      <speaker>ALBINE.</speaker>
+<l n="1741">
+Pour accabler Cesar d’un eternel 
+      <app>
+        <lem wit="#A #B #E">ennuy, </lem>
+        <rdg wit="#C #D">ennui, </rdg>
+      </app>
+</l>
+
+<l n="1742">
+Madame, sans mourir elle est morte pour 
+      <app>
+        <lem wit="#A #B #D #E">luy. </lem>
+        <rdg wit="#C">lui. </rdg>
+      </app>
+</l>
+
+<l n="1743">
+Vous 
+      <app>
+        <lem wit="#A #B #D #E">sçavez </lem>
+        <rdg wit="#C">sçavés </rdg>
+      </app>
+de ces lieux comme elle s’est 
+      <app>
+        <lem wit="#A #E">ravie&#160;; </lem>
+        <rdg wit="#B #C #D">ravie. </rdg>
+      </app>
+</l>
+
+<l n="1744">
+Elle a feint de passer 
+      <app>
+        <lem wit="#A #B #D #E">chez </lem>
+        <rdg wit="#C">chés </rdg>
+      </app>
+la triste Octavie. </l>
+
+<l n="1745">
+Mais bien-tost elle a pris des chemins 
+      <app>
+        <lem wit="#A #B #D #E">écartez, </lem>
+        <rdg wit="#C">écartés, </rdg>
+      </app>
+</l>
+
+<l n="1746">
+Où mes yeux ont 
+      <app>
+        <lem wit="#A #B #E">suivy </lem>
+        <rdg wit="#C #D">suivi </rdg>
+      </app>
+ses pas 
+      <app>
+        <lem wit="#A #B #D #E">precipitez. </lem>
+        <rdg wit="#C">precipités. </rdg>
+      </app>
+</l>
+
+<l n="1747">
+Des portes du Palais elle sort éperduë. </l>
+
+<l n="1748">
+D’abord elle a d’Auguste apperceu la statuë&#160;; </l>
+
+<l n="1749">
+Et 
+      <app>
+        <lem wit="#A #B #C #E">moüillant </lem>
+        <rdg wit="#D">mouillant </rdg>
+      </app>
+de ses pleurs le marbre de ses 
+      <app>
+        <lem wit="#A #E">pieds </lem>
+        <rdg wit="#B #D">piez </rdg>
+        <rdg wit="#C">piés </rdg>
+      </app>
+</l>
+
+<l n="1750">
+Que de ses bras pressans elle tenoit 
+      <app>
+        <lem wit="#A #B #E">liez&#160;; </lem>
+        <rdg wit="#C">liés&#160;; </rdg>
+        <rdg wit="#D">liez&#160;: </rdg>
+      </app>
+</l>
+
+<l n="1751">
+<hi rend="italic">Prince, par ces genoux</hi> , dit-elle, 
+      <app>
+        <lem wit="#A #B #E"><hi rend="italic">que j’embrasse,</hi></lem>
+        <rdg wit="#C"><hi rend="italic">que j’embrasse.</hi></rdg>
+        <rdg wit="#D"><hi rend="italic">que j’embrasse&#160;:</hi></rdg>
+      </app>
+</l>
+
+<l n="1752">
+<hi rend="italic">Protege en ce moment le reste de ta Race.</hi> </l>
+
+<l n="1753">
+<hi rend="italic">Rome dans ton Palais vient de voir immoler</hi> </l>
+
+<l n="1754">
+
+      <app>
+        <lem wit="#A #B #C #E"><hi rend="italic">Le seul de tes Neveux, qui te pust ressembler.</hi></lem>
+        <rdg wit="#D"><hi rend="italic">Le seul de tes Neveux, qui te pust ressembler,</hi></rdg>
+      </app>
+</l>
+
+<l n="1755">
+
+      <app>
+        <lem wit="#A #B #E"><hi rend="italic">On veut apres sa mort que je luy sois parjure.</hi></lem>
+        <rdg wit="#C"><hi rend="italic">On veut apres sa mort que je lui sois parjure.</hi></rdg>
+        <rdg wit="#D"><hi rend="italic">On veut aprés sa mort que je luy sois parjure.</hi></rdg>
+      </app>
+</l>
+
+<l n="1756">
+
+      <app>
+        <lem wit="#A #B #D #E"><hi rend="italic">Mais pour luy conserver une foy toûjours pure,</hi></lem>
+        <rdg wit="#C"><hi rend="italic">Mais pour lui conserver une foi toûjours pure,</hi></rdg>
+      </app>
+</l>
+
+<l n="1757">
+
+      <app>
+        <lem wit="#A #E"><hi rend="italic">Prince, je me dèvouë à ces Dieux immortels,</hi></lem>
+        <rdg wit="#B"><hi rend="italic">Prince, je me dévouë à ces Dieux immortels,</hi></rdg>
+        <rdg wit="#C #D"><hi rend="italic">Prince, je me devouë à ces Dieux immortels,</hi></rdg>
+      </app>
+</l>
+
+<l n="1758">
+<hi rend="italic">Dont ta vertu t’a fait partager les Autels.</hi> </l>
+
+<l n="1759">
+Le Peuple cependant que ce spectacle estonne, </l>
+
+<l n="1760">
+Vole de toutes parts, se presse, l’environne, </l>
+
+<l n="1761">
+S’attendrit à ses pleurs, &amp; plaignant son 
+      <app>
+        <lem wit="#A #B #D #E">ennuy </lem>
+        <rdg wit="#C">ennui </rdg>
+      </app>
+</l>
+
+<l n="1762">
+D’une commune voix la prend sous son 
+      <app>
+        <lem wit="#A #B #D #E">appuy. </lem>
+        <rdg wit="#C">appui. </rdg>
+      </app>
+</l>
+
+<l n="1763">
+Ils la 
+      <app>
+        <lem wit="#A #B #C #E">meinent </lem>
+        <rdg wit="#D">menent </rdg>
+      </app>
+au Temple, où depuis tant d’années </l>
+
+<l n="1764">
+Au culte des Autels nos Vierges destinées </l>
+
+<l n="1765">
+Gardent fidellement le dépost 
+      <app>
+        <lem wit="#A #B #E">pretieux </lem>
+        <rdg wit="#C #D">precieux </rdg>
+      </app>
+</l>
+
+<l n="1766">
+Du Feu toûjours 
+      <app>
+        <lem wit="#A #E">ardant </lem>
+        <rdg wit="#B #C #D">ardent </rdg>
+      </app>
+qui brûle pour nos Dieux. </l>
+
+<l n="1767">
+Cesar les voit partir sans oser les distraire. </l>
+
+<l n="1768">
+Narcisse plus 
+      <app>
+        <lem wit="#A #B #E">hardy </lem>
+        <rdg wit="#C #D">hardi </rdg>
+      </app>
+s’empresse pour 
+      <app>
+        <lem wit="#A #B #D #E">luy </lem>
+        <rdg wit="#C">lui </rdg>
+      </app>
+plaire. </l>
+
+<l n="1769">
+Il vole vers Junie, &amp; sans 
+      <app>
+        <lem wit="#A #B #C #E">s’épouvanter </lem>
+        <rdg wit="#D">s’épouvanter. </rdg>
+      </app>
+</l>
+
+<l n="1770">
+D’une profane main commence à l’arrester. </l>
+
+<l n="1771">
+De mille coups mortels son audace est punie. </l>
+
+<l n="1772">
+Son infidelle sang 
+      <app>
+        <lem wit="#A #E">rejallit </lem>
+        <rdg wit="#B">rejaillit </rdg>
+        <rdg wit="#C #D">réjaillit </rdg>
+      </app>
+sur Junie. </l>
+
+<l n="1773">
+Cesar de tant d’objets en mesme temps frappé </l>
+
+<l n="1774">
+Le laisse entre les mains qui l’ont enveloppé. </l>
+
+<l n="1775">
+Il rentre. Chacun fuit son silence farouche. </l>
+
+<l n="1776">
+Le seul nom de Junie échappe de sa bouche. </l>
+
+<l n="1777">
+Il marche sans dessein, ses yeux mal 
+      <app>
+        <lem wit="#A #B #D #E">assurez </lem>
+        <rdg wit="#C">assurés </rdg>
+      </app>
+</l>
+
+<l n="1778">
+N’osent lever au Ciel leurs regards 
+      <app>
+        <lem wit="#A #B #D #E">égarez. </lem>
+        <rdg wit="#C">égarés. </rdg>
+      </app>
+</l>
+
+<l n="1779">
+Et l’on craint, si la nuit jointe à la solitude </l>
+
+<l n="1780">
+Vient de son desespoir aigrir l’inquietude, </l>
+
+<l n="1781">
+Si vous 
+      <app>
+        <lem wit="#A #B #D #E">l’abandonnez </lem>
+        <rdg wit="#C">l’abandonnés </rdg>
+      </app>
+plus long-temps sans secours, </l>
+
+<l n="1782">
+Que sa douleur bien-tost n’attente sur ses jours. </l>
+
+<l n="1783">
+Le temps presse. 
+      <app>
+        <lem wit="#A #B #D #E">Courez. </lem>
+        <rdg wit="#C">Courés. </rdg>
+      </app>
+Il ne faut qu’un caprice. </l>
+
+<l n="1784.1">
+Il se perdroit, 
+      <app>
+        <lem wit="#A #B #E">Madame. </lem>
+        <rdg wit="#C #D">Madame, </rdg>
+      </app>
+</l>
+    </sp>
+    <sp>
+      <speaker>AGRIPPINE.</speaker>
+<l n="1784.2">
+Il se feroit justice. </l>
+<l n="1785">
+Mais Burrhus, allons voir jusqu’où 
+      <app>
+        <lem wit="#B #C #D #E">vont </lem>
+        <rdg wit="#A">võt </rdg>
+      </app>
+ses 
+      <app>
+        <lem wit="#B #C #D #E">transports. </lem>
+        <rdg wit="#A">trãsports. </rdg>
+      </app>
+</l>
+
+<l n="1786">
+Voyons quel changement produiront ses remords, </l>
+
+<l n="1787">
+S’il voudra desormais suivre d’autres maximes. </l>
+
+    </sp>
+    <sp>
+      <speaker>BURRHUS.</speaker>
+<l n="1788">
+Plût aux Dieux que ce fust le dernier de ses crimes&#160;! </l>
+
+      <stage type="stage-direction">
+FIN.       </stage>
+
+</sp>
+</div>
+</body></text>
+</TEI>

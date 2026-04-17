@@ -1,0 +1,314 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0">
+  <teiHeader>
+    <fileDesc>
+      <titleStmt>
+        <title>Britannicus</title>
+        <author>Jean Racine</author>
+        <editor>Caroline Labrune</editor>
+      </titleStmt>
+      <publicationStmt>
+        <publisher>Presses de l'Université de Rouen et du Havre</publisher>
+        <pubPlace>Rouen</pubPlace>
+       <date>30 juillet 2025</date>
+      </publicationStmt>
+      <sourceDesc>
+        <p>généré par Ekdosis-TEI Studio – Acte 3, Scène 5</p>
+      </sourceDesc>
+    </fileDesc>
+  </teiHeader>
+  <text>
+    <body>
+  <div type="scene" n="5">
+    <head>SCENE V.</head>
+    <stage type='personnages'><app>
+        <lem wit="#A #C #D #E">BRITANNICUS, AGRIPPINE, NARCISSE, ALBINE. </lem>
+        <rdg wit="#B">BRITANNICUS, AGRIPPINE NARCISSE, ALBINE. </rdg>
+      </app></stage>
+    <sp>
+      <speaker>BRITANNICUS.</speaker>
+<l n="895">
+NOs ennemis communs ne sont pas invincibles, </l>
+
+<l n="896">
+Madame. Nos mal-heurs trouvent des cœurs sensibles. </l>
+
+<l n="897">
+Vos amis &amp; les 
+      <app>
+        <lem wit="#B #C #D #E">miens </lem>
+        <rdg wit="#A">miẽs </rdg>
+      </app>
+jusqu’alors si secrets, </l>
+
+<l n="898">
+Tandis que nous perdions le temps en vains regrets, </l>
+
+<l n="899">
+
+      <app>
+        <lem wit="#A #B #D #E">Animez </lem>
+        <rdg wit="#C">Animés </rdg>
+      </app>
+du 
+      <app>
+        <lem wit="#A #B #C #E">courroux </lem>
+        <rdg wit="#D">couroux </rdg>
+      </app>
+qu’allume l’injustice </l>
+
+<l n="900">
+Viennent de confier leur douleur à Narcisse. </l>
+
+<l n="901">
+Neron n’est pas encor tranquille possesseur </l>
+
+<l n="902">
+De 
+      <app>
+        <lem wit="#A #C #E">l’Ingrate, </lem>
+        <rdg wit="#B">l’&#160;ngrate, </rdg>
+        <rdg wit="#D">l’Ingrate </rdg>
+      </app>
+qu’il aime au mépris de ma Sœur. </l>
+
+<l n="903">
+Si vous estes 
+      <app>
+        <lem wit="#A #C #D #E">toûjours </lem>
+        <rdg wit="#B">toujours </rdg>
+      </app>
+sensible à son injure, </l>
+
+<l n="904">
+On peut dans son devoir ramener le Parjure. </l>
+
+<l n="905">
+La moitié du Senat s’interesse pour nous. </l>
+
+<l n="906.1">
+Sylla, Pison, Plautus... </l>
+    </sp>
+    <sp>
+      <speaker>AGRIPPINE.</speaker>
+<l n="906.2">
+
+      <app>
+        <lem wit="#A #B #E">Prince </lem>
+        <rdg wit="#C #D">Prince, </rdg>
+      </app>
+que 
+      <app>
+        <lem wit="#A #D #E">dites-vous&#160;? </lem>
+        <rdg wit="#B">dites&#160;vous&#160;? </rdg>
+        <rdg wit="#C">dîtes&#160;vous&#160;? </rdg>
+      </app>
+</l>
+<l n="907">
+Sylla, Pison, Plautus&#160;! Les chefs de la Noblesse&#160;! </l>
+
+    </sp>
+    <sp>
+      <speaker>BRITANNICUS.</speaker>
+<l n="908">
+Madame, je 
+      <app>
+        <lem wit="#A #B #D #E">voy </lem>
+        <rdg wit="#C">voi </rdg>
+      </app>
+bien que ce discours vous blesse, </l>
+
+<l n="909">
+Et que 
+      <app>
+        <lem wit="#A #B #D #E">vostre </lem>
+        <rdg wit="#C">vôtre </rdg>
+      </app>
+
+      <app>
+        <lem wit="#A #B #C #E">courroux </lem>
+        <rdg wit="#D">couroux </rdg>
+      </app>
+tremblant, irresolu, </l>
+
+<l n="910">
+Craint déja d’obtenir tout ce qu’il a voulu. </l>
+
+<l n="911">
+Non, vous 
+      <app>
+        <lem wit="#A #B #D #E">avez </lem>
+        <rdg wit="#C">avés </rdg>
+      </app>
+trop bien 
+      <app>
+        <lem wit="#A #E">estably </lem>
+        <rdg wit="#B">establi </rdg>
+        <rdg wit="#C #D">établi </rdg>
+      </app>
+ma disgrace. </l>
+
+<l n="912">
+D’aucun 
+      <app>
+        <lem wit="#A #B #E">Amy </lem>
+        <rdg wit="#C #D">Ami </rdg>
+      </app>
+pour 
+      <app>
+        <lem wit="#A #B #D #E">moy </lem>
+        <rdg wit="#C">moi </rdg>
+      </app>
+ne 
+      <app>
+        <lem wit="#A #B #D #E">redoutez </lem>
+        <rdg wit="#C">redoutés </rdg>
+      </app>
+l’audace. </l>
+
+<l n="913">
+Il ne m’en reste plus, &amp; vos soins trop prudens </l>
+
+<l n="914">
+Les ont tous 
+      <app>
+        <lem wit="#A #B #D #E">écartez </lem>
+        <rdg wit="#C">écartés </rdg>
+      </app>
+ou seduits dés long-temps. </l>
+
+    </sp>
+    <sp>
+      <speaker>AGRIPPINE.</speaker>
+<l n="915">
+Seigneur, à vos soupçons 
+      <app>
+        <lem wit="#A #B #D #E">donnez </lem>
+        <rdg wit="#C">donnés </rdg>
+      </app>
+moins de 
+      <app>
+        <lem wit="#A #B #E">creance </lem>
+        <rdg wit="#C #D">creance&#160;: </rdg>
+      </app>
+</l>
+
+<l n="916">
+
+      <app>
+        <lem wit="#A #B #E">Nostre </lem>
+        <rdg wit="#C #D">Nôtre </rdg>
+      </app>
+salut depend de 
+      <app>
+        <lem wit="#A #B #E">nostre </lem>
+        <rdg wit="#C #D">nôtre </rdg>
+      </app>
+intelligence. </l>
+
+<l n="917">
+
+      <app>
+        <lem wit="#A #B #D #E">J’ay </lem>
+        <rdg wit="#C">J’ai </rdg>
+      </app>
+promis, il suffit. Malgré vos ennemis </l>
+
+<l n="918">
+Je ne revoque rien de ce que 
+      <app>
+        <lem wit="#A #B #D #E">j’ay </lem>
+        <rdg wit="#C">j’ai </rdg>
+      </app>
+promis. </l>
+
+<l n="919">
+Le coupable Neron fuit en vain ma colere. </l>
+
+<l n="920">
+
+      <app>
+        <lem wit="#A #B #E">Tost </lem>
+        <rdg wit="#C #D">Tôt </rdg>
+      </app>
+ou tard il faudra qu’il entende sa Mere. </l>
+
+<l n="921">
+
+      <app>
+        <lem wit="#A #B #E">J’essayray </lem>
+        <rdg wit="#C">J’essairai </rdg>
+        <rdg wit="#D">J’essairay </rdg>
+      </app>
+tour à tour la force &amp; la douceur. </l>
+
+<l n="922">
+
+      <app>
+        <lem wit="#B #C #D #E">Ou </lem>
+        <rdg wit="#A">Où </rdg>
+      </app>
+
+      <app>
+        <lem wit="#A #B #E">moy-mesme </lem>
+        <rdg wit="#C">moi-même </rdg>
+        <rdg wit="#D">moy-même </rdg>
+      </app>
+avec 
+      <app>
+        <lem wit="#A #B #E">moy </lem>
+        <rdg wit="#C #D">moi </rdg>
+      </app>
+conduisant 
+      <app>
+        <lem wit="#A #B #E">vostre </lem>
+        <rdg wit="#C #D">vôtre </rdg>
+      </app>
+Sœur, </l>
+
+<l n="923">
+
+      <app>
+        <lem wit="#A #B #D #E">J’iray </lem>
+        <rdg wit="#C">J’irai </rdg>
+      </app>
+semer par&#160;tout ma crainte &amp; ses 
+      <app>
+        <lem wit="#A #E">alarmes, </lem>
+        <rdg wit="#B #C #D">allarmes, </rdg>
+      </app>
+</l>
+
+<l n="924">
+Et ranger tous les cœurs du 
+      <app>
+        <lem wit="#A #B #E">party </lem>
+        <rdg wit="#C #D">parti </rdg>
+      </app>
+de ses larmes. </l>
+
+<l n="925">
+Adieu. 
+      <app>
+        <lem wit="#A #B #D #E">J’assiegeray </lem>
+        <rdg wit="#C">J’assiegerai </rdg>
+      </app>
+Neron de toutes parts. </l>
+
+<l n="926">
+Vous, si vous m’en 
+      <app>
+        <lem wit="#A #B #D #E">croyez, </lem>
+        <rdg wit="#C">croiês, </rdg>
+      </app>
+
+      <app>
+        <lem wit="#A #B #D #E">évitez </lem>
+        <rdg wit="#C">évités </rdg>
+      </app>
+ses regards. </l>
+
+</sp>
+</div>
+</body></text>
+</TEI>

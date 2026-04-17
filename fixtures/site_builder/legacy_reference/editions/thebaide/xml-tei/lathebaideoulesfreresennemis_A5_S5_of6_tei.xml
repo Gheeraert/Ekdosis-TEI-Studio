@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0">
+  <teiHeader>
+    <fileDesc>
+      <titleStmt>
+        <title>La Thébaïde ou les frères ennemis</title>
+        <author>Jean Racine</author>
+        <editor>Claire Fourquet-Gracieux</editor>
+      </titleStmt>
+      <publicationStmt>
+        <publisher>Presses de l'Université de Rouen et du Havre</publisher>
+        <pubPlace>Rouen</pubPlace>
+       <date>03 août 2025</date>
+      </publicationStmt>
+      <sourceDesc>
+        <p>généré par Ekdosis-TEI Studio – Acte 5, Scène 5</p>
+      </sourceDesc>
+    </fileDesc>
+  </teiHeader>
+  <text>
+    <body>
+  <div type="scene" n="5">
+    <head>SCENE V.</head>
+    <stage type='personnages'>CREON, OLYMPE, ATTALE.</stage>
+    <sp>
+      <speaker><app>
+        <lem wit="#E">OLYMPE </lem>
+        <rdg wit="#A">(lacune) </rdg>
+        <rdg wit="#B">OLIMPE. </rdg>
+        <rdg wit="#C #D">OLYMPE. </rdg>
+      </app></speaker>
+<l n="1603">
+
+      <app>
+        <lem wit="#B #D #E">QU’attendez-vous, </lem>
+        <rdg wit="#A">Qv’attendez-vous, </rdg>
+        <rdg wit="#C">QU’attendés-vous, </rdg>
+      </app>
+
+      <app>
+        <lem wit="#A #E">Seigneur, </lem>
+        <rdg wit="#B #D">Seigneur&#160;; </rdg>
+        <rdg wit="#C">Seigneur&#160;? </rdg>
+      </app>
+la Princesse n’est plus. </l>
+
+    </sp>
+    <sp>
+      <speaker>CREON.</speaker>
+<l n="1604.1">
+Elle n’est 
+      <app>
+        <lem wit="#A #B #E">plus </lem>
+        <rdg wit="#C #D">plus, </rdg>
+      </app>
+Olympe&#160;? </l>
+    </sp>
+    <sp>
+      <speaker><app>
+        <lem wit="#A #C #D #E">OLYMPE. </lem>
+        <rdg wit="#B">OLIMPE. </rdg>
+      </app></speaker>
+<l n="1604.2">
+Ah&#160;! 
+      <app>
+        <lem wit="#A #E">regrets </lem>
+        <rdg wit="#B #C #D">regret </rdg>
+      </app>
+superflus&#160;! </l>
+<l n="1605">
+Elle n’a fait qu’entrer dans la chambre prochaine, </l>
+
+<l n="1606">
+Et du 
+      <app>
+        <lem wit="#A #B #C #E">mesme </lem>
+        <rdg wit="#D">même </rdg>
+      </app>
+poignard dont est morte la Reine, </l>
+
+<l n="1607">
+Sans que 
+      <app>
+        <lem wit="#B #C #D #E">je </lem>
+        <rdg wit="#A">ie </rdg>
+      </app>
+pusse voir son funeste dessein, </l>
+
+<l n="1608">
+Cette fiere Princesse a percé son beau sein. </l>
+
+<l n="1609">
+Elle s’en est, Seigneur, mortellement frappée, </l>
+
+<l n="1610">
+Et dans son sang, helas&#160;! elle est soudain 
+      <app>
+        <lem wit="#A #E">tombée, </lem>
+        <rdg wit="#B #C #D">tombée. </rdg>
+      </app>
+</l>
+
+<l n="1611">
+
+      <app>
+        <lem wit="#B #D #E">Jugez </lem>
+        <rdg wit="#A">Iugez </rdg>
+        <rdg wit="#C">Jugés </rdg>
+      </app>
+à cet 
+      <app>
+        <lem wit="#B #C #D #E">objet </lem>
+        <rdg wit="#A">obiet </rdg>
+      </app>
+ce que 
+      <app>
+        <lem wit="#B #D #E">j’ay </lem>
+        <rdg wit="#A">i’ay </rdg>
+        <rdg wit="#C">j’ai </rdg>
+      </app>
+dû sentir. </l>
+
+<l n="1612">
+Mais sa belle ame 
+      <app>
+        <lem wit="#B #C #D #E">enfin </lem>
+        <rdg wit="#A">ennfin </rdg>
+      </app>
+toute preste à 
+      <app>
+        <lem wit="#A #E">sortir. </lem>
+        <rdg wit="#B #D">sortir, </rdg>
+        <rdg wit="#C">sortir </rdg>
+      </app>
+</l>
+
+<l n="1613">
+Cher Hémon, c’est à 
+      <app>
+        <lem wit="#A #B #D #E">toy </lem>
+        <rdg wit="#C">toi </rdg>
+      </app>
+que 
+      <app>
+        <lem wit="#B #C #D #E">je </lem>
+        <rdg wit="#A">ie </rdg>
+      </app>
+me 
+      <app>
+        <lem wit="#A #E">Sacrifie, </lem>
+        <rdg wit="#B #C #D">sacrifie, </rdg>
+      </app>
+</l>
+
+<l n="1614">
+Dit-elle, &amp; ce moment 
+      <app>
+        <lem wit="#A #C #D #E">a </lem>
+        <rdg wit="#B">à </rdg>
+      </app>
+terminé sa vie. </l>
+
+<l n="1615">
+
+      <app>
+        <lem wit="#B #D #E">J’ay </lem>
+        <rdg wit="#A">I’ay </rdg>
+        <rdg wit="#C">J’ai </rdg>
+      </app>
+senti son beau corps tout froid entre mes bras, </l>
+
+<l n="1616">
+Et 
+      <app>
+        <lem wit="#B #D #E">j’ay </lem>
+        <rdg wit="#A">i’ay </rdg>
+        <rdg wit="#C">j’ai </rdg>
+      </app>
+cru que mon ame alloit 
+      <app>
+        <lem wit="#B #C #D #E">suivre </lem>
+        <rdg wit="#A">suiure </rdg>
+      </app>
+ses 
+      <app>
+        <lem wit="#A #D #E">pas, </lem>
+        <rdg wit="#B #C">pas. </rdg>
+      </app>
+</l>
+
+<l n="1617">
+Heureuse mille fois si ma douleur mortelle, </l>
+
+<l n="1618">
+Dans la nuit du tombeau, 
+      <app>
+        <lem wit="#A #B #E">m’eust </lem>
+        <rdg wit="#C #D">m’eût </rdg>
+      </app>
+plongée avec 
+      <app>
+        <lem wit="#A #E">elle. </lem>
+        <rdg wit="#B #C #D">elle&#160;! </rdg>
+      </app>
+</l>
+
+      <stage type="stage-direction">
+
+      <app>
+        <lem wit="#A #C #D #E">Elle s’en va. </lem>
+        <rdg wit="#B">Elle s’en va </rdg>
+      </app>
+      </stage>
+
+</sp>
+</div>
+</body></text>
+</TEI>

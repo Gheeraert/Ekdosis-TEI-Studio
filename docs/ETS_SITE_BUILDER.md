@@ -14,7 +14,7 @@ The first implementation milestone now provides:
 - a dedicated `ets.site_builder` package with typed dataclasses and a simple config loader;
 - defensive XML extractors for dramatic TEI and Métopes notices;
 - automatic manifest generation for plays, notices, pages, and navigation;
-- a minimal static HTML renderer (home, play, notice page);
+- a static HTML renderer (home, play, notice page) where play pages now publish the dramatic text itself;
 - a build orchestrator that cleans the output directory before each regeneration, writes pages, copies optional assets, and returns a structured build result.
 
 This milestone keeps notice rendering on a dedicated path, now already structured for publication, while remaining intentionally limited to the documented subset.
@@ -231,10 +231,16 @@ Deliberate limits (current):
 
 The builder now produces a coherent static publication tree from config + XML sources:
 - `index.html` home page with site identity, optional subtitle, and optional `homepage_intro`;
-- one page per dramatic TEI play under `plays/`;
+- one page per dramatic TEI play under `plays/`, rendered as a readable dramatic text page;
 - one page per notice under `notices/` when notice publication is enabled.
 
 Navigation is generated from the manifest and remains deterministic.
+
+Current play-page rendering behavior:
+- dramatic play pages reuse the existing ETS dramatic HTML export engine (`ets.html.render_html_export_from_tei`) instead of a site-builder-specific renderer;
+- each play is transformed once from full dramatic TEI to HTML, and the exported editorial block (`#contenu-editorial`) is reused as the reading source of truth;
+- act/scene anchors are aligned against the full rendered play (reusing rendered IDs when available, with deterministic anchor injection fallback when needed);
+- site builder adds publication framing/navigation around that exported rendering (single main sidebar with global nav + play-level nav), without flattening the dramatic HTML layer into a minimal local approximation.
 
 Explicit play/notice association uses `play_notice_map` from configuration:
 - play pages link to their associated notice when available;
@@ -255,6 +261,7 @@ Still intentionally deferred:
 - advanced visual design and final publication styling;
 - richer asset pipeline (fingerprinting, transformations, CDN logic);
 - UI integration and end-user publication wizard.
+- full publication polish of dramatic pages beyond this functional reading/navigation milestone.
 
 ## Realistic integration coverage (current)
 
@@ -297,12 +304,17 @@ The Tkinter application now includes a first real publication dialog:
 
 The dialog builds a rich in-memory `SitePublicationRequest` and calls the application service layer (`build_site_from_publication_request`).
 The previous JSON config loading path remains supported as a transitional/developer workflow, but it is no longer the primary end-user path.
+The dialog now also exposes explicit `Charger config...` / `Enregistrer config...` actions for recurring publication rebuild workflows:
+- editors can save the current publication form state to JSON;
+- reload the same configuration later;
+- continue editing and regenerate without re-entering all paths and associations.
 
 This UI remains intentionally limited and is not yet a full publication wizard.
 Recent ergonomic refinements keep the main form scrollable while preserving a fixed bottom action bar,
 so `Annuler` / `Générer le site` remain accessible on limited-height screens.
 Key labels and inline hints were also clarified for play slug grouping, notice master vs additional files,
 play ordering, assets directory purpose, and play/notice mapping syntax.
+Visual/site-structure refinement remains a separate later milestone and is not part of this persistence step.
 
 ## First Tkinter dramatic merge entry point (current)
 

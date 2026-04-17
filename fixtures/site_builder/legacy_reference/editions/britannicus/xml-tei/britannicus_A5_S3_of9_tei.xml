@@ -1,0 +1,276 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0">
+  <teiHeader>
+    <fileDesc>
+      <titleStmt>
+        <title>Britannicus</title>
+        <author>Jean Racine</author>
+        <editor>Caroline Labrune</editor>
+      </titleStmt>
+      <publicationStmt>
+        <publisher>Presses de l'Université de Rouen et du Havre</publisher>
+        <pubPlace>Rouen</pubPlace>
+       <date>31 juillet 2025</date>
+      </publicationStmt>
+      <sourceDesc>
+        <p>généré par Ekdosis-TEI Studio – Acte 5, Scène 3</p>
+      </sourceDesc>
+    </fileDesc>
+  </teiHeader>
+  <text>
+    <body>
+  <div type="scene" n="3">
+    <head>SCENE III.</head>
+    <stage type='personnages'>AGRIPPINE, JUNIE.</stage>
+    <sp>
+      <speaker>AGRIPPINE.</speaker>
+<l n="1581">
+MAdame, ou je me 
+      <app>
+        <lem wit="#B #C #D #E">trompe, </lem>
+        <rdg wit="#A">trõpe, </rdg>
+      </app>
+ou durant vos Adieux </l>
+
+<l n="1582">
+Quelques pleurs 
+      <app>
+        <lem wit="#A #E">répandus </lem>
+        <rdg wit="#B #C #D">répãdus </rdg>
+      </app>
+ont 
+      <app>
+        <lem wit="#A #B #E">obscurcy </lem>
+        <rdg wit="#C #D">obscurci </rdg>
+      </app>
+vos yeux. </l>
+
+<l n="1583">
+Puis-je sçavoir quel trouble a formé ce nuage&#160;? </l>
+
+<l n="1584">
+
+      <app>
+        <lem wit="#A #B #D #E">Doutez-vous </lem>
+        <rdg wit="#C">Doutés-vous </rdg>
+      </app>
+d’une 
+      <app>
+        <lem wit="#A #E">Paix, </lem>
+        <rdg wit="#B #C #D">paix </rdg>
+      </app>
+dont je 
+      <app>
+        <lem wit="#A #E">fay </lem>
+        <rdg wit="#B #C #D">fais </rdg>
+      </app>
+mon ouvrage&#160;? </l>
+
+    </sp>
+    <sp>
+      <speaker>JUNIE.</speaker>
+<l n="1585">
+
+      <app>
+        <lem wit="#A #B #E">Apres </lem>
+        <rdg wit="#C #D">Aprés </rdg>
+      </app>
+tous les ennuis que ce jour m’a 
+      <app>
+        <lem wit="#A #B #E">coustez, </lem>
+        <rdg wit="#C">coûtés, </rdg>
+        <rdg wit="#D">coûtez, </rdg>
+      </app>
+</l>
+
+<l n="1586">
+
+      <app>
+        <lem wit="#A #B #D #E">Ay-je </lem>
+        <rdg wit="#C">Ai-je </rdg>
+      </app>
+pû rassurer mes esprits 
+      <app>
+        <lem wit="#A #B #D #E">agitez&#160;? </lem>
+        <rdg wit="#C">agités&#160;? </rdg>
+      </app>
+</l>
+
+<l n="1587">
+Helas&#160;! à peine encor je 
+      <app>
+        <lem wit="#A #B #D #E">conçoy </lem>
+        <rdg wit="#C">conçoi </rdg>
+      </app>
+ce miracle. </l>
+
+<l n="1588">
+Quand même à vos 
+      <app>
+        <lem wit="#A #B #D #E">bontez </lem>
+        <rdg wit="#C">bontés </rdg>
+      </app>
+je craindrois quelque obstacle, </l>
+
+<l n="1589">
+Le changement, Madame, est commun à la Cour, </l>
+
+<l n="1590">
+Et toûjours quelque crainte accompagne l’amour. </l>
+
+    </sp>
+    <sp>
+      <speaker>AGRIPPINE.</speaker>
+<l n="1591">
+Il suffit, 
+      <app>
+        <lem wit="#A #B #D #E">j’ay </lem>
+        <rdg wit="#C">j’ai </rdg>
+      </app>
+parlé, tout a changé de face. </l>
+
+<l n="1592">
+Mes soins à vos soupçons ne laissent point de place. </l>
+
+<l n="1593">
+Je répons d’une Paix jurée entre mes mains, </l>
+
+<l n="1594">
+Neron m’en a donné des gages trop certains. </l>
+
+<l n="1595">
+
+      <app>
+        <lem wit="#A #B #E">Ah </lem>
+        <rdg wit="#C #D">Ah&#160;! </rdg>
+      </app>
+si vous 
+      <app>
+        <lem wit="#A #B #D #E">aviez </lem>
+        <rdg wit="#C">aviés </rdg>
+      </app>
+
+      <app>
+        <lem wit="#A #E">veu </lem>
+        <rdg wit="#B #C #D">vû </rdg>
+      </app>
+par combien de caresses </l>
+
+<l n="1596">
+Il m’a renouvellé la 
+      <app>
+        <lem wit="#A #B #D #E">foy </lem>
+        <rdg wit="#C">foi </rdg>
+      </app>
+de ses promesses&#160;! </l>
+
+<l n="1597">
+Par quels embrassemens il vient de m’arrester&#160;! </l>
+
+<l n="1598">
+Ses bras dans nos Adieux ne pouvoient me quitter. </l>
+
+<l n="1599">
+Sa facile bonté sur son front répanduë </l>
+
+<l n="1600">
+Jusqu’aux moindres secrets est d’abord descenduë. </l>
+
+<l n="1601">
+Il s’épanchoit en Fils, qui vient en liberté </l>
+
+<l n="1602">
+Dans le sein de sa Mere oublier sa fierté. </l>
+
+<l n="1603">
+Mais 
+      <app>
+        <lem wit="#A #B #D #E">bien-tost </lem>
+        <rdg wit="#C">bien-tôt </rdg>
+      </app>
+reprenant un visage severe, </l>
+
+<l n="1604">
+Tel que d’un Empereur qui consulte sa 
+      <app>
+        <lem wit="#A #C #D #E">Mere, </lem>
+        <rdg wit="#B">Mere. </rdg>
+      </app>
+</l>
+
+<l n="1605">
+Sa confidence auguste a mis entre mes mains </l>
+
+<l n="1606">
+Des secrets d’où dépend le destin des humains. </l>
+
+<l n="1607">
+Non, il le faut 
+      <app>
+        <lem wit="#A #B #D #E">icy </lem>
+        <rdg wit="#C">ici </rdg>
+      </app>
+confesser à sa gloire. </l>
+
+<l n="1608">
+Son cœur n’enferme point une malice noire, </l>
+
+<l n="1609">
+Et nos seuls ennemis alterant sa bonté </l>
+
+<l n="1610">
+Abusoient contre nous de sa facilité. </l>
+
+<l n="1611">
+Mais enfin à son tour leur puissance decline. </l>
+
+<l n="1612">
+Rome encore une fois va 
+      <app>
+        <lem wit="#A #B #D #E">connoistre </lem>
+        <rdg wit="#C">connoître </rdg>
+      </app>
+Agrippine. </l>
+
+<l n="1613">
+Déja, de ma faveur on adore le bruit. </l>
+
+<l n="1614">
+Cependant en ces lieux n’attendons pas la nuit, </l>
+
+<l n="1615">
+Passons 
+      <app>
+        <lem wit="#A #B #D #E">chez </lem>
+        <rdg wit="#C">chés </rdg>
+      </app>
+Octavie, &amp; 
+      <app>
+        <lem wit="#A #D #E">donnons&#160;luy </lem>
+        <rdg wit="#B">donnons-luy </rdg>
+        <rdg wit="#C">donnons&#160;lui </rdg>
+      </app>
+le reste </l>
+
+<l n="1616">
+D’un jour autant heureux que je l’ai crû funeste. </l>
+
+<l n="1617">
+Mais qu’est-ce que j’entens&#160;? Quel tumulte confus&#160;? </l>
+
+<l n="1618.1">
+Que peut-on faire&#160;? </l>
+    </sp>
+    <sp>
+      <speaker>JUNIE.</speaker>
+<l n="1618.2">
+O Ciel&#160;! 
+      <app>
+        <lem wit="#A #B #D #E">sauvez </lem>
+        <rdg wit="#C">sauvés </rdg>
+      </app>
+Britannicus. </l>
+</sp>
+</div>
+</body></text>
+</TEI>

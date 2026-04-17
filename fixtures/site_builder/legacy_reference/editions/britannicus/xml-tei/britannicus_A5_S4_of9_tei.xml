@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0">
+  <teiHeader>
+    <fileDesc>
+      <titleStmt>
+        <title>Britannicus</title>
+        <author>Jean Racine</author>
+        <editor>Caroline Labrune</editor>
+      </titleStmt>
+      <publicationStmt>
+        <publisher>Presses de l'Université de Rouen et du Havre</publisher>
+        <pubPlace>Rouen</pubPlace>
+       <date>31 juillet 2025</date>
+      </publicationStmt>
+      <sourceDesc>
+        <p>généré par Ekdosis-TEI Studio – Acte 5, Scène 4</p>
+      </sourceDesc>
+    </fileDesc>
+  </teiHeader>
+  <text>
+    <body>
+  <div type="scene" n="4">
+    <head>SCENE IV.</head>
+    <stage type='personnages'>AGRIPPINE, JUNIE, BURRHUS.</stage>
+    <sp>
+      <speaker>AGRIPPINE.</speaker>
+<l n="1619">
+
+      <app>
+        <lem wit="#A #C #D #E">BUrrhus, </lem>
+        <rdg wit="#B">BUrrhus </rdg>
+      </app>
+où 
+      <app>
+        <lem wit="#A #B #D #E">courez-vous&#160;? </lem>
+        <rdg wit="#C">courés-vous&#160;? </rdg>
+      </app>
+
+      <app>
+        <lem wit="#A #B #E">Arrestez. </lem>
+        <rdg wit="#C">Arrêtés. </rdg>
+        <rdg wit="#D">Arrêtez. </rdg>
+      </app>
+Que veut 
+      <app>
+        <lem wit="#A #C #D #E">dire... </lem>
+        <rdg wit="#B">dire.. </rdg>
+      </app>
+</l>
+
+    </sp>
+    <sp>
+      <speaker>BURRHUS.</speaker>
+<l n="1620">
+Madame, 
+      <app>
+        <lem wit="#A #B #E">c’en </lem>
+        <rdg wit="#C #D">ç’en </rdg>
+      </app>
+est fait, Britannicus expire. </l>
+
+    </sp>
+    <sp>
+      <speaker>JUNIE.</speaker>
+<l n="1621.1">
+Ah mon Prince&#160;! </l>
+    </sp>
+    <sp>
+      <speaker>AGRIPPINE.</speaker>
+<l n="1621.2">
+Il expire&#160;?*** </l>
+    </sp>
+    <sp>
+      <speaker>BURRHUS.</speaker>
+      <stage type="stage-direction">
+
+      <app>
+        <lem wit="#A #E">Ou plustost il est mort, </lem>
+        <rdg wit="#B #D">Ou plûtost il est mort, </rdg>
+        <rdg wit="#C">Ou plûtôt il est mort, </rdg>
+      </app>
+      </stage>
+
+<l n="1622.1">
+
+      <app>
+        <lem wit="#A #B #C #E">Madame. </lem>
+        <rdg wit="#D">Madame, </rdg>
+      </app>
+</l>
+    </sp>
+    <sp>
+      <speaker>JUNIE.</speaker>
+<l n="1622.2">
+
+      <app>
+        <lem wit="#A #B #D #E">Pardonnez, </lem>
+        <rdg wit="#C">Pardonnés, </rdg>
+      </app>
+Madame, à ce transport. </l>
+<l n="1623">
+Je vais le secourir, si je puis, ou le suivre. </l>
+
+</sp>
+</div>
+</body></text>
+</TEI>

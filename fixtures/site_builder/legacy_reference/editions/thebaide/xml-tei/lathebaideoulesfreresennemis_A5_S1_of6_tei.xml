@@ -1,0 +1,351 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0">
+  <teiHeader>
+    <fileDesc>
+      <titleStmt>
+        <title>La Thébaïde ou les frères ennemis</title>
+        <author>Jean Racine</author>
+        <editor>Claire Fourquet-Gracieux</editor>
+      </titleStmt>
+      <publicationStmt>
+        <publisher>Presses de l'Université de Rouen et du Havre</publisher>
+        <pubPlace>Rouen</pubPlace>
+       <date>03 août 2025</date>
+      </publicationStmt>
+      <sourceDesc>
+        <p>généré par Ekdosis-TEI Studio – Acte 5, Scène 1</p>
+      </sourceDesc>
+    </fileDesc>
+  </teiHeader>
+  <text>
+    <body>
+<div type="act" n="5">
+    <head>ACTE V.</head>
+  <div type="scene" n="1">
+    <head>SCENE PREMIERE.</head>
+    <sp>
+      <speaker>ANTIGONE</speaker>
+      <stage type="stage-direction">
+seule.       </stage>
+
+<l n="1331">
+A 
+      <app>
+        <lem wit="#A #B #D #E">Quoy </lem>
+        <rdg wit="#C">Quoi </rdg>
+      </app>
+te resous-tu Princesse infortunée&#160;? </l>
+
+<l n="1332">
+Ta Mere vient de mourir dans tes bras, </l>
+
+<l n="1333">
+Ne sçaurois-tu 
+      <app>
+        <lem wit="#B #C #D #E">suivre </lem>
+        <rdg wit="#A">suiure </rdg>
+      </app>
+ses 
+      <app>
+        <lem wit="#A #E">pas </lem>
+        <rdg wit="#B #C #D">pas, </rdg>
+      </app>
+</l>
+
+<l n="1334">
+Et finir en mourant ta triste destinée&#160;? </l>
+
+<l n="1335">
+A de 
+      <app>
+        <lem wit="#B #C #D #E">nouveaux </lem>
+        <rdg wit="#A">nouueaux </rdg>
+      </app>
+mal-heurs te veux-tu 
+      <app>
+        <lem wit="#B #C #D #E">reserver&#160;? </lem>
+        <rdg wit="#A">reseruer&#160;? </rdg>
+      </app>
+</l>
+
+<l n="1336">
+Tes 
+      <app>
+        <lem wit="#A #B #E">Freres </lem>
+        <rdg wit="#C #D">freres </rdg>
+      </app>
+sont aux 
+      <app>
+        <lem wit="#A #C #D #E">mains, </lem>
+        <rdg wit="#B">maïns, </rdg>
+      </app>
+rien ne les peut 
+      <app>
+        <lem wit="#B #C #D #E">sauver </lem>
+        <rdg wit="#A">sauuer </rdg>
+      </app>
+</l>
+
+<l n="1337">
+De leurs cruelles armes. </l>
+
+<l n="1338">
+Leur exemple t’anime à te percer le flanc, </l>
+
+<l n="1339">
+Et 
+      <app>
+        <lem wit="#A #B #D #E">toy </lem>
+        <rdg wit="#C">toi </rdg>
+      </app>
+seule verses des larmes, </l>
+
+<l n="1340">
+Tous les autres versent du sang. </l>
+
+<l n="1341">
+Quelle est de mes mal-heurs 
+      <app>
+        <lem wit="#A #E">l’extrémité </lem>
+        <rdg wit="#B #C #D">l’extremité </rdg>
+      </app>
+
+      <app>
+        <lem wit="#A #E">mortelle, </lem>
+        <rdg wit="#B #D">mortelle&#160;? </rdg>
+        <rdg wit="#C">mortelle </rdg>
+      </app>
+</l>
+
+<l n="1342">
+Où ma douleur doit-elle recourir&#160;? </l>
+
+<l n="1343">
+Dois-je 
+      <app>
+        <lem wit="#E">vivre, </lem>
+        <rdg wit="#A">viure, </rdg>
+        <rdg wit="#B #C #D">vivre&#160;? </rdg>
+      </app>
+dois-je mourir&#160;? </l>
+
+<l n="1344">
+
+      <app>
+        <lem wit="#B #C #D #E">Un </lem>
+        <rdg wit="#A">Vn </rdg>
+      </app>
+
+      <app>
+        <lem wit="#A #E">amant </lem>
+        <rdg wit="#B #C #D">Amant </rdg>
+      </app>
+me retient, 
+      <app>
+        <lem wit="#B #C #D #E">une </lem>
+        <rdg wit="#A">vne </rdg>
+      </app>
+Mere 
+      <app>
+        <lem wit="#A #E">m’apelle, </lem>
+        <rdg wit="#B #C #D">m’appelle. </rdg>
+      </app>
+</l>
+
+<l n="1345">
+Dans la nuit du 
+      <app>
+        <lem wit="#A #E">tombeau, </lem>
+        <rdg wit="#B #C #D">tombeau </rdg>
+      </app>
+je la 
+      <app>
+        <lem wit="#A #B #E">voy </lem>
+        <rdg wit="#C #D">voi </rdg>
+      </app>
+qui m’attend, </l>
+
+<l n="1346">
+Ce que veut la raison, l’amour me le 
+      <app>
+        <lem wit="#A #E">défend </lem>
+        <rdg wit="#B #C #D">défend, </rdg>
+      </app>
+</l>
+
+<l n="1347">
+Et m’en oste 
+      <app>
+        <lem wit="#B #C #D #E">l’envie. </lem>
+        <rdg wit="#A">l’enuie. </rdg>
+      </app>
+</l>
+
+<l n="1348">
+Que je 
+      <app>
+        <lem wit="#A #B #E">voy </lem>
+        <rdg wit="#C">voi </rdg>
+        <rdg wit="#D">vois </rdg>
+      </app>
+de sujets d’abandonner le jour&#160;! </l>
+
+<l n="1349">
+Mais helas&#160;! qu’on tient à la vie, </l>
+
+<l n="1350">
+Quand on tient si fort à l’amour&#160;! </l>
+
+<l n="1351">
+
+      <app>
+        <lem wit="#A #B #E">Oüy </lem>
+        <rdg wit="#C">Oüi </rdg>
+        <rdg wit="#D">Ouy </rdg>
+      </app>
+tu retiens, Amour, mon ame 
+      <app>
+        <lem wit="#B #C #D #E">fugitive, </lem>
+        <rdg wit="#A">fugitiue, </rdg>
+      </app>
+</l>
+
+<l n="1352">
+
+      <app>
+        <lem wit="#B #C #D #E">Je </lem>
+        <rdg wit="#A">Ie </rdg>
+      </app>
+
+      <app>
+        <lem wit="#A #B #E">reconnoy </lem>
+        <rdg wit="#C">reconnoi </rdg>
+        <rdg wit="#D">reconnois </rdg>
+      </app>
+la voix de mon Vainqueur, </l>
+
+<l n="1353">
+L’esperance est morte en mon 
+      <app>
+        <lem wit="#A #B #E">cœur </lem>
+        <rdg wit="#C #D">cœur, </rdg>
+      </app>
+</l>
+
+<l n="1354">
+Et cependant tu vis, &amp; tu veux que 
+      <app>
+        <lem wit="#B #C #D #E">je </lem>
+        <rdg wit="#A">ie </rdg>
+      </app>
+
+      <app>
+        <lem wit="#B #C #D #E">vive. </lem>
+        <rdg wit="#A">viue. </rdg>
+      </app>
+</l>
+
+<l n="1355">
+Tu dis que mon Amant me 
+      <app>
+        <lem wit="#B #C #D #E">suivroit </lem>
+        <rdg wit="#A">suiuroit </rdg>
+      </app>
+au tombeau, </l>
+
+<l n="1356">
+Que je dois de mes jours 
+      <app>
+        <lem wit="#A #E">conseruer </lem>
+        <rdg wit="#B #C #D">conserver </rdg>
+      </app>
+le flambeau, </l>
+
+<l n="1357">
+Pour 
+      <app>
+        <lem wit="#B #C #D #E">sauver </lem>
+        <rdg wit="#A">sauuer </rdg>
+      </app>
+ce que j’aime. </l>
+
+<l n="1358">
+
+      <app>
+        <lem wit="#A #B #C #E">Hemon </lem>
+        <rdg wit="#D">Hémon, </rdg>
+      </app>
+
+      <app>
+        <lem wit="#A #B #E">voy </lem>
+        <rdg wit="#C #D">voi </rdg>
+      </app>
+le 
+      <app>
+        <lem wit="#B #C #D #E">pouvoir </lem>
+        <rdg wit="#A">pouuoir </rdg>
+      </app>
+que l’amour a sur 
+      <app>
+        <lem wit="#A #B #D #E">moy, </lem>
+        <rdg wit="#C">moi, </rdg>
+      </app>
+</l>
+
+<l n="1359">
+
+      <app>
+        <lem wit="#B #C #D #E">Je </lem>
+        <rdg wit="#A">Ie </rdg>
+      </app>
+ne ne 
+      <app>
+        <lem wit="#B #C #D #E">vivrois </lem>
+        <rdg wit="#A">viurois </rdg>
+      </app>
+pas pour 
+      <app>
+        <lem wit="#A #B #D #E">moy-mesme, </lem>
+        <rdg wit="#C">moi-mesme, </rdg>
+      </app>
+</l>
+
+<l n="1360">
+Et 
+      <app>
+        <lem wit="#B #C #D #E">je </lem>
+        <rdg wit="#A">ie </rdg>
+      </app>
+veux bien 
+      <app>
+        <lem wit="#B #C #D #E">vivre </lem>
+        <rdg wit="#A">viure </rdg>
+      </app>
+pour 
+      <app>
+        <lem wit="#A #B #D #E">toy. </lem>
+        <rdg wit="#C">toi. </rdg>
+      </app>
+</l>
+
+<l n="1361">
+Si jamais tu doutas de ma flamme fidelle… </l>
+
+<l n="1362">
+Mais 
+      <app>
+        <lem wit="#A #B #D #E">voicy </lem>
+        <rdg wit="#C">voici </rdg>
+      </app>
+du combat la funeste 
+      <app>
+        <lem wit="#B #C #D #E">nouvelle. </lem>
+        <rdg wit="#A">nouuelle. </rdg>
+      </app>
+</l>
+
+</sp>
+</div>
+</div>
+</body></text>
+</TEI>

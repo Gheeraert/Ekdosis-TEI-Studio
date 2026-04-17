@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0">
+  <teiHeader>
+    <fileDesc>
+      <titleStmt>
+        <title>La Thébaïde ou les frères ennemis</title>
+        <author>Jean Racine</author>
+        <editor>Claire Fourquet-Gracieux</editor>
+      </titleStmt>
+      <publicationStmt>
+        <publisher>Presses de l'Université de Rouen et du Havre</publisher>
+        <pubPlace>Rouen</pubPlace>
+       <date>02 août 2025</date>
+      </publicationStmt>
+      <sourceDesc>
+        <p>généré par Ekdosis-TEI Studio – Acte 3, Scène 1</p>
+      </sourceDesc>
+    </fileDesc>
+  </teiHeader>
+  <text>
+    <body>
+<div type="act" n="3">
+    <head>ACTE III.</head>
+  <div type="scene" n="1">
+    <head>SCENE PREMIERE.</head>
+    <stage type='personnages'><app>
+        <lem wit="#C #D #E">JOCASTE, OLYMPE. </lem>
+        <rdg wit="#A #B">IOCASTE, OLYMPE. </rdg>
+      </app></stage>
+    <sp>
+      <speaker><app>
+        <lem wit="#C #D #E">JOCASTE. </lem>
+        <rdg wit="#A #B">IOCASTE. </rdg>
+      </app></speaker>
+<l n="663">
+OLympe, 
+      <app>
+        <lem wit="#A #E">va&#160;t’en </lem>
+        <rdg wit="#B #C">va-t’en </rdg>
+        <rdg wit="#D">va-t-en </rdg>
+      </app>
+voir ce funeste 
+      <app>
+        <lem wit="#A #E">spectacle, </lem>
+        <rdg wit="#B #C #D">spectacle. </rdg>
+      </app>
+</l>
+
+<l n="664">
+Va voir si leur fureur n’a point 
+      <app>
+        <lem wit="#B #C #D #E">trouvé </lem>
+        <rdg wit="#A">trouué </rdg>
+      </app>
+
+      <app>
+        <lem wit="#A #B #E">d’obstacle, </lem>
+        <rdg wit="#C #D">d’obstacle. </rdg>
+      </app>
+</l>
+
+<l n="665">
+Si rien n’a pû toucher 
+      <app>
+        <lem wit="#B #C #D #E">l’un </lem>
+        <rdg wit="#A">l’vn </rdg>
+      </app>
+ou l’autre 
+      <app>
+        <lem wit="#A #E">party, </lem>
+        <rdg wit="#B">party&#160;; </rdg>
+        <rdg wit="#C #D">parti&#160;; </rdg>
+      </app>
+</l>
+
+<l n="666">
+On dit qu’à ce dessein 
+      <app>
+        <lem wit="#A #E">Ménecée </lem>
+        <rdg wit="#B #C #D">Menecée </rdg>
+      </app>
+est 
+      <app>
+        <lem wit="#A #B #E">sorty. </lem>
+        <rdg wit="#C #D">sorti. </rdg>
+      </app>
+</l>
+
+    </sp>
+    <sp>
+      <speaker>OLYMPE.</speaker>
+<l n="667">
+Je ne 
+      <app>
+        <lem wit="#A #B #D #E">sçay </lem>
+        <rdg wit="#C">sçai </rdg>
+      </app>
+quel dessein animoit son courage, </l>
+
+<l n="668">
+
+      <app>
+        <lem wit="#B #C #D #E">Une </lem>
+        <rdg wit="#A">Vne </rdg>
+      </app>
+
+      <app>
+        <lem wit="#A #E">heroyque </lem>
+        <rdg wit="#B #C #D">heroïque </rdg>
+      </app>
+ardeur brilloit sur son 
+      <app>
+        <lem wit="#A #B #C #E">visage, </lem>
+        <rdg wit="#D">visage&#160;; </rdg>
+      </app>
+</l>
+
+<l n="669">
+Mais vous 
+      <app>
+        <lem wit="#B #D #E">devez, </lem>
+        <rdg wit="#A">deuez, </rdg>
+        <rdg wit="#C">devés, </rdg>
+      </app>
+Madame, esperer jusqu’au bout. </l>
+
+    </sp>
+    <sp>
+      <speaker><app>
+        <lem wit="#C #D #E">JOCASTE. </lem>
+        <rdg wit="#A #B">IOCASTE. </rdg>
+      </app></speaker>
+<l n="670">
+Va tout voir, 
+      <app>
+        <lem wit="#A #E">chere </lem>
+        <rdg wit="#B #C #D">cher </rdg>
+      </app>
+Olympe, &amp; me viens dire tout. </l>
+
+<l n="671">
+
+      <app>
+        <lem wit="#A #E">Esclaircy </lem>
+        <rdg wit="#B #D">Eclaircy </rdg>
+        <rdg wit="#C">Eclairci </rdg>
+      </app>
+promptement ma triste inquietude. </l>
+
+    </sp>
+    <sp>
+      <speaker><app>
+        <lem wit="#A #C #D #E">OLYMPE. </lem>
+        <rdg wit="#B">OLIMPE . </rdg>
+      </app></speaker>
+<l n="672">
+Mais vous dois-je laisser en cette solitude&#160;? </l>
+
+    </sp>
+    <sp>
+      <speaker><app>
+        <lem wit="#C #D #E">JOCASTE. </lem>
+        <rdg wit="#A #B">IOCASTE. </rdg>
+      </app></speaker>
+<l n="673">
+Va, je veux estre seule en l’estat où 
+      <app>
+        <lem wit="#B #C #D #E">je </lem>
+        <rdg wit="#A">ie </rdg>
+      </app>
+suis, </l>
+
+<l n="674">
+Si pourtant on peut l’estre 
+      <app>
+        <lem wit="#B #E">avecque </lem>
+        <rdg wit="#A">auecque </rdg>
+        <rdg wit="#C #D">avec </rdg>
+      </app>
+tant d’ennuis. </l>
+
+</sp>
+</div>
+</div>
+</body></text>
+</TEI>

@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0">
+  <teiHeader>
+    <fileDesc>
+      <titleStmt>
+        <title>Britannicus</title>
+        <author>Jean Racine</author>
+        <editor>Caroline Labrune</editor>
+      </titleStmt>
+      <publicationStmt>
+        <publisher>Presses de l'Université de Rouen et du Havre</publisher>
+        <pubPlace>Rouen</pubPlace>
+       <date>30 July 2025</date>
+      </publicationStmt>
+      <sourceDesc>
+        <p>généré par Ekdosis-TEI Studio – Acte 2, Scène 1</p>
+      </sourceDesc>
+    </fileDesc>
+  </teiHeader>
+  <text>
+    <body>
+<div type="act" n="2">
+    <head>ACTE II.</head>
+  <div type="scene" n="1">
+    <head>SCENE PREMIERE.</head>
+    <stage type='personnages'><app>
+        <lem wit="#C #D #E">NERON, BURRHUS, NARCISSE,  Gardes. </lem>
+        <rdg wit="#A">NERON, BURRHUS, NARCISSE, Gardes. </rdg>
+        <rdg wit="#B">N&#160;RON, BURRHUS, NARCISSE  Gardes. </rdg>
+      </app></stage>
+    <sp>
+      <speaker>NERON.</speaker>
+<l n="359">
+
+      <app>
+        <lem wit="#A #E">N’EN </lem>
+        <rdg wit="#B #C #D">N’En </rdg>
+      </app>
+
+      <app>
+        <lem wit="#A #B #D #E">doutez </lem>
+        <rdg wit="#C">doutés </rdg>
+      </app>
+point, 
+      <app>
+        <lem wit="#A #B #E">Burrhus, </lem>
+        <rdg wit="#C #D">Burrhus&#160;; </rdg>
+      </app>
+malgré ses 
+      <app>
+        <lem wit="#A #B #E">injustices, </lem>
+        <rdg wit="#C #D">injustices </rdg>
+      </app>
+</l>
+
+<l n="360">
+C’est ma Mere, &amp; je veux ignorer ses caprices. </l>
+
+<l n="361">
+Mais je ne pretens plus ignorer 
+      <app>
+        <lem wit="#A #B #D #E">ny </lem>
+        <rdg wit="#C">ni </rdg>
+      </app>
+souffrir </l>
+
+<l n="362">
+Le Ministre insolent qui les ose nourrir. </l>
+
+<l n="363">
+Pallas de ses conseils empoisonne ma Mere&#160;; </l>
+
+<l n="364">
+Il seduit chaque jour Britannicus mon 
+      <app>
+        <lem wit="#A #E">Frere. </lem>
+        <rdg wit="#B #C #D">Frere, </rdg>
+      </app>
+</l>
+
+<l n="365">
+Ils l’écoutent 
+      <app>
+        <lem wit="#A #E">luy </lem>
+        <rdg wit="#B #C #D">tout </rdg>
+      </app>
+seul, &amp; qui suivroit leurs pas </l>
+
+<l n="366">
+Les trouveroit peut-estre 
+      <app>
+        <lem wit="#A #B #D #E">assemblez </lem>
+        <rdg wit="#C">assemblés </rdg>
+      </app>
+
+      <app>
+        <lem wit="#A #B #D #E">chez </lem>
+        <rdg wit="#C">chés </rdg>
+      </app>
+Pallas. </l>
+
+<l n="367">
+C’en est trop. De tous deux il faut que je l’écarte. </l>
+
+<l n="368">
+Pour la derniere 
+      <app>
+        <lem wit="#A #E">fois </lem>
+        <rdg wit="#B #C #D">fois, </rdg>
+      </app>
+qu’il s’éloigne, qu’il 
+      <app>
+        <lem wit="#A #B #C #E">parte, </lem>
+        <rdg wit="#D">parte&#160;: </rdg>
+      </app>
+</l>
+
+<l n="369">
+Je le veux, je l’ordonne&#160;; &amp; que la fin du jour </l>
+
+<l n="370">
+Ne le retrouve pas dans Rome, ou dans ma Cour. </l>
+
+<l n="371">
+
+      <app>
+        <lem wit="#A #B #D #E">Allez, </lem>
+        <rdg wit="#C">Allés, </rdg>
+      </app>
+
+      <app>
+        <lem wit="#A #B #E">cét </lem>
+        <rdg wit="#C #D">cet </rdg>
+      </app>
+ordre importe au salut de 
+      <app>
+        <lem wit="#A #B #C #E">l’Empire. </lem>
+        <rdg wit="#D">l’empire. </rdg>
+      </app>
+</l>
+
+<l n="372">
+
+      <app>
+        <lem wit="#A #B #C #E">Vous </lem>
+        <rdg wit="#D">Vous, </rdg>
+      </app>
+Narcisse, 
+      <app>
+        <lem wit="#A #B #D #E">approchez. </lem>
+        <rdg wit="#C">approchés. </rdg>
+      </app>
+Et vous, qu’on se retire. </l>
+
+</sp>
+</div>
+</div>
+</body></text>
+</TEI>

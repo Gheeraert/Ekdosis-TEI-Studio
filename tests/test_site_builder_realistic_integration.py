@@ -139,6 +139,10 @@ def test_realistic_publication_build_links_output_tree_and_downloads() -> None:
     home_html = (output_dir / "index.html").read_text(encoding="utf-8")
 
     assert "../notices/introduction.html" in play_html
+    assert 'class="play-structure-nav"' in play_html
+    assert 'class="play-reading-layout"' not in play_html
+    assert 'id="contenu-editorial"' in play_html
+    assert "IM Fell DW Pica" in play_html
     assert "../plays/andromaque.html" in intro_notice_html
     assert "Sommaire" in master_notice_html
     assert "notice-toc" in master_notice_html

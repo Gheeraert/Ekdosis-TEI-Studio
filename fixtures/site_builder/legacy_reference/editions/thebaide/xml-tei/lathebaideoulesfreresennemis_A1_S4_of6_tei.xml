@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0">
+  <teiHeader>
+    <fileDesc>
+      <titleStmt>
+        <title>La Thébaïde ou les frères ennemis</title>
+        <author>Jean Racine</author>
+        <editor>Claire Fourquet-Gracieux</editor>
+      </titleStmt>
+      <publicationStmt>
+        <publisher>Presses de l'Université de Rouen et du Havre</publisher>
+        <pubPlace>Rouen</pubPlace>
+       <date>13 juillet 2025</date>
+      </publicationStmt>
+      <sourceDesc>
+        <p>généré par Ekdosis-TEI Studio – Acte 1, Scène 1</p>
+      </sourceDesc>
+    </fileDesc>
+  </teiHeader>
+  <text>
+    <body>
+  <div type="scene" n="1">
+    <head>SCENE IV.</head>
+    <stage type='personnages'><app>
+        <lem wit="#C #D #E">JOCASTE, ETEOCLE, ANTIGONE, CREON, OLYMPE. </lem>
+        <rdg wit="#A #B">IOCASTE, ETEOCLE, ANTIGONE, CREON, OLYMPE. </rdg>
+      </app></stage>
+    <sp>
+      <speaker><app>
+        <lem wit="#A #E">CREON, </lem>
+        <rdg wit="#B #C #D">CREON. </rdg>
+      </app></speaker>
+      <stage type="stage-direction">
+
+      <app>
+        <lem wit="#A #E">au Roy. </lem>
+        <rdg wit="#B #C #D">(lacune) </rdg>
+      </app>
+      </stage>
+
+<l n="202">
+SEigneur, vostre sortie a mis tout en allarmes, </l>
+
+<l n="203">
+Thebes qui croit vous 
+      <app>
+        <lem wit="#A #B #E">perdre </lem>
+        <rdg wit="#C #D">perdre, </rdg>
+      </app>
+est déja toute en larmes, </l>
+
+<l n="204">
+
+      <app>
+        <lem wit="#B #C #D #E">L’épouvante </lem>
+        <rdg wit="#A">L’épouuante </rdg>
+      </app>
+&amp; l’horreur regnent de toutes parts, </l>
+
+<l n="205">
+Et le Peuple effrayé tremble sur ses 
+      <app>
+        <lem wit="#A #B #C #E">rempars. </lem>
+        <rdg wit="#D">remparts. </rdg>
+      </app>
+</l>
+
+    </sp>
+    <sp>
+      <speaker>ETEOCLE.</speaker>
+<l n="206">
+Cette vaine frayeur sera bien-tost calmée. </l>
+
+<l n="207">
+Madame, je m’en vais 
+      <app>
+        <lem wit="#B #C #D #E">retrouver </lem>
+        <rdg wit="#A">retrouuer </rdg>
+      </app>
+mon Armée, </l>
+
+<l n="208">
+Cependant vous 
+      <app>
+        <lem wit="#B #C #D #E">pouvez </lem>
+        <rdg wit="#A">pouuez </rdg>
+      </app>
+accomplir vos souhaits, </l>
+
+<l n="209">
+Faire entrer Polinice, &amp; luy parler de Paix. </l>
+
+<l n="210">
+Creon, la Reyne icy commande en mon absence, </l>
+
+<l n="211">
+Disposez tout le monde à son 
+      <app>
+        <lem wit="#A #E">obeyssance, </lem>
+        <rdg wit="#B #C #D">obeïssance, </rdg>
+      </app>
+</l>
+
+<l n="212">
+Laissez pour 
+      <app>
+        <lem wit="#B #C #D #E">recevoir </lem>
+        <rdg wit="#A">receuoir </rdg>
+      </app>
+&amp; pour donner ses 
+      <app>
+        <lem wit="#A #E">loys, </lem>
+        <rdg wit="#B #C #D">loix, </rdg>
+      </app>
+</l>
+
+<l n="213">
+Vostre Fils 
+      <app>
+        <lem wit="#A #E">Ménécée, </lem>
+        <rdg wit="#B #C #D">Menécée, </rdg>
+      </app>
+&amp; j’en ay fait le choix. </l>
+
+<l n="214">
+Comme il a de l’honneur autant que 
+      <app>
+        <lem wit="#A #C #E">du </lem>
+        <rdg wit="#B #D">de </rdg>
+      </app>
+courage, </l>
+
+<l n="215">
+Ce choix aux 
+      <app>
+        <lem wit="#A #E">Ennemis </lem>
+        <rdg wit="#B #C #D">ennemis </rdg>
+      </app>
+ostera tout ombrage, </l>
+
+<l n="216">
+Et sa vertu suffit pour les rendre 
+      <app>
+        <lem wit="#A #E">assurez, </lem>
+        <rdg wit="#B #C #D">assurez. </rdg>
+      </app>
+</l>
+
+<l n="217">
+Commandez-luy, 
+      <app>
+        <lem wit="#C #D #E">Madame. </lem>
+        <rdg wit="#A #B">Madame.*** </rdg>
+      </app>
+</l>
+
+      <stage type="stage-direction">
+
+      <app>
+        <lem wit="#B #C #D #E">à Creon. </lem>
+        <rdg wit="#A">à Créon. </rdg>
+      </app>
+      </stage>
+
+<l n="218">
+&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;Et vous, vous me 
+      <app>
+        <lem wit="#B #C #D #E">suivrez. </lem>
+        <rdg wit="#A">suiurez. </rdg>
+      </app>
+</l>
+
+    </sp>
+    <sp>
+      <speaker>CREON.</speaker>
+<l n="219.1">
+
+      <app>
+        <lem wit="#A #B #D #E">Quoy, </lem>
+        <rdg wit="#C">Quoi, </rdg>
+      </app>
+Seigneur… </l>
+    </sp>
+    <sp>
+      <speaker>ETEOCLE.</speaker>
+<l n="219.2">
+
+      <app>
+        <lem wit="#A #B #E">Oüy </lem>
+        <rdg wit="#C">Oüi, </rdg>
+        <rdg wit="#D">Ouy, </rdg>
+      </app>
+
+      <app>
+        <lem wit="#A #E">Créon, </lem>
+        <rdg wit="#B #C #D">Creon, </rdg>
+      </app>
+la chose est resoluë. </l>
+    </sp>
+    <sp>
+      <speaker>CREON.</speaker>
+<l n="220">
+Et vous quittez ainsi la puissance absoluë&#160;? </l>
+
+    </sp>
+    <sp>
+      <speaker>ETEOCLE.</speaker>
+<l n="221">
+Que je la quitte ou non ne vous tourmentez pas, </l>
+
+<l n="222">
+Faites ce que j’ordonne, &amp; venez sur mes pas. </l>
+
+</sp>
+</div>
+</body></text>
+</TEI>

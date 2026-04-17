@@ -1,0 +1,433 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0">
+  <teiHeader>
+    <fileDesc>
+      <titleStmt>
+        <title>Britannicus</title>
+        <author>Jean Racine</author>
+        <editor>Caroline Labrune</editor>
+      </titleStmt>
+      <publicationStmt>
+        <publisher>Presses de l'Université de Rouen et du Havre</publisher>
+        <pubPlace>Rouen</pubPlace>
+       <date>30 juillet 2025</date>
+      </publicationStmt>
+      <sourceDesc>
+        <p>généré par Ekdosis-TEI Studio – Acte 3, Scène 1</p>
+      </sourceDesc>
+    </fileDesc>
+  </teiHeader>
+  <text>
+    <body>
+<div type="act" n="3">
+    <head>ACTE III.</head>
+  <div type="scene" n="1">
+    <head>SCENE PREMIERE.</head>
+    <stage type='personnages'>NERON, BURRHUS.</stage>
+    <sp>
+      <speaker>BURRHUS.</speaker>
+<l n="761.1">
+
+      <app>
+        <lem wit="#A #E">PAllas </lem>
+        <rdg wit="#B #C #D">PALLAS </rdg>
+      </app>
+obeïra, Seigneur. </l>
+    </sp>
+    <sp>
+      <speaker>NERON.</speaker>
+<l n="761.2">
+Et de quel œil </l>
+<l n="762">
+Ma Mere 
+      <app>
+        <lem wit="#A #C #D #E">a-t-elle </lem>
+        <rdg wit="#B">a-t’elle </rdg>
+      </app>
+veu confondre son orgueil&#160;? </l>
+
+    </sp>
+    <sp>
+      <speaker>BURRHUS.</speaker>
+<l n="763">
+Ne 
+      <app>
+        <lem wit="#A #B #D #E">doutez </lem>
+        <rdg wit="#C">doutés </rdg>
+      </app>
+
+      <app>
+        <lem wit="#A #B #C #E">point, </lem>
+        <rdg wit="#D">point </rdg>
+      </app>
+Seigneur, que ce coup ne la frappe, </l>
+
+<l n="764">
+Qu’en reproches 
+      <app>
+        <lem wit="#A #B #E">bien-tost </lem>
+        <rdg wit="#C #D">bien-tôt </rdg>
+      </app>
+sa douleur ne s’échappe. </l>
+
+<l n="765">
+Ses transports dés long-temps 
+      <app>
+        <lem wit="#B #C #D #E">commencent </lem>
+        <rdg wit="#A">commẽcent </rdg>
+      </app>
+d’éclater. </l>
+
+<l n="766">
+A d’inutiles cris puissent-ils 
+      <app>
+        <lem wit="#A #E">s’arrester. </lem>
+        <rdg wit="#B #C #D">s’arrester&#160;! </rdg>
+      </app>
+</l>
+
+    </sp>
+    <sp>
+      <speaker>NERON.</speaker>
+<l n="767">
+
+      <app>
+        <lem wit="#A #B #E">Quoy&#160;? </lem>
+        <rdg wit="#C #D">Quoi&#160;? </rdg>
+      </app>
+De quelque dessein la 
+      <app>
+        <lem wit="#A #B #D #E">croyez-vous </lem>
+        <rdg wit="#C">croiés-vous </rdg>
+      </app>
+capable&#160;? </l>
+
+    </sp>
+    <sp>
+      <speaker>BURRHUS.</speaker>
+<l n="768">
+Agrippine, Seigneur, est 
+      <app>
+        <lem wit="#A #C #D #E">toûjours </lem>
+        <rdg wit="#B">toujours </rdg>
+      </app>
+redoutable. </l>
+
+<l n="769">
+Rome, &amp; tous vos 
+      <app>
+        <lem wit="#A #B #E">Soldats </lem>
+        <rdg wit="#C #D">soldats </rdg>
+      </app>
+
+      <app>
+        <lem wit="#A #E">honorent </lem>
+        <rdg wit="#B #C #D">reverent </rdg>
+      </app>
+ses Ayeux, </l>
+
+<l n="770">
+Germanicus son Pere est present à leurs 
+      <app>
+        <lem wit="#A #B #D #E">yeux. </lem>
+        <rdg wit="#C">vœux. </rdg>
+      </app>
+</l>
+
+<l n="771">
+Elle sçait son 
+      <app>
+        <lem wit="#A #B #C #E">pouvoir&#160;: </lem>
+        <rdg wit="#D">pouvoir&#160;; </rdg>
+      </app>
+Vous 
+      <app>
+        <lem wit="#A #B #D #E">sçavez </lem>
+        <rdg wit="#C">sçavés </rdg>
+      </app>
+son 
+      <app>
+        <lem wit="#A #E">courage. </lem>
+        <rdg wit="#B #C #D">courage, </rdg>
+      </app>
+</l>
+
+<l n="772">
+Et ce qui me la fait redouter 
+      <app>
+        <lem wit="#A #E">d’avantage, </lem>
+        <rdg wit="#B #C #D">davantage, </rdg>
+      </app>
+</l>
+
+<l n="773">
+C’est que vous 
+      <app>
+        <lem wit="#A #B #D #E">appuyez </lem>
+        <rdg wit="#C">appuiés </rdg>
+      </app>
+
+      <app>
+        <lem wit="#A #E">vous&#160;mesme </lem>
+        <rdg wit="#B">vous-mesme </rdg>
+        <rdg wit="#C #D">vous-même </rdg>
+      </app>
+son 
+      <app>
+        <lem wit="#A #B #C #E">courroux, </lem>
+        <rdg wit="#D">couroux, </rdg>
+      </app>
+</l>
+
+<l n="774">
+Et que vous 
+      <app>
+        <lem wit="#A #B #D #E">luy </lem>
+        <rdg wit="#C">lui </rdg>
+      </app>
+
+      <app>
+        <lem wit="#A #B #D #E">donnez </lem>
+        <rdg wit="#C">donnés </rdg>
+      </app>
+des armes contre vous. </l>
+
+    </sp>
+    <sp>
+      <speaker>NERON.</speaker>
+<l n="775.1">
+
+      <app>
+        <lem wit="#A #B #E">Moy, </lem>
+        <rdg wit="#C #D">Moi, </rdg>
+      </app>
+Burrhus&#160;? </l>
+    </sp>
+    <sp>
+      <speaker>BURRHUS.</speaker>
+<l n="775.2">
+
+      <app>
+        <lem wit="#A #B #C #E">Cét </lem>
+        <rdg wit="#D">Cet </rdg>
+      </app>
+amour, Seigneur, qui vous 
+      <app>
+        <lem wit="#A #D #E">possede... </lem>
+        <rdg wit="#B #C">possede… </rdg>
+      </app>
+</l>
+    </sp>
+    <sp>
+      <speaker>NERON.</speaker>
+<l n="776">
+Je vous entens, Burrhus, le mal est sans remede. </l>
+
+<l n="777">
+Mon cœur s’en est plus dit que vous ne m’en 
+      <app>
+        <lem wit="#A #B #D #E">direz. </lem>
+        <rdg wit="#C">dirés, </rdg>
+      </app>
+</l>
+
+<l n="778.1">
+Il faut que j’aime enfin. </l>
+    </sp>
+    <sp>
+      <speaker>BURRHUS.</speaker>
+<l n="778.2">
+Vous vous le 
+      <app>
+        <lem wit="#A #B #D #E">figurez, </lem>
+        <rdg wit="#C">figurés, </rdg>
+      </app>
+</l>
+<l n="779">
+Seigneur, &amp; satisfait de quelque resistance </l>
+
+<l n="780">
+Vous 
+      <app>
+        <lem wit="#A #B #D #E">redoutez </lem>
+        <rdg wit="#C">redoutés </rdg>
+      </app>
+un mal foible dans sa naissance. </l>
+
+<l n="781">
+Mais si dans 
+      <app>
+        <lem wit="#A #B #E">sa&#160;fierté </lem>
+        <rdg wit="#C #D">son&#160;devoir </rdg>
+      </app>
+vostre cœur 
+      <app>
+        <lem wit="#A #B #E">affermy </lem>
+        <rdg wit="#C #D">affermi </rdg>
+      </app>
+</l>
+
+<l n="782">
+Vouloit ne point s’entendre avec son 
+      <app>
+        <lem wit="#A #B #E">ennemy, </lem>
+        <rdg wit="#C #D">ennemi, </rdg>
+      </app>
+</l>
+
+<l n="783">
+Si de vos premiers ans vous 
+      <app>
+        <lem wit="#A #B #D #E">consultiez </lem>
+        <rdg wit="#C">consultiés </rdg>
+      </app>
+la gloire, </l>
+
+<l n="784">
+Si vous 
+      <app>
+        <lem wit="#A #B #D #E">daigniez, </lem>
+        <rdg wit="#C">daigniés, </rdg>
+      </app>
+Seigneur, rappeller la 
+      <app>
+        <lem wit="#A #B #C #E">memoire </lem>
+        <rdg wit="#D">memoire. </rdg>
+      </app>
+</l>
+
+<l n="785">
+Des vertus d’Octavie, indignes de ce prix, </l>
+
+<l n="786">
+Et de son chaste amour vainqueur de vos mépris&#160;; </l>
+
+<l n="787">
+Sur&#160;tout si de Junie évitant la presence </l>
+
+<l n="788">
+Vous 
+      <app>
+        <lem wit="#D #E">condamniez </lem>
+        <rdg wit="#A">condãniez </rdg>
+        <rdg wit="#B">condanniez </rdg>
+        <rdg wit="#C">condamniés </rdg>
+      </app>
+vos yeux à quelques jours 
+      <app>
+        <lem wit="#B #C #D #E">d’absence, </lem>
+        <rdg wit="#A">d’absẽce, </rdg>
+      </app>
+</l>
+
+<l n="789">
+
+      <app>
+        <lem wit="#A #B #D #E">Croyez-moy, </lem>
+        <rdg wit="#C">Croiés-moi, </rdg>
+      </app>
+quelque amour qui 
+      <app>
+        <lem wit="#A #B #C #E">semble </lem>
+        <rdg wit="#D">sẽble </rdg>
+      </app>
+vous charmer, </l>
+
+<l n="790">
+On n’aime point, Seigneur, si l’on ne veut aimer. </l>
+
+    </sp>
+    <sp>
+      <speaker>NERON.</speaker>
+<l n="791">
+Je vous 
+      <app>
+        <lem wit="#A #B #D #E">croiray, </lem>
+        <rdg wit="#C">croirai, </rdg>
+      </app>
+Burrhus, 
+      <app>
+        <lem wit="#A #B #C #E">lors&#160;que </lem>
+        <rdg wit="#D">lorsque </rdg>
+      </app>
+dans les 
+      <app>
+        <lem wit="#A #E">alarmes </lem>
+        <rdg wit="#B #C #D">allarmes </rdg>
+      </app>
+</l>
+
+<l n="792">
+Il faudra 
+      <app>
+        <lem wit="#A #E">soûtenir </lem>
+        <rdg wit="#B #C #D">soutenir </rdg>
+      </app>
+la gloire de nos armes, </l>
+
+<l n="793">
+
+      <app>
+        <lem wit="#B #C #D #E">Ou </lem>
+        <rdg wit="#A">Où </rdg>
+      </app>
+lors&#160;que plus 
+      <app>
+        <lem wit="#A #C #D #E">tranquille </lem>
+        <rdg wit="#B">tranquile </rdg>
+      </app>
+assis dans le Senat </l>
+
+<l n="794">
+Il faudra decider du destin de l’Estat&#160;: </l>
+
+<l n="795">
+Je m’en 
+      <app>
+        <lem wit="#A #B #E">reposeray </lem>
+        <rdg wit="#C #D">reposerai </rdg>
+      </app>
+sur 
+      <app>
+        <lem wit="#A #B #E">vostre </lem>
+        <rdg wit="#C #D">vôtre </rdg>
+      </app>
+experience. </l>
+
+<l n="796">
+Mais, 
+      <app>
+        <lem wit="#A #B #D #E">croyez-moy, </lem>
+        <rdg wit="#C">croiés-moi, </rdg>
+      </app>
+
+      <app>
+        <lem wit="#A #B #E">l’Amour </lem>
+        <rdg wit="#C #D">l’amour </rdg>
+      </app>
+est une autre 
+      <app>
+        <lem wit="#A #B #C #E">science, </lem>
+        <rdg wit="#D">science. </rdg>
+      </app>
+</l>
+
+<l n="797">
+Burrhus, &amp; je ferois quelque difficulté </l>
+
+<l n="798">
+D’abaisser 
+      <app>
+        <lem wit="#A #E">jusques-là </lem>
+        <rdg wit="#B #C #D">jusques&#160;là </rdg>
+      </app>
+vostre severité. </l>
+
+<l n="799">
+Adieu, je souffre trop éloigné de Junie. </l>
+
+</sp>
+</div>
+</div>
+</body></text>
+</TEI>

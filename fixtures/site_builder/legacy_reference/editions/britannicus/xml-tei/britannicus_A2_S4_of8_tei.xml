@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0">
+  <teiHeader>
+    <fileDesc>
+      <titleStmt>
+        <title>Britannicus</title>
+        <author>Jean Racine</author>
+        <editor>Caroline Labrune</editor>
+      </titleStmt>
+      <publicationStmt>
+        <publisher>Presses de l'Université de Rouen et du Havre</publisher>
+        <pubPlace>Rouen</pubPlace>
+       <date>30 juillet 2025</date>
+      </publicationStmt>
+      <sourceDesc>
+        <p>généré par Ekdosis-TEI Studio – Acte 2, Scène 4</p>
+      </sourceDesc>
+    </fileDesc>
+  </teiHeader>
+  <text>
+    <body>
+  <div type="scene" n="4">
+    <head>SCENE IV.</head>
+    <stage type='personnages'><app>
+        <lem wit="#B #C #D #E">NERON, JUNIE, NARCISSE. </lem>
+        <rdg wit="#A">NERON, JUNIE NARCISSE. </rdg>
+      </app></stage>
+    <sp>
+      <speaker>NARCISSE.</speaker>
+<l n="687">
+BRitannicus, Seigneur, demande la Princesse. </l>
+
+<l n="688.1">
+Il approche. </l>
+    </sp>
+    <sp>
+      <speaker>NERON.</speaker>
+<l n="688.2">
+Qu’il vienne.</l>
+    </sp>
+    <sp>
+      <speaker><app>
+        <lem wit="#B #C #D #E">JUNIE. </lem>
+        <rdg wit="#A">JUNIE </rdg>
+      </app></speaker>
+      <l n="688.3">
+
+      <app>
+        <lem wit="#B #C #D #E">Ah Seigneur&#160;! </lem>
+        <rdg wit="#A">Ah Seigneur </rdg>
+      </app>
+      </l>
+
+    </sp>
+    <sp>
+      <speaker>NERON.</speaker>
+      <l n="688.4">
+Je vous laisse.       </l>
+
+<l n="689">
+Sa fortune dépend de vous plus que de 
+      <app>
+        <lem wit="#A #B #D #E">moy. </lem>
+        <rdg wit="#C">moi. </rdg>
+      </app>
+</l>
+
+<l n="690">
+Madame, en le 
+      <app>
+        <lem wit="#A #B #D #E">voyant, </lem>
+        <rdg wit="#C">voiant, </rdg>
+      </app>
+
+      <app>
+        <lem wit="#A #B #D #E">songez </lem>
+        <rdg wit="#C">songés </rdg>
+      </app>
+que je vous 
+      <app>
+        <lem wit="#A #B #D #E">voy. </lem>
+        <rdg wit="#C">voi. </rdg>
+      </app>
+</l>
+
+</sp>
+</div>
+</body></text>
+</TEI>

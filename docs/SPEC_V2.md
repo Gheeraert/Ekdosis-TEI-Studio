@@ -1,538 +1,286 @@
-# SPECS_V2.md
+# SPEC_V2.md
 
-## 1. Purpose
+## 1. Purpose of this specification
 
-This document defines the functional and architectural specification for the clean rewrite of **Ekdosis TEI Studio**.
+This document defines the target behavior and architecture of the rewrite of **Ekdosis TEI Studio**.
 
-The application is intended to support scholarly editing of **classical drama with textual variants**, beginning from a structured plain-text encoding format and producing **valid XML-TEI**.
+It is the main functional specification for the modular system.
 
-The rewrite must prioritize:
-- clarity
-- modularity
-- testability
-- robustness on edge cases
-- compatibility with future interfaces,
-- compatibility with a future static publication layer
+The rewrite should:
+- parse a structured plain-text editorial format,
+- collate multiple witnesses,
+- produce XML-TEI,
+- expose thin service-layer entry points,
+- support UI layers without mixing them with business logic,
+- support a static publication layer able to publish edited texts and scholarly notices.
 
-## 2. Functional objective
+## 2. Foundational principles
 
-The system must convert an input text file containing parallel transcriptions of multiple witnesses into a TEI representation of a dramatic text with critical apparatus.
+### 2.1 Separation of responsibilities
 
-The user must be able to:
-- define the number of witnesses
-- define metadata for each witness
-- choose a reference witness
-- encode a dramatic text in a lightweight syntax
-- process one scene, multiple scenes, or eventually an entire act
-- generate TEI reliably
+The system must keep distinct layers for:
+- parsing
+- domain model
+- collation
+- TEI generation
+- validation
+- application/service orchestration
+- UI
+- publication rendering
+- autonomous editorial utilities
 
-At project level, the architecture must also remain compatible with a later publication workflow in which dramatic TEI files and independent scholarly notice files are published together.
+No major feature should be implemented by collapsing these layers into one script.
 
-## 3. Input model
+### 2.2 Determinism
 
-The input is a structured plain-text format, historically inspired by Markdown-like conventions.
+Given the same inputs and the same configuration, the system must produce the same output.
 
-### 3.1 Parallel blocks
+This applies to:
+- TEI generation
+- XML merge tools
+- text merge tools
+- site publication builds
+- generated navigation
+- asset copying
+- output file structure
 
-A textual unit is usually encoded as a block of parallel lines, one line per witness.
+### 2.3 Editorial realism
 
-For example, with three witnesses:
+The rewrite is not only a technical cleanup. It is intended for real scholarly editorial work.
 
-```text
-Line in witness 1
-Line in witness 2
-Line in witness 3
-```
+Therefore, the specification must account for:
+- difficult dramatic edge cases,
+- editorial paratexts,
+- repeated publication workflows,
+- visual quality expected by literary scholars and editors.
 
-A parser must interpret such blocks using the configured witness count.
+For the publication layer in particular, structural correctness alone is not enough. The rendered result must also be readable, hierarchically clear, typographically decent, and worthy of an audience accustomed to high-quality editions.
 
-### 3.2 Structural markers
+## 3. Core text input model
 
-The following markers must be recognized.
+### 3.1 Plain-text transcription syntax
 
-#### Act header
-```text
-####ACTE I####
-```
+The parser must support, at minimum:
+- `####...####` for act headers
+- `###...###` for scene headers
+- `##...##` for cast on stage
+- `#...#` for speaker changes
+- `**...**` for explicit stage directions
+- `***` for shared verse segmentation
+- `#####` for whole-line variant mode
+- `$$TYPE$$ ... $$fin$$` for implicit stage direction spans
+- `_..._` for italic text
+- `~` for bound/non-breaking spacing
 
-#### Scene header
-```text
-###SCÈNE I###
-```
+### 3.2 Domain model expectation
 
-#### Cast list
-```text
-##PHÈDRE## ##HIPPOLYTE##
-```
+The internal domain model must represent:
+- play
+- act
+- scene
+- cast list
+- speech
+- verse or prose unit
+- stage direction
+- shared verse segment
+- witness-aligned textual units
 
-#### Speaker
-```text
-#PHÈDRE#
-```
+The model should make difficult editorial cases explicit rather than hiding them in formatting tricks.
 
-#### Explicit stage direction
-```text
-**Elle sort.**
-```
-
-#### Shared verse segmentation
-A shared verse may be split across speakers using `***`.
-
-Example:
-```text
-Imaginations!***
-***Éternelles clartés
-```
-
-#### Whole-line variant mode
-A line beginning with `#####` must be treated as a whole-line variation unit.
-
-#### Lacuna
-```text
-(lacune)
-```
-
-#### Implicit stage direction span
-```text
-$$EVT$$
-...
-$$fin$$
-```
-
-#### Italic markup
-```text
-son _temple_
-```
-
-#### Bound spacing
-`~` indicates a non-breaking or editorially bound spacing unit.
-
-#### Forced indentation
-One or more initial `~` may be used to force visible indentation in a line.
-
-## 4. Target domain model
-
-The application must not directly transform raw strings into TEI.
-It must first create a stable internal representation.
-
-A recommended domain model includes the following concepts.
-
-### 4.1 Configuration
-
-```python
-Witness
-EditionConfig
-```
-
-Witness must include:
-- identifier or siglum
-- year
-- description
-
-EditionConfig must include:
-- work metadata
-- witness list
-- reference witness index
-- optional initial line numbering data
-
-### 4.2 Dramatic structure
-
-```python
-Play
-Act
-Scene
-Speech
-StageDirection
-ImplicitStageSpan
-Verse
-SharedVerse
-VerseSegment
-```
-
-### 4.3 Critical structure
-
-```python
-CollatedText
-LiteralText
-VariantText
-ApparatusEntry
-Reading
-```
-
-## 5. Parsing requirements
-
-### 5.1 General strategy
-
-Parsing must happen in stages:
-
-1. raw line reading
-2. grouping into parallel blocks according to witness count
-3. classification of blocks
-4. construction of a structured intermediate representation
-5. transformation into domain objects
-
-### 5.2 Parser responsibilities
+## 4. Parsing requirements
 
 The parser must:
-- respect configured witness count
-- detect malformed blocks
-- distinguish structural blocks from verse blocks
-- preserve ordering
-- identify transitions between speeches
-- identify transitions between acts and scenes
-- support multi-scene inputs
-- support eventual act-level inputs
+- read structured plain-text inputs,
+- detect dramatic hierarchy,
+- preserve order,
+- preserve witness-line grouping,
+- expose structured parsed objects,
+- remain independent from TEI serialization and UI logic.
 
-### 5.3 Parser non-responsibilities
+## 5. Collation requirements
 
-The parser must not:
-- generate XML directly
-- store hidden global state
-- perform UI tasks
-- make formatting decisions unrelated to structure
-
-## 6. Collation requirements
-
-### 6.1 General principle
-
-Collation must happen only on already-identified textual units.
-
-The reference witness is the lemma witness.
-
-### 6.2 Minimal first implementation
-
-A first implementation may provide:
-- tokenization based on editorial word units
-- comparison of witness token sequences
-- production of apparatus entries only where variation exists
-- literal text output where witnesses are identical
-
-### 6.3 Required design
-
-The collation subsystem should be separable into:
+The collation subsystem must be separable into:
 - tokenization
 - alignment
 - apparatus construction
 
-Recommended functions:
+The reference witness is the lemma witness.
 
-```python
-tokenize_editorial_text(text: str) -> list[str]
-align_variants_by_token(token_matrix: list[list[str]], ref_index: int) -> list[AlignmentUnit]
-build_apparatus_from_alignment(...) -> CollatedText
-collate_parallel_verse(...) -> CollatedText
-```
-
-### 6.4 Future needs
-
-The design must leave room for:
-- whole-line variant mode
-- lacuna handling
+A first implementation may provide minimal alignment and apparatus generation, but the design must remain open to:
+- whole-line variants
+- lacunae
+- shared verses
 - partial rewritings
-- shared verse segments
-- difficult multi-segment partitioning
+- difficult segment boundaries
 
-## 7. Shared verse requirements
+## 6. TEI generation requirements
 
-Shared verses are a core requirement, not a marginal edge case.
+### 6.1 Minimal first milestone
 
-A verse may be:
-- complete and attached to one speaker
-- split across two or more speakers
-- split into 2, 3, 4, or more segments
+The first milestone may generate a minimal but valid TEI output.
 
-The internal model must therefore represent a shared verse as a structured object, not as a formatting accident.
-
-A `SharedVerse` should contain:
-- a common metrical identity
-- an ordered list of `VerseSegment`
-- one speaker association per segment
-- content per segment
-
-This is essential for future robustness.
-
-## 8. TEI generation requirements
-
-### 8.1 First milestone TEI
-
-The first milestone may target a minimal but valid TEI output.
-
-It should generate at least:
-- `TEI`
-- `teiHeader`
-- witness metadata
-- dramatic body
-- divisions for acts and scenes
+At minimum, it should support:
+- TEI root and header
+- witness list
+- act and scene divisions
 - speeches
 - verse lines
 - stage directions
-- critical apparatus
-
-### 8.2 Expected dramatic structure
+- critical apparatus with lemma + readings
+
+### 6.2 Ongoing principle
 
-The TEI generator should progressively support:
-- `div type="act"`
-- `div type="scene"`
-- `sp`
-- `speaker`
-- `l`
-- `stage`
-- `app`
-- `lem`
-- `rdg`
-
-### 8.3 Future enrichment
-
-Later versions may add:
-- stable XML identifiers
-- `@who`
-- richer `teiHeader`
-- explicit witness declarations
-- analytic annotation for implicit stage directions
-
-## 9. Validation requirements
-
-Validation must exist at two levels.
+TEI output should be structurally clean and progressively improved over time.
 
-### 9.1 Structural validation
+The TEI layer must not:
+- perform UI work,
+- depend on global mutable state,
+- absorb ad hoc publication styling,
+- make layout decisions unrelated to XML semantics.
+
+## 7. Application/service layer requirements
+
+The application layer must provide thin orchestration services for:
+- TEI generation workflows,
+- site publication workflows,
+- dramatic TEI merge workflows,
+- transcription text merge workflows,
+- future reusable UI entry points.
+
+These services should:
+- accept typed requests or normalized config payloads,
+- return structured results,
+- surface warnings and errors cleanly,
+- remain independent from Tkinter details.
+
+## 8. UI requirements
+
+UI code must remain thin.
+
+It may:
+- collect user input,
+- build request objects,
+- call services,
+- display success/warning/error feedback.
 
-Check:
-- witness count consistency
-- malformed parallel blocks
-- unclosed implicit stage spans
-- impossible structural transitions
-- missing speaker where required
+It must not:
+- implement parsing logic,
+- implement TEI merge logic,
+- implement publication rendering logic,
+- duplicate service normalization.
+
+## 9. Publication requirements: ETS Site Builder
+
+### 9.1 Editorial inputs
+
+The site publication layer must support at least two source families:
+- dramatic TEI produced by ETS,
+- scholarly notice TEI produced with Métopes.
 
-### 9.2 XML validation
+For a given site, the model must be able to support:
+- one dramatic TEI per play as the preferred publication unit,
+- one per-play notice where applicable,
+- one general notice independent from the plays,
+- optional static institutional/editorial pages,
+- assets such as logos and visual files.
 
-Check:
-- XML well-formedness
-- optional schema compatibility
-- deterministic serialization
-
-## 10. Testing policy
-
-Tests are mandatory and central.
-
-### 10.1 Test categories
-
-#### Unit tests
-For:
-- marker recognition
-- block grouping
-- tokenization
-- alignment
-- numbering logic
-
-#### Integration tests
-For:
-- complete fixture input to TEI output
-
-#### Regression tests
-For every bug fixed in difficult cases
+### 9.2 Publication configuration
 
-### 10.2 Fixture policy
+The publication workflow must support explicit configuration of:
+- site identity,
+- editorial context,
+- dramatic inputs,
+- notice inputs,
+- play ordering,
+- play -> notice associations,
+- assets,
+- output directory,
+- publication switches.
 
-Fixtures are the main behavioral specification.
-The stable fixture is the first target.
-Known-issue fixtures must be converted progressively into passing regression tests.
+This configuration must be persistable and reloadable from the UI so a site can be regenerated repeatedly after corrections.
 
-### 10.3 Comparison strategy
+### 9.3 Publication structure target
 
-When comparing generated XML to expected XML:
-- exact comparison is acceptable where stable
-- otherwise normalize whitespace and serialization consistently
-- document the chosen strategy
+The target site structure is now expected to evolve toward:
+- a rich home page explaining the project, the corpus, the team, and the institutional context;
+- an optional general notice independent from the plays;
+- for each play: a reading page for the dramatic text, plus an optional scholarly notice;
+- act/scene navigation under each play;
+- coherent global navigation.
 
-## 11. Repository architecture
+### 9.4 Rendering requirements
 
-Recommended structure:
+For dramatic texts:
+- the site builder must reuse the real ETS XML -> HTML rendering engine whenever available;
+- it must not replace the canonical rendering with a poor local approximation;
+- act/scene anchors may be injected or aligned after rendering, but the dramatic HTML engine remains the source of truth.
 
-```text
-src/
-  ets/
-    domain/
-    parser/
-    collation/
-    tei/
-    validation/
-    render/
-    site_builder/
-    cli.py
-tests/
-fixtures/
-docs/
-legacy/
-```
+For notices:
+- the builder may follow a dedicated notice rendering path inspired by Impressions and Métopes publication logic.
 
-## 12. Interface policy
+### 9.5 Navigation requirements
 
-The core must not depend on any GUI.
+The site should support:
+- automatic menu generation,
+- one coherent sidebar/navigation model,
+- per-play act/scene navigation,
+- collapsible or foldable act/scene trees,
+- stable deterministic anchors.
 
-### 12.1 Forbidden
-- mixing GUI code with parsing, collation, validation, or TEI generation
-- rebuilding the legacy monolith
-- making interface code the source of truth
+### 9.6 Visual requirements
 
-### 12.2 Allowed
-- CLI entry point
-- file-based workflow
-- fixture-driven testing
-- separate Tkinter or Flask presentation layers built on top of application services
+Publication quality is not limited to technical correctness.
 
-### 12.3 Rule
-Any interface must remain a thin layer over modular services.
+The publication layer must also consider:
+- typographic tone,
+- spacing,
+- hierarchy,
+- reading comfort,
+- colors and page balance,
+- visual coherence with the project’s literary and scholarly ambitions.
 
-## 13. Legacy code policy
+Legacy sites and archived publication outputs may be used as inspiration for:
+- structure,
+- collapsible navigation behavior,
+- home-page content hierarchy,
+- CSS direction,
+- overall editorial tone.
 
-The previous codebase may be consulted for logic and conventions, but:
-- it is not the source of architectural authority
-- it must not dictate the new shape of the application
-- it should remain isolated under `legacy/`
+They must not be copied as monolithic CMS architecture.
 
-## 14. Initial milestone definition
+## 10. Autonomous tools
 
-The first milestone is complete when the application can:
+The system may include small independent editorial tools, such as:
+- dramatic TEI merge,
+- transcription text merge,
+- future validators or converters.
 
-1. load the stable fixture input
-2. read its witness configuration
-3. parse acts, scenes, cast, speakers, and ordinary verse blocks
-4. collate witness lines against a reference witness
-5. generate minimal TEI
-6. pass the stable fixture test suite
+These tools must remain modular, testable, and callable from thin UI entry points.
 
-## 15. Subsequent milestone suggestions
+## 11. Testing requirements
 
-### Milestone 2
-- explicit stage directions
-- shared verses
-- lacunae
-- whole-line variants
-- italics
+The repository must use `pytest` and distinguish between:
+- unit tests,
+- integration tests,
+- publication tests,
+- UI bridge tests.
 
-### Milestone 3
-- multiple scenes in one file
-- stronger structural validation
-- richer witness metadata
+For publication work, tests should include:
+- structural assertions on generated HTML,
+- deterministic path assertions,
+- regression checks for navigation and anchors,
+- focused checks that the real rendering engine is being reused,
+- visual/UX-sensitive structural checks where appropriate.
 
-### Milestone 4
-- difficult shared verse chains
-- advanced alignment strategies
-- better identifiers and TEI enrichment
+## 12. Legacy policy
 
-### Milestone 5
-- Flask interface
-- TEI preview
-- editing workflow support
+Legacy code is reference material only.
 
+Use it to:
+- understand historical behavior,
+- recover useful editorial ideas,
+- compare publication targets.
 
-## 16. Static publication layer — ETS Site Builder
+Do not preserve its architecture.
 
-### 16.1 Purpose
-
-ETS Site Builder is a planned autonomous publication module.
-
-Its responsibility is to generate a complete static scholarly website from XML editorial sources, while remaining compatible with the modular ETS architecture.
-
-### 16.2 Supported editorial source families
-
-The publication layer must be designed to support at least two distinct XML source families:
-
-1. **dramatic TEI produced by ETS**;
-2. **paratextual TEI notices produced with Métopes**.
-
-A notice is an editorial document attached to a play, but distinct from the dramatic TEI itself.
-It may contain scholarly paratexts such as:
-- notice,
-- introduction,
-- bibliography,
-- annexes,
-- editorial metadata.
-
-### 16.3 Architectural rule
-
-The dramatic TEI and the notice TEI must remain separate source objects.
-
-The site builder may aggregate them at publication time, but should not assume that they share the same schema, the same internal divisions, or the same generation pipeline.
-
-### 16.4 Minimal publication responsibilities
-
-A first implementation of ETS Site Builder should be able to:
-- load a set of dramatic TEI files,
-- load optional notice TEI files produced with Métopes,
-- associate notices with plays through explicit configuration or stable identifiers,
-- extract publication metadata,
-- generate a home page,
-- generate one page per play,
-- generate derived act or scene pages when available,
-- generate a notice page for each play when notice XML is present,
-- generate navigation menus automatically,
-- optionally expose XML download links,
-- emit a fully static output directory.
-
-### 16.5 Notice rendering model
-
-The rendering of Métopes notices may take direct inspiration from the **Impressions** project, which documents a static publication workflow based on:
-- TEI Métopes input,
-- optional `xi:include` resolution,
-- TEI → HTML transformation through XSLT,
-- generated table of contents and structured navigation,
-- lightweight GUI-based editorial parameter input.
-
-ETS Site Builder does not need to reproduce Impressions exactly, but it should preserve the same broad logic:
-- XML-first,
-- static output,
-- deterministic build,
-- no database,
-- no CMS.
-
-
-
-### 16.5.1 Current documented Métopes subset
-
-For the next implementation stages, support for Métopes notices must remain intentionally limited to a documented, testable subset.
-
-Two input situations are especially relevant:
-
-1. a **master volume file** with `text type="book"`, nested `group` elements, and optional `xi:include` references to component files;
-2. a **standalone notice or chapter file** with a `text` node, optional `front`, `titlePage`, `body`, paragraphs, inline highlighting, and notes.
-
-A first operational implementation may therefore limit itself to:
-- optional `xi:include` resolution,
-- extraction of hierarchical `group` structures,
-- extraction of `head` and `title`,
-- support for `front/titlePage`,
-- support for `body/p`,
-- support for inline `hi`,
-- support for notes,
-- minimal structured HTML rendering.
-
-Full generic support for all possible Métopes encodings is not required at this stage.
-
-### 16.5.2 Fixture policy for Métopes material
-
-The repository should maintain two complementary fixture families for Métopes-related work:
-
-- `fixtures/metopes/minimal/` for very small synthetic fixtures used in stable unit and integration tests;
-- `fixtures/metopes/realistic/` for real or lightly adapted Métopes files used in broader integration tests.
-
-These fixtures are part of the behavioral specification for ETS Site Builder and should guide implementation choices.
-
-### 16.5.3 Association rule between play TEI and notice TEI
-
-The association between a dramatic TEI play and a Métopes notice must initially remain explicit and deterministic.
-
-Acceptable first strategies include:
-- direct configuration,
-- a stable shared slug,
-- a documented filename convention.
-
-The first implementations must not rely on opaque heuristics or undocumented guessing to associate plays and notices.
-
-### 16.6 Non-goals
-
-The site builder must not initially:
-- rewrite Métopes TEI into ETS dramatic TEI,
-- merge both XML sources physically into one master TEI file,
-- depend on a database or CMS,
-- require manual maintenance of navigation structures.
+Legacy deployed sites, FTP snapshots, and static exports may be stored under `legacy/` or another documented reference location for comparison and guided redesign.

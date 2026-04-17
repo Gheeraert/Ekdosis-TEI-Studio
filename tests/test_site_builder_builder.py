@@ -4,6 +4,8 @@ import shutil
 from pathlib import Path
 from uuid import uuid4
 
+from lxml import html as lxml_html
+
 from ets.site_builder.builder import build_static_site
 from ets.site_builder.config import site_config_from_dict
 
@@ -76,6 +78,24 @@ def test_builder_generates_cross_links_and_home_intro_from_explicit_mapping() ->
     assert "Bienvenue sur l&#x27;edition de demonstration." in home_html
     assert "../notices/andromaque-notice.html" in play_html
     assert "../plays/andromaque.html" in notice_html
+    assert "Pour qui sont ces serpents" in play_html
+    assert 'class="play-structure-nav"' in play_html
+
+    doc = lxml_html.document_fromstring(play_html)
+    assert len(doc.xpath("//main/nav")) == 1
+    assert doc.xpath("//main/nav//div[contains(@class, 'play-structure-nav')]")
+    assert not doc.xpath("//section//aside[contains(@class, 'play-structure-nav')]")
+    assert doc.xpath("//section[@id='contenu-editorial' and contains(@class, 'dramatic-content')]")
+    assert "IM Fell DW Pica" in play_html
+    assert ".vers-container" in play_html
+    assert "#container {" not in play_html
+
+    nav_targets = doc.xpath("//main/nav//div[contains(@class, 'play-structure-nav')]//a/@href")
+    assert nav_targets
+    for href in nav_targets:
+        assert href.startswith("#")
+        anchor_id = href[1:]
+        assert doc.xpath(f"//*[@id='{anchor_id}']")
 
 
 def test_builder_copies_branding_assets_and_references_logos() -> None:
@@ -209,3 +229,33 @@ def test_builder_output_paths_are_deterministic() -> None:
         "plays/berenice.html",
         "notices/andromaque-notice.html",
     }
+
+
+def test_play_page_keeps_xml_download_and_embeds_transformed_text() -> None:
+    base_dir = _runtime_dir("site_builder_play_reading")
+    output_dir = base_dir / "site_play_reading"
+    config = site_config_from_dict(
+        {
+            "site_title": "ETS Demo",
+            "dramatic_xml_dir": str(FIXTURE_ROOT / "dramatic"),
+            "notice_xml_dir": str(FIXTURE_ROOT / "notices"),
+            "output_dir": str(output_dir),
+            "show_xml_download": True,
+            "publish_notices": True,
+            "play_notice_map": {"andromaque": "andromaque-notice"},
+        }
+    )
+
+    build_static_site(config)
+    play_html = (output_dir / "plays" / "andromaque.html").read_text(encoding="utf-8")
+    doc = lxml_html.document_fromstring(play_html)
+
+    assert doc.xpath("//a[@href='../xml/dramatic/andromaque.xml' and @download]")
+    assert doc.xpath("//a[@href='../notices/andromaque-notice.html']")
+    assert doc.xpath("//main/nav//div[contains(@class, 'play-structure-nav')]")
+    assert doc.xpath("//section[@id='contenu-editorial' and contains(@class, 'dramatic-content')]")
+    assert "IM Fell DW Pica" in play_html
+    assert doc.xpath("//*[contains(@class, 'locuteur')]")
+    assert doc.xpath("//*[contains(@class, 'vers-container')]")
+    assert not doc.xpath("//*[contains(@class, 'play-reading-layout')]")
+    assert not doc.xpath("//*[contains(., 'Divisions reperees')]")

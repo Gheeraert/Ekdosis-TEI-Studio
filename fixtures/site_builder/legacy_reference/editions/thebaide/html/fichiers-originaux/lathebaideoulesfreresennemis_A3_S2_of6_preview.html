@@ -1,0 +1,418 @@
+<html lang="fr">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta charset="UTF-8">
+<title>Édition TEI</title>
+            <link href="https://fonts.googleapis.com/css2?family=IM+Fell+DW+Pica&display=swap" rel="stylesheet">
+        
+            <link href="https://fonts.googleapis.com/css2?family=EB+Garamond&display=swap" rel="stylesheet">
+        
+            <link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro&display=swap" rel="stylesheet">
+        <style>
+          body {
+            font-family: 'IM Fell DW Pica', Georgia, serif;
+            background: #fdf6e3;
+            color: #4a3c1a;
+            padding: 2em;
+            max-width: 800px;
+            margin-left: 9em;
+          }
+          .ligne-logos-gauche {
+           display: flex;
+           align-items: center;
+           gap: 1em;
+           margin-bottom: 0.5em;
+          }
+          .logo-credit {
+           width: 200px;
+           height: auto;
+           opacity: 0.85;
+          }
+          .logo-ekdosis {
+           width: 50px;
+           height: auto;
+           opacity: 0.9;
+          }
+          .bloc-credit {
+           font-family: 'Source Sans Pro', sans-serif;
+           font-size: 0.8em;
+           color: #3a3a3a;
+           margin: 1.5em 0;
+           padding: 0.6em 1.1em;
+           border: 1px solid #ccc2b2;
+           background: #fefdf8;
+           line-height: 1.2;
+           text-align: left;
+           max-width: 650px;
+           margin-left: auto;
+           margin-right: auto;
+          border-radius: 6px;
+          box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.04);
+          }
+         .italic {
+          font-style: italic;
+          color: darkred;
+          }
+          .bold {
+          font-weight: bold;
+          }
+          .underline {
+          text-decoration: underline;
+          }
+          .acte-titre-sans-variation {
+          font-weight: bold;
+          margin-top: 1.5em;
+          margin-bottom: 0.5em;
+          margin-left: 11em;
+          }
+          .scene-titre-sans-variation {
+          font-weight: bold;
+          margin-top: 1.5em;
+          margin-bottom: 0.5em;
+          margin-left: 11em;
+          }
+        .scene-titre {
+          font-style: italic;
+          margin-bottom: 0.5em;
+          margin-left: 0em;
+        }
+        .acte, .scene, .personnages {
+            font-weight: bold;
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+            margin-left: 11em;
+          }
+          .titre-piece {
+            font-style: italic;
+          }
+          .locuteur {
+            font-variant: small-caps;
+            margin-top: 1em;
+            margin-bottom: 0.2em;
+            margin-left: 11em;
+          }
+          .tirade {
+            margin-left: 1em;
+            margin-bottom: 1em;
+          }
+          .vers {
+            margin: 0.2em 0;
+          }
+          .didascalie {
+            font-style: italic;
+            color: #555;
+            margin-left: 9em;
+            margin-bottom: 0.5em;
+          }
+          /* Container englobant tes vers interprétés */
+          /* Titre unique au-dessus du premier bloc implicite */
+          .didas-implicites-label {
+           text-align: right;
+           font-style: normal;
+           color: #777;
+           font-weight: bold;
+           font-size: 0.9em;
+           margin: 0.5em 0 0.2em; /* espace au-dessus et dessous */
+          }
+          .stage-implicite {
+           position: relative;        /* pour pouvoir placer le label en absolu */
+           padding-right: 6em;        /* espace à droite pour le label */
+           margin: 0.5em 0;           /* un peu d’air au-dessus et en dessous */
+          }
+          .stage-implicite::after {
+           content: attr(data-label);  /* récupère la valeur de data-type */
+           position: absolute;
+           top: 0;                    /* aligne en haut du premier vers */
+           right: 0;                  /* plaque contre la marge droite du container */
+           font-style: italic;
+           color: #777;               /* gris discret */
+           font-size: 0.85em;         /* un peu plus petit que le texte courant */
+           white-space: nowrap;       /* ne pas couper le mot-clé */
+          }
+          .variation {
+            position: relative;
+            border-bottom: 1px dotted #8b5e3c;
+            cursor: help;
+          }
+          .variation::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            top: 1.5em;
+            left: 0;
+            background: #fef3c7;
+            color: #111;
+            padding: 0.5em;
+            border: 1px solid #e0b973;
+            border-radius: 6px;
+            font-size: 0.8em;
+            white-space: pre-line;
+            display: none;
+            z-index: 1000;
+            max-width: 400px;
+            overflow-wrap: break-word;
+          }
+          .variation:hover::after {
+            display: block;
+          }
+          p.vers {
+            display: flex;
+            gap: 1em;
+            margin: 0.2em 0;
+          }
+          .vers-container {
+            position: relative;
+            margin-left: 5em;
+            margin-bottom: 0.4em;
+            line-height: 1;
+          }
+          .num-vers {
+            position: absolute;
+            left: -4.5em;
+            width: 4em;
+            text-align: right;
+            font-size: 0.85em;
+            color: #5a5245;
+            font-style: italic;
+          }
+          .texte-vers {
+            display: inline;
+          }
+          .vers-decale {
+            margin-left: 14em;
+          }
+        </style>
+<link rel="icon" href="https://www.normandie.fr/sites/default/files/2021-03/favicon.ico" type="image/x-icon">
+</head>
+<body>
+<div class="bloc-credit">
+<div class="ligne-logos-gauche"><img src="logos.png" alt="Logos" class="logo-credit"></div>
+<div class="credit-line">Texte généré par Ekdosis-TEI Studio</div>
+<div class="credit-line">Chaire d'excellence en Éditions numériques</div>
+<div class="credit-line">Université de Rouen Normandie - Région Normandie</div>
+<div class="credit-line"> </div>
+<div class="credit-line">Licence Creative Commons - CC-BY-NC-SA</div>
+<div class="credit-line">Jean Racine – <span class="italic">La Thébaïde ou les frères ennemis</span>, Acte 3, Scène 2</div>
+<div class="credit-line">Édition critique par Claire Fourquet-Gracieux</div>
+<div class="credit-line">Document généré le 02 août 2025</div>
+</div>
+<div class="scene-titre-sans-variation">SCENE II.</div>
+<p class="didascalie"><em><span class="variation" data-tooltip="1664, 1676: IOCASTE
+
+">JOCASTE </span></em></p>
+<div class="locuteur"><span style="font-variant: small-caps;"><span class="variation" style="font-variant: small-caps;" data-tooltip="1664, 1676: IOCASTE
+
+1697: JOCASTE,
+
+">JOCASTE </span></span></div>
+<div class="tirade">
+<p class="didascalie"><em>
+seule.       </em></p>
+<div class="vers-container">
+<span class="num-vers">675</span><span class="texte-vers"><span class="variation" data-tooltip="1664: DVreront-ils
+
+">DUreront-ils </span><span class="variation" data-tooltip="1664: tousiours
+
+1676, 1687, 1697: toûjours
+
+">tousjours </span>
+ces ennuis si funestes ? </span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers"><span class="variation" data-tooltip="1676, 1687, 1697: N’épuiseront-ils
+
+">N’epuiseront-ils </span>
+point les 
+      <span class="variation" data-tooltip="1697: vengeances
+
+">vangeances </span>
+celestes ? </span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Me feront-ils souffrir tant de cruels trépas, </span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Sans jamais au tombeau précipiter mes pas ? </span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+O Ciel ! que tes rigueurs seroient peu redoutables, </span>
+</div>
+<div class="vers-container">
+<span class="num-vers">680</span><span class="texte-vers">
+Si la foudre d’abord accabloit les 
+      <span class="variation" data-tooltip="1697: coupables !
+
+">coupables, </span>
+</span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Et que tes 
+      <span class="variation" data-tooltip="1687, 1697: châtimens
+
+">chastimens </span>
+paroissent infinis, </span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Quand tu laisses la vie à ceux que tu punis ! </span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Tu ne l’ignores pas, depuis le 
+      <span class="variation" data-tooltip="1664: iour
+
+">jour </span>
+infame, </span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers"><span class="variation" data-tooltip="1676, 1687, 1697: Où
+
+">Ou </span>
+de mon propre Fils je me 
+      <span class="variation" data-tooltip="1664: trouuay
+
+">trouvay </span>
+la 
+      <span class="variation" data-tooltip="1676, 1687: Femme,
+
+1697: femme,
+
+">Femme </span>
+</span>
+</div>
+<div class="vers-container">
+<span class="num-vers">685</span><span class="texte-vers">
+Le moindre des tourmens que mon cœur a soufferts, </span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Egale tous les maux que l’on souffre aux 
+      <span class="variation" data-tooltip="1687: Enfers,
+
+1697: Enfers :
+
+">Enfers. </span>
+</span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Et 
+      <span class="variation" data-tooltip="1687, 1697: toutefois,
+
+">toutesfois, </span>
+ô Dieux, 
+      <span class="variation" data-tooltip="1664: vn
+
+">un </span>
+crime 
+      <span class="variation" data-tooltip="1664: inuolontaire,
+
+1687, 1697: involontaire
+
+">involontaire, </span>
+</span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers"><span class="variation" data-tooltip="1664: Deuoit-il
+
+">Devoit-il </span>
+attirer toute vostre colere ? </span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Le connoissois-je, helas ! ce Fils 
+      <span class="variation" data-tooltip="1664: infortuné,
+
+">infortuné ? </span>
+</span>
+</div>
+<div class="vers-container">
+<span class="num-vers">690</span><span class="texte-vers"><span class="variation" data-tooltip="1676, 1687: Vous mesmes
+
+1697: Vous mêmes
+
+">Lors que </span><span class="variation" data-tooltip="1676, 1687, 1697: dans
+
+">dedans </span>
+mes bras vous 
+      <span class="variation" data-tooltip="1664: l’auez
+
+1687: l’avés
+
+">l’avez </span>
+
+      <span class="variation" data-tooltip="1687, 1697: amené.
+
+">amené ? </span>
+</span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+C’est vous dont la rigueur 
+      <span class="variation" data-tooltip="1664: m’ouurit
+
+">m’ouvrit </span>
+ce precipice. </span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers"><span class="variation" data-tooltip="1664: Voila
+
+">Voilà </span>
+de ces grands Dieux la suprême 
+      <span class="variation" data-tooltip="1664: iustice,
+
+">justice, </span>
+</span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers"><span class="variation" data-tooltip="1664: Iusques
+
+">Jusques </span>
+au bord du crime ils conduisent nos 
+      <span class="variation" data-tooltip="1676, 1687: pas.
+
+">pas, </span>
+</span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Ils nous le font commettre, &amp; ne l’excusent pas. </span>
+</div>
+<div class="vers-container">
+<span class="num-vers">695</span><span class="texte-vers">
+Prennent-ils donc plaisir à faire des coupables, </span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Afin d’en faire 
+      <span class="variation" data-tooltip="1687, 1697: aprés
+
+">apres </span>
+d’illustres 
+      <span class="variation" data-tooltip="1676, 1687, 1697: miserables ?
+
+">miserables, </span>
+</span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Et ne 
+      <span class="variation" data-tooltip="1664: peuuent-ils
+
+">peuvent-ils </span>
+point quand ils sont en couroux, </span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Chercher des criminels à qui le crime est 
+      <span class="variation" data-tooltip="1687: doux !
+
+">doux ? </span>
+</span>
+</div>
+</div>
+</body>
+</html>

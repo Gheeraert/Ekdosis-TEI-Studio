@@ -1,0 +1,40 @@
+{
+    "Prénom de l'auteur": "Jean",
+    "Nom de l'auteur": "Racine",
+    "Titre de la pièce": "Britannicus",
+    "Numéro de l'acte": "4",
+    "Numéro de la scène": "2",
+    "Nombre de scènes dans l'acte": "4",
+    "Numéro du vers de départ": 1304,
+    "Noms des personnages (séparés par virgule)": "",
+    "Nombre de témoins": 5,
+    "Nom de l'éditeur (vous)": "Labrune",
+    "Prénom de l'éditeur": "Caroline",
+    "Temoins": [
+        {
+            "abbr": "A",
+            "year": "1670",
+            "desc": "Barbin, BNF cote RES YF 3208"
+        },
+        {
+            "abbr": "B",
+            "year": "1676",
+            "desc": "Collective"
+        },
+        {
+            "abbr": "C",
+            "year": "1687",
+            "desc": "Collective"
+        },
+        {
+            "abbr": "D",
+            "year": "1697",
+            "desc": "Définitive"
+        },
+        {
+            "abbr": "E",
+            "year": "1670-Rég.",
+            "desc": "Première édition régularisée"
+        }
+    ]
+}

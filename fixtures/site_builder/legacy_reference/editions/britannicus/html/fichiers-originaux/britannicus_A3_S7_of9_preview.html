@@ -1,0 +1,743 @@
+<html lang="fr">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta charset="UTF-8">
+<title>Édition TEI</title>
+            <link href="https://fonts.googleapis.com/css2?family=IM+Fell+DW+Pica&display=swap" rel="stylesheet">
+        
+            <link href="https://fonts.googleapis.com/css2?family=EB+Garamond&display=swap" rel="stylesheet">
+        
+            <link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro&display=swap" rel="stylesheet">
+        <style>
+          body {
+            font-family: 'IM Fell DW Pica', Georgia, serif;
+            background: #fdf6e3;
+            color: #4a3c1a;
+            padding: 2em;
+            max-width: 800px;
+            margin-left: 9em;
+          }
+          .ligne-logos-gauche {
+           display: flex;
+           align-items: center;
+           gap: 1em;
+           margin-bottom: 0.5em;
+          }
+          .logo-credit {
+           width: 200px;
+           height: auto;
+           opacity: 0.85;
+          }
+          .logo-ekdosis {
+           width: 50px;
+           height: auto;
+           opacity: 0.9;
+          }
+          .bloc-credit {
+           font-family: 'Source Sans Pro', sans-serif;
+           font-size: 0.8em;
+           color: #3a3a3a;
+           margin: 1.5em 0;
+           padding: 0.6em 1.1em;
+           border: 1px solid #ccc2b2;
+           background: #fefdf8;
+           line-height: 1.2;
+           text-align: left;
+           max-width: 650px;
+           margin-left: auto;
+           margin-right: auto;
+          border-radius: 6px;
+          box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.04);
+          }
+         .italic {
+          font-style: italic;
+          color: darkred;
+          }
+          .bold {
+          font-weight: bold;
+          }
+          .underline {
+          text-decoration: underline;
+          }
+          .acte-titre-sans-variation {
+          font-weight: bold;
+          margin-top: 1.5em;
+          margin-bottom: 0.5em;
+          margin-left: 11em;
+          }
+          .scene-titre-sans-variation {
+          font-weight: bold;
+          margin-top: 1.5em;
+          margin-bottom: 0.5em;
+          margin-left: 11em;
+          }
+        .scene-titre {
+          font-style: italic;
+          margin-bottom: 0.5em;
+          margin-left: 0em;
+        }
+        .acte, .scene, .personnages {
+            font-weight: bold;
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+            margin-left: 11em;
+          }
+          .titre-piece {
+            font-style: italic;
+          }
+          .locuteur {
+            font-variant: small-caps;
+            margin-top: 1em;
+            margin-bottom: 0.2em;
+            margin-left: 11em;
+          }
+          .tirade {
+            margin-left: 1em;
+            margin-bottom: 1em;
+          }
+          .vers {
+            margin: 0.2em 0;
+          }
+          .didascalie {
+            font-style: italic;
+            color: #555;
+            margin-left: 9em;
+            margin-bottom: 0.5em;
+          }
+          .variation {
+            position: relative;
+            border-bottom: 1px dotted #8b5e3c;
+            cursor: help;
+          }
+          .variation::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            top: 1.5em;
+            left: 0;
+            background: #fef3c7;
+            color: #111;
+            padding: 0.5em;
+            border: 1px solid #e0b973;
+            border-radius: 6px;
+            font-size: 0.8em;
+            white-space: pre-line;
+            display: none;
+            z-index: 1000;
+            max-width: 400px;
+            overflow-wrap: break-word;
+          }
+          .variation:hover::after {
+            display: block;
+          }
+          p.vers {
+            display: flex;
+            gap: 1em;
+            margin: 0.2em 0;
+          }
+          .vers-container {
+            position: relative;
+            margin-left: 5em;
+            margin-bottom: 0.4em;
+            line-height: 1;
+          }
+          .num-vers {
+            position: absolute;
+            left: -4.5em;
+            width: 4em;
+            text-align: right;
+            font-size: 0.85em;
+            color: #5a5245;
+            font-style: italic;
+          }
+          .texte-vers {
+            display: inline;
+          }
+          .vers-decale {
+            margin-left: 14em;
+          }
+        </style>
+<link rel="icon" href="https://www.normandie.fr/sites/default/files/2021-03/favicon.ico" type="image/x-icon">
+</head>
+<body>
+<div class="bloc-credit">
+<div class="ligne-logos-gauche"><img src="logos.png" alt="Logos" class="logo-credit"></div>
+<div class="credit-line">Texte généré par Ekdosis-TEI Studio</div>
+<div class="credit-line">Chaire d'excellence en Éditions numériques</div>
+<div class="credit-line">Université de Rouen Normandie - Région Normandie</div>
+<div class="credit-line"> </div>
+<div class="credit-line">Licence Creative Commons - CC-BY-NC-SA</div>
+<div class="credit-line">Jean Racine – <span class="italic">Britannicus</span>, Acte 3, Scène 7</div>
+<div class="credit-line">Édition critique par Caroline Labrune</div>
+<div class="credit-line">Document généré le 30 juillet 2025</div>
+</div>
+<div class="scene-titre-sans-variation">SCENE VII.</div>
+<p class="didascalie"><em>BRITANNICUS, JUNIE.</em></p>
+<div class="locuteur"><span style="font-variant: small-caps;">JUNIE.</span></div>
+<div class="tirade">
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers"><span class="variation" data-tooltip="1687: REtirés-vous,
+
+">REtirez-vous, </span>
+Seigneur, &amp; 
+      <span class="variation" data-tooltip="1687: fuyés
+
+">fuyez </span>
+un 
+      <span class="variation" data-tooltip="1697: couroux
+
+">courroux </span>
+</span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Que ma perseverance allume contre vous. </span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Neron est irrité. Je me suis 
+      <span class="variation" data-tooltip="1676, 1687, 1697: échappée.
+
+">échappée </span>
+</span>
+</div>
+<div class="vers-container">
+<span class="num-vers">960</span><span class="texte-vers">
+Tandis qu’à l’arrester sa Mere est occupée. </span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Adieu, 
+      <span class="variation" data-tooltip="1687: reservés-vous,
+
+">reservez-vous, </span>
+sans blesser mon amour, </span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Au plaisir de me voir justifier un jour. </span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Vostre image sans cesse est presente à mon ame. </span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Rien ne l’en peut bannir. </span>
+</div>
+</div>
+<div class="locuteur"><span style="font-variant: small-caps;">BRITANNICUS.</span></div>
+<div class="tirade">
+<div class="vers-container vers-decale">
+<span class="num-vers"></span><span class="texte-vers">
+Je vous entens, 
+      <span class="variation" data-tooltip="1687, 1697: Madame,
+
+">Madame. </span>
+</span>
+</div>
+<div class="vers-container">
+<span class="num-vers">965</span><span class="texte-vers">
+Vous 
+      <span class="variation" data-tooltip="1687: voulés
+
+">voulez </span>
+que ma fuite assure vos desirs, </span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Que je laisse un 
+      <span class="variation" data-tooltip="1670: chãp
+
+">champ </span>
+libre à vos nouveaux soûpirs. </span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Sans doute en me voyant, une pudeur secrete </span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Ne vous laisse gouster qu’une joye inquiete. </span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Hé 
+      <span class="variation" data-tooltip="1676: bien !
+
+1687, 1697: bien,
+
+">bien </span>
+il faut partir. </span>
+</div>
+</div>
+<div class="locuteur"><span style="font-variant: small-caps;">JUNIE.</span></div>
+<div class="tirade"><div class="vers-container vers-decale">
+<span class="num-vers"></span><span class="texte-vers">
+Seigneur, sans 
+      <span class="variation" data-tooltip="1676, 1697: m’imputer....
+
+1687: m’imputer.…
+
+">m’imputer... </span>
+</span>
+</div></div>
+<div class="locuteur"><span style="font-variant: small-caps;">BRITANNICUS.</span></div>
+<div class="tirade">
+<div class="vers-container">
+<span class="num-vers">970</span><span class="texte-vers">
+Ah ! vous 
+      <span class="variation" data-tooltip="1687: deviés
+
+">deviez </span>
+du moins plus long-temps 
+      <span class="variation" data-tooltip="1687: disputer,
+
+">disputer. </span>
+</span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Je ne murmure point qu’une amitié commune </span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Se range du 
+      <span class="variation" data-tooltip="1687, 1697: parti
+
+">party </span>
+que flatte la fortune, </span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Que l’éclat d’un Empire ait 
+      <span class="variation" data-tooltip="1676: pu
+
+">pû </span>
+vous 
+      <span class="variation" data-tooltip="1697: éblouïr,
+
+">ébloüir, </span>
+</span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Qu’aux dépens de ma Sœur vous en 
+      <span class="variation" data-tooltip="1687: vouliés
+
+">vouliez </span>
+
+      <span class="variation" data-tooltip="1697: jouïr.
+
+">joüir. </span>
+</span>
+</div>
+<div class="vers-container">
+<span class="num-vers">975</span><span class="texte-vers">
+Mais que de ces grandeurs 
+      <span class="variation" data-tooltip="1670: cõme
+
+">comme </span>
+une autre occupée </span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Vous m’en 
+      <span class="variation" data-tooltip="1687: ayés
+
+">ayez </span>
+paru si long-temps détrompée ; </span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Non, je l’avouë encor, mon cœur 
+      <span class="variation" data-tooltip="1697: desesperé.
+
+">desesperé </span>
+</span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Contre ce seul 
+      <span class="variation" data-tooltip="1697: malheur
+
+">mal-heur </span>
+n’étoit point preparé. </span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers"><span class="variation" data-tooltip="1687: J’ai
+
+">J’ay </span>
+veu sur ma 
+      <span class="variation" data-tooltip="1676: ruïne
+
+">ruine </span>
+élever l’injustice. </span>
+</div>
+<div class="vers-container">
+<span class="num-vers">980</span><span class="texte-vers">
+De mes 
+      <span class="variation" data-tooltip="1697: persecuteurs
+
+">Persecuteurs </span>
+
+      <span class="variation" data-tooltip="1687: j’ai
+
+">j’ay </span>
+veu le Ciel complice. </span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers"><span class="variation" data-tooltip="1670: Tãt
+
+">Tant </span>
+d’horreurs 
+      <span class="variation" data-tooltip="1670: n’avoiẽt
+
+">n’avoient </span>
+point épuisé son 
+      <span class="variation" data-tooltip="1697: couroux.
+
+">courroux, </span>
+</span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Madame. Il me restoit d’estre oublié de vous. </span>
+</div>
+</div>
+<div class="locuteur"><span style="font-variant: small-caps;">JUNIE.</span></div>
+<div class="tirade">
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Dans un temps plus heureux ma juste 
+      <span class="variation" data-tooltip="1687: impatienc
+
+">impatience </span>
+</span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Vous feroit repentir de vostre défiance. </span>
+</div>
+<div class="vers-container">
+<span class="num-vers">985</span><span class="texte-vers">
+Mais Neron vous 
+      <span class="variation" data-tooltip="1687: menace.
+
+">menasse. </span>
+En ce pressant danger, </span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Seigneur, 
+      <span class="variation" data-tooltip="1687: j’ai
+
+">j’ay </span>
+d’autres soins que de vous affliger. </span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers"><span class="variation" data-tooltip="1687: Allés,
+
+">Allez, </span><span class="variation" data-tooltip="1676: rasseurez-vous,
+
+1687: rassurés-vous,
+
+">rassurez-vous, </span>
+&amp; 
+      <span class="variation" data-tooltip="1687: cessés
+
+">cessez </span>
+de vous plaindre, </span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Neron nous écoutoit, &amp; m’ordonnoit de feindre. </span>
+</div>
+</div>
+<div class="locuteur"><span style="font-variant: small-caps;"><span class="variation" style="font-variant: small-caps;" data-tooltip="1687: BRITANNICUS,
+
+">BRITANNICUS. </span></span></div>
+<div class="tirade"><div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers"><span class="variation" data-tooltip="1687: Quoi
+
+">Quoy </span>
+le 
+      <span class="variation" data-tooltip="1670: cruel ?..
+
+">cruel ?... </span>
+</span>
+</div></div>
+<div class="locuteur"><span style="font-variant: small-caps;">JUNIE.</span></div>
+<div class="tirade">
+<div class="vers-container vers-decale">
+<span class="num-vers"></span><span class="texte-vers">
+Témoin de tout nostre entretien </span>
+</div>
+<div class="vers-container">
+<span class="num-vers">990</span><span class="texte-vers">
+D’un visage severe examinoit le mien, </span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Prest à faire sur vous éclater la 
+      <span class="variation" data-tooltip="1697: vengeance
+
+">vangeance </span>
+</span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+D’un 
+      <span class="variation" data-tooltip="1676, 1687, 1697: geste
+
+">geste, </span>
+confident de nostre intelligence. </span>
+</div>
+</div>
+<div class="locuteur"><span style="font-variant: small-caps;">BRITANNICUS.</span></div>
+<div class="tirade">
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Neron nous écoutoit, Madame ! 
+      <span class="variation" data-tooltip="1687, 1697: Mais
+
+">Mais, </span>
+helas ! </span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Vos yeux auroient pû feindre &amp; ne m’abuser pas. </span>
+</div>
+<div class="vers-container">
+<span class="num-vers">995</span><span class="texte-vers">
+Ils pouvoient me nommer l’auteur de 
+      <span class="variation" data-tooltip="1697: cet
+
+">cét </span>
+outrage. </span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+L’amour est-il muet, ou 
+      <span class="variation" data-tooltip="1676, 1687: n’a-t’il
+
+">n’a-t-il </span>
+qu’un langage ? </span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+De quel trouble un regard pouvoit me preserver ? </span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Il 
+      <span class="variation" data-tooltip="1676, 1687, 1697: falloit...
+
+">faloit... </span>
+</span>
+</div>
+</div>
+<div class="locuteur"><span style="font-variant: small-caps;">JUNIE.</span></div>
+<div class="tirade">
+<div class="vers-container vers-decale">
+<span class="num-vers"></span><span class="texte-vers">
+Il 
+      <span class="variation" data-tooltip="1676, 1687, 1697: falloit
+
+">faloit </span>
+me taire, &amp; vous sauver. </span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Combien de fois, helas ! puis qu’il faut vous le dire, </span>
+</div>
+<div class="vers-container">
+<span class="num-vers">1000</span><span class="texte-vers">
+Mon cœur de son desordre alloit-il vous instruire ? </span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+De combien de soûpirs interrompant le cours </span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers"><span class="variation" data-tooltip="1687: Ai-je
+
+">Ay-je </span>
+évité vos yeux que je cherchois 
+      <span class="variation" data-tooltip="1676: toujours !
+
+">toûjours ! </span>
+</span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Quel tourment de se taire en voyant ce qu’on aime ! </span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+De l’entendre gemir, de l’affliger 
+      <span class="variation" data-tooltip="1687: soi-mesme,
+
+1697: soy-même,
+
+">soy-mesme, </span>
+</span>
+</div>
+<div class="vers-container">
+<span class="num-vers">1005</span><span class="texte-vers">
+Lors que par un regard on peut le consoler ! </span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Mais quels pleurs ce regard auroit-il fait 
+      <span class="variation" data-tooltip="1687, 1697: couler ?
+
+">couler ! </span>
+</span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers"><span class="variation" data-tooltip="1676: Ah
+
+">Ah ! </span>
+dans ce souvenir inquiete, troublée, </span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Je ne me sentois pas 
+      <span class="variation" data-tooltip="1687: assés
+
+">assez </span>
+dissimulée. </span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+De mon front effrayé je craignois la pasleur. </span>
+</div>
+<div class="vers-container">
+<span class="num-vers">1010</span><span class="texte-vers">
+Je trouvois mes 
+      <span class="variation" data-tooltip="1687, 1697: regards
+
+">regards, </span>
+trop pleins de ma douleur. </span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Sans cesse il me sembloit que Neron en colere </span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Me venoit reprocher trop de soin de vous plaire. </span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Je craignois mon amour vainement renfermé, </span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Enfin j’aurois voulu n’avoir jamais aimé. </span>
+</div>
+<div class="vers-container">
+<span class="num-vers">1015</span><span class="texte-vers">
+Helas ! 
+      <span class="variation" data-tooltip="1676, 1687, 1697: pour
+
+">Pour </span>
+son bon-heur, Seigneur, &amp; pour le 
+      <span class="variation" data-tooltip="1676: nostre,
+
+">nôtre, </span>
+</span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Il n’est que trop instruit de mon cœur &amp; du vostre. </span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers"><span class="variation" data-tooltip="1687: Allés
+
+">Allez </span>
+encore un coup, 
+      <span class="variation" data-tooltip="1676, 1697: cachez-vous
+
+1687: cachés-vous
+
+">cachez vous </span>
+à ses yeux. </span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Mon cœur plus à loisir vous éclaircira mieux. </span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+De mille autres secrets j’aurois conte à vous rendre. </span>
+</div>
+</div>
+<div class="locuteur"><span style="font-variant: small-caps;">BRITANNICUS.</span></div>
+<div class="tirade">
+<div class="vers-container">
+<span class="num-vers">1020</span><span class="texte-vers">
+Ah ! 
+      <span class="variation" data-tooltip="1676, 1687, 1697: n’en
+
+">N’en </span>
+
+      <span class="variation" data-tooltip="1676, 1687, 1697: voila
+
+">voilà </span>
+que 
+      <span class="variation" data-tooltip="1676, 1687, 1697: trop. C’est trop me faire entendre,
+
+">trop pour me faire comprendre, </span>
+</span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Madame, mon bon-heur, mon crime, vos 
+      <span class="variation" data-tooltip="1687: bontés.
+
+">bontez. </span>
+</span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Et 
+      <span class="variation" data-tooltip="1676: sçavez vous
+
+1687: sçavés vous
+
+">sçavez-vous </span>
+pour 
+      <span class="variation" data-tooltip="1687: moi
+
+">moy </span>
+tout ce que vous 
+      <span class="variation" data-tooltip="1687: quittés ?
+
+">quittez ? </span>
+</span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Quand 
+      <span class="variation" data-tooltip="1687: pourrai-je
+
+">pourray-je </span>
+à vos 
+      <span class="variation" data-tooltip="1687: piés
+
+">piez </span>
+expier ce reproche ? </span>
+</div>
+</div>
+<div class="locuteur"><span style="font-variant: small-caps;">JUNIE.</span></div>
+<div class="tirade"><div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Que faites-vous ? 
+      <span class="variation" data-tooltip="1676, 1687, 1697: Helas !
+
+">Helas, </span>
+vostre Rival s’approche. </span>
+</div></div>
+</body>
+</html>

@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0">
+  <teiHeader>
+    <fileDesc>
+      <titleStmt>
+        <title>La Thébaïde ou les frères ennemis</title>
+        <author>Jean Racine</author>
+        <editor>Claire Fourquet-Gracieux</editor>
+      </titleStmt>
+      <publicationStmt>
+        <publisher>Presses de l'Université de Rouen et du Havre</publisher>
+        <pubPlace>Rouen</pubPlace>
+       <date>13 July 2025</date>
+      </publicationStmt>
+      <sourceDesc>
+        <p>généré par Ekdosis-TEI Studio – Acte 1, Scène 1</p>
+      </sourceDesc>
+    </fileDesc>
+  </teiHeader>
+  <text>
+    <body>
+  <div type="scene" n="1">
+    <head>SCENE II.</head>
+    <stage type='personnages'><app>
+        <lem wit="#C #D #E">JOCASTE, ANTIGONE, OLYMPE. </lem>
+        <rdg wit="#A #B">IOCASTE, ANTIGONE, OLYMPE. </rdg>
+      </app></stage>
+    <sp>
+      <speaker><app>
+        <lem wit="#C #D #E">Jocaste. </lem>
+        <rdg wit="#A #B">Iocaste. </rdg>
+      </app></speaker>
+<l n="39">
+MA 
+      <app>
+        <lem wit="#A #E">Fille, </lem>
+        <rdg wit="#B #C #D">Fille </rdg>
+      </app>
+
+      <app>
+        <lem wit="#C #D #E">avez&#160;vous </lem>
+        <rdg wit="#A">auez&#160;vous </rdg>
+        <rdg wit="#B">avez-vous </rdg>
+      </app>
+sçeu l’excez de nos 
+      <app>
+        <lem wit="#A #E">miseres. </lem>
+        <rdg wit="#B #C #D">miseres&#160;? </rdg>
+      </app>
+</l>
+
+    </sp>
+    <sp>
+      <speaker><app>
+        <lem wit="#A #C #D #E">ANTIGONE. </lem>
+        <rdg wit="#B">ANTIGONE, </rdg>
+      </app></speaker>
+<l n="40">
+
+      <app>
+        <lem wit="#A #B #C #E">Oüy, </lem>
+        <rdg wit="#D">Ouy, </rdg>
+      </app>
+Madame, on m’a dit la fureur de mes freres. </l>
+
+    </sp>
+    <sp>
+      <speaker><app>
+        <lem wit="#C #D #E">JOCASTE. </lem>
+        <rdg wit="#A #B">IOCASTE. </rdg>
+      </app></speaker>
+<l n="41">
+      <app>
+        <lem wit="#E">Allons, chere Antigone, allons tout de ce pas,</lem>
+        <rdg wit="#A">Allons, chere Antigone, allons tout de ce pas,</rdg>
+        <rdg wit="#B">Allons, chere Antigone, allons tout de ce pas,</rdg>
+        <rdg wit="#C">Allons, chere Antigone, allons tout de ce pas,</rdg>
+        <rdg wit="#D">Allons, chere Antigone, &amp; courons de ce pas,</rdg>
+      </app>
+</l>
+
+<l n="42">
+Arrester s’il se peut leur parricide 
+      <app>
+        <lem wit="#A #E">bras, </lem>
+        <rdg wit="#B #C #D">bras. </rdg>
+      </app>
+</l>
+
+<l n="43">
+Allons leur faire voir ce qu’ils ont de plus tendre&#160;; </l>
+
+<l n="44">
+Voyons si contre nous ils pourront se défendre, </l>
+
+<l n="45">
+Ou s’ils oseront bien dans leur noire 
+      <app>
+        <lem wit="#A #E">fureur </lem>
+        <rdg wit="#B #C #D">fureur, </rdg>
+      </app>
+</l>
+
+<l n="46">
+
+      <app>
+        <lem wit="#A #E">Respandre </lem>
+        <rdg wit="#B">Repandre </rdg>
+        <rdg wit="#C #D">Répandre </rdg>
+      </app>
+nostre sang pour attaquer le leur. </l>
+
+    </sp>
+    <sp>
+      <speaker>ANTIGONE.</speaker>
+<l n="47">
+Madame, c’en est fait, 
+      <app>
+        <lem wit="#A #B #D #E">voicy </lem>
+        <rdg wit="#C">voici </rdg>
+      </app>
+le Roy 
+      <app>
+        <lem wit="#A #E">luy&#160;mesme. </lem>
+        <rdg wit="#B">luy-mesme. </rdg>
+        <rdg wit="#C">lui-mesme. </rdg>
+        <rdg wit="#D">lui-même. </rdg>
+      </app>
+</l>
+
+</sp>
+</div>
+</body></text>
+</TEI>

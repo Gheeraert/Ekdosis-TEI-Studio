@@ -1,0 +1,291 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0">
+  <teiHeader>
+    <fileDesc>
+      <titleStmt>
+        <title>Britannicus</title>
+        <author>Jean Racine</author>
+        <editor>Caroline Labrune</editor>
+      </titleStmt>
+      <publicationStmt>
+        <publisher>Presses de l'Université de Rouen et du Havre</publisher>
+        <pubPlace>Rouen</pubPlace>
+       <date>30 juillet 2025</date>
+      </publicationStmt>
+      <sourceDesc>
+        <p>généré par Ekdosis-TEI Studio – Acte 3, Scène 6</p>
+      </sourceDesc>
+    </fileDesc>
+  </teiHeader>
+  <text>
+    <body>
+  <div type="scene" n="6">
+    <head>SCENE VI.</head>
+    <stage type='personnages'>BRITANNICUS, NARCISSE.</stage>
+    <sp>
+      <speaker>BRITANNICUS.</speaker>
+<l n="927">
+NE 
+      <app>
+        <lem wit="#A #E">m’as&#160;tu </lem>
+        <rdg wit="#B #C #D">m’as-tu </rdg>
+      </app>
+point flatté d’une fausse esperance&#160;? </l>
+
+<l n="928">
+Puis-je sur ton recit fonder quelque 
+      <app>
+        <lem wit="#B #C #D #E">assurance, </lem>
+        <rdg wit="#A">assurãce, </rdg>
+      </app>
+</l>
+
+<l n="929.1">
+Narcisse&#160;? </l>
+    </sp>
+    <sp>
+      <speaker>NARCISSE.</speaker>
+<l n="929.2">
+
+      <app>
+        <lem wit="#A #B #D #E">Ouy. </lem>
+        <rdg wit="#C">Oüi. </rdg>
+      </app>
+Mais, Seigneur, ce n’est pas en ces lieux </l>
+<l n="930">
+Qu’il faut 
+      <app>
+        <lem wit="#A #E">développer </lem>
+        <rdg wit="#B">developper </rdg>
+        <rdg wit="#C #D">developer </rdg>
+      </app>
+ce 
+      <app>
+        <lem wit="#A #B #D #E">mystere </lem>
+        <rdg wit="#C">mistere </rdg>
+      </app>
+à vos yeux. </l>
+
+<l n="931.1">
+Sortons. 
+      <app>
+        <lem wit="#A #B #D #E">Qu’attendez-vous&#160;? </lem>
+        <rdg wit="#C">Qu’attendés-vous&#160;? </rdg>
+      </app>
+</l>
+    </sp>
+    <sp>
+      <speaker>BRITANNICUS.</speaker>
+<l n="931.2">
+Ce que j’attens, Narcisse&#160;? </l>
+<l n="932.1">
+Helas&#160;! </l>
+    </sp>
+    <sp>
+      <speaker>NARCISSE.</speaker>
+<l n="932.2">
+
+      <app>
+        <lem wit="#A #B #D #E">Expliquez-vous.</lem>
+        <rdg wit="#C">Expliqués-vous.</rdg>
+      </app>
+</l>
+    </sp>
+    <sp>
+      <speaker>BRITANNICUS.</speaker>
+      <l n="932.3">
+Si par ton artifice       </l>
+
+<l n="933.1">
+Je pouvois 
+      <app>
+        <lem wit="#A #D #E">revoir... </lem>
+        <rdg wit="#B #C">revoir.... </rdg>
+      </app>
+</l>
+    </sp>
+    <sp>
+      <speaker>NARCISSE.</speaker>
+<l n="933.2">
+Qui&#160;?</l>
+    </sp>
+    <sp>
+      <speaker>BRITANNICUS.</speaker>
+      <l n="933.3">
+J’en rougis. Mais enfin       </l>
+
+<l n="934">
+D’un cœur moins agité j’attendrois mon destin. </l>
+
+    </sp>
+    <sp>
+      <speaker>NARCISSE.</speaker>
+<l n="935">
+
+      <app>
+        <lem wit="#A #B #E">Apres </lem>
+        <rdg wit="#C #D">Aprés </rdg>
+      </app>
+tous mes discours vous la 
+      <app>
+        <lem wit="#A #B #D #E">croyez </lem>
+        <rdg wit="#C">croiés </rdg>
+      </app>
+fidelle&#160;? </l>
+
+    </sp>
+    <sp>
+      <speaker>BRITANNICUS.</speaker>
+<l n="936">
+Non, je la 
+      <app>
+        <lem wit="#A #B #D #E">croy, </lem>
+        <rdg wit="#C">croi, </rdg>
+      </app>
+Narcisse, ingrate, criminelle, </l>
+
+<l n="937">
+Digne de mon 
+      <app>
+        <lem wit="#A #B #C #E">courroux. </lem>
+        <rdg wit="#D">couroux. </rdg>
+      </app>
+Mais je sens malgré 
+      <app>
+        <lem wit="#A #B #D #E">moy </lem>
+        <rdg wit="#C">moi </rdg>
+      </app>
+</l>
+
+<l n="938">
+Que je ne le 
+      <app>
+        <lem wit="#A #B #D #E">croy </lem>
+        <rdg wit="#C">croi </rdg>
+      </app>
+pas autant que je le 
+      <app>
+        <lem wit="#A #B #E">doy. </lem>
+        <rdg wit="#C #D">doi. </rdg>
+      </app>
+</l>
+
+<l n="939">
+Dans ses égaremens mon cœur opiniastre </l>
+
+<l n="940">
+
+      <app>
+        <lem wit="#A #B #D #E">Luy </lem>
+        <rdg wit="#C">Lui </rdg>
+      </app>
+preste des raisons, l’excuse, l’idolâtre. </l>
+
+<l n="941">
+Je voudrois vaincre enfin mon incredulité, </l>
+
+<l n="942">
+Je la voudrois haïr avec 
+      <app>
+        <lem wit="#A #B #C #E">tranquillité. </lem>
+        <rdg wit="#D">tranquilité. </rdg>
+      </app>
+</l>
+
+<l n="943">
+Et qui croira qu’un cœur si grand en 
+      <app>
+        <lem wit="#A #B #D #E">apparence, </lem>
+        <rdg wit="#C">apparance, </rdg>
+      </app>
+</l>
+
+<l n="944">
+D’une infidelle Cour 
+      <app>
+        <lem wit="#A #B #E">ennemy </lem>
+        <rdg wit="#C #D">ennemi </rdg>
+      </app>
+dés 
+      <app>
+        <lem wit="#A #B #E">l’enfance, </lem>
+        <rdg wit="#C #D">l’enfance&#160;; </rdg>
+      </app>
+</l>
+
+<l n="945">
+Renonce à tant de gloire, &amp; dés le premier jour </l>
+
+<l n="946">
+Trame une perfidie, 
+      <app>
+        <lem wit="#A #B #C #E">inoüie </lem>
+        <rdg wit="#D">inouïe </rdg>
+      </app>
+à la Cour&#160;? </l>
+
+    </sp>
+    <sp>
+      <speaker>NARCISSE.</speaker>
+<l n="947">
+Et qui sçait si l’Ingrate en sa longue retraite </l>
+
+<l n="948">
+N’a point de l’Empereur medité la 
+      <app>
+        <lem wit="#A #B #C #E">défaite&#160;? </lem>
+        <rdg wit="#D">defaite&#160;? </rdg>
+      </app>
+</l>
+
+<l n="949">
+Trop seure que ses yeux ne pouvoient se cacher </l>
+
+<l n="950">
+Peut-estre elle fuyoit pour se faire chercher, </l>
+
+<l n="951">
+Pour exciter 
+      <app>
+        <lem wit="#A #B #E">Cesar </lem>
+        <rdg wit="#C #D">Neron </rdg>
+      </app>
+par la gloire penible </l>
+
+<l n="952">
+De vaincre une fierté jusqu’alors invincible. </l>
+
+    </sp>
+    <sp>
+      <speaker>BRITANNICUS.</speaker>
+<l n="953.1">
+Je ne la puis donc voir&#160;? </l>
+    </sp>
+    <sp>
+      <speaker>NARCISSE.</speaker>
+<l n="953.2">
+Seigneur, en ce 
+      <app>
+        <lem wit="#A #B #D #E">moment </lem>
+        <rdg wit="#C">moment. </rdg>
+      </app>
+</l>
+<l n="954">
+Elle reçoit les vœux de son nouvel Amant. </l>
+
+    </sp>
+    <sp>
+      <speaker>BRITANNICUS.</speaker>
+<l n="955">
+Hé bien, Narcisse, allons. Mais que vois-je&#160;? C’est elle. </l>
+
+    </sp>
+    <sp>
+      <speaker>NARCISSE.</speaker>
+<l n="956">
+Ah Dieux&#160;! A l’Empereur portons cette nouvelle. </l>
+
+</sp>
+</div>
+</body></text>
+</TEI>

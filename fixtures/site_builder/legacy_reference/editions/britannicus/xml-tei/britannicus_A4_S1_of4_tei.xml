@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0">
+  <teiHeader>
+    <fileDesc>
+      <titleStmt>
+        <title>Britannicus</title>
+        <author>Jean Racine</author>
+        <editor>Caroline Labrune</editor>
+      </titleStmt>
+      <publicationStmt>
+        <publisher>Presses de l'Université de Rouen et du Havre</publisher>
+        <pubPlace>Rouen</pubPlace>
+       <date>30 July 2025</date>
+      </publicationStmt>
+      <sourceDesc>
+        <p>généré par Ekdosis-TEI Studio – Acte 4, Scène 1</p>
+      </sourceDesc>
+    </fileDesc>
+  </teiHeader>
+  <text>
+    <body>
+<div type="act" n="4">
+    <head>ACTE IV.</head>
+  <div type="scene" n="1">
+    <head>SCENE PREMIERE.</head>
+    <stage type='personnages'><app>
+        <lem wit="#B #C #D #E">AGRIPPINE, BURRHUS. </lem>
+        <rdg wit="#A">AGRIPPINE, BURRHUS </rdg>
+      </app></stage>
+    <sp>
+      <speaker>BURRHUS.</speaker>
+<l n="1099">
+
+      <app>
+        <lem wit="#A #E">OUY </lem>
+        <rdg wit="#B #D">OUy </rdg>
+        <rdg wit="#C">OUi </rdg>
+      </app>
+Madame, à loisir vous 
+      <app>
+        <lem wit="#A #B #D #E">pourrez </lem>
+        <rdg wit="#C">pourrés </rdg>
+      </app>
+vous défendre. </l>
+
+<l n="1100">
+Cesar 
+      <app>
+        <lem wit="#A #B #E">luy&#160;mesme </lem>
+        <rdg wit="#C">lui&#160;mesme </rdg>
+        <rdg wit="#D">luy-même </rdg>
+      </app>
+
+      <app>
+        <lem wit="#A #B #D #E">icy </lem>
+        <rdg wit="#C">ici </rdg>
+      </app>
+consent de vous entendre. </l>
+
+<l n="1101">
+Si son ordre au Palais vous a fait retenir, </l>
+
+<l n="1102">
+C’est peut-estre à dessein de vous entretenir. </l>
+
+<l n="1103">
+
+      <app>
+        <lem wit="#A #B #E">Quoy </lem>
+        <rdg wit="#C #D">Quoi </rdg>
+      </app>
+qu’il en soit, si j’ose expliquer ma pensée, </l>
+
+<l n="1104">
+Ne vous 
+      <app>
+        <lem wit="#A #B #D #E">souvenez </lem>
+        <rdg wit="#C">souvenés </rdg>
+      </app>
+plus qu’il vous ait offensée. </l>
+
+<l n="1105">
+
+      <app>
+        <lem wit="#A #B #D #E">Preparez-vous </lem>
+        <rdg wit="#C">Preparés-vous </rdg>
+      </app>
+
+      <app>
+        <lem wit="#A #B #E">plustost </lem>
+        <rdg wit="#C #D">plûtost </rdg>
+      </app>
+à 
+      <app>
+        <lem wit="#A #B #D #E">luy </lem>
+        <rdg wit="#C">lui </rdg>
+      </app>
+tendre les bras. </l>
+
+<l n="1106">
+
+      <app>
+        <lem wit="#A #B #D #E">Défendez-vous, </lem>
+        <rdg wit="#C">Défendés-vous, </rdg>
+      </app>
+Madame, &amp; ne 
+      <app>
+        <lem wit="#A #B #D #E">l’accusez </lem>
+        <rdg wit="#C">l’accusés </rdg>
+      </app>
+pas. </l>
+
+<l n="1107">
+
+      <app>
+        <lem wit="#A #E">Vous&#160;le&#160;voyez,&#160;c’est&#160;luy&#160;que </lem>
+        <rdg wit="#B #D">Vous&#160;voyez,&#160;c’est&#160;luy&#160;seul&#160;que </rdg>
+        <rdg wit="#C">Vous&#160;voyés,&#160;c’est&#160;lui&#160;seul&#160;que </rdg>
+      </app>
+la Cour envisage. </l>
+
+<l n="1108">
+
+      <app>
+        <lem wit="#A #B #E">Quoy&#160;qu’il </lem>
+        <rdg wit="#C">Quoi&#160;qu’il </rdg>
+        <rdg wit="#D">Quoiqu’il </rdg>
+      </app>
+soit vostre Fils, &amp; même vostre ouvrage, </l>
+
+<l n="1109">
+Il est vostre Empereur. Vous estes comme nous </l>
+
+<l n="1110">
+Sujette à ce pouvoir qu’il a receu de vous. </l>
+
+<l n="1111">
+Selon qu’il vous menasse, ou bien qu’il vous caresse, </l>
+
+<l n="1112">
+La Cour autour de vous ou s’écarte, ou s’empresse. </l>
+
+<l n="1113">
+C’est son 
+      <app>
+        <lem wit="#A #B #D #E">appuy </lem>
+        <rdg wit="#C">appui </rdg>
+      </app>
+qu’on cherche, en cherchant 
+      <app>
+        <lem wit="#A #B #C #E">vôtre </lem>
+        <rdg wit="#D">vostre </rdg>
+      </app>
+
+      <app>
+        <lem wit="#A #B #D #E">appuy. </lem>
+        <rdg wit="#C">appui. </rdg>
+      </app>
+</l>
+
+<l n="1114.1">
+Mais 
+      <app>
+        <lem wit="#A #B #E">voicy </lem>
+        <rdg wit="#C">voici </rdg>
+        <rdg wit="#D">yoicy </rdg>
+      </app>
+l’Empereur. </l>
+    </sp>
+    <sp>
+      <speaker>AGRIPPINE.</speaker>
+<l n="1114.2">
+Qu’on me laisse avec 
+      <app>
+        <lem wit="#A #B #D #E">luy. </lem>
+        <rdg wit="#C">lui. </rdg>
+      </app>
+</l>
+</sp>
+</div>
+</div>
+</body></text>
+</TEI>

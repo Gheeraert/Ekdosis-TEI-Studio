@@ -1,0 +1,801 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0">
+  <teiHeader>
+    <fileDesc>
+      <titleStmt>
+        <title>Britannicus</title>
+        <author>Jean Racine</author>
+        <editor>Caroline Labrune</editor>
+      </titleStmt>
+      <publicationStmt>
+        <publisher>Presses de l'Université de Rouen et du Havre</publisher>
+        <pubPlace>Rouen</pubPlace>
+       <date>31 juillet 2025</date>
+      </publicationStmt>
+      <sourceDesc>
+        <p>généré par Ekdosis-TEI Studio – Acte 4, Scène 4</p>
+      </sourceDesc>
+    </fileDesc>
+  </teiHeader>
+  <text>
+    <body>
+  <div type="scene" n="4">
+    <head><app>
+        <lem wit="#A #C #D #E">SCENE IV. </lem>
+        <rdg wit="#B">SCENE. IV. </rdg>
+      </app></head>
+    <stage type='personnages'>NERON, NARCISSE.</stage>
+    <sp>
+      <speaker>NARCISSE.</speaker>
+<l n="1391">
+SEigneur, 
+      <app>
+        <lem wit="#A #B #D #E">j’ay </lem>
+        <rdg wit="#C">j’ai </rdg>
+      </app>
+tout 
+      <app>
+        <lem wit="#A #E">preveu </lem>
+        <rdg wit="#B #C #D">préveu </rdg>
+      </app>
+pour une mort si juste. </l>
+
+<l n="1392">
+Le poison est tout prest. La fameuse Locuste </l>
+
+<l n="1393">
+A redoublé pour 
+      <app>
+        <lem wit="#A #B #D #E">moy </lem>
+        <rdg wit="#C">moi </rdg>
+      </app>
+ses soins officieux. </l>
+
+<l n="1394">
+Elle a fait expirer un Esclave à mes yeux&#160;; </l>
+
+<l n="1395">
+Et le fer est moins 
+      <app>
+        <lem wit="#A #E">promt </lem>
+        <rdg wit="#B #C #D">prompt </rdg>
+      </app>
+pour trancher une 
+      <app>
+        <lem wit="#B #C #D #E">vie </lem>
+        <rdg wit="#A">vie. </rdg>
+      </app>
+</l>
+
+<l n="1396">
+Que le nouveau poison que sa main me confie. </l>
+
+    </sp>
+    <sp>
+      <speaker>NERON.</speaker>
+<l n="1397">
+Narcisse, c’est assez, je 
+      <app>
+        <lem wit="#A #B #D #E">reconnoy </lem>
+        <rdg wit="#C">reconnoi </rdg>
+      </app>
+ce soin, </l>
+
+<l n="1398">
+Et ne souhaitte pas que vous 
+      <app>
+        <lem wit="#A #B #D #E">alliez </lem>
+        <rdg wit="#C">alliés </rdg>
+      </app>
+plus loin. </l>
+
+    </sp>
+    <sp>
+      <speaker>NARCISSE.</speaker>
+<l n="1399">
+
+      <app>
+        <lem wit="#A #B #E">Quoy </lem>
+        <rdg wit="#C">Quoi&#160;! </rdg>
+        <rdg wit="#D">Quoy&#160;! </rdg>
+      </app>
+pour Britannicus 
+      <app>
+        <lem wit="#A #B #D #E">vostre </lem>
+        <rdg wit="#C">vôtre </rdg>
+      </app>
+haine affoiblie </l>
+
+<l n="1400.1">
+Me défend.... </l>
+    </sp>
+    <sp>
+      <speaker>NERON.</speaker>
+<l n="1400.2">
+
+      <app>
+        <lem wit="#A #D #E">Ouy, </lem>
+        <rdg wit="#B">Oüy, </rdg>
+        <rdg wit="#C">Oüi, </rdg>
+      </app>
+Narcisse, on nous reconcilie. </l>
+    </sp>
+    <sp>
+      <speaker>NARCISSE.</speaker>
+<l n="1401">
+Je me 
+      <app>
+        <lem wit="#A #B #D #E">garderay </lem>
+        <rdg wit="#C">garderai </rdg>
+      </app>
+bien de vous en détourner, </l>
+
+<l n="1402">
+Seigneur. Mais il s’est 
+      <app>
+        <lem wit="#A #E">veu </lem>
+        <rdg wit="#B #C #D">vû </rdg>
+      </app>
+
+      <app>
+        <lem wit="#A #B #D #E">tantost </lem>
+        <rdg wit="#C">tantôt </rdg>
+      </app>
+emprisonner. </l>
+
+<l n="1403">
+Cette 
+      <app>
+        <lem wit="#A #B #E">offense </lem>
+        <rdg wit="#C #D">offence </rdg>
+      </app>
+en son cœur sera long-temps nouvelle. </l>
+
+<l n="1404">
+Il n’est point de secrets que le temps ne revele. </l>
+
+<l n="1405">
+Il sçaura que ma main 
+      <app>
+        <lem wit="#A #B #D #E">luy </lem>
+        <rdg wit="#C">lui </rdg>
+      </app>
+devoit presenter </l>
+
+<l n="1406">
+Un 
+      <app>
+        <lem wit="#A #E">poison, </lem>
+        <rdg wit="#B #C #D">poison </rdg>
+      </app>
+que vostre ordre avoit fait 
+      <app>
+        <lem wit="#A #E">apprêter. </lem>
+        <rdg wit="#B #C #D">apprester. </rdg>
+      </app>
+</l>
+
+<l n="1407">
+Les Dieux de ce dessein puissent-ils le distraire&#160;! </l>
+
+<l n="1408">
+Mais peut-estre il fera ce que vous 
+      <app>
+        <lem wit="#A #B #D #E">n’osez </lem>
+        <rdg wit="#C">n’osés </rdg>
+      </app>
+faire. </l>
+
+    </sp>
+    <sp>
+      <speaker>NERON.</speaker>
+<l n="1409">
+On répond de son cœur, &amp; je 
+      <app>
+        <lem wit="#A #B #D #E">vaincray </lem>
+        <rdg wit="#C">vaincrai </rdg>
+      </app>
+le mien. </l>
+
+    </sp>
+    <sp>
+      <speaker>NARCISSE.</speaker>
+<l n="1410">
+Et l’Hymen de Junie en est-il le lien&#160;? </l>
+
+<l n="1411">
+Seigneur, 
+      <app>
+        <lem wit="#A #B #D #E">luy </lem>
+        <rdg wit="#C">lui </rdg>
+      </app>
+faites-vous encor ce sacrifice&#160;? </l>
+
+    </sp>
+    <sp>
+      <speaker>NERON.</speaker>
+<l n="1412">
+C’est prendre trop de soin. 
+      <app>
+        <lem wit="#A #B #D #E">Quoy </lem>
+        <rdg wit="#C">Quoi </rdg>
+      </app>
+qu’il en soit, Narcisse, </l>
+
+<l n="1413">
+Je ne le compte plus 
+      <app>
+        <lem wit="#A #B #E">parmy </lem>
+        <rdg wit="#C #D">parmi </rdg>
+      </app>
+mes Ennemis. </l>
+
+    </sp>
+    <sp>
+      <speaker>NARCISSE.</speaker>
+<l n="1414">
+Agrippine, Seigneur, se 
+      <app>
+        <lem wit="#A #E">l’étoit </lem>
+        <rdg wit="#B #C #D">l’estoit </rdg>
+      </app>
+bien promis. </l>
+
+<l n="1415">
+Elle a repris sur vous son souverain Empire. </l>
+
+    </sp>
+    <sp>
+      <speaker>NERON.</speaker>
+<l n="1416">
+
+      <app>
+        <lem wit="#A #B #D #E">Quoy </lem>
+        <rdg wit="#C">Quoi </rdg>
+      </app>
+donc&#160;? 
+      <app>
+        <lem wit="#A #E">Qu’a-t’elle </lem>
+        <rdg wit="#B">Qua-t’elle </rdg>
+        <rdg wit="#C #D">Qu’a-t-elle </rdg>
+      </app>
+dit&#160;? Et que voulez-vous dire&#160;? </l>
+
+    </sp>
+    <sp>
+      <speaker>NARCISSE.</speaker>
+<l n="1417">
+Elle s’en est vantée assez 
+      <app>
+        <lem wit="#A #E">publiquement. </lem>
+        <rdg wit="#B #C #D">publiquement, </rdg>
+      </app>
+</l>
+
+    </sp>
+    <sp>
+      <speaker>NERON.</speaker>
+<l n="1418.1">
+De 
+      <app>
+        <lem wit="#A #B #D #E">quoy&#160;? </lem>
+        <rdg wit="#C">quoi&#160;? </rdg>
+      </app>
+</l>
+    </sp>
+    <sp>
+      <speaker>NARCISSE.</speaker>
+<l n="1418.2">
+Qu’elle n’avoit qu’à vous voir un moment&#160;: </l>
+<l n="1419">
+Qu’à tout ce grand éclat, à ce 
+      <app>
+        <lem wit="#A #B #C #E">courroux </lem>
+        <rdg wit="#D">couroux </rdg>
+      </app>
+funeste </l>
+
+<l n="1420">
+On verroit succeder un silence modeste, </l>
+
+<l n="1421">
+Que 
+      <app>
+        <lem wit="#A #E">vous&#160;mesme </lem>
+        <rdg wit="#B">Vous-mesme </rdg>
+        <rdg wit="#C">vous-mesme </rdg>
+        <rdg wit="#D">vous&#160;même </rdg>
+      </app>
+à la Paix 
+      <app>
+        <lem wit="#A #B #D #E">souscririez </lem>
+        <rdg wit="#C">souscririés </rdg>
+      </app>
+le premier, </l>
+
+<l n="1422">
+Heureux que sa bonté 
+      <app>
+        <lem wit="#A #B #D #E">daignast </lem>
+        <rdg wit="#C">daignât </rdg>
+      </app>
+tout oublier. </l>
+
+    </sp>
+    <sp>
+      <speaker>NERON.</speaker>
+<l n="1423">
+Mais, Narcisse, 
+      <app>
+        <lem wit="#A #B #E">dy-moy, </lem>
+        <rdg wit="#C">di-moi, </rdg>
+        <rdg wit="#D">di-moy, </rdg>
+      </app>
+que veux-tu que je fasse&#160;? </l>
+
+<l n="1424">
+Je 
+      <app>
+        <lem wit="#A #B #D #E">n’ay </lem>
+        <rdg wit="#C">n’ai </rdg>
+      </app>
+que trop de pente à punir son audace. </l>
+
+<l n="1425">
+Et si je m’en 
+      <app>
+        <lem wit="#A #B #D #E">croyois </lem>
+        <rdg wit="#C">croiois </rdg>
+      </app>
+ce triomphe indiscret </l>
+
+<l n="1426">
+Seroit bien-tost 
+      <app>
+        <lem wit="#A #B #E">suivy </lem>
+        <rdg wit="#C #D">suivi </rdg>
+      </app>
+d’un éternel regret. </l>
+
+<l n="1427">
+Mais de tout 
+      <app>
+        <lem wit="#A #C #D #E">l’Univers </lem>
+        <rdg wit="#B">l&#160;Univers </rdg>
+      </app>
+quel sera le langage&#160;? </l>
+
+<l n="1428">
+Sur les pas des Tyrans veux-tu que je 
+      <app>
+        <lem wit="#A #B #D #E">m’engage, </lem>
+        <rdg wit="#C">m’engage </rdg>
+      </app>
+</l>
+
+<l n="1429">
+Et que Rome effaçant tant de titres d’honneur </l>
+
+<l n="1430">
+Me laisse pour tous noms celuy d’empoisonneur&#160;? </l>
+
+<l n="1431">
+Ils mettront ma 
+      <app>
+        <lem wit="#A #B #C #E">vangeance </lem>
+        <rdg wit="#D">vengeance </rdg>
+      </app>
+au rang des parricides. </l>
+
+    </sp>
+    <sp>
+      <speaker>NARCISSE.</speaker>
+<l n="1432">
+Et 
+      <app>
+        <lem wit="#A #B #D #E">prenez-vous, </lem>
+        <rdg wit="#C">prenés-vous, </rdg>
+      </app>
+Seigneur, leurs caprices pour guides&#160;? </l>
+
+<l n="1433">
+
+      <app>
+        <lem wit="#A #B #D #E">Avez-vous </lem>
+        <rdg wit="#C">Avés-vous </rdg>
+      </app>
+pretendu qu’ils se tairoient 
+      <app>
+        <lem wit="#A #C #D #E">toûjours&#160;? </lem>
+        <rdg wit="#B">tousjours&#160;? </rdg>
+      </app>
+</l>
+
+<l n="1434">
+Est-ce à vous de prester l’oreille à leurs discours&#160;? </l>
+
+<l n="1435">
+De vos propres desirs 
+      <app>
+        <lem wit="#A #B #D #E">perdrez-vous </lem>
+        <rdg wit="#C">perdrés-vous </rdg>
+      </app>
+la memoire&#160;? </l>
+
+<l n="1436">
+Et 
+      <app>
+        <lem wit="#A #B #D #E">serez-vous </lem>
+        <rdg wit="#C">serés-vous </rdg>
+      </app>
+le seul que vous 
+      <app>
+        <lem wit="#A #B #D #E">n’oserez&#160;croire&#160;? </lem>
+        <rdg wit="#C">n’oserés-croire&#160;? </rdg>
+      </app>
+</l>
+
+<l n="1437">
+Mais, Seigneur, les Romains ne vous sont pas 
+      <app>
+        <lem wit="#B #C #D #E">connus. </lem>
+        <rdg wit="#A">cõnus. </rdg>
+      </app>
+</l>
+
+<l n="1438">
+Non non, dans leurs discours ils sont plus 
+      <app>
+        <lem wit="#A #B #C #E">retenus. </lem>
+        <rdg wit="#D">retenus, </rdg>
+      </app>
+</l>
+
+<l n="1439">
+Tant de precaution affoiblit 
+      <app>
+        <lem wit="#A #B #D #E">vostre </lem>
+        <rdg wit="#C">vôtre </rdg>
+      </app>
+regne. </l>
+
+<l n="1440">
+Ils croiront en effet meriter qu’on les craigne. </l>
+
+<l n="1441">
+Au joug depuis long-temps ils se sont 
+      <app>
+        <lem wit="#A #B #D #E">façonnez. </lem>
+        <rdg wit="#C">façonnés. </rdg>
+      </app>
+</l>
+
+<l n="1442">
+Ils adorent la main qui les tient 
+      <app>
+        <lem wit="#A #B #D #E">enchaînez. </lem>
+        <rdg wit="#C">enchaînés. </rdg>
+      </app>
+</l>
+
+<l n="1443">
+Vous les 
+      <app>
+        <lem wit="#A #B #D #E">verrez </lem>
+        <rdg wit="#C">verrés </rdg>
+      </app>
+toûjours ardens à vous complaire. </l>
+
+<l n="1444">
+Leur 
+      <app>
+        <lem wit="#A #E">promte </lem>
+        <rdg wit="#B #C #D">prompte </rdg>
+      </app>
+servitude a fatigué Tibere. </l>
+
+<l n="1445">
+
+      <app>
+        <lem wit="#A #B #D #E">Moy-même </lem>
+        <rdg wit="#C">Moi-même </rdg>
+      </app>
+
+      <app>
+        <lem wit="#A #B #D #E">revêtu </lem>
+        <rdg wit="#C">revétu </rdg>
+      </app>
+d’un pouvoir emprunté, </l>
+
+<l n="1446">
+Que je 
+      <app>
+        <lem wit="#A #B #D #E">receus </lem>
+        <rdg wit="#C">reçeus </rdg>
+      </app>
+de Claude avec la 
+      <app>
+        <lem wit="#A #D #E">liberté, </lem>
+        <rdg wit="#B #C">liberté. </rdg>
+      </app>
+</l>
+
+<l n="1447">
+
+      <app>
+        <lem wit="#A #B #D #E">J’ay </lem>
+        <rdg wit="#C">J’ai </rdg>
+      </app>
+cent fois dans le cours de ma gloire passée </l>
+
+<l n="1448">
+Tenté leur patience, &amp; ne 
+      <app>
+        <lem wit="#A #B #D #E">l’ay </lem>
+        <rdg wit="#C">l’ai </rdg>
+      </app>
+point lassée. </l>
+
+<l n="1449">
+D’un empoisonnement vous 
+      <app>
+        <lem wit="#A #B #D #E">craignez </lem>
+        <rdg wit="#C">craignés </rdg>
+      </app>
+la noirceur&#160;? </l>
+
+<l n="1450">
+Faites perir le Frere, 
+      <app>
+        <lem wit="#A #B #D #E">abandonnez </lem>
+        <rdg wit="#C">abandonnés </rdg>
+      </app>
+la Sœur. </l>
+
+<l n="1451">
+Rome sur 
+      <app>
+        <lem wit="#A #B #E">les </lem>
+        <rdg wit="#C #D">ses </rdg>
+      </app>
+Autels prodiguant les victimes, </l>
+
+<l n="1452">
+Fussent-ils innocens, leur trouvera des crimes. </l>
+
+<l n="1453">
+Vous 
+      <app>
+        <lem wit="#A #B #D #E">verrez </lem>
+        <rdg wit="#C">verrés </rdg>
+      </app>
+mettre au rang des jours 
+      <app>
+        <lem wit="#A #B #D #E">infortunez </lem>
+        <rdg wit="#C">infortunés </rdg>
+      </app>
+</l>
+
+<l n="1454">
+Ceux où jadis la Sœur &amp; le Frere sont 
+      <app>
+        <lem wit="#A #B #D #E">nez. </lem>
+        <rdg wit="#C">nés. </rdg>
+      </app>
+</l>
+
+    </sp>
+    <sp>
+      <speaker>NERON.</speaker>
+<l n="1455">
+Narcisse, encore un coup, je ne puis l’entreprendre. </l>
+
+<l n="1456">
+
+      <app>
+        <lem wit="#A #B #D #E">J’ay </lem>
+        <rdg wit="#C">J’ai </rdg>
+      </app>
+promis à Burrhus, il a 
+      <app>
+        <lem wit="#A #E">falu </lem>
+        <rdg wit="#B #C #D">fallu </rdg>
+      </app>
+me rendre. </l>
+
+<l n="1457">
+Je ne veux point encore en 
+      <app>
+        <lem wit="#A #B #D #E">luy </lem>
+        <rdg wit="#C">lui </rdg>
+      </app>
+manquant de 
+      <app>
+        <lem wit="#A #B #D #E">foy </lem>
+        <rdg wit="#C">foi </rdg>
+      </app>
+</l>
+
+<l n="1458">
+Donner à sa vertu des armes contre 
+      <app>
+        <lem wit="#A #B #D #E">moy. </lem>
+        <rdg wit="#C">moi. </rdg>
+      </app>
+</l>
+
+<l n="1459">
+J’oppose à ses raisons un courage inutile, </l>
+
+<l n="1460">
+Je ne l’écoute point avec un cœur 
+      <app>
+        <lem wit="#A #C #E">tranquille. </lem>
+        <rdg wit="#B #D">tranquile. </rdg>
+      </app>
+</l>
+
+    </sp>
+    <sp>
+      <speaker>NARCISSE.</speaker>
+<l n="1461">
+Burrhus ne pense pas, Seigneur, tout ce qu’il dit. </l>
+
+<l n="1462">
+Son 
+      <app>
+        <lem wit="#A #B #E">adroitte </lem>
+        <rdg wit="#C #D">adroite </rdg>
+      </app>
+vertu ménage son credit. </l>
+
+<l n="1463">
+Ou 
+      <app>
+        <lem wit="#A #B #E">plustost </lem>
+        <rdg wit="#C">plûtôt </rdg>
+        <rdg wit="#D">plûtost </rdg>
+      </app>
+ils n’ont tous qu’une même 
+      <app>
+        <lem wit="#A #B #C #E">pensée, </lem>
+        <rdg wit="#D">pensée&#160;: </rdg>
+      </app>
+</l>
+
+<l n="1464">
+Ils verroient par ce coup leur puissance 
+      <app>
+        <lem wit="#A #B #C #E">abaissée, </lem>
+        <rdg wit="#D">abaissée&#160;: </rdg>
+      </app>
+</l>
+
+<l n="1465">
+Vous 
+      <app>
+        <lem wit="#A #B #D #E">seriez </lem>
+        <rdg wit="#C">seriés </rdg>
+      </app>
+libre alors, Seigneur, &amp; devant vous </l>
+
+<l n="1466">
+Ces 
+      <app>
+        <lem wit="#A #B #D #E">Maistres </lem>
+        <rdg wit="#C">Maîtres </rdg>
+      </app>
+orgueilleux 
+      <app>
+        <lem wit="#A #E">flêchiroient </lem>
+        <rdg wit="#B #C #D">fléchiroient </rdg>
+      </app>
+comme nous. </l>
+
+<l n="1467">
+
+      <app>
+        <lem wit="#A #B #D #E">Quoy </lem>
+        <rdg wit="#C">Quoi </rdg>
+      </app>
+
+      <app>
+        <lem wit="#A #B #E">donc </lem>
+        <rdg wit="#C #D">donc&#160;! </rdg>
+      </app>
+
+      <app>
+        <lem wit="#A #B #D #E">ignorez-vous </lem>
+        <rdg wit="#C">ignorés-vous </rdg>
+      </app>
+tout ce qu’ils osent dire&#160;? </l>
+
+<l n="1468">
+<hi rend="italic">Neron</hi> , s’ils en sont crus, <hi rend="italic">n’est point né pour l’Empire.</hi> </l>
+
+<l n="1469">
+
+      <app>
+        <lem wit="#A #B #E"><hi rend="italic">Il ne dit, il ne fait, que ce qu’on luy prescrit,</hi></lem>
+        <rdg wit="#C"><hi rend="italic">Il ne dit, il ne fait, que ce qu’on lui prescrit,</hi></rdg>
+        <rdg wit="#D"><hi rend="italic">Il ne dit, il ne fait, que ce qu’on luy prescrit.</hi></rdg>
+      </app>
+</l>
+
+<l n="1470">
+<hi rend="italic">Burrhus conduit son cœur, Seneque son esprit.</hi> </l>
+
+<l n="1471">
+<hi rend="italic">Pour toute ambition, pour vertu singuliere,</hi> </l>
+
+<l n="1472">
+<hi rend="italic">Il excelle à conduire un char dans la carriere,</hi> </l>
+
+<l n="1473">
+<hi rend="italic">A disputer des prix indignes de ses mains,</hi> </l>
+
+<l n="1474">
+
+      <app>
+        <lem wit="#A #E"><hi rend="italic">A se donner luy&#160;même en spectacle aux Romains,</hi></lem>
+        <rdg wit="#B"><hi rend="italic">A se donner luy&#160;mesme en spectacle aux Romains,</hi></rdg>
+        <rdg wit="#C"><hi rend="italic">A se donner lui-même en spectacle aux Romains,</hi></rdg>
+        <rdg wit="#D"><hi rend="italic">A se donner luy-même en spectacle aux Romains,</hi></rdg>
+      </app>
+</l>
+
+<l n="1475">
+<hi rend="italic">A venir prodiguer sa voix sur un theatre,</hi> </l>
+
+<l n="1476">
+
+      <app>
+        <lem wit="#A #E"><hi rend="italic">A reciter des chants, qu’il veut qu’on idolatre,</hi></lem>
+        <rdg wit="#B #C #D"><hi rend="italic">A reciter des chants qu’il veut qu’on idolatre,</hi></rdg>
+      </app>
+</l>
+
+<l n="1477">
+<hi rend="italic">Tandis que des Soldats de momens en momens</hi> </l>
+
+<l n="1478">
+
+      <app>
+        <lem wit="#A #B #E"><hi rend="italic">Vont arracher pour luy les Applaudissemens.</hi></lem>
+        <rdg wit="#C"><hi rend="italic">Vont arracher pour lui les Applaudissemens.</hi></rdg>
+        <rdg wit="#D"><hi rend="italic">Vont arracher pour luy les applaudissemens.</hi></rdg>
+      </app>
+</l>
+
+<l n="1479">
+
+      <app>
+        <lem wit="#A #E">Ah </lem>
+        <rdg wit="#B #C #D">Ah&#160;! </rdg>
+      </app>
+ne 
+      <app>
+        <lem wit="#A #B #E">voulez&#160;vous </lem>
+        <rdg wit="#C">voulés-vous </rdg>
+        <rdg wit="#D">voulez-vous </rdg>
+      </app>
+pas les forcer à se taire&#160;? </l>
+
+    </sp>
+    <sp>
+      <speaker>NERON.</speaker>
+<l n="1480">
+Vien, Narcisse. Allons voir ce que nous devons faire. </l>
+
+      <stage type="stage-direction">
+
+      <app>
+        <lem wit="#A #E">(lacune) </lem>
+        <rdg wit="#B #C #D">Fin&#160;du&#160;quatriéme&#160;Acte. </rdg>
+      </app>
+      </stage>
+
+</sp>
+</div>
+</body></text>
+</TEI>

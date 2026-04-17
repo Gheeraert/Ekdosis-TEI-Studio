@@ -1,0 +1,525 @@
+<html lang="fr">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta charset="UTF-8">
+<title>Édition TEI</title>
+            <link href="https://fonts.googleapis.com/css2?family=IM+Fell+DW+Pica&display=swap" rel="stylesheet">
+        
+            <link href="https://fonts.googleapis.com/css2?family=EB+Garamond&display=swap" rel="stylesheet">
+        
+            <link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro&display=swap" rel="stylesheet">
+        <style>
+          body {
+            font-family: 'IM Fell DW Pica', Georgia, serif;
+            background: #fdf6e3;
+            color: #4a3c1a;
+            padding: 2em;
+            max-width: 800px;
+            margin-left: 9em;
+          }
+          .ligne-logos-gauche {
+           display: flex;
+           align-items: center;
+           gap: 1em;
+           margin-bottom: 0.5em;
+          }
+          .logo-credit {
+           width: 200px;
+           height: auto;
+           opacity: 0.85;
+          }
+          .logo-ekdosis {
+           width: 50px;
+           height: auto;
+           opacity: 0.9;
+          }
+          .bloc-credit {
+           font-family: 'Source Sans Pro', sans-serif;
+           font-size: 0.8em;
+           color: #3a3a3a;
+           margin: 1.5em 0;
+           padding: 0.6em 1.1em;
+           border: 1px solid #ccc2b2;
+           background: #fefdf8;
+           line-height: 1.2;
+           text-align: left;
+           max-width: 650px;
+           margin-left: auto;
+           margin-right: auto;
+          border-radius: 6px;
+          box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.04);
+          }
+         .italic {
+          font-style: italic;
+          color: darkred;
+          }
+          .bold {
+          font-weight: bold;
+          }
+          .underline {
+          text-decoration: underline;
+          }
+          .acte-titre-sans-variation {
+          font-weight: bold;
+          margin-top: 1.5em;
+          margin-bottom: 0.5em;
+          margin-left: 11em;
+          }
+          .scene-titre-sans-variation {
+          font-weight: bold;
+          margin-top: 1.5em;
+          margin-bottom: 0.5em;
+          margin-left: 11em;
+          }
+        .scene-titre {
+          font-style: italic;
+          margin-bottom: 0.5em;
+          margin-left: 0em;
+        }
+        .acte, .scene, .personnages {
+            font-weight: bold;
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+            margin-left: 11em;
+          }
+          .titre-piece {
+            font-style: italic;
+          }
+          .locuteur {
+            font-variant: small-caps;
+            margin-top: 1em;
+            margin-bottom: 0.2em;
+            margin-left: 11em;
+          }
+          .tirade {
+            margin-left: 1em;
+            margin-bottom: 1em;
+          }
+          .vers {
+            margin: 0.2em 0;
+          }
+          .didascalie {
+            font-style: italic;
+            color: #555;
+            margin-left: 9em;
+            margin-bottom: 0.5em;
+          }
+          /* Container englobant tes vers interprétés */
+          /* Titre unique au-dessus du premier bloc implicite */
+          .didas-implicites-label {
+           text-align: right;
+           font-style: normal;
+           color: #777;
+           font-weight: bold;
+           font-size: 0.9em;
+           margin: 0.5em 0 0.2em; /* espace au-dessus et dessous */
+          }
+          .stage-implicite {
+           position: relative;        /* pour pouvoir placer le label en absolu */
+           padding-right: 6em;        /* espace à droite pour le label */
+           margin: 0.5em 0;           /* un peu d’air au-dessus et en dessous */
+          }
+          .stage-implicite::after {
+           content: attr(data-label);  /* récupère la valeur de data-type */
+           position: absolute;
+           top: 0;                    /* aligne en haut du premier vers */
+           right: 0;                  /* plaque contre la marge droite du container */
+           font-style: italic;
+           color: #777;               /* gris discret */
+           font-size: 0.85em;         /* un peu plus petit que le texte courant */
+           white-space: nowrap;       /* ne pas couper le mot-clé */
+          }
+          .variation {
+            position: relative;
+            border-bottom: 1px dotted #8b5e3c;
+            cursor: help;
+          }
+          .variation::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            top: 1.5em;
+            left: 0;
+            background: #fef3c7;
+            color: #111;
+            padding: 0.5em;
+            border: 1px solid #e0b973;
+            border-radius: 6px;
+            font-size: 0.8em;
+            white-space: pre-line;
+            display: none;
+            z-index: 1000;
+            max-width: 400px;
+            overflow-wrap: break-word;
+          }
+          .variation:hover::after {
+            display: block;
+          }
+          p.vers {
+            display: flex;
+            gap: 1em;
+            margin: 0.2em 0;
+          }
+          .vers-container {
+            position: relative;
+            margin-left: 5em;
+            margin-bottom: 0.4em;
+            line-height: 1;
+          }
+          .num-vers {
+            position: absolute;
+            left: -4.5em;
+            width: 4em;
+            text-align: right;
+            font-size: 0.85em;
+            color: #5a5245;
+            font-style: italic;
+          }
+          .texte-vers {
+            display: inline;
+          }
+          .vers-decale {
+            margin-left: 14em;
+          }
+        </style>
+<link rel="icon" href="https://www.normandie.fr/sites/default/files/2021-03/favicon.ico" type="image/x-icon">
+</head>
+<body>
+<div class="bloc-credit">
+<div class="ligne-logos-gauche"><img src="logos.png" alt="Logos" class="logo-credit"></div>
+<div class="credit-line">Texte généré par Ekdosis-TEI Studio</div>
+<div class="credit-line">Chaire d'excellence en Éditions numériques</div>
+<div class="credit-line">Université de Rouen Normandie - Région Normandie</div>
+<div class="credit-line"> </div>
+<div class="credit-line">Licence Creative Commons - CC-BY-NC-SA</div>
+<div class="credit-line">Jean Racine – <span class="italic">La Thébaïde ou les frères ennemis</span>, Acte 3, Scène 5</div>
+<div class="credit-line">Édition critique par Claire Fourquet-Gracieux</div>
+<div class="credit-line">Document généré le 02 août 2025</div>
+</div>
+<div class="scene-titre-sans-variation">SCENE V.</div>
+<p class="didascalie"><em><span class="variation" data-tooltip="1664: IOCASTE, ETEOCLE, ANTIGONE, CREON, ATTALE.
+
+1676: IOCASTE, ETEOCLE, ANTIGONE, CREON, ATTALE,
+
+1687, 1697: JOCASTE, ETEOCLE, ANTIGONE. CREON, ATTALE.
+
+">JOCASTE, ETEOCLE, ANTIGONE, CREON, ATTALE. </span></em></p>
+<div class="locuteur"><span style="font-variant: small-caps;">ATTALE.</span></div>
+<div class="tirade">
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+POlinice, Seigneur, demande une 
+      <span class="variation" data-tooltip="1664: entreueüe ;
+
+1676: entreveuë ;
+
+1697: entrevuë ;
+
+">entreveüe ; </span>
+</span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+C’est ce que 
+      <span class="variation" data-tooltip="1664: d’vn
+
+">d’un </span>
+Heraut nous apprend la 
+      <span class="variation" data-tooltip="1687: venüe ;
+
+">venuë ; </span>
+</span>
+</div>
+<div class="vers-container">
+<span class="num-vers">885</span><span class="texte-vers"><span class="variation" data-tooltip="1664: On ne dit pas pourquoy ; mais il s’engage aussi,
+
+1676: On ne dit pas pourquoy ; mais il s’engage aussi,
+
+1687: On ne dit pas pourquoi ; mais il s’engage aussi,
+
+1697: Il vous offre, Seigneur, ou de venir ici,
+
+">On ne dit pas pourquoy ; mais il s’engage aussi,</span></span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers"><span class="variation" data-tooltip="1664: De vous attendre au Camp, ou de venir icy.
+
+1676: De vous attendre au Camp, ou de venir icy.
+
+1687: De vous attendre au Camp, ou de venir ici.
+
+1697: Ou d’attendre en son camp.
+
+">De vous attendre au Camp, ou de venir icy.</span></span>
+</div>
+</div>
+<div class="locuteur"><span style="font-variant: small-caps;">CREON.</span></div>
+<div class="tirade">
+<div class="vers-container vers-decale">
+<span class="num-vers"></span><span class="texte-vers"><span class="variation" data-tooltip="1664: (lacune)
+
+1676: (lacune)
+
+1687: (lacune)
+
+1697: Peut-estre qu’adouci,
+
+">(lacune)</span></span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers"><span class="variation" data-tooltip="1697: Il songe à terminer
+
+">Sans doute qu’il est las </span><span class="variation" data-tooltip="1664: d’vne
+
+1697: une
+
+">d’une </span>
+guerre si lente, </span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Et son ambition n’est plus si 
+      <span class="variation" data-tooltip="1697: violente :
+
+">violente, </span>
+</span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Par ce dernier combat il apprend 
+      <span class="variation" data-tooltip="1687: aujourd’hui,
+
+">aujourd’huy, </span>
+</span>
+</div>
+<div class="vers-container">
+<span class="num-vers">890</span><span class="texte-vers">
+Que vous estes au moins aussi puissant que 
+      <span class="variation" data-tooltip="1687: lui.
+
+">luy. </span>
+</span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Les Grecs 
+      <span class="variation" data-tooltip="1687, 1697: mêmes
+
+">mesmes </span>
+sont las de 
+      <span class="variation" data-tooltip="1664: seruir
+
+">servir </span>
+sa colere, </span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Et j’ay 
+      <span class="variation" data-tooltip="1697: sceu
+
+">sceû </span>
+depuis peu que le 
+      <span class="variation" data-tooltip="1687: Roi
+
+">Roy </span>
+son beau-pere, </span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Preferant à la guerre un solide 
+      <span class="variation" data-tooltip="1687: répos ,
+
+1697: répos,
+
+">repos, </span>
+</span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Se 
+      <span class="variation" data-tooltip="1664: reserue
+
+">reserve </span>
+Mycene, &amp; le fait Roy d’Argos. </span>
+</div>
+<div class="vers-container">
+<span class="num-vers">895</span><span class="texte-vers">
+Tout courageux qu’il est, sans doute il ne souhaitte, </span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Que de faire en effet 
+      <span class="variation" data-tooltip="1664: vne
+
+">une </span>
+honneste retraitte, </span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Puis qu’il s’offre à vous voir 
+      <span class="variation" data-tooltip="1687: croiés
+
+">croyez </span>
+qu’il veut la Paix, </span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Ce 
+      <span class="variation" data-tooltip="1664: iour
+
+">jour </span>
+la doit 
+      <span class="variation" data-tooltip="1697: conclurre,
+
+">conclure, </span>
+ou la rompre à jamais. </span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers"><span class="variation" data-tooltip="1687: Tâchés
+
+1697: Tâchez
+
+">Taschez </span>
+dans ce dessein de l’affermir 
+      <span class="variation" data-tooltip="1687, 1697: vous-même,
+
+">vous-mesme, </span>
+</span>
+</div>
+<div class="vers-container">
+<span class="num-vers">900</span><span class="texte-vers">
+Et 
+      <span class="variation" data-tooltip="1687: lui
+
+">luy </span>
+
+      <span class="variation" data-tooltip="1676, 1697: promettez tout
+
+1687: promettés tout
+
+">promettez-tout </span>
+hormis le 
+      <span class="variation" data-tooltip="1676, 1687, 1697: Diadême.
+
+">Diadéme. </span>
+</span>
+</div>
+</div>
+<div class="locuteur"><span style="font-variant: small-caps;">ETEOCLE.</span></div>
+<div class="tirade"><div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Hormis le 
+      <span class="variation" data-tooltip="1676, 1687, 1697: Diadême
+
+">Diadéme </span>
+il ne demande rien. </span>
+</div></div>
+<div class="locuteur"><span style="font-variant: small-caps;"><span class="variation" style="font-variant: small-caps;" data-tooltip="1664, 1676: IOCASTE.
+
+">JOCASTE. </span></span></div>
+<div class="tirade"><div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Mais 
+      <span class="variation" data-tooltip="1687: voiés-le
+
+">voyez-le </span>
+du moins. </span>
+</div></div>
+<div class="locuteur"><span style="font-variant: small-caps;">CREON.</span></div>
+<div class="tirade">
+<div class="vers-container vers-decale">
+<span class="num-vers"></span><span class="texte-vers"><span class="variation" data-tooltip="1687: Oüi
+
+1697: Ouy
+
+">Oüy </span>
+puis qu’il le veut bien, </span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Vous 
+      <span class="variation" data-tooltip="1687: ferés
+
+">ferez </span>
+plus tout seul que nous ne sçaurions faire, </span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Et le sang reprendra son empire ordinaire. </span>
+</div>
+</div>
+<div class="locuteur"><span style="font-variant: small-caps;">ETEOCLE.</span></div>
+<div class="tirade"><div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Allons donc le chercher. </span>
+</div></div>
+<div class="locuteur"><span style="font-variant: small-caps;"><span class="variation" style="font-variant: small-caps;" data-tooltip="1664, 1676: IOCASTE.
+
+">JOCASTE. </span></span></div>
+<div class="tirade">
+<div class="vers-container vers-decale">
+<span class="num-vers"></span><span class="texte-vers">
+Mon Fils, au nom des Dieux, </span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers"><span class="variation" data-tooltip="1687: Attendés-le
+
+">Attendez-le </span><span class="variation" data-tooltip="1676, 1687, 1697: plûtost.
+
+">plustost, </span><span class="variation" data-tooltip="1676, 1697: Voyez-le
+
+1687: Voiés-le
+
+">&amp; voyez-le </span><span class="variation" data-tooltip="1676, 1687, 1697: dans
+
+">en </span>
+ces lieux. </span>
+</div>
+</div>
+<div class="locuteur"><span style="font-variant: small-caps;">ETEOCLE.</span></div>
+<div class="tirade">
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Hé bien, Madame, hé bien qu’il vienne, &amp; qu’on luy donne </span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Toutes les 
+      <span class="variation" data-tooltip="1676, 1697: seuretez
+
+1687: seuretés
+
+">seûretez </span>
+qu’il faut pour sa 
+      <span class="variation" data-tooltip="1676: personne ?
+
+1687, 1697: personne.
+
+">personne, </span>
+</span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Allons. </span>
+</div>
+</div>
+<div class="locuteur"><span style="font-variant: small-caps;">ANTIGONE.</span></div>
+<div class="tirade">
+<div class="vers-container vers-decale">
+<span class="num-vers"></span><span class="texte-vers">
+Ah ! si ce jour rend la Paix aux Thebains, </span>
+</div>
+<div class="vers-container">
+<span class="num-vers">910</span><span class="texte-vers">
+Elle sera, 
+      <span class="variation" data-tooltip="1687, 1697: Creon,
+
+">Créon, </span>
+
+      <span class="variation" data-tooltip="1664: l’ouurage
+
+">l’ouvrage </span>
+de vos mains. </span>
+</div>
+</div>
+</body>
+</html>

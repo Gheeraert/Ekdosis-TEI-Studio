@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0">
+  <teiHeader>
+    <fileDesc>
+      <titleStmt>
+        <title>Britannicus</title>
+        <author>Jean Racine</author>
+        <editor>Caroline Labrune</editor>
+      </titleStmt>
+      <publicationStmt>
+        <publisher>Presses de l'Université de Rouen et du Havre</publisher>
+        <pubPlace>Rouen</pubPlace>
+       <date>31 juillet 2025</date>
+      </publicationStmt>
+      <sourceDesc>
+        <p>généré par Ekdosis-TEI Studio – Acte 5, Scène 8</p>
+      </sourceDesc>
+    </fileDesc>
+  </teiHeader>
+  <text>
+    <body>
+  <div type="scene" n="8">
+    <head><app>
+        <lem wit="#A #E">SCENE VIII. </lem>
+        <rdg wit="#B #C #D">SCENE VII. </rdg>
+      </app></head>
+    <stage type='personnages'>AGRIPPINE, BURRHUS.</stage>
+    <sp>
+      <speaker>AGRIPPINE.</speaker>
+<l n="1715">
+AH Ciel&#160;! de mes soupçons quelle 
+      <app>
+        <lem wit="#A #E">étoit </lem>
+        <rdg wit="#B #C #D">estoit </rdg>
+      </app>
+
+      <app>
+        <lem wit="#A #B #C #E">l’injustice&#160;! </lem>
+        <rdg wit="#D">l’injustice. </rdg>
+      </app>
+</l>
+
+<l n="1716">
+
+      <app>
+        <lem wit="#A #B #D #E">Je </lem>
+        <rdg wit="#C">Ie </rdg>
+      </app>
+condamnois Burrhus, pour écouter 
+      <app>
+        <lem wit="#A #B #C #E">Narcisse. </lem>
+        <rdg wit="#D">Narcisse&#160;! </rdg>
+      </app>
+</l>
+
+<l n="1717">
+Burrhus 
+      <app>
+        <lem wit="#A #B #D #E">avez-vous </lem>
+        <rdg wit="#C">avés-vous </rdg>
+      </app>
+veu quels regards furieux </l>
+
+<l n="1718">
+Neron en me quittant m’a 
+      <app>
+        <lem wit="#A #B #D #E">laissez </lem>
+        <rdg wit="#C">laissés </rdg>
+      </app>
+pour 
+      <app>
+        <lem wit="#A #B #E">Adieux. </lem>
+        <rdg wit="#C #D">Adieux&#160;? </rdg>
+      </app>
+</l>
+
+<l n="1719">
+C’en est fait. Le cruel n’a plus rien qui l’arreste&#160;: </l>
+
+<l n="1720">
+Le coup qu’on m’a predit va tomber sur ma teste. </l>
+
+<l n="1721">
+Il vous accablera 
+      <app>
+        <lem wit="#A #B #E">vous-mesme </lem>
+        <rdg wit="#C #D">vous-même </rdg>
+      </app>
+à vostre tour. </l>
+
+    </sp>
+    <sp>
+      <speaker>BURRHUS.</speaker>
+<l n="1722">
+Ah 
+      <app>
+        <lem wit="#A #B #E">Madame, </lem>
+        <rdg wit="#C #D">Madame&#160;! </rdg>
+      </app>
+pour 
+      <app>
+        <lem wit="#A #B #D #E">moy </lem>
+        <rdg wit="#C">moi </rdg>
+      </app>
+
+      <app>
+        <lem wit="#A #B #D #E">j’ay </lem>
+        <rdg wit="#C">j’ai </rdg>
+      </app>
+
+      <app>
+        <lem wit="#A #E">vêcu </lem>
+        <rdg wit="#B #C #D">vécu </rdg>
+      </app>
+trop d’un 
+      <app>
+        <lem wit="#A #B #C #E">jour. </lem>
+        <rdg wit="#D">jour, </rdg>
+      </app>
+</l>
+
+<l n="1723">
+
+      <app>
+        <lem wit="#A #B #E">Plust </lem>
+        <rdg wit="#C #D">Plût </rdg>
+      </app>
+au Ciel, que sa main heureusement cruelle </l>
+
+<l n="1724">
+
+      <app>
+        <lem wit="#A #B #E">Eust </lem>
+        <rdg wit="#C #D">Eût </rdg>
+      </app>
+fait sur 
+      <app>
+        <lem wit="#A #B #D #E">moy </lem>
+        <rdg wit="#C">moi </rdg>
+      </app>
+
+      <app>
+        <lem wit="#A #B #E">l’essay </lem>
+        <rdg wit="#C #D">l’essai </rdg>
+      </app>
+de sa fureur nouvelle&#160;! </l>
+
+<l n="1725">
+Qu’il ne 
+      <app>
+        <lem wit="#A #C #D #E">m’eût </lem>
+        <rdg wit="#B">m’eust </rdg>
+      </app>
+pas donné par ce triste attentat </l>
+
+<l n="1726">
+Un gage trop certain des 
+      <app>
+        <lem wit="#A #B #C #E">mal-heurs </lem>
+        <rdg wit="#D">malheurs </rdg>
+      </app>
+de l’Estat&#160;! </l>
+
+<l n="1727">
+Son crime seul n’est pas ce qui me desespere&#160;; </l>
+
+<l n="1728">
+Sa jalousie a pû l’armer contre son Frere. </l>
+
+<l n="1729">
+Mais, s’il vous faut, Madame, expliquer ma douleur, </l>
+
+<l n="1730">
+Neron l’a veu mourir, sans changer de couleur. </l>
+
+<l n="1731">
+Ses yeux indifferens ont déja la constance </l>
+
+<l n="1732">
+D’un Tyran dans le crime 
+      <app>
+        <lem wit="#A #B #E">endurcy </lem>
+        <rdg wit="#C #D">endurci </rdg>
+      </app>
+dés l’enfance. </l>
+
+<l n="1733">
+Qu’il acheve, 
+      <app>
+        <lem wit="#A #B #E">Madame, </lem>
+        <rdg wit="#C #D">Madame&#160;; </rdg>
+      </app>
+&amp; qu’il fasse perir </l>
+
+<l n="1734">
+Un Ministre 
+      <app>
+        <lem wit="#A #E">importun, </lem>
+        <rdg wit="#B #C #D">importun </rdg>
+      </app>
+qui ne le peut souffrir. </l>
+
+<l n="1735">
+Helas&#160;! Loin de vouloir éviter sa 
+      <app>
+        <lem wit="#A #B #C #E">colere </lem>
+        <rdg wit="#D">colere. </rdg>
+      </app>
+</l>
+
+<l n="1736">
+La plus soudaine mort me sera la plus chere. </l>
+
+</sp>
+</div>
+</body></text>
+</TEI>

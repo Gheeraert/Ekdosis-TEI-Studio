@@ -10,8 +10,12 @@ from ets.application import (
     DramaticPlayInput,
     NoticeInput,
     SiteAssetsInput,
+    SitePublicationDialogConfig,
+    SitePublicationDialogPlayConfig,
     SiteIdentityInput,
     SitePublicationRequest,
+    load_site_publication_dialog_config,
+    save_site_publication_dialog_config,
 )
 
 
@@ -62,6 +66,7 @@ class PublicationDialog(tk.Toplevel):
         self._dramatic_entries: list[tuple[str, Path]] = []
         self._notice_paths: list[Path] = []
         self._logo_paths: list[Path] = []
+        self._config_path: Path | None = None
 
         self.columnconfigure(0, weight=1)
         self.rowconfigure(0, weight=1)
@@ -82,7 +87,9 @@ class PublicationDialog(tk.Toplevel):
         self.action_bar.columnconfigure(0, weight=1)
         buttons = ttk.Frame(self.action_bar)
         buttons.grid(row=0, column=1, sticky="e")
-        ttk.Button(buttons, text="Annuler", command=self._on_cancel).grid(row=0, column=0, padx=(0, 6))
+        ttk.Button(buttons, text="Charger config...", command=self._on_load_config).grid(row=0, column=0, padx=(0, 6))
+        ttk.Button(buttons, text="Enregistrer config...", command=self._on_save_config).grid(row=0, column=2, padx=(12, 6))
+        ttk.Button(buttons, text="Annuler", command=self._on_cancel).grid(row=0, column=3, padx=(0, 6))
         ttk.Button(buttons, text="Générer le site", command=self._on_validate).grid(row=0, column=1)
 
     def _build_scrollable_form(self) -> tuple[tk.Canvas, ttk.Frame]:
@@ -416,6 +423,163 @@ class PublicationDialog(tk.Toplevel):
             if path not in collected:
                 collected.append(path)
         return tuple(NoticeInput(source_path=path) for path in collected)
+
+    def _collect_dialog_config(self) -> SitePublicationDialogConfig:
+        grouped: dict[str, list[Path]] = {}
+        for play_slug, path in self._dramatic_entries:
+            normalized_slug = play_slug.strip()
+            if not normalized_slug:
+                continue
+            grouped.setdefault(normalized_slug, []).append(path)
+
+        plays = tuple(
+            SitePublicationDialogPlayConfig(
+                play_slug=play_slug,
+                document_paths=tuple(paths),
+            )
+            for play_slug, paths in grouped.items()
+        )
+
+        master_notice = self.vars.master_notice.get().strip()
+        master_notice_path = Path(master_notice).resolve() if master_notice else None
+
+        additional_notices: list[Path] = []
+        for path in self._notice_paths:
+            if master_notice_path is not None and path == master_notice_path:
+                continue
+            if path not in additional_notices:
+                additional_notices.append(path)
+
+        logo_paths: list[Path] = []
+        for path in self._logo_paths:
+            if path not in logo_paths:
+                logo_paths.append(path)
+
+        asset_directory = self.vars.asset_directory.get().strip()
+        asset_directories = (Path(asset_directory).resolve(),) if asset_directory else ()
+
+        output_raw = self.vars.output_dir.get().strip()
+        output_dir = Path(output_raw).resolve() if output_raw else None
+
+        return SitePublicationDialogConfig(
+            site_title=self.vars.site_title.get().strip(),
+            site_subtitle=self.vars.site_subtitle.get().strip(),
+            project_name=self.vars.project_name.get().strip(),
+            editor=self.vars.editor.get().strip(),
+            credits=self.vars.credits.get().strip(),
+            homepage_intro=self.homepage_intro.get("1.0", "end-1c").strip(),
+            output_dir=output_dir,
+            plays=plays,
+            play_order=tuple(self._play_order_items()),
+            master_notice=master_notice_path,
+            additional_notices=tuple(additional_notices),
+            logo_paths=tuple(logo_paths),
+            asset_directories=asset_directories,
+            play_notice_map=self._parse_explicit_mapping(),
+            show_xml_download=bool(self.vars.show_xml_download.get()),
+            publish_notices=bool(self.vars.publish_notices.get()),
+            include_metadata=bool(self.vars.include_metadata.get()),
+            resolve_notice_xincludes=bool(self.vars.resolve_notice_xincludes.get()),
+        )
+
+    def _apply_dialog_config(self, config: SitePublicationDialogConfig) -> None:
+        self.vars.site_title.set(config.site_title)
+        self.vars.site_subtitle.set(config.site_subtitle)
+        self.vars.project_name.set(config.project_name)
+        self.vars.editor.set(config.editor)
+        self.vars.credits.set(config.credits)
+        self.homepage_intro.delete("1.0", "end")
+        if config.homepage_intro:
+            self.homepage_intro.insert("1.0", config.homepage_intro)
+
+        self._dramatic_entries.clear()
+        self.dramatic_list.delete(0, tk.END)
+        self.play_order_list.delete(0, tk.END)
+        for play in config.plays:
+            self._add_dramatic_entries(play.play_slug, play.document_paths)
+
+        available_slugs: list[str] = []
+        for slug, _path in self._dramatic_entries:
+            if slug not in available_slugs:
+                available_slugs.append(slug)
+        ordered_slugs = [slug for slug in config.play_order if slug in available_slugs]
+        for slug in available_slugs:
+            if slug not in ordered_slugs:
+                ordered_slugs.append(slug)
+        self.play_order_list.delete(0, tk.END)
+        for slug in ordered_slugs:
+            self.play_order_list.insert(tk.END, slug)
+
+        self.vars.master_notice.set(str(config.master_notice) if config.master_notice is not None else "")
+        self._notice_paths = list(config.additional_notices)
+        self.notice_list.delete(0, tk.END)
+        for path in self._notice_paths:
+            self.notice_list.insert(tk.END, str(path))
+
+        self._logo_paths = list(config.logo_paths)
+        self.logo_list.delete(0, tk.END)
+        for path in self._logo_paths:
+            self.logo_list.insert(tk.END, str(path))
+
+        asset_directory = config.asset_directories[0] if config.asset_directories else None
+        self.vars.asset_directory.set(str(asset_directory) if asset_directory is not None else "")
+        self.vars.output_dir.set(str(config.output_dir) if config.output_dir is not None else "")
+        self.vars.play_slug.set("")
+
+        self.mapping_text.delete("1.0", "end")
+        if config.play_notice_map:
+            mapping_lines = "\n".join(f"{play_slug}|{notice_slug}" for play_slug, notice_slug in config.play_notice_map)
+            self.mapping_text.insert("1.0", mapping_lines)
+
+        self.vars.show_xml_download.set(config.show_xml_download)
+        self.vars.publish_notices.set(config.publish_notices)
+        self.vars.include_metadata.set(config.include_metadata)
+        self.vars.resolve_notice_xincludes.set(config.resolve_notice_xincludes)
+
+    def _on_save_config(self) -> None:
+        try:
+            config = self._collect_dialog_config()
+        except ValueError as exc:
+            messagebox.showerror("Publication", str(exc), parent=self)
+            return
+
+        chosen = filedialog.asksaveasfilename(
+            parent=self,
+            title="Enregistrer une configuration de publication",
+            defaultextension=".json",
+            filetypes=[("JSON files", "*.json"), ("All files", "*.*")],
+            initialfile=(self._config_path.name if self._config_path is not None else "publication_config.json"),
+        )
+        if not chosen:
+            return
+
+        try:
+            target = save_site_publication_dialog_config(config, chosen)
+        except (OSError, ValueError) as exc:
+            messagebox.showerror("Publication", str(exc), parent=self)
+            return
+
+        self._config_path = target
+        messagebox.showinfo("Publication", f"Configuration de publication enregistree:\n{target}", parent=self)
+
+    def _on_load_config(self) -> None:
+        chosen = filedialog.askopenfilename(
+            parent=self,
+            title="Charger une configuration de publication",
+            filetypes=[("JSON files", "*.json"), ("All files", "*.*")],
+        )
+        if not chosen:
+            return
+
+        try:
+            config = load_site_publication_dialog_config(chosen)
+        except (OSError, ValueError) as exc:
+            messagebox.showerror("Publication", str(exc), parent=self)
+            return
+
+        self._apply_dialog_config(config)
+        self._config_path = Path(chosen).resolve()
+        messagebox.showinfo("Publication", f"Configuration de publication chargee:\n{self._config_path}", parent=self)
 
     def _build_request(self) -> SitePublicationRequest:
         site_title = self.vars.site_title.get().strip()

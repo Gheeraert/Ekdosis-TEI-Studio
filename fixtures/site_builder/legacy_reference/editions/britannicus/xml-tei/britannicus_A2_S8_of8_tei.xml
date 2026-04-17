@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0">
+  <teiHeader>
+    <fileDesc>
+      <titleStmt>
+        <title>Britannicus</title>
+        <author>Jean Racine</author>
+        <editor>Caroline Labrune</editor>
+      </titleStmt>
+      <publicationStmt>
+        <publisher>Presses de l'Université de Rouen et du Havre</publisher>
+        <pubPlace>Rouen</pubPlace>
+       <date>30 juillet 2025</date>
+      </publicationStmt>
+      <sourceDesc>
+        <p>généré par Ekdosis-TEI Studio – Acte 2, Scène 8</p>
+      </sourceDesc>
+    </fileDesc>
+  </teiHeader>
+  <text>
+    <body>
+  <div type="scene" n="8">
+    <head>SCENE VIII.</head>
+    <stage type='personnages'>NERON, NARCISSE.</stage>
+    <sp>
+      <speaker>NERON.</speaker>
+<l n="747">
+HE’ 
+      <app>
+        <lem wit="#A #E">bien </lem>
+        <rdg wit="#B #C #D">bien&#160;? </rdg>
+      </app>
+de leur amour tu vois la violence, </l>
+
+<l n="748">
+Narcisse, elle a paru jusques dans son silence. </l>
+
+<l n="749">
+Elle aime mon Rival, je ne puis l’ignorer. </l>
+
+<l n="750">
+Mais je 
+      <app>
+        <lem wit="#A #B #D #E">mettray </lem>
+        <rdg wit="#C">mettrai </rdg>
+      </app>
+ma 
+      <app>
+        <lem wit="#A #B #E">joye </lem>
+        <rdg wit="#C #D">joie </rdg>
+      </app>
+à le desesperer. </l>
+
+<l n="751">
+Je me 
+      <app>
+        <lem wit="#A #B #E">fay </lem>
+        <rdg wit="#C #D">fais </rdg>
+      </app>
+de sa peine une image charmante, </l>
+
+<l n="752">
+Et je 
+      <app>
+        <lem wit="#A #B #D #E">l’ay </lem>
+        <rdg wit="#C">l’ai </rdg>
+      </app>
+
+      <app>
+        <lem wit="#A #E">veu </lem>
+        <rdg wit="#B #C #D">vû </rdg>
+      </app>
+douter du cœur de son Amante. </l>
+
+<l n="753">
+Je la 
+      <app>
+        <lem wit="#A #B #D #E">suy. </lem>
+        <rdg wit="#C">sui. </rdg>
+      </app>
+Mon Rival t’attend pour 
+      <app>
+        <lem wit="#A #D #E">éclater </lem>
+        <rdg wit="#B #C">éclater. </rdg>
+      </app>
+</l>
+
+<l n="754">
+Par de nouveaux soupçons, 
+      <app>
+        <lem wit="#A #E">va </lem>
+        <rdg wit="#B #C #D">va, </rdg>
+      </app>
+cours le tourmenter, </l>
+
+<l n="755">
+Et tandis qu’à mes yeux on le pleure, on l’adore, </l>
+
+<l n="756">
+
+      <app>
+        <lem wit="#A #B #D #E">Fay&#160;luy </lem>
+        <rdg wit="#C">Fai&#160;lui </rdg>
+      </app>
+payer bien cher un 
+      <app>
+        <lem wit="#A #B #C #E">bon-heur </lem>
+        <rdg wit="#D">bonheur </rdg>
+      </app>
+qu’il ignore. </l>
+
+    </sp>
+    <sp>
+      <speaker>NARCISSE</speaker>
+      <stage type="stage-direction">
+seul.       </stage>
+
+<l n="757">
+La 
+      <app>
+        <lem wit="#A #E">fortune </lem>
+        <rdg wit="#B #C #D">Fortune </rdg>
+      </app>
+t’appelle une seconde fois, </l>
+
+<l n="758">
+Narcisse, voudrois&#160;tu resister à sa voix&#160;? </l>
+
+<l n="759">
+Suivons jusques au bout ses ordres 
+      <app>
+        <lem wit="#A #B #C #E">favorables, </lem>
+        <rdg wit="#D">favorables&#160;; </rdg>
+      </app>
+</l>
+
+<l n="760">
+Et pour nous 
+      <app>
+        <lem wit="#B #C #D #E">rendre </lem>
+        <rdg wit="#A">rẽdre </rdg>
+      </app>
+heureux perdons les miserables. </l>
+
+      <stage type="stage-direction">
+
+      <app>
+        <lem wit="#A #E">(lacune) </lem>
+        <rdg wit="#B #C #D">Fin&#160;du&#160;second&#160;Acte. </rdg>
+      </app>
+      </stage>
+
+</sp>
+</div>
+</body></text>
+</TEI>

@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0">
+  <teiHeader>
+    <fileDesc>
+      <titleStmt>
+        <title>Britannicus</title>
+        <author>Jean Racine</author>
+        <editor>Caroline Labrune</editor>
+      </titleStmt>
+      <publicationStmt>
+        <publisher>Presses de l'Université de Rouen et du Havre</publisher>
+        <pubPlace>Rouen</pubPlace>
+       <date>30 juillet 2025</date>
+      </publicationStmt>
+      <sourceDesc>
+        <p>généré par Ekdosis-TEI Studio – Acte 3, Scène 4</p>
+      </sourceDesc>
+    </fileDesc>
+  </teiHeader>
+  <text>
+    <body>
+  <div type="scene" n="4">
+    <head>SCENE IV.</head>
+    <stage type='personnages'>AGRIPPINE, ALBINE.</stage>
+    <sp>
+      <speaker>ALBINE.</speaker>
+<l n="872">
+DAns quel 
+      <app>
+        <lem wit="#B #C #D #E">emportement </lem>
+        <rdg wit="#A">emportemẽt </rdg>
+      </app>
+la douleur vous engage, </l>
+
+<l n="873">
+Madame&#160;! L’Empereur puisse-t-il l’ignorer&#160;! </l>
+
+    </sp>
+    <sp>
+      <speaker>AGRIPPINE.</speaker>
+<l n="874">
+
+      <app>
+        <lem wit="#A #E">Ah </lem>
+        <rdg wit="#B #C #D">Ah&#160;! </rdg>
+      </app>
+
+      <app>
+        <lem wit="#A #B #E">luy-mesme </lem>
+        <rdg wit="#C">lui-même </rdg>
+        <rdg wit="#D">luy-même </rdg>
+      </app>
+à mes yeux puisse-t-il se monstrer&#160;! </l>
+
+    </sp>
+    <sp>
+      <speaker>ALBINE.</speaker>
+<l n="875">
+Madame, au nom des Dieux, 
+      <app>
+        <lem wit="#A #B #D #E">cachez </lem>
+        <rdg wit="#C">cachés </rdg>
+      </app>
+
+      <app>
+        <lem wit="#A #B #E">vostre </lem>
+        <rdg wit="#C #D">vôtre </rdg>
+      </app>
+colere. </l>
+
+<l n="876">
+
+      <app>
+        <lem wit="#A #B #D #E">Quoy </lem>
+        <rdg wit="#C">Quoi </rdg>
+      </app>
+pour les interests de la Sœur ou du Frere </l>
+
+<l n="877">
+Faut-il sacrifier le repos de vos jours&#160;? </l>
+
+<l n="878">
+
+      <app>
+        <lem wit="#A #B #D #E">Contraindrez-vous </lem>
+        <rdg wit="#C">Contraindrés-vous </rdg>
+      </app>
+Cesar jusques dans ses amours&#160;? </l>
+
+    </sp>
+    <sp>
+      <speaker>AGRIPPINE.</speaker>
+<l n="879">
+
+      <app>
+        <lem wit="#A #B #D #E">Quoy </lem>
+        <rdg wit="#C">Quoi&#160;! </rdg>
+      </app>
+tu ne vois donc pas jusqu’où l’on me ravale, </l>
+
+<l n="880">
+Albine&#160;? C’est à 
+      <app>
+        <lem wit="#A #B #D #E">moy </lem>
+        <rdg wit="#C">moi </rdg>
+      </app>
+qu’on donne une Rivale. </l>
+
+<l n="881">
+
+      <app>
+        <lem wit="#A #B #E">Bien-tost </lem>
+        <rdg wit="#C #D">Bien-tôt </rdg>
+      </app>
+si je ne romps ce funeste lien, </l>
+
+<l n="882">
+Ma place est occupée, &amp; je ne suis plus rien. </l>
+
+<l n="883">
+
+      <app>
+        <lem wit="#A #B #D #E">Jusqu’icy </lem>
+        <rdg wit="#C">Jusqu’ici </rdg>
+      </app>
+d’un vain titre Octavie 
+      <app>
+        <lem wit="#A #B #E">honnorée </lem>
+        <rdg wit="#C #D">honorée </rdg>
+      </app>
+</l>
+
+<l n="884">
+Inutile à la Cour, en estoit ignorée. </l>
+
+<l n="885">
+Les graces, les honneurs par 
+      <app>
+        <lem wit="#A #B #D #E">moy </lem>
+        <rdg wit="#C">moi </rdg>
+      </app>
+seule 
+      <app>
+        <lem wit="#A #B #D #E">versez </lem>
+        <rdg wit="#C">versé </rdg>
+      </app>
+</l>
+
+<l n="886">
+M’attiroient des mortels les vœux 
+      <app>
+        <lem wit="#A #B #D #E">interessez. </lem>
+        <rdg wit="#C">interessés. </rdg>
+      </app>
+</l>
+
+<l n="887">
+Une autre de Cesar a surpris la tendresse, </l>
+
+<l n="888">
+Elle aura le pouvoir 
+      <app>
+        <lem wit="#A #E">d’Espouse </lem>
+        <rdg wit="#B #C #D">d’Epouse </rdg>
+      </app>
+&amp; de 
+      <app>
+        <lem wit="#A #B #E">Maistresse, </lem>
+        <rdg wit="#C #D">Maîtresse, </rdg>
+      </app>
+</l>
+
+<l n="889">
+Le fruit de tant de soins, la pompe des Cesars, </l>
+
+<l n="890">
+Tout deviendra le prix d’un seul de ses regards. </l>
+
+<l n="891">
+Que dis-je&#160;? L’on m’évite &amp; déja 
+      <app>
+        <lem wit="#A #D #E">délaissée... </lem>
+        <rdg wit="#B #C">délaissée… </rdg>
+      </app>
+</l>
+
+<l n="892">
+Ah je ne puis, Albine, en souffrir la pensée. </l>
+
+<l n="893">
+Quand je devrois du Ciel 
+      <app>
+        <lem wit="#A #B #E">haster </lem>
+        <rdg wit="#C #D">hâter </rdg>
+      </app>
+l’Arrest 
+      <app>
+        <lem wit="#A #B #E">fatal, </lem>
+        <rdg wit="#C #D">fatal. </rdg>
+      </app>
+</l>
+
+<l n="894">
+Neron, l’ingrat Neron... Mais 
+      <app>
+        <lem wit="#A #B #D #E">voicy </lem>
+        <rdg wit="#C">voici </rdg>
+      </app>
+son Rival. </l>
+
+</sp>
+</div>
+</body></text>
+</TEI>

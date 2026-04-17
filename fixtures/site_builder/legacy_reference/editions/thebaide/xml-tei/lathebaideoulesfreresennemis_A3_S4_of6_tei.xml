@@ -1,0 +1,1024 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0">
+  <teiHeader>
+    <fileDesc>
+      <titleStmt>
+        <title>La Thébaïde ou les frères ennemis</title>
+        <author>Jean Racine</author>
+        <editor>Claire Fourquet-Gracieux</editor>
+      </titleStmt>
+      <publicationStmt>
+        <publisher>Presses de l'Université de Rouen et du Havre</publisher>
+        <pubPlace>Rouen</pubPlace>
+       <date>02 août 2025</date>
+      </publicationStmt>
+      <sourceDesc>
+        <p>généré par Ekdosis-TEI Studio – Acte 3, Scène 4</p>
+      </sourceDesc>
+    </fileDesc>
+  </teiHeader>
+  <text>
+    <body>
+  <div type="scene" n="4">
+    <head>SCENE IV.</head>
+    <stage type='personnages'><app>
+        <lem wit="#C #D #E">JOCASTE, ETEOCLE, ANTIGONE, CREON. </lem>
+        <rdg wit="#A #B">IOCASTE, ETEOCLE, ANTIGONE, CREON. </rdg>
+      </app></stage>
+    <sp>
+      <speaker><app>
+        <lem wit="#C #D #E">JOCASTE. </lem>
+        <rdg wit="#A #B">IOCASTE. </rdg>
+      </app></speaker>
+<l n="797">
+MOn Fils, c’est donc ainsi que l’on garde sa 
+      <app>
+        <lem wit="#A #B #D #E">foy&#160;? </lem>
+        <rdg wit="#C">foi&#160;? </rdg>
+      </app>
+</l>
+
+    </sp>
+    <sp>
+      <speaker>ETEOCLE.</speaker>
+<l n="798">
+
+      <app>
+        <lem wit="#A #B #C #E">Madame </lem>
+        <rdg wit="#D">Madame, </rdg>
+      </app>
+ce combat n’est point venu de 
+      <app>
+        <lem wit="#A #B #D #E">moy, </lem>
+        <rdg wit="#C">moi, </rdg>
+      </app>
+</l>
+
+<l n="799">
+Mais de quelques 
+      <app>
+        <lem wit="#A #E">Soldats, </lem>
+        <rdg wit="#B #C #D">Soldats </rdg>
+      </app>
+tant 
+      <app>
+        <lem wit="#A #B #C #E">des&#160;Grecs </lem>
+        <rdg wit="#D">d’Argos </rdg>
+      </app>
+que des 
+      <app>
+        <lem wit="#A #E">nostres. </lem>
+        <rdg wit="#B">nostres, </rdg>
+        <rdg wit="#C #D">nôtres, </rdg>
+      </app>
+</l>
+
+<l n="800">
+Qui 
+      <app>
+        <lem wit="#A #B #E">s’estant </lem>
+        <rdg wit="#C #D">s’étant </rdg>
+      </app>
+
+      <app>
+        <lem wit="#A #B #D #E">querellez </lem>
+        <rdg wit="#C">querellés </rdg>
+      </app>
+les 
+      <app>
+        <lem wit="#B #C #D #E">uns </lem>
+        <rdg wit="#A">vns </rdg>
+      </app>
+
+      <app>
+        <lem wit="#B #C #D #E">avec </lem>
+        <rdg wit="#A">auec </rdg>
+      </app>
+les autres, </l>
+
+<l n="801">
+Ont insensiblement tout le corps ébranlé, </l>
+
+<l n="802">
+Et fait 
+      <app>
+        <lem wit="#B #C #D #E">un </lem>
+        <rdg wit="#A">vn </rdg>
+      </app>
+grand combat 
+      <app>
+        <lem wit="#B #C #D #E">d’un </lem>
+        <rdg wit="#A">d’vn </rdg>
+      </app>
+simple démeslé. </l>
+
+<l n="803">
+La bataille sans doute alloit estre cruelle, </l>
+
+<l n="804">
+Et son 
+      <app>
+        <lem wit="#B #C #D #E">évenement </lem>
+        <rdg wit="#A">éuenement </rdg>
+      </app>
+vuidoit nostre querelle, </l>
+
+<l n="805">
+Quand du Fils de 
+      <app>
+        <lem wit="#A #B #E">Créon </lem>
+        <rdg wit="#C #D">Creon </rdg>
+      </app>
+
+      <app>
+        <lem wit="#A #B #C #E">le&#160;funeste </lem>
+        <rdg wit="#D">l’héroïque </rdg>
+      </app>
+trépas, </l>
+
+<l n="806">
+
+      <app>
+        <lem wit="#A #B #C #E">Des&#160;Thebains&#160;&amp;&#160;des&#160;Grecs </lem>
+        <rdg wit="#D">De&#160;tous&#160;les&#160;combattans </rdg>
+      </app>
+a retenu le bras. </l>
+
+<l n="807">
+Ce Prince le dernier de la race 
+      <app>
+        <lem wit="#A #B #D #E">Royale, </lem>
+        <rdg wit="#C">Roiale, </rdg>
+      </app>
+</l>
+
+<l n="808">
+S’est appliqué des Dieux la réponse fatale, </l>
+
+<l n="809">
+Et 
+      <app>
+        <lem wit="#A #B #E">luy-mesme </lem>
+        <rdg wit="#C">lui-même </rdg>
+        <rdg wit="#D">luy-même </rdg>
+      </app>
+à la mort il s’est 
+      <app>
+        <lem wit="#A #E">précipité, </lem>
+        <rdg wit="#B #D">precipité, </rdg>
+        <rdg wit="#C">precipité&#160;; </rdg>
+      </app>
+</l>
+
+<l n="810">
+De l’amour du 
+      <app>
+        <lem wit="#A #B #E">pays </lem>
+        <rdg wit="#C #D">païs </rdg>
+      </app>
+noblement transporté. </l>
+
+    </sp>
+    <sp>
+      <speaker><app>
+        <lem wit="#C #D #E">JOCASTE. </lem>
+        <rdg wit="#A #B">IOCASTE. </rdg>
+      </app></speaker>
+<l n="811">
+Ah&#160;! si le seul amour qu’il eut pour sa patrie, </l>
+
+<l n="812">
+Le rendit insensible aux douceurs de la vie, </l>
+
+<l n="813">
+Mon Fils ce 
+      <app>
+        <lem wit="#A #B #E">mesme </lem>
+        <rdg wit="#C #D">même </rdg>
+      </app>
+amour ne peut-il seulement, </l>
+
+<l n="814">
+De 
+      <app>
+        <lem wit="#A #B #D #E">vostre </lem>
+        <rdg wit="#C">vôtre </rdg>
+      </app>
+ambition vaincre l’emportement&#160;? </l>
+
+<l n="815">
+
+      <app>
+        <lem wit="#B #C #D #E">Un </lem>
+        <rdg wit="#A">Vn </rdg>
+      </app>
+exemple si beau vous 
+      <app>
+        <lem wit="#B #C #D #E">invite </lem>
+        <rdg wit="#A">inuite </rdg>
+      </app>
+à le 
+      <app>
+        <lem wit="#B #C #D #E">suivre, </lem>
+        <rdg wit="#A">suiure, </rdg>
+      </app>
+</l>
+
+<l n="816">
+Il ne faudra cesser de regner 
+      <app>
+        <lem wit="#A #E">ny </lem>
+        <rdg wit="#B #C #D">ni </rdg>
+      </app>
+de 
+      <app>
+        <lem wit="#E">vivre </lem>
+        <rdg wit="#A">viure </rdg>
+        <rdg wit="#B #C #D">vivre. </rdg>
+      </app>
+</l>
+
+<l n="817">
+Vous 
+      <app>
+        <lem wit="#B #D #E">pouvez </lem>
+        <rdg wit="#A">pouuez </rdg>
+        <rdg wit="#C">pouvés </rdg>
+      </app>
+en cedant un peu de 
+      <app>
+        <lem wit="#A #B #E">vostre </lem>
+        <rdg wit="#C #D">vôtre </rdg>
+      </app>
+rang, </l>
+
+<l n="818">
+Faire plus qu’il n’a fait en versant tout son sang. </l>
+
+<l n="819">
+Il ne faut que cesser de haïr 
+      <app>
+        <lem wit="#A #B #D #E">vostre </lem>
+        <rdg wit="#C">vôtre </rdg>
+      </app>
+Frere, </l>
+
+<l n="820">
+Vous 
+      <app>
+        <lem wit="#A #B #D #E">ferez </lem>
+        <rdg wit="#C">ferés </rdg>
+      </app>
+beaucoup plus que sa mort n’a 
+      <app>
+        <lem wit="#A #B #C #E">sceû </lem>
+        <rdg wit="#D">sçeu </rdg>
+      </app>
+faire. </l>
+
+<l n="821">
+O Dieux&#160;! aimer 
+      <app>
+        <lem wit="#B #C #D #E">un </lem>
+        <rdg wit="#A">vn </rdg>
+      </app>
+Frere est-ce 
+      <app>
+        <lem wit="#B #C #D #E">un </lem>
+        <rdg wit="#A">vn </rdg>
+      </app>
+plus grand 
+      <app>
+        <lem wit="#A #E">effort </lem>
+        <rdg wit="#B #C #D">effort, </rdg>
+      </app>
+</l>
+
+<l n="822">
+Que de haïr la vie &amp; courir à la mort&#160;? </l>
+
+<l n="823">
+Et doit-il estre enfin plus facile en 
+      <app>
+        <lem wit="#B #C #D #E">un </lem>
+        <rdg wit="#A">vn </rdg>
+      </app>
+autre, </l>
+
+<l n="824">
+De 
+      <app>
+        <lem wit="#A #E">respandre </lem>
+        <rdg wit="#B #C #D">répandre </rdg>
+      </app>
+son sang, qu’en vous d’aimer le 
+      <app>
+        <lem wit="#A #B #E">vostre&#160;? </lem>
+        <rdg wit="#C #D">vôtre&#160;? </rdg>
+      </app>
+</l>
+
+    </sp>
+    <sp>
+      <speaker>ETEOCLE.</speaker>
+<l n="825">
+Son illustre vertu me charme comme vous, </l>
+
+<l n="826">
+Et 
+      <app>
+        <lem wit="#B #C #D #E">d’un </lem>
+        <rdg wit="#A">d’vn </rdg>
+      </app>
+si beau trépas 
+      <app>
+        <lem wit="#B #C #D #E">je </lem>
+        <rdg wit="#A">ie </rdg>
+      </app>
+suis 
+      <app>
+        <lem wit="#A #B #E">mesme </lem>
+        <rdg wit="#C #D">même </rdg>
+      </app>
+jaloux. </l>
+
+<l n="827">
+Et toutefois, Madame, il faut que 
+      <app>
+        <lem wit="#B #C #D #E">je </lem>
+        <rdg wit="#A">ie </rdg>
+      </app>
+vous 
+      <app>
+        <lem wit="#A #B #D #E">die, </lem>
+        <rdg wit="#C">dise, </rdg>
+      </app>
+</l>
+
+<l n="828">
+
+      <app>
+        <lem wit="#B #C #D #E">Qu’un </lem>
+        <rdg wit="#A">Qu’vn </rdg>
+      </app>
+
+      <app>
+        <lem wit="#A #B #E">trosne </lem>
+        <rdg wit="#C #D">Trône </rdg>
+      </app>
+est plus 
+      <app>
+        <lem wit="#A #E">pénible </lem>
+        <rdg wit="#B #C #D">penible </rdg>
+      </app>
+
+      <app>
+        <lem wit="#A #E">a </lem>
+        <rdg wit="#B #C #D">à </rdg>
+      </app>
+quitter que la vie&#160;; </l>
+
+<l n="829">
+La gloire bien 
+      <app>
+        <lem wit="#B #C #D #E">souvent </lem>
+        <rdg wit="#A">souuent </rdg>
+      </app>
+nous porte à la 
+      <app>
+        <lem wit="#A #E">hair, </lem>
+        <rdg wit="#B #C #D">haïr, </rdg>
+      </app>
+</l>
+
+<l n="830">
+Mais peu de 
+      <app>
+        <lem wit="#B #C #D #E">Souverains </lem>
+        <rdg wit="#A">Souuerains </rdg>
+      </app>
+font gloire 
+      <app>
+        <lem wit="#A #E">d’obeyr. </lem>
+        <rdg wit="#B #C #D">d’obeïr. </rdg>
+      </app>
+</l>
+
+<l n="831">
+Les Dieux vouloient son sang, &amp; ce Prince sans crime </l>
+
+<l n="832">
+Ne 
+      <app>
+        <lem wit="#B #C #D #E">pouvoit </lem>
+        <rdg wit="#A">pouuoit </rdg>
+      </app>
+à l’Estat refuser sa 
+      <app>
+        <lem wit="#A #E">Victime, </lem>
+        <rdg wit="#B #C #D">Victime&#160;; </rdg>
+      </app>
+</l>
+
+<l n="833">
+Mais ce 
+      <app>
+        <lem wit="#A #B #E">mesme </lem>
+        <rdg wit="#C #D">même </rdg>
+      </app>
+
+      <app>
+        <lem wit="#A #E">pays </lem>
+        <rdg wit="#B #C #D">païs </rdg>
+      </app>
+qui demandoit son sang, </l>
+
+<l n="834">
+Demande que 
+      <app>
+        <lem wit="#B #C #D #E">je </lem>
+        <rdg wit="#A">ie </rdg>
+      </app>
+regne &amp; m’attache à mon rang. </l>
+
+<l n="835">
+Jusqu’à ce qu’il m’en 
+      <app>
+        <lem wit="#A #B #E">oste </lem>
+        <rdg wit="#C #D">ôte </rdg>
+      </app>
+il faut que j’y 
+      <app>
+        <lem wit="#A #E">demeure&#160;; </lem>
+        <rdg wit="#B #C #D">demeure. </rdg>
+      </app>
+</l>
+
+<l n="836">
+Il n’a qu’à prononcer 
+      <app>
+        <lem wit="#E">j’obeyray </lem>
+        <rdg wit="#A">j&#160;obeyray </rdg>
+        <rdg wit="#B">j’obeïray </rdg>
+        <rdg wit="#C #D">j’obeïrai </rdg>
+      </app>
+sur l’heure, </l>
+
+<l n="837">
+Et Thebes me verra pour appaiser son sort, </l>
+
+<l n="838">
+Et descendre du 
+      <app>
+        <lem wit="#A #B #E">Trosne, </lem>
+        <rdg wit="#C #D">Trône, </rdg>
+      </app>
+&amp; courir à la mort. </l>
+
+    </sp>
+    <sp>
+      <speaker>CREON.</speaker>
+<l n="839">
+Ah&#160;! Menecée est mort, le Ciel n’en veut point 
+      <app>
+        <lem wit="#A #E">d’autre, </lem>
+        <rdg wit="#B #C #D">d’autre. </rdg>
+      </app>
+</l>
+
+<l n="840">
+
+      <app>
+        <lem wit="#E">Faites&#160;servir </lem>
+        <rdg wit="#A">Faites&#160;seruir </rdg>
+        <rdg wit="#B">Faites&#160;servlr </rdg>
+        <rdg wit="#C">Laissés&#160;couler </rdg>
+        <rdg wit="#D">Laissez&#160;couler </rdg>
+      </app>
+son sang sans y 
+      <app>
+        <lem wit="#A #B #E">joindre </lem>
+        <rdg wit="#C #D">mesler </rdg>
+      </app>
+le 
+      <app>
+        <lem wit="#A #B #E">vostre, </lem>
+        <rdg wit="#C #D">vôtre, </rdg>
+      </app>
+</l>
+
+<l n="841">
+Et puis&#160;qu’il l’a versé pour nous donner la Paix, </l>
+
+<l n="842">
+
+      <app>
+        <lem wit="#A #B #D #E">Accordez-la, </lem>
+        <rdg wit="#C">Accordés-la, </rdg>
+      </app>
+Seigneur, à nos justes souhaits. </l>
+
+    </sp>
+    <sp>
+      <speaker>ETEOCLE.</speaker>
+<l n="843">
+Et 
+      <app>
+        <lem wit="#A #B #D #E">quoy </lem>
+        <rdg wit="#C">quoi </rdg>
+      </app>
+
+      <app>
+        <lem wit="#A #B #E">mesme </lem>
+        <rdg wit="#C #D">même </rdg>
+      </app>
+
+      <app>
+        <lem wit="#A #B #E">Creon </lem>
+        <rdg wit="#C #D">Créon </rdg>
+      </app>
+pour la Paix se declare&#160;? </l>
+
+    </sp>
+    <sp>
+      <speaker>CREON.</speaker>
+<l n="844">
+Pour avoir trop aimé cette guerre barbare, </l>
+
+<l n="845">
+Vous 
+      <app>
+        <lem wit="#A #B #E">voyez </lem>
+        <rdg wit="#C">voiés </rdg>
+        <rdg wit="#D">voïez </rdg>
+      </app>
+les 
+      <app>
+        <lem wit="#A #B #E">malheurs </lem>
+        <rdg wit="#C #D">mal-heurs </rdg>
+      </app>
+
+      <app>
+        <lem wit="#A #E">ou </lem>
+        <rdg wit="#B #C #D">où </rdg>
+      </app>
+le Ciel m’a 
+      <app>
+        <lem wit="#A #E">plongé, </lem>
+        <rdg wit="#B #C #D">plongé. </rdg>
+      </app>
+</l>
+
+<l n="846.1">
+Mon Fils est mort, Seigneur. </l>
+    </sp>
+    <sp>
+      <speaker>ETEOCLE.</speaker>
+<l n="846.2">
+Il faut qu’il soit 
+      <app>
+        <lem wit="#A #B #C #E">vangé. </lem>
+        <rdg wit="#D">vengé. </rdg>
+      </app>
+</l>
+    </sp>
+    <sp>
+      <speaker>CREON.</speaker>
+<l n="847">
+Sur qui me 
+      <app>
+        <lem wit="#A #B #C #E">vangerois-je </lem>
+        <rdg wit="#D">vengerois-je </rdg>
+      </app>
+en ce mal-heur 
+      <app>
+        <lem wit="#A #B #E">extréme&#160;? </lem>
+        <rdg wit="#C #D">extrême&#160;? </rdg>
+      </app>
+</l>
+
+    </sp>
+    <sp>
+      <speaker><app>
+        <lem wit="#A #E">ETEOCLE. </lem>
+        <rdg wit="#B #C #D">ETEOCLE </rdg>
+      </app></speaker>
+<l n="848">
+Vos ennemis, Creon, sont ceux de Thebes 
+      <app>
+        <lem wit="#A #B #E">mesme, </lem>
+        <rdg wit="#C #D">même, </rdg>
+      </app>
+</l>
+
+<l n="849.1">
+
+      <app>
+        <lem wit="#A #B #E">Vangez-la, </lem>
+        <rdg wit="#C">Vangés-la, </rdg>
+        <rdg wit="#D">Vengez-la, </rdg>
+      </app>
+
+      <app>
+        <lem wit="#A #E">vangez&#160;vous. </lem>
+        <rdg wit="#B">vangez-vous. </rdg>
+        <rdg wit="#C">vangés-vous. </rdg>
+        <rdg wit="#D">vengez-vous. </rdg>
+      </app>
+</l>
+    </sp>
+    <sp>
+      <speaker>CREON.</speaker>
+<l n="849.2">
+Ah&#160;! dans 
+      <app>
+        <lem wit="#A #B #E">ces </lem>
+        <rdg wit="#C #D">ses </rdg>
+      </app>
+Ennemis, </l>
+<l n="850">
+
+      <app>
+        <lem wit="#B #C #D #E">Je </lem>
+        <rdg wit="#A">Ie </rdg>
+      </app>
+
+      <app>
+        <lem wit="#B #C #D #E">trouve </lem>
+        <rdg wit="#A">trouue </rdg>
+      </app>
+
+      <app>
+        <lem wit="#A #B #E">vostre </lem>
+        <rdg wit="#C #D">vôtre </rdg>
+      </app>
+Frere, &amp; 
+      <app>
+        <lem wit="#B #C #D #E">je </lem>
+        <rdg wit="#A">ie </rdg>
+      </app>
+
+      <app>
+        <lem wit="#B #C #D #E">trouve </lem>
+        <rdg wit="#A">trouue </rdg>
+      </app>
+mon Fils. </l>
+
+<l n="851">
+Dois-je verser mon sang, ou 
+      <app>
+        <lem wit="#A #E">respandre </lem>
+        <rdg wit="#B #C #D">répandre </rdg>
+      </app>
+le vostre&#160;? </l>
+
+<l n="852">
+Et dois-je perdre 
+      <app>
+        <lem wit="#B #C #D #E">un </lem>
+        <rdg wit="#A">vn </rdg>
+      </app>
+Fils pour en 
+      <app>
+        <lem wit="#A #B #C #E">vanger </lem>
+        <rdg wit="#D">venger </rdg>
+      </app>
+
+      <app>
+        <lem wit="#B #C #D #E">un </lem>
+        <rdg wit="#A">vn </rdg>
+      </app>
+autre&#160;? </l>
+
+<l n="853">
+
+      <app>
+        <lem wit="#A #E">Seigneur </lem>
+        <rdg wit="#B #C #D">Seigneur, </rdg>
+      </app>
+mon sang m’est cher, le 
+      <app>
+        <lem wit="#A #B #D #E">vostre </lem>
+        <rdg wit="#C">vôtre </rdg>
+      </app>
+m’est sacré, </l>
+
+<l n="854">
+
+      <app>
+        <lem wit="#B #C #D #E">Seray-je </lem>
+        <rdg wit="#A">Seray-ie </rdg>
+      </app>
+sacrilege ou bien dénaturé&#160;? </l>
+
+<l n="855">
+
+      <app>
+        <lem wit="#A #B #E">Soüilleray-je </lem>
+        <rdg wit="#C">Soüillerai-je </rdg>
+        <rdg wit="#D">Souilleray-je </rdg>
+      </app>
+ma main 
+      <app>
+        <lem wit="#B #C #D #E">d’un </lem>
+        <rdg wit="#A">d’vn </rdg>
+      </app>
+sang que je 
+      <app>
+        <lem wit="#E">revere, </lem>
+        <rdg wit="#A">reuere, </rdg>
+        <rdg wit="#B #C #D">revere&#160;? </rdg>
+      </app>
+</l>
+
+<l n="856">
+Seray-je parricide, afin 
+      <app>
+        <lem wit="#A #B #C #E">d’estre </lem>
+        <rdg wit="#D">d’être </rdg>
+      </app>
+bon Pere&#160;? </l>
+
+<l n="857">
+
+      <app>
+        <lem wit="#B #C #D #E">Un </lem>
+        <rdg wit="#A">Vn </rdg>
+      </app>
+si cruel secours ne me peut soulager, </l>
+
+<l n="858">
+Et ce seroit me perdre au lieu de me 
+      <app>
+        <lem wit="#A #B #C #E">vanger. </lem>
+        <rdg wit="#D">venger. </rdg>
+      </app>
+</l>
+
+<l n="859">
+Tout le soulagement 
+      <app>
+        <lem wit="#A #E">ou </lem>
+        <rdg wit="#B #C #D">où </rdg>
+      </app>
+ma douleur aspire, </l>
+
+<l n="860">
+C’est qu’au moins mes mal-heurs 
+      <app>
+        <lem wit="#B #C #D #E">servent </lem>
+        <rdg wit="#A">seruent </rdg>
+      </app>
+à vostre 
+      <app>
+        <lem wit="#A #E">Empire, </lem>
+        <rdg wit="#B #C #D">Empire. </rdg>
+      </app>
+</l>
+
+<l n="861">
+
+      <app>
+        <lem wit="#B #C #D #E">Je </lem>
+        <rdg wit="#A">Ie </rdg>
+      </app>
+me 
+      <app>
+        <lem wit="#A #B #D #E">consoleray </lem>
+        <rdg wit="#C">consolerai </rdg>
+      </app>
+si ce Fils que je plains, </l>
+
+<l n="862">
+
+      <app>
+        <lem wit="#A #B #C #E">Assure </lem>
+        <rdg wit="#D">Assûre </rdg>
+      </app>
+par sa mort le repos des Thebains. </l>
+
+<l n="863">
+Le Ciel promet la Paix au sang de 
+      <app>
+        <lem wit="#A #E">Ménecée, </lem>
+        <rdg wit="#B #C #D">Menecée, </rdg>
+      </app>
+</l>
+
+<l n="864">
+
+      <app>
+        <lem wit="#B #D #E">Achevez-la, </lem>
+        <rdg wit="#A">Acheuez-la, </rdg>
+        <rdg wit="#C">Achevés-la, </rdg>
+      </app>
+Seigneur, mon Fils l’a commencée, </l>
+
+<l n="865">
+
+      <app>
+        <lem wit="#A #B #D #E">Accordez-luy </lem>
+        <rdg wit="#C">Accordés-lui </rdg>
+      </app>
+ce prix qu’il en a 
+      <app>
+        <lem wit="#A #E">prétendu, </lem>
+        <rdg wit="#B #C #D">pretendu, </rdg>
+      </app>
+</l>
+
+<l n="866">
+Et que son sang en vain ne soit pas 
+      <app>
+        <lem wit="#A #C #D #E">répandu. </lem>
+        <rdg wit="#B">repandu. </rdg>
+      </app>
+</l>
+
+    </sp>
+    <sp>
+      <speaker><app>
+        <lem wit="#C #D #E">JOCASTE. </lem>
+        <rdg wit="#A #B">IOCASTE. </rdg>
+      </app></speaker>
+<l n="867">
+Non, puisqu’à nos mal-heurs vous 
+      <app>
+        <lem wit="#B #D #E">devenez </lem>
+        <rdg wit="#A">deuenez </rdg>
+        <rdg wit="#C">devenés </rdg>
+      </app>
+sensible, </l>
+
+<l n="868">
+Au sang de 
+      <app>
+        <lem wit="#A #E">Ménecée </lem>
+        <rdg wit="#B #C #D">Menecée </rdg>
+      </app>
+il n’est rien 
+      <app>
+        <lem wit="#A #B #C #E">d’impossible, </lem>
+        <rdg wit="#D">d’impossible&#160;: </rdg>
+      </app>
+</l>
+
+<l n="869">
+Que Thebes se 
+      <app>
+        <lem wit="#A #C #E">rassure </lem>
+        <rdg wit="#B">rasseure </rdg>
+        <rdg wit="#D">r’assure </rdg>
+      </app>
+
+      <app>
+        <lem wit="#A #B #E">apres </lem>
+        <rdg wit="#C #D">aprés </rdg>
+      </app>
+ce grand effort, </l>
+
+<l n="870">
+Puis&#160;qu’il change 
+      <app>
+        <lem wit="#A #B #E">vostre </lem>
+        <rdg wit="#C #D">vôtre </rdg>
+      </app>
+ame, il changera son sort. </l>
+
+<l n="871">
+La Paix dés ce moment n’est plus desesperée, </l>
+
+<l n="872">
+Puisque 
+      <app>
+        <lem wit="#A #B #E">Créon </lem>
+        <rdg wit="#C #D">Creon </rdg>
+      </app>
+la veut je la tiens 
+      <app>
+        <lem wit="#A #B #E">asseurée, </lem>
+        <rdg wit="#C #D">assurée, </rdg>
+      </app>
+</l>
+
+<l n="873">
+Bien-tost ces cœurs de fer se verront adoucis, </l>
+
+<l n="874">
+Le vainqueur de Creon peut bien vaincre mes Fils. </l>
+
+      <stage type="stage-direction">
+à Eteocle.       </stage>
+
+<l n="875">
+
+      <app>
+        <lem wit="#B #C #D #E">Qu’un </lem>
+        <rdg wit="#A">Qu’vn </rdg>
+      </app>
+si grand changement vous desarme &amp; vous touche, </l>
+
+<l n="876">
+
+      <app>
+        <lem wit="#A #B #E">Quittez </lem>
+        <rdg wit="#C">Quittés, </rdg>
+        <rdg wit="#D">Quittez, </rdg>
+      </app>
+mon Fils, 
+      <app>
+        <lem wit="#A #B #D #E">quittez </lem>
+        <rdg wit="#C">quittés </rdg>
+      </app>
+cette haine farouche, </l>
+
+<l n="877">
+
+      <app>
+        <lem wit="#A #B #D #E">Soulagez </lem>
+        <rdg wit="#C">Soulagés </rdg>
+      </app>
+une Mere, &amp; 
+      <app>
+        <lem wit="#A #B #D #E">consolez </lem>
+        <rdg wit="#C">consolés </rdg>
+      </app>
+
+      <app>
+        <lem wit="#A #B #D #E">Creon, </lem>
+        <rdg wit="#C">Créon, </rdg>
+      </app>
+</l>
+
+<l n="878">
+
+      <app>
+        <lem wit="#A #B #D #E">Rendez-moy </lem>
+        <rdg wit="#C">Rendés-moi </rdg>
+      </app>
+Polinice, &amp; luy 
+      <app>
+        <lem wit="#A #B #D #E">rendez </lem>
+        <rdg wit="#C">rendés </rdg>
+      </app>
+
+      <app>
+        <lem wit="#A #B #C #E">Hemon. </lem>
+        <rdg wit="#D">Hémon. </rdg>
+      </app>
+</l>
+
+    </sp>
+    <sp>
+      <speaker>ETEOCLE.</speaker>
+<l n="879">
+Mais enfin, c’est vouloir que je m’impose 
+      <app>
+        <lem wit="#B #C #D #E">un </lem>
+        <rdg wit="#A">vn </rdg>
+      </app>
+
+      <app>
+        <lem wit="#A #B #E">Maistre, </lem>
+        <rdg wit="#C #D">Maître, </rdg>
+      </app>
+</l>
+
+<l n="880">
+Vous ne 
+      <app>
+        <lem wit="#A #B #D #E">l’ignorez </lem>
+        <rdg wit="#C">l’ignorés </rdg>
+      </app>
+pas, Polinice veut l’estre&#160;; </l>
+
+<l n="881">
+Il demande sur&#160;tout le 
+      <app>
+        <lem wit="#B #C #D #E">pouvoir </lem>
+        <rdg wit="#A">pouuoir </rdg>
+      </app>
+
+      <app>
+        <lem wit="#B #C #D #E">Souverain, </lem>
+        <rdg wit="#A">Souuerain, </rdg>
+      </app>
+</l>
+
+<l n="882">
+Et ne 
+      <app>
+        <lem wit="#A #E">reviendra </lem>
+        <rdg wit="#B #C #D">veut </rdg>
+      </app>
+
+      <app>
+        <lem wit="#A #E">pas </lem>
+        <rdg wit="#B #C #D">revenir </rdg>
+      </app>
+que le Sceptre à la main. </l>
+
+</sp>
+</div>
+</body></text>
+</TEI>

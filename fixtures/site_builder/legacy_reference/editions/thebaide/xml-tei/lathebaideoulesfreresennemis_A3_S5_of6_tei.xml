@@ -1,0 +1,361 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0">
+  <teiHeader>
+    <fileDesc>
+      <titleStmt>
+        <title>La Thébaïde ou les frères ennemis</title>
+        <author>Jean Racine</author>
+        <editor>Claire Fourquet-Gracieux</editor>
+      </titleStmt>
+      <publicationStmt>
+        <publisher>Presses de l'Université de Rouen et du Havre</publisher>
+        <pubPlace>Rouen</pubPlace>
+       <date>02 août 2025</date>
+      </publicationStmt>
+      <sourceDesc>
+        <p>généré par Ekdosis-TEI Studio – Acte 3, Scène 5</p>
+      </sourceDesc>
+    </fileDesc>
+  </teiHeader>
+  <text>
+    <body>
+  <div type="scene" n="5">
+    <head>SCENE V.</head>
+    <stage type='personnages'><app>
+        <lem wit="#E">JOCASTE, ETEOCLE, ANTIGONE, CREON, ATTALE. </lem>
+        <rdg wit="#A">IOCASTE, ETEOCLE, ANTIGONE, CREON, ATTALE. </rdg>
+        <rdg wit="#B">IOCASTE, ETEOCLE, ANTIGONE, CREON, ATTALE, </rdg>
+        <rdg wit="#C #D">JOCASTE, ETEOCLE, ANTIGONE. CREON, ATTALE. </rdg>
+      </app></stage>
+    <sp>
+      <speaker>ATTALE.</speaker>
+<l n="883">
+POlinice, Seigneur, demande une 
+      <app>
+        <lem wit="#C #E">entreveüe&#160;; </lem>
+        <rdg wit="#A">entreueüe&#160;; </rdg>
+        <rdg wit="#B">entreveuë&#160;; </rdg>
+        <rdg wit="#D">entrevuë&#160;; </rdg>
+      </app>
+</l>
+
+<l n="884">
+C’est ce que 
+      <app>
+        <lem wit="#B #C #D #E">d’un </lem>
+        <rdg wit="#A">d’vn </rdg>
+      </app>
+Heraut nous apprend la 
+      <app>
+        <lem wit="#A #B #D #E">venuë&#160;; </lem>
+        <rdg wit="#C">venüe&#160;; </rdg>
+      </app>
+</l>
+
+<l n="885">
+      <app>
+        <lem wit="#E">On ne dit pas pourquoy&#160;; mais il s’engage aussi,</lem>
+        <rdg wit="#A">On ne dit pas pourquoy&#160;; mais il s’engage aussi,</rdg>
+        <rdg wit="#B">On ne dit pas pourquoy&#160;; mais il s’engage aussi,</rdg>
+        <rdg wit="#C">On ne dit pas pourquoi&#160;; mais il s’engage aussi,</rdg>
+        <rdg wit="#D">Il vous offre, Seigneur, ou de venir ici,</rdg>
+      </app>
+</l>
+
+<l n="886.1">
+      <app>
+        <lem wit="#E">De&#160;vous&#160;attendre&#160;au&#160;Camp,&#160;ou&#160;de&#160;venir&#160;icy.</lem>
+        <rdg wit="#A">De&#160;vous&#160;attendre&#160;au&#160;Camp,&#160;ou&#160;de&#160;venir&#160;icy.</rdg>
+        <rdg wit="#B">De&#160;vous&#160;attendre&#160;au&#160;Camp,&#160;ou&#160;de&#160;venir&#160;icy.</rdg>
+        <rdg wit="#C">De&#160;vous&#160;attendre&#160;au&#160;Camp,&#160;ou&#160;de&#160;venir&#160;ici.</rdg>
+        <rdg wit="#D">Ou&#160;d’attendre&#160;en&#160;son&#160;camp.</rdg>
+      </app>
+</l>
+
+    </sp>
+    <sp>
+      <speaker>CREON.</speaker>
+<l n="886.2">
+      <app>
+        <lem wit="#E">(lacune)</lem>
+        <rdg wit="#A">(lacune)</rdg>
+        <rdg wit="#B">(lacune)</rdg>
+        <rdg wit="#C">(lacune)</rdg>
+        <rdg wit="#D">Peut-estre&#160;qu’adouci,</rdg>
+      </app>
+</l>
+
+<l n="887">
+
+      <app>
+        <lem wit="#A #B #C #E">Sans&#160;doute&#160;qu’il&#160;est&#160;las </lem>
+        <rdg wit="#D">Il&#160;songe&#160;à&#160;terminer </rdg>
+      </app>
+
+      <app>
+        <lem wit="#B #C #E">d’une </lem>
+        <rdg wit="#A">d’vne </rdg>
+        <rdg wit="#D">une </rdg>
+      </app>
+guerre si lente, </l>
+
+<l n="888">
+Et son ambition n’est plus si 
+      <app>
+        <lem wit="#A #B #C #E">violente, </lem>
+        <rdg wit="#D">violente&#160;: </rdg>
+      </app>
+</l>
+
+<l n="889">
+Par ce dernier combat il apprend 
+      <app>
+        <lem wit="#A #B #D #E">aujourd’huy, </lem>
+        <rdg wit="#C">aujourd’hui, </rdg>
+      </app>
+</l>
+
+<l n="890">
+Que vous estes au moins aussi puissant que 
+      <app>
+        <lem wit="#A #B #D #E">luy. </lem>
+        <rdg wit="#C">lui. </rdg>
+      </app>
+</l>
+
+<l n="891">
+Les Grecs 
+      <app>
+        <lem wit="#A #B #E">mesmes </lem>
+        <rdg wit="#C #D">mêmes </rdg>
+      </app>
+sont las de 
+      <app>
+        <lem wit="#B #C #D #E">servir </lem>
+        <rdg wit="#A">seruir </rdg>
+      </app>
+sa colere, </l>
+
+<l n="892">
+Et j’ay 
+      <app>
+        <lem wit="#A #B #C #E">sceû </lem>
+        <rdg wit="#D">sceu </rdg>
+      </app>
+depuis peu que le 
+      <app>
+        <lem wit="#A #B #D #E">Roy </lem>
+        <rdg wit="#C">Roi </rdg>
+      </app>
+son beau-pere, </l>
+
+<l n="893">
+Preferant à la guerre un solide 
+      <app>
+        <lem wit="#A #B #E">repos, </lem>
+        <rdg wit="#C">répos&#160;, </rdg>
+        <rdg wit="#D">répos, </rdg>
+      </app>
+</l>
+
+<l n="894">
+Se 
+      <app>
+        <lem wit="#B #C #D #E">reserve </lem>
+        <rdg wit="#A">reserue </rdg>
+      </app>
+Mycene, &amp; le fait Roy d’Argos. </l>
+
+<l n="895">
+Tout courageux qu’il est, sans doute il ne souhaitte, </l>
+
+<l n="896">
+Que de faire en effet 
+      <app>
+        <lem wit="#B #C #D #E">une </lem>
+        <rdg wit="#A">vne </rdg>
+      </app>
+honneste retraitte, </l>
+
+<l n="897">
+Puis&#160;qu’il s’offre à vous voir 
+      <app>
+        <lem wit="#A #B #D #E">croyez </lem>
+        <rdg wit="#C">croiés </rdg>
+      </app>
+qu’il veut la Paix, </l>
+
+<l n="898">
+Ce 
+      <app>
+        <lem wit="#B #C #D #E">jour </lem>
+        <rdg wit="#A">iour </rdg>
+      </app>
+la doit 
+      <app>
+        <lem wit="#A #B #C #E">conclure, </lem>
+        <rdg wit="#D">conclurre, </rdg>
+      </app>
+ou la rompre à jamais. </l>
+
+<l n="899">
+
+      <app>
+        <lem wit="#A #B #E">Taschez </lem>
+        <rdg wit="#C">Tâchés </rdg>
+        <rdg wit="#D">Tâchez </rdg>
+      </app>
+dans ce dessein de l’affermir 
+      <app>
+        <lem wit="#A #B #E">vous-mesme, </lem>
+        <rdg wit="#C #D">vous-même, </rdg>
+      </app>
+</l>
+
+<l n="900">
+Et 
+      <app>
+        <lem wit="#A #B #D #E">luy </lem>
+        <rdg wit="#C">lui </rdg>
+      </app>
+
+      <app>
+        <lem wit="#A #E">promettez-tout </lem>
+        <rdg wit="#B #D">promettez&#160;tout </rdg>
+        <rdg wit="#C">promettés&#160;tout </rdg>
+      </app>
+hormis le 
+      <app>
+        <lem wit="#A #E">Diadéme. </lem>
+        <rdg wit="#B #C #D">Diadême. </rdg>
+      </app>
+</l>
+
+    </sp>
+    <sp>
+      <speaker>ETEOCLE.</speaker>
+<l n="901">
+Hormis le 
+      <app>
+        <lem wit="#A #E">Diadéme </lem>
+        <rdg wit="#B #C #D">Diadême </rdg>
+      </app>
+il ne demande rien. </l>
+
+    </sp>
+    <sp>
+      <speaker><app>
+        <lem wit="#C #D #E">JOCASTE. </lem>
+        <rdg wit="#A #B">IOCASTE. </rdg>
+      </app></speaker>
+<l n="902.1">
+Mais 
+      <app>
+        <lem wit="#A #B #D #E">voyez-le </lem>
+        <rdg wit="#C">voiés-le </rdg>
+      </app>
+du moins. </l>
+    </sp>
+    <sp>
+      <speaker>CREON.</speaker>
+<l n="902.2">
+
+      <app>
+        <lem wit="#A #B #E">Oüy </lem>
+        <rdg wit="#C">Oüi </rdg>
+        <rdg wit="#D">Ouy </rdg>
+      </app>
+puis&#160;qu’il le veut bien, </l>
+<l n="903">
+Vous 
+      <app>
+        <lem wit="#A #B #D #E">ferez </lem>
+        <rdg wit="#C">ferés </rdg>
+      </app>
+plus tout seul que nous ne sçaurions faire, </l>
+
+<l n="904">
+Et le sang reprendra son empire ordinaire. </l>
+
+    </sp>
+    <sp>
+      <speaker>ETEOCLE.</speaker>
+<l n="905.1">
+Allons donc le chercher. </l>
+    </sp>
+    <sp>
+      <speaker><app>
+        <lem wit="#C #D #E">JOCASTE. </lem>
+        <rdg wit="#A #B">IOCASTE. </rdg>
+      </app></speaker>
+<l n="905.2">
+Mon Fils, au nom des Dieux, </l>
+<l n="906">
+
+      <app>
+        <lem wit="#A #B #D #E">Attendez-le </lem>
+        <rdg wit="#C">Attendés-le </rdg>
+      </app>
+
+      <app>
+        <lem wit="#A #E">plustost, </lem>
+        <rdg wit="#B #C #D">plûtost. </rdg>
+      </app>
+
+      <app>
+        <lem wit="#A #E">&amp;&#160;voyez-le </lem>
+        <rdg wit="#B #D">Voyez-le </rdg>
+        <rdg wit="#C">Voiés-le </rdg>
+      </app>
+
+      <app>
+        <lem wit="#A #E">en </lem>
+        <rdg wit="#B #C #D">dans </rdg>
+      </app>
+ces lieux. </l>
+
+    </sp>
+    <sp>
+      <speaker>ETEOCLE.</speaker>
+<l n="907">
+Hé bien, Madame, hé bien qu’il vienne, &amp; qu’on luy donne </l>
+
+<l n="908">
+Toutes les 
+      <app>
+        <lem wit="#A #E">seûretez </lem>
+        <rdg wit="#B #D">seuretez </rdg>
+        <rdg wit="#C">seuretés </rdg>
+      </app>
+qu’il faut pour sa 
+      <app>
+        <lem wit="#A #E">personne, </lem>
+        <rdg wit="#B">personne&#160;? </rdg>
+        <rdg wit="#C #D">personne. </rdg>
+      </app>
+</l>
+
+<l n="909.1">
+Allons. </l>
+    </sp>
+    <sp>
+      <speaker>ANTIGONE.</speaker>
+<l n="909.2">
+Ah&#160;! si ce jour rend la Paix aux Thebains, </l>
+<l n="910">
+Elle sera, 
+      <app>
+        <lem wit="#A #B #E">Créon, </lem>
+        <rdg wit="#C #D">Creon, </rdg>
+      </app>
+
+      <app>
+        <lem wit="#B #C #D #E">l’ouvrage </lem>
+        <rdg wit="#A">l’ouurage </rdg>
+      </app>
+de vos mains. </l>
+
+</sp>
+</div>
+</body></text>
+</TEI>

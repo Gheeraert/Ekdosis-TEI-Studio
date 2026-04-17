@@ -2,11 +2,18 @@ from __future__ import annotations
 
 import html
 import re
+import unicodedata
+from dataclasses import dataclass
+
+from lxml import etree, html as lxml_html
+
+from ets.html import HtmlExportOptions, render_html_export_from_tei
 
 from .models import NoticeDocument, NoticeEntry, NoticeSection, PlayEntry, SiteManifest
 
 
 NOTE_REF_PATTERN = re.compile(r'<sup class="note-ref"><a href="#note-([^"]+)">\[([^\]]+)\]</a></sup>')
+XML_NS = "http://www.w3.org/XML/1998/namespace"
 
 
 def _asset_prefix(current_href: str) -> str:
@@ -17,14 +24,14 @@ def _asset_prefix(current_href: str) -> str:
     return "../" * depth
 
 
-def _nav_html(manifest: SiteManifest, current_href: str) -> str:
+def _nav_html(manifest: SiteManifest, current_href: str, sidebar_extra_html: str = "") -> str:
     items: list[str] = []
     for item in manifest.navigation:
         escaped_label = html.escape(item.label)
         escaped_href = html.escape(item.href, quote=True)
         current_attr = ' aria-current="page"' if item.href == current_href else ""
         items.append(f'<li><a href="{escaped_href}"{current_attr}>{escaped_label}</a></li>')
-    return "<ul>" + "".join(items) + "</ul>"
+    return f'<ul class="site-nav">{"".join(items)}</ul>{sidebar_extra_html}'
 
 
 def _branding_html(manifest: SiteManifest, current_href: str) -> str:
@@ -42,13 +49,22 @@ def _branding_html(manifest: SiteManifest, current_href: str) -> str:
     return f'<div class="branding" aria-label="Identite visuelle">{images}</div>'
 
 
-def _layout(manifest: SiteManifest, *, page_title: str, current_href: str, content_html: str) -> str:
+def _layout(
+    manifest: SiteManifest,
+    *,
+    page_title: str,
+    current_href: str,
+    content_html: str,
+    sidebar_extra_html: str = "",
+    head_extra_html: str = "",
+) -> str:
     return f"""<!doctype html>
 <html lang=\"fr\">
 <head>
   <meta charset=\"utf-8\">
   <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">
   <title>{html.escape(page_title)}</title>
+  {head_extra_html}
   <style>
     body {{ font-family: Georgia, 'Times New Roman', serif; margin: 0; color: #1f2328; line-height: 1.5; }}
     header {{ padding: 1rem 1.25rem; border-bottom: 1px solid #d5d7da; background: #f8f9fb; }}
@@ -56,8 +72,15 @@ def _layout(manifest: SiteManifest, *, page_title: str, current_href: str, conte
     nav {{ border-right: 1px solid #eceef1; padding: 1rem 1.25rem; }}
     nav ul {{ margin: 0; padding-left: 1.1rem; }}
     nav li {{ margin: 0.4rem 0; }}
+    .site-nav {{ margin-bottom: 1rem; }}
     section {{ padding: 1rem 1.25rem 2.5rem; max-width: 980px; }}
     .meta {{ color: #505a67; }}
+    .play-structure-nav {{ border-top: 1px solid #e3e8ef; padding-top: 0.85rem; }}
+    .play-structure-nav h3 {{ margin: 0 0 0.55rem; font-size: 1rem; color: #314356; }}
+    .play-structure-nav ul {{ margin: 0; padding-left: 1rem; }}
+    .play-structure-nav li {{ margin: 0.28rem 0; }}
+    .dramatic-content {{ min-width: 0; max-width: 980px; }}
+    .dramatic-anchor {{ display: block; height: 0; margin: 0; padding: 0; }}
     .branding {{ margin-top: 0.65rem; display: flex; gap: 0.65rem; align-items: center; flex-wrap: wrap; }}
     .branding img {{ max-height: 54px; width: auto; border: 1px solid #dfe4eb; background: #fff; padding: 0.2rem; border-radius: 4px; }}
 
@@ -108,7 +131,7 @@ def _layout(manifest: SiteManifest, *, page_title: str, current_href: str, conte
     {_branding_html(manifest, current_href)}
   </header>
   <main>
-    <nav aria-label=\"Navigation principale\">{_nav_html(manifest, current_href=current_href)}</nav>
+    <nav aria-label=\"Navigation principale\">{_nav_html(manifest, current_href=current_href, sidebar_extra_html=sidebar_extra_html)}</nav>
     <section>{content_html}</section>
   </main>
 </body>
@@ -121,6 +144,263 @@ def _notice_for_play(manifest: SiteManifest, play_slug: str) -> NoticeEntry | No
         if notice.related_play_slug == play_slug:
             return notice
     return None
+
+
+@dataclass
+class _SceneNav:
+    anchor_id: str
+    label: str
+    start_speech_index: int
+
+
+@dataclass
+class _ActNav:
+    anchor_id: str
+    label: str
+    start_speech_index: int
+    scenes: tuple[_SceneNav, ...]
+
+
+def _slugify(value: str) -> str:
+    normalized = unicodedata.normalize("NFKD", value.strip())
+    ascii_only = normalized.encode("ascii", "ignore").decode("ascii")
+    ascii_only = ascii_only.lower()
+    ascii_only = re.sub(r"[^a-z0-9]+", "-", ascii_only)
+    ascii_only = ascii_only.strip("-")
+    return ascii_only or "section"
+
+
+def _division_label(node: etree._Element, default_kind: str, position: int) -> str:
+    number = (node.get("n") or "").strip()
+    if default_kind == "act":
+        base = "Acte"
+    elif default_kind == "scene":
+        base = "Scene"
+    else:
+        base = default_kind.capitalize()
+    return f"{base} {number}" if number else f"{base} {position}"
+
+
+def _anchor_from_node(node: etree._Element, fallback: str, used: set[str]) -> str:
+    xml_id = (node.get(f"{{{XML_NS}}}id") or "").strip()
+    base = _slugify(xml_id) if xml_id else _slugify(fallback)
+    candidate = base
+    index = 2
+    while candidate in used:
+        candidate = f"{base}-{index}"
+        index += 1
+    used.add(candidate)
+    return candidate
+
+
+def _extract_play_structure(play: PlayEntry) -> tuple[etree._ElementTree, tuple[_ActNav, ...]]:
+    parser = etree.XMLParser(recover=False, remove_blank_text=False)
+    tree = etree.parse(str(play.source_path), parser)
+    body_nodes = tree.xpath("//*[local-name()='text']/*[local-name()='body']")
+    if not body_nodes:
+        return tree, ()
+    body = body_nodes[0]
+    used_ids: set[str] = set()
+    acts: list[_ActNav] = []
+    speech_cursor = 0
+    act_index = 0
+    for child in body:
+        if not isinstance(child.tag, str) or etree.QName(child).localname != "div":
+            continue
+        if (child.get("type") or "").strip().lower() != "act":
+            continue
+        act_index += 1
+        act_label = _division_label(child, "act", act_index)
+        act_anchor = _anchor_from_node(child, f"act-{child.get('n') or act_index}", used_ids)
+        act_start_speech_index = speech_cursor
+
+        scene_index = 0
+        scenes: list[_SceneNav] = []
+        for scene_node in child:
+            if not isinstance(scene_node.tag, str) or etree.QName(scene_node).localname != "div":
+                continue
+            if (scene_node.get("type") or "").strip().lower() != "scene":
+                continue
+            scene_index += 1
+            scene_label = _division_label(scene_node, "scene", scene_index)
+            scene_anchor = _anchor_from_node(
+                scene_node,
+                f"{act_anchor}-scene-{scene_node.get('n') or scene_index}",
+                used_ids,
+            )
+            scene_start_speech_index = speech_cursor
+            scene_speeches = len(scene_node.xpath(".//*[local-name()='sp']"))
+            speech_cursor += scene_speeches
+            scenes.append(
+                _SceneNav(
+                    anchor_id=scene_anchor,
+                    label=scene_label,
+                    start_speech_index=scene_start_speech_index,
+                )
+            )
+
+        if not scenes:
+            speech_cursor += len(child.xpath(".//*[local-name()='sp']"))
+
+        acts.append(
+            _ActNav(
+                anchor_id=act_anchor,
+                label=act_label,
+                start_speech_index=act_start_speech_index,
+                scenes=tuple(scenes),
+            )
+        )
+
+    return tree, tuple(acts)
+
+
+def _play_structure_nav_html(acts: tuple[_ActNav, ...]) -> str:
+    if not acts:
+        return ""
+    lines: list[str] = ['<div class="play-structure-nav" aria-label="Navigation actes et scenes">', "<h3>Dans la piece</h3>", "<ul>"]
+    for act in acts:
+        lines.append(
+            f'<li><a href="#{html.escape(act.anchor_id, quote=True)}">{html.escape(act.label)}</a>'
+        )
+        if act.scenes:
+            lines.append("<ul>")
+            for scene in act.scenes:
+                lines.append(
+                    f'<li><a href="#{html.escape(scene.anchor_id, quote=True)}">{html.escape(scene.label)}</a></li>'
+                )
+            lines.append("</ul>")
+        lines.append("</li>")
+    lines.append("</ul></div>")
+    return "".join(lines)
+
+
+def _bind_anchor_id(
+    body: etree._Element,
+    target: etree._Element | None,
+    desired_id: str,
+    used_ids: set[str],
+    reusable_existing_ids: set[str],
+) -> str:
+    def _unique_id(base: str) -> str:
+        candidate = base
+        suffix = 2
+        while candidate in used_ids:
+            candidate = f"{base}-{suffix}"
+            suffix += 1
+        used_ids.add(candidate)
+        return candidate
+
+    if target is not None:
+        existing_id = (target.get("id") or "").strip()
+        if existing_id and existing_id in reusable_existing_ids:
+            reusable_existing_ids.remove(existing_id)
+            return existing_id
+        if existing_id:
+            candidate = _unique_id(desired_id)
+            anchor = etree.Element("div")
+            anchor.set("id", candidate)
+            anchor.set("class", "dramatic-anchor")
+            parent = target.getparent()
+            if parent is None:
+                body.insert(0, anchor)
+            else:
+                parent.insert(parent.index(target), anchor)
+            return candidate
+        candidate = _unique_id(desired_id)
+        target.set("id", candidate)
+        return candidate
+
+    candidate = _unique_id(desired_id)
+    anchor = etree.Element("div")
+    anchor.set("id", candidate)
+    anchor.set("class", "dramatic-anchor")
+    body.insert(0, anchor)
+    return candidate
+
+
+def _inject_play_anchors(body: etree._Element, acts: tuple[_ActNav, ...]) -> None:
+    act_headers = body.xpath(
+        ".//div[contains(@class, 'acte-titre') or contains(@class, 'acte-titre-sans-variation')]"
+    )
+    scene_headers = body.xpath(
+        ".//div[contains(@class, 'scene-titre') or contains(@class, 'scene-titre-sans-variation')]"
+    )
+    speakers = body.xpath(".//div[contains(@class, 'locuteur')]")
+    existing_ids = {item for item in body.xpath(".//*[@id]/@id") if isinstance(item, str) and item.strip()}
+    used_ids = set(existing_ids)
+    reusable_existing_ids = set(existing_ids)
+
+    for index, act in enumerate(acts):
+        target: etree._Element | None = None
+        if index < len(act_headers):
+            target = act_headers[index]
+        elif act.start_speech_index < len(speakers):
+            target = speakers[act.start_speech_index]
+        elif len(body):
+            target = body[0]
+        act.anchor_id = _bind_anchor_id(body, target, act.anchor_id, used_ids, reusable_existing_ids)
+
+    scene_index = 0
+    for act in acts:
+        for scene in act.scenes:
+            target = None
+            if scene_index < len(scene_headers):
+                target = scene_headers[scene_index]
+            elif scene.start_speech_index < len(speakers):
+                target = speakers[scene.start_speech_index]
+            elif len(body):
+                target = body[0]
+            scene.anchor_id = _bind_anchor_id(body, target, scene.anchor_id, used_ids, reusable_existing_ids)
+            scene_index += 1
+
+
+def _dramatic_assets_from_export_doc(export_doc: etree._Element) -> str:
+    chunks: list[str] = []
+    for node in export_doc.xpath("/html/head/link | /html/head/style"):
+        tag = etree.QName(node).localname.lower()
+        if tag == "link":
+            rel = (node.get("rel") or "").lower()
+            if "stylesheet" not in rel:
+                continue
+            chunks.append(etree.tostring(node, encoding="unicode", method="html"))
+            continue
+        css_text = "".join(node.itertext())
+        # Skip export-shell layout rules (container/menu/footer) but keep dramatic engine CSS.
+        if "#container" in css_text and "#menu-lateral" in css_text:
+            continue
+        css_text = re.sub(r"(?<![-\w])html(?=\s*\{)", ".dramatic-content", css_text)
+        css_text = re.sub(r"(?<![-\w])body(?=\s*\{)", ".dramatic-content", css_text)
+        chunks.append(f"<style>{css_text}</style>")
+    return "".join(chunks)
+
+
+def _play_reading_html(play: PlayEntry) -> tuple[str, str, str]:
+    tei_tree, acts = _extract_play_structure(play)
+    tei_xml = etree.tostring(tei_tree.getroot(), encoding="unicode")
+    export_html = render_html_export_from_tei(
+        tei_xml,
+        options=HtmlExportOptions(
+            document_title=play.title,
+            include_menu=False,
+            include_header=False,
+            include_footer=False,
+        ),
+    )
+    doc = lxml_html.document_fromstring(export_html)
+    asset_html = _dramatic_assets_from_export_doc(doc)
+    sections = doc.xpath("//section[@id='contenu-editorial']")
+    if not sections:
+        return _play_structure_nav_html(acts), '<article class="dramatic-content"></article>', asset_html
+
+    editorial = sections[0]
+    existing_class = (editorial.get("class") or "").strip()
+    class_parts = [part for part in existing_class.split() if part]
+    if "dramatic-content" not in class_parts:
+        class_parts.append("dramatic-content")
+    editorial.set("class", " ".join(class_parts))
+    _inject_play_anchors(editorial, acts)
+    dramatic_html = etree.tostring(editorial, encoding="unicode", method="html")
+    return _play_structure_nav_html(acts), dramatic_html, asset_html
 
 
 def render_home_page(manifest: SiteManifest) -> str:
@@ -158,9 +438,6 @@ def render_play_page(manifest: SiteManifest, play: PlayEntry) -> str:
         if play.author:
             lines.append(f'<p class="meta">Auteur: {html.escape(play.author)}</p>')
         lines.append(f'<p class="meta">Type: {html.escape(play.document_type)}</p>')
-    if play.main_divisions:
-        division_items = "".join(f"<li>{html.escape(label)}</li>" for label in play.main_divisions)
-        lines.append(f"<h3>Divisions reperees</h3><ul>{division_items}</ul>")
     if manifest.config.show_xml_download and play.xml_download_relpath:
         lines.append(
             f'<p><a href="../{html.escape(play.xml_download_relpath, quote=True)}" download>Telecharger le XML</a></p>'
@@ -172,11 +449,17 @@ def render_play_page(manifest: SiteManifest, play: PlayEntry) -> str:
         )
     if manifest.config.credits:
         lines.append(f'<p class="meta">{html.escape(manifest.config.credits)}</p>')
+
+    navigation_html, dramatic_html, dramatic_assets = _play_reading_html(play)
+    lines.append(dramatic_html)
+
     return _layout(
         manifest,
         page_title=play.title,
         current_href=f"plays/{play.slug}.html",
         content_html="".join(lines),
+        sidebar_extra_html=navigation_html,
+        head_extra_html=dramatic_assets,
     )
 
 

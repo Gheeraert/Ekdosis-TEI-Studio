@@ -1,0 +1,1236 @@
+<html lang="fr">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta charset="UTF-8">
+<title>Édition TEI</title>
+            <link href="https://fonts.googleapis.com/css2?family=IM+Fell+DW+Pica&display=swap" rel="stylesheet">
+        
+            <link href="https://fonts.googleapis.com/css2?family=EB+Garamond&display=swap" rel="stylesheet">
+        
+            <link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro&display=swap" rel="stylesheet">
+        <style>
+          body {
+            font-family: 'IM Fell DW Pica', Georgia, serif;
+            background: #fdf6e3;
+            color: #4a3c1a;
+            padding: 2em;
+            max-width: 800px;
+            margin-left: 9em;
+          }
+          .ligne-logos-gauche {
+           display: flex;
+           align-items: center;
+           gap: 1em;
+           margin-bottom: 0.5em;
+          }
+          .logo-credit {
+           width: 200px;
+           height: auto;
+           opacity: 0.85;
+          }
+          .logo-ekdosis {
+           width: 50px;
+           height: auto;
+           opacity: 0.9;
+          }
+          .bloc-credit {
+           font-family: 'Source Sans Pro', sans-serif;
+           font-size: 0.8em;
+           color: #3a3a3a;
+           margin: 1.5em 0;
+           padding: 0.6em 1.1em;
+           border: 1px solid #ccc2b2;
+           background: #fefdf8;
+           line-height: 1.2;
+           text-align: left;
+           max-width: 650px;
+           margin-left: auto;
+           margin-right: auto;
+          border-radius: 6px;
+          box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.04);
+          }
+         .italic {
+          font-style: italic;
+          color: darkred;
+          }
+          .bold {
+          font-weight: bold;
+          }
+          .underline {
+          text-decoration: underline;
+          }
+          .acte-titre-sans-variation {
+          font-weight: bold;
+          margin-top: 1.5em;
+          margin-bottom: 0.5em;
+          margin-left: 11em;
+          }
+          .scene-titre-sans-variation {
+          font-weight: bold;
+          margin-top: 1.5em;
+          margin-bottom: 0.5em;
+          margin-left: 11em;
+          }
+        .scene-titre {
+          font-style: italic;
+          margin-bottom: 0.5em;
+          margin-left: 0em;
+        }
+        .acte, .scene, .personnages {
+            font-weight: bold;
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+            margin-left: 11em;
+          }
+          .titre-piece {
+            font-style: italic;
+          }
+          .locuteur {
+            font-variant: small-caps;
+            margin-top: 1em;
+            margin-bottom: 0.2em;
+            margin-left: 11em;
+          }
+          .tirade {
+            margin-left: 1em;
+            margin-bottom: 1em;
+          }
+          .vers {
+            margin: 0.2em 0;
+          }
+          .didascalie {
+            font-style: italic;
+            color: #555;
+            margin-left: 9em;
+            margin-bottom: 0.5em;
+          }
+          .variation {
+            position: relative;
+            border-bottom: 1px dotted #8b5e3c;
+            cursor: help;
+          }
+          .variation::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            top: 1.5em;
+            left: 0;
+            background: #fef3c7;
+            color: #111;
+            padding: 0.5em;
+            border: 1px solid #e0b973;
+            border-radius: 6px;
+            font-size: 0.8em;
+            white-space: pre-line;
+            display: none;
+            z-index: 1000;
+            max-width: 400px;
+            overflow-wrap: break-word;
+          }
+          .variation:hover::after {
+            display: block;
+          }
+          p.vers {
+            display: flex;
+            gap: 1em;
+            margin: 0.2em 0;
+          }
+          .vers-container {
+            position: relative;
+            margin-left: 5em;
+            margin-bottom: 0.4em;
+            line-height: 1;
+          }
+          .num-vers {
+            position: absolute;
+            left: -4.5em;
+            width: 4em;
+            text-align: right;
+            font-size: 0.85em;
+            color: #5a5245;
+            font-style: italic;
+          }
+          .texte-vers {
+            display: inline;
+          }
+          .vers-decale {
+            margin-left: 14em;
+          }
+        </style>
+<link rel="icon" href="https://www.normandie.fr/sites/default/files/2021-03/favicon.ico" type="image/x-icon">
+</head>
+<body>
+<div class="bloc-credit">
+<div class="ligne-logos-gauche"><img src="logos.png" alt="Logos" class="logo-credit"></div>
+<div class="credit-line">Texte généré par Ekdosis-TEI Studio</div>
+<div class="credit-line">Chaire d'excellence en Éditions numériques</div>
+<div class="credit-line">Université de Rouen Normandie - Région Normandie</div>
+<div class="credit-line"> </div>
+<div class="credit-line">Licence Creative Commons - CC-BY-NC-SA</div>
+<div class="credit-line">Jean Racine – <span class="italic">La Thébaïde ou les frères ennemis</span>, Acte 1, Scène 1</div>
+<div class="credit-line">Édition critique par Claire Fourquet-Gracieux</div>
+<div class="credit-line">Document généré le 13 juillet 2025</div>
+</div>
+<div class="scene-titre-sans-variation">SCENE V.</div>
+<p class="didascalie"><em><span class="variation" data-tooltip="1664, 1676: IOCASTE, ANTIGONE, CREON, OLYMPE.
+
+">JOCASTE, ANTIGONE, CREON,  OLYMPE. </span></em></p>
+<div class="locuteur"><span style="font-variant: small-caps;">CREON.</span></div>
+<div class="tirade">
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers"><span class="variation" data-tooltip="1664: QV’auez-vous
+
+1676, 1687, 1697: QU’avez-vous
+
+">Qu’avez-vous </span>
+fait, Madame, &amp; par quelle 
+      <span class="variation" data-tooltip="1676, 1687, 1697: conduite
+
+">conduite, </span>
+</span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers"><span class="variation" data-tooltip="1676, 1687, 1697: Forcez-vous
+
+">Forcez vous </span><span class="variation" data-tooltip="1664: vn
+
+">un </span>
+Vainqueur à prendre 
+      <span class="variation" data-tooltip="1676: ainsy
+
+">ainsi </span>
+la fuite ? </span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Ce conseil va tout perdre. </span>
+</div>
+</div>
+<div class="locuteur"><span style="font-variant: small-caps;"><span class="variation" style="font-variant: small-caps;" data-tooltip="1664, 1676: IOCASTE.
+
+">JOCASTE. </span></span></div>
+<div class="tirade">
+<div class="vers-container vers-decale">
+<span class="num-vers"></span><span class="texte-vers">
+Il va tout 
+      <span class="variation" data-tooltip="1664: conseruer,
+
+">conserver, </span>
+</span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Et par ce seul conseil Thebes se peut 
+      <span class="variation" data-tooltip="1664: sauuer.
+
+">sauver. </span>
+</span>
+</div>
+</div>
+<div class="locuteur"><span style="font-variant: small-caps;"><span class="variation" style="font-variant: small-caps;" data-tooltip="1676, 1687, 1697: CREON.
+
+">CREON </span></span></div>
+<div class="tirade">
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Et 
+      <span class="variation" data-tooltip="1676, 1687: quoi,
+
+">quoy, </span>
+Madame, &amp; 
+      <span class="variation" data-tooltip="1676, 1687: quoi,
+
+">quoy, </span>
+dans l’estat 
+      <span class="variation" data-tooltip="1676, 1687, 1697: où
+
+">ou </span>
+nous 
+      <span class="variation" data-tooltip="1697: sõmes,
+
+">sommes, </span>
+</span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers"><span class="variation" data-tooltip="1664: Lors qu’auec
+
+">Lors qu’avec </span><span class="variation" data-tooltip="1664: vn
+
+">un </span>
+renfort de plus de six mille hommes, </span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+La Fortune promet toute chose aux Thebains, </span>
+</div>
+<div class="vers-container">
+<span class="num-vers">230</span><span class="texte-vers">
+Le 
+      <span class="variation" data-tooltip="1676, 1687, 1697: Roi
+
+">Roy </span>
+se laisse oster la Victoire des mains ? </span>
+</div>
+</div>
+<div class="locuteur"><span style="font-variant: small-caps;"><span class="variation" style="font-variant: small-caps;" data-tooltip="1664, 1676: IOCASTE.
+
+">JOCASTE. </span></span></div>
+<div class="tirade">
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+La Victoire, Creon, n’est pas 
+      <span class="variation" data-tooltip="1664: tousiours
+
+1676, 1687, 1697: toûjours
+
+">tousjours </span>
+si 
+      <span class="variation" data-tooltip="1676, 1687: belle.
+
+">belle, </span>
+</span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+La honte &amp; les remords vont 
+      <span class="variation" data-tooltip="1664: souuent
+
+">souvent </span>
+
+      <span class="variation" data-tooltip="1687, 1697: aprés
+
+">apres </span>
+elle, </span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Quand deux Freres armez vont s’égorger entr’eux, </span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Ne les pas separer, c’est les perdre tous deux. </span>
+</div>
+<div class="vers-container">
+<span class="num-vers">235</span><span class="texte-vers">
+Peut-on faire au Vainqueur 
+      <span class="variation" data-tooltip="1664: vne
+
+">une </span>
+injure plus noire, </span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Que luy laisser 
+      <span class="variation" data-tooltip="1676, 1687, 1697: gagner
+
+">gaigner </span>
+une telle Victoire ? </span>
+</div>
+</div>
+<div class="locuteur"><span style="font-variant: small-caps;">CREON.</span></div>
+<div class="tirade"><div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Leur 
+      <span class="variation" data-tooltip="1676, 1687: courroux
+
+">couroux </span>
+est trop 
+      <span class="variation" data-tooltip="1676, 1687, 1697: grand.…
+
+">grand…. </span>
+</span>
+</div></div>
+<div class="locuteur"><span style="font-variant: small-caps;"><span class="variation" style="font-variant: small-caps;" data-tooltip="1664, 1676: IOCASTE.
+
+">JOCASTE. </span></span></div>
+<div class="tirade"><div class="vers-container vers-decale">
+<span class="num-vers"></span><span class="texte-vers">
+Il peut estre 
+      <span class="variation" data-tooltip="1676, 1687, 1697: adouci.
+
+">adoucy. </span>
+</span>
+</div></div>
+<div class="locuteur"><span style="font-variant: small-caps;">CREON.</span></div>
+<div class="tirade"><div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Tous deux veulent regner. </span>
+</div></div>
+<div class="locuteur"><span style="font-variant: small-caps;"><span class="variation" style="font-variant: small-caps;" data-tooltip="1664, 1676: IOCASTE.
+
+">JOCASTE. </span></span></div>
+<div class="tirade"><div class="vers-container vers-decale">
+<span class="num-vers"></span><span class="texte-vers">
+Ils regneront 
+      <span class="variation" data-tooltip="1676, 1687, 1697: aussi.
+
+">aussi : </span>
+</span>
+</div></div>
+<div class="locuteur"><span style="font-variant: small-caps;">CREON.</span></div>
+<div class="tirade">
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+On ne partage point la grandeur 
+      <span class="variation" data-tooltip="1664: souueraine ;
+
+">souveraine ; </span>
+</span>
+</div>
+<div class="vers-container">
+<span class="num-vers">240</span><span class="texte-vers">
+Et ce n’est pas 
+      <span class="variation" data-tooltip="1664: vn
+
+">un </span>
+bien qu’on quitte &amp; qu’on reprenne. </span>
+</div>
+</div>
+<div class="locuteur"><span style="font-variant: small-caps;"><span class="variation" style="font-variant: small-caps;" data-tooltip="1664, 1676: IOCASTE.
+
+">JOCASTE. </span></span></div>
+<div class="tirade"><div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+L’interest de l’Estat leur 
+      <span class="variation" data-tooltip="1664: seruira
+
+">servira </span>
+de 
+      <span class="variation" data-tooltip="1687: Loi.
+
+">Loy. </span>
+</span>
+</div></div>
+<div class="locuteur"><span style="font-variant: small-caps;">CREON.</span></div>
+<div class="tirade">
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+L’interest de l’Estat est de 
+      <span class="variation" data-tooltip="1664: n’auoir
+
+">n’avoir </span>
+
+      <span class="variation" data-tooltip="1664: qu’vn
+
+">qu’un </span>
+
+      <span class="variation" data-tooltip="1687: Roi,
+
+">Roy, </span>
+</span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Qui 
+      <span class="variation" data-tooltip="1664: d’vn
+
+">d’un </span>
+ordre constant 
+      <span class="variation" data-tooltip="1664: gouuernant
+
+">gouvernant </span>
+ses 
+      <span class="variation" data-tooltip="1664: Prouinces,
+
+1676, 1687, 1697: provinces,
+
+">Provinces, </span>
+</span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Accoustume à ses 
+      <span class="variation" data-tooltip="1676, 1687, 1697: Loix
+
+">Loys </span>
+&amp; le Peuple &amp; les Princes. </span>
+</div>
+<div class="vers-container">
+<span class="num-vers">245</span><span class="texte-vers">
+Ce regne interrompu de deux Rois differens, </span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+En luy 
+      <span class="variation" data-tooltip="1664: dounant
+
+">donnant </span>
+deux Rois luy donne deux tyrans. </span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers"><span class="variation" data-tooltip="1664: Vous les verriez tousiours
+
+1676, 1687: Vous les verriez toûjours
+
+1697: Par un ordre souvent
+
+">Vous les verriez tousjours </span><span class="variation" data-tooltip="1664: l’vn
+
+">l’un </span>
+à l’autre contraire, </span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers"><span class="variation" data-tooltip="1664: Destruire aueuglement
+
+1676: Détruire aveuglément
+
+1687: Détruire aveuglement
+
+1697: Un frere détruiroit
+
+">Destruire aveuglement </span>
+ce qu’auroit fait 
+      <span class="variation" data-tooltip="1676, 1687, 1697: un
+
+">vn </span>
+
+      <span class="variation" data-tooltip="1697: frere,
+
+">Frere, </span>
+</span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers"><span class="variation" data-tooltip="1664: L’vn sur l’autre
+
+1697: Vous les verriez
+
+">L’un sur l’autre </span><span class="variation" data-tooltip="1664: tousiours
+
+1676, 1687, 1697: toûjours
+
+">tousjours </span>
+former quelque attentat, </span>
+</div>
+<div class="vers-container">
+<span class="num-vers">250</span><span class="texte-vers">
+Et changer tous les ans la face de l’Estat. </span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Ce terme limité que l’on veut leur prescrire, </span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Accroist leur violence en bornant leur 
+      <span class="variation" data-tooltip="1676, 1687, 1697: Empire.
+
+">Empire, </span>
+</span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Tous deux feront gemir les Peuples tour à 
+      <span class="variation" data-tooltip="1697: tour.
+
+">tour, </span>
+</span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Pareils à ces torrens qui ne 
+      <span class="variation" data-tooltip="1676, 1687, 1697: durent
+
+">durant </span>
+
+      <span class="variation" data-tooltip="1664: qu’vn
+
+">qu’un </span>
+jour, </span>
+</div>
+<div class="vers-container">
+<span class="num-vers">255</span><span class="texte-vers">
+Plus leur cours est borné, plus ils font de 
+      <span class="variation" data-tooltip="1664: rauage,
+
+">ravage, </span>
+</span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers"><span class="variation" data-tooltip="1676, 1687, 1697: Et d’horribles
+
+">Et par de grands </span>
+degasts signalent leur passage. </span>
+</div>
+</div>
+<div class="locuteur"><span style="font-variant: small-caps;"><span class="variation" style="font-variant: small-caps;" data-tooltip="1664, 1676: IOCASTE.
+
+">JOCASTE. </span></span></div>
+<div class="tirade">
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+On les verroit plûtost par de nobles projets, </span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Se disputer tous deux l’amour de leurs 
+      <span class="variation" data-tooltip="1676, 1687, 1697: sujets.
+
+">Sujets. </span>
+</span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Mais 
+      <span class="variation" data-tooltip="1664: auoüez
+
+1676, 1687, 1697: avoüez,
+
+">avoüez </span>
+Creon, que toute vostre 
+      <span class="variation" data-tooltip="1687, 1697: peine
+
+">peine, </span>
+</span>
+</div>
+<div class="vers-container">
+<span class="num-vers">260</span><span class="texte-vers">
+C’est de voir que la 
+      <span class="variation" data-tooltip="1687, 1697: paix
+
+">Paix </span>
+rend vostre attente vaine, </span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers"><span class="variation" data-tooltip="1676: Qu’elle asseure à mes fils le
+
+1687, 1697: Qu’elle assure à mes Fils le
+
+">Et qu’en vous esloignant du </span>
+Trosne 
+      <span class="variation" data-tooltip="1676, 1687, 1697: où
+
+">ou </span>
+vous tendez, </span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers"><span class="variation" data-tooltip="1664: Elle rend pour jamais vos desseins auortez.
+
+1676: Et va rompre le piege où vous les attendez.
+
+1687: Et va rompre le piege où vous les attendez.
+
+1697: Et va rompre le piege où vous les attendez.
+
+">Elle rend pour jamais vos desseins avortez.</span></span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Comme 
+      <span class="variation" data-tooltip="1676, 1687, 1697: aprés
+
+">apres </span>
+
+      <span class="variation" data-tooltip="1676, 1687, 1697: leur
+
+">mes </span>
+
+      <span class="variation" data-tooltip="1676, 1687, 1697: trépas
+
+">enfans </span>
+le droit de la 
+      <span class="variation" data-tooltip="1687, 1697: naissance
+
+">naissance, </span>
+</span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Fait tomber en vos mains la 
+      <span class="variation" data-tooltip="1697: suprême
+
+">supréme </span>
+puissance, </span>
+</div>
+<div class="vers-container">
+<span class="num-vers">265</span><span class="texte-vers">
+Le sang qui vous 
+      <span class="variation" data-tooltip="1664: vnit
+
+">unit </span>
+aux deux Princes mes Fils, </span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Vous fait 
+      <span class="variation" data-tooltip="1664: trouuer
+
+">trouver </span>
+en eux vos plus grands ennemis : </span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Et vostre ambition qui tend à leur Fortune, </span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Vous donne pour tous deux 
+      <span class="variation" data-tooltip="1664: vne
+
+">une </span>
+haine commune ; </span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Vous inspirez au 
+      <span class="variation" data-tooltip="1676, 1687: Roi
+
+">Roy </span>
+vos conseils dangereux, </span>
+</div>
+<div class="vers-container">
+<span class="num-vers">270</span><span class="texte-vers">
+Et vous en 
+      <span class="variation" data-tooltip="1664: seruez
+
+">servez </span>
+
+      <span class="variation" data-tooltip="1664: vn
+
+">un </span>
+pour les perdre tous deux. </span>
+</div>
+</div>
+<div class="locuteur"><span style="font-variant: small-caps;">CREON.</span></div>
+<div class="tirade">
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers"><span class="variation" data-tooltip="1664: Ie
+
+">Je </span>
+ne me repais point de pareilles chimeres, </span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Mes respects pour le 
+      <span class="variation" data-tooltip="1687: Roi
+
+">Roy </span>
+sont ardens &amp; 
+      <span class="variation" data-tooltip="1697: sinceres;
+
+">sinceres, </span>
+</span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Et mon ambition est de le maintenir </span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Au Trosne 
+      <span class="variation" data-tooltip="1676, 1687, 1697: où
+
+">ou </span>
+vous croyez que 
+      <span class="variation" data-tooltip="1664: ie
+
+">je </span>
+veux 
+      <span class="variation" data-tooltip="1664: paruenir.
+
+">parvenir. </span>
+</span>
+</div>
+<div class="vers-container">
+<span class="num-vers">275</span><span class="texte-vers">
+Le soin de sa grandeur est le seul qui m’anime, </span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers"><span class="variation" data-tooltip="1664: Ie
+
+">Je </span>
+hay ses ennemis, &amp; c’est 
+      <span class="variation" data-tooltip="1676, 1687, 1697: là
+
+">la </span>
+tout mon crime ; </span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers"><span class="variation" data-tooltip="1664: Ie
+
+">Je </span>
+ne m’en 
+      <span class="variation" data-tooltip="1687: chache
+
+">cache </span>
+point, mais à ce que 
+      <span class="variation" data-tooltip="1664: ie
+
+">je </span>
+
+      <span class="variation" data-tooltip="1687, 1697: voi,
+
+">voy, </span>
+</span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Chacun n’est pas 
+      <span class="variation" data-tooltip="1687: ici
+
+">icy </span>
+criminel comme 
+      <span class="variation" data-tooltip="1687, 1697: moi.
+
+">moy. </span>
+</span>
+</div>
+</div>
+<div class="locuteur"><span style="font-variant: small-caps;"><span class="variation" style="font-variant: small-caps;" data-tooltip="1664, 1676: IOCASTE.
+
+">JOCASTE. </span></span></div>
+<div class="tirade">
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers"><span class="variation" data-tooltip="1664: Tant que pour ennemy le Roy n’aura qu’vn Frere,
+
+1676: Tant que pour ennemy le Roy n’aura qu’un Frere,
+
+1687: Tant que pour ennemi le Roi n’aura qu’un Frere,
+
+1697: Je suis mere, Creon, &amp; si j’aime son frere,
+
+">Tant que pour ennemy le Roy n’aura qu’un Frere,</span></span>
+</div>
+<div class="vers-container">
+<span class="num-vers">280</span><span class="texte-vers"><span class="variation" data-tooltip="1664: Sa personne, Creon, me sera toûjours chere ;
+
+1676: Sa personne, Creon, me sera toûjours chere.
+
+1687: Sa personne, Creon, me sera toûjours chere.
+
+1697: La personne du Roy ne m’en est pas moins chere.
+
+">Sa personne, Creon, me sera toûjours chere ;</span></span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+De lasches Courtisans 
+      <span class="variation" data-tooltip="1664: peuuent
+
+">peuvent </span>
+bien le haïr, </span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Mais 
+      <span class="variation" data-tooltip="1676, 1687, 1697: une
+
+">vne </span>
+Mere enfin ne peut pas se trahir. </span>
+</div>
+</div>
+<div class="locuteur"><span style="font-variant: small-caps;">ANTIGONE.</span></div>
+<div class="tirade">
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Vos interests icy sont conformes aux nostres, </span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Les ennemis du 
+      <span class="variation" data-tooltip="1687: Roi
+
+">Roy </span>
+ne sont pas tous les vostres ; </span>
+</div>
+<div class="vers-container">
+<span class="num-vers">285</span><span class="texte-vers">
+Creon, vous estes Pere, &amp; dans ces ennemis, </span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Peut-estre songez-vous que vous 
+      <span class="variation" data-tooltip="1664: auez
+
+">avez </span>
+
+      <span class="variation" data-tooltip="1676, 1687, 1697: un
+
+">vn </span>
+
+      <span class="variation" data-tooltip="1676, 1687, 1697: Fils.
+
+">Fils ; </span>
+</span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+On sçait de quelle ardeur Hémon sert Polinice. </span>
+</div>
+</div>
+<div class="locuteur"><span style="font-variant: small-caps;">CREON.</span></div>
+<div class="tirade">
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers"><span class="variation" data-tooltip="1687: Oüi,
+
+1697: Ouy,
+
+">Oüy, </span><span class="variation" data-tooltip="1664, 1676: ie
+
+">je </span>
+le sçay, Madame, &amp; 
+      <span class="variation" data-tooltip="1664, 1676: ie
+
+">je </span>
+luy fais 
+      <span class="variation" data-tooltip="1676, 1687, 1697: justice,
+
+">justice ; </span>
+</span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers"><span class="variation" data-tooltip="1664: Ie
+
+">Je </span>
+le dois en effet distinguer du commun ; </span>
+</div>
+<div class="vers-container">
+<span class="num-vers">290</span><span class="texte-vers">
+Mais c’est pour le haïr encor plus que pas 
+      <span class="variation" data-tooltip="1664: vn ;
+
+1676, 1687, 1697: un.
+
+">un ; </span>
+</span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Et 
+      <span class="variation" data-tooltip="1664: ie
+
+">je </span>
+souhaitterois dans ma juste colere, </span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Que chacun le haïst comme le hait son Pere. </span>
+</div>
+</div>
+<div class="locuteur"><span style="font-variant: small-caps;">ANTIGONE.</span></div>
+<div class="tirade">
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Aprés tout ce qu’a fait la valeur de son bras, </span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Tout le monde en ce point ne vous ressemble pas. </span>
+</div>
+</div>
+<div class="locuteur"><span style="font-variant: small-caps;">CREON.</span></div>
+<div class="tirade">
+<div class="vers-container">
+<span class="num-vers">295</span><span class="texte-vers"><span class="variation" data-tooltip="1664: Ie
+
+">Je </span>
+le 
+      <span class="variation" data-tooltip="1687, 1697: voi
+
+">voy </span>
+bien, Madame, &amp; c’est ce qui m’afflige ; </span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Mais 
+      <span class="variation" data-tooltip="1664: ie
+
+">je </span>
+sçay bien à quoy sa 
+      <span class="variation" data-tooltip="1664: reuolte
+
+">revolte </span>
+m’oblige, </span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Et tous ces beaux exploits qui le font admirer, </span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+C’est ce qui me le fait justement abhorrer. </span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+La honte suit toûjours le 
+      <span class="variation" data-tooltip="1687, 1697: parti
+
+">party </span>
+des rebelles, </span>
+</div>
+<div class="vers-container">
+<span class="num-vers">300</span><span class="texte-vers">
+Leurs grandes actions sont les plus criminelles ; </span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Ils signalent leur crime en signalant leur bras, </span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Et la Gloire n’est point 
+      <span class="variation" data-tooltip="1676, 1687, 1697: où
+
+">ou </span>
+les Rois ne sont pas. </span>
+</div>
+</div>
+<div class="locuteur"><span style="font-variant: small-caps;">ANTIGONE.</span></div>
+<div class="tirade"><div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers"><span class="variation" data-tooltip="1676, 1687, 1697: Ecoutez
+
+">Escoutez </span><span class="variation" data-tooltip="1676, 1687, 1697: un
+
+">vn </span>
+peu mieux la voix de la Nature. </span>
+</div></div>
+<div class="locuteur"><span style="font-variant: small-caps;">CREON.</span></div>
+<div class="tirade"><div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Plus l’offenseur m’est cher, plus je ressens l’injure. </span>
+</div></div>
+<div class="locuteur"><span style="font-variant: small-caps;">ANTIGONE.</span></div>
+<div class="tirade">
+<div class="vers-container">
+<span class="num-vers">305</span><span class="texte-vers">
+Mais 
+      <span class="variation" data-tooltip="1664: vn
+
+">un </span>
+Pere à ce point doit-il estre emporté ? </span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Vous 
+      <span class="variation" data-tooltip="1664: auez
+
+">avez </span>
+trop de haine. </span>
+</div>
+</div>
+<div class="locuteur"><span style="font-variant: small-caps;">CREON.</span></div>
+<div class="tirade">
+<div class="vers-container vers-decale">
+<span class="num-vers"></span><span class="texte-vers">
+Et vous trop de bonté. </span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+C’est trop parler, Madame, en 
+      <span class="variation" data-tooltip="1664: faueur
+
+">faveur </span>
+
+      <span class="variation" data-tooltip="1664: d’vn
+
+">d’un </span>
+rebelle. </span>
+</div>
+</div>
+<div class="locuteur"><span style="font-variant: small-caps;">ANTIGONE.</span></div>
+<div class="tirade"><div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+L’innocence vaut bien que l’on parle pour elle. </span>
+</div></div>
+<div class="locuteur"><span style="font-variant: small-caps;">CREON.</span></div>
+<div class="tirade"><div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers"><span class="variation" data-tooltip="1664: Ie
+
+">Je </span>
+sçay ce qui le rend innocent à vos yeux. </span>
+</div></div>
+<div class="locuteur"><span style="font-variant: small-caps;">ANTIGONE.</span></div>
+<div class="tirade"><div class="vers-container">
+<span class="num-vers">310</span><span class="texte-vers">
+Et 
+      <span class="variation" data-tooltip="1664: ie
+
+">je </span>
+sçay quel sujet vous le rend odieux. </span>
+</div></div>
+<div class="locuteur"><span style="font-variant: small-caps;">CREON.</span></div>
+<div class="tirade"><div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+L’amour a d’autres yeux que le commun des 
+      <span class="variation" data-tooltip="1697: hõmes.
+
+">hommes. </span>
+</span>
+</div></div>
+<div class="locuteur"><span style="font-variant: small-caps;"><span class="variation" style="font-variant: small-caps;" data-tooltip="1664, 1676: IOCASTE.
+
+">JOCASTE. </span></span></div>
+<div class="tirade">
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Vous abusez, Creon, de l’estat 
+      <span class="variation" data-tooltip="1676, 1687, 1697: où
+
+">ou </span>
+nous sommes, </span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Tout vous 
+      <span class="variation" data-tooltip="1676, 1687, 1697: sẽble
+
+">semble </span>
+permis, mais craignez mon 
+      <span class="variation" data-tooltip="1676, 1687: courroux,
+
+1697: courroux.
+
+">couroux, </span>
+</span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Vos libertez enfin 
+      <span class="variation" data-tooltip="1687: retomberont
+
+">retomberoient </span>
+sur vous. </span>
+</div>
+</div>
+<div class="locuteur"><span style="font-variant: small-caps;">ANTIGONE.</span></div>
+<div class="tirade">
+<div class="vers-container">
+<span class="num-vers">315</span><span class="texte-vers">
+L’interest du public agit peu sur son ame, </span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Et l’amour du 
+      <span class="variation" data-tooltip="1676, 1687, 1697: païs
+
+">pays </span>
+nous cache 
+      <span class="variation" data-tooltip="1664: vne
+
+">une </span>
+autre 
+      <span class="variation" data-tooltip="1676, 1687: flamme.
+
+1697: flâme.
+
+">flamme, </span>
+</span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers"><span class="variation" data-tooltip="1664: Ie
+
+">Je </span>
+la 
+      <span class="variation" data-tooltip="1676, 1687, 1697: sçay ;
+
+">sçais, </span>
+mais, Creon, j’en abhorre le cours, </span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Et vous ferez bien mieux de la cacher toûjours. </span>
+</div>
+</div>
+<div class="locuteur"><span style="font-variant: small-caps;">CREON.</span></div>
+<div class="tirade">
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers"><span class="variation" data-tooltip="1664: Ie
+
+">Je </span>
+le feray, Madame, &amp; 
+      <span class="variation" data-tooltip="1664: ie
+
+">je </span>
+veux par 
+      <span class="variation" data-tooltip="1664: auance,
+
+">avance, </span>
+</span>
+</div>
+<div class="vers-container">
+<span class="num-vers">320</span><span class="texte-vers">
+Vous 
+      <span class="variation" data-tooltip="1676, 1687, 1697: épargner
+
+">espargner </span>
+encor jusques à ma 
+      <span class="variation" data-tooltip="1676, 1687, 1697: presence.
+
+">presence, </span>
+</span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Aussi bien mes 
+      <span class="variation" data-tooltip="1664: deuoirs
+
+1697: respects
+
+">devoirs </span>
+redoublent vos 
+      <span class="variation" data-tooltip="1676, 1687, 1697: mépris,
+
+">mespris, </span>
+</span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Et 
+      <span class="variation" data-tooltip="1664: ie
+
+">je </span>
+vais faire place à ce 
+      <span class="variation" data-tooltip="1676, 1687, 1697: bien-heureux
+
+">bien heureux </span>
+Fils. </span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers"><span class="variation" data-tooltip="1664: Vous sçauez que le Roy m’appelle à son service,
+
+1676: Le Roy m’appelle ailleurs, il faut que j’obeïsse,
+
+1687: Le Roy m’appelle ailleurs, il faut que j’obeïsse,
+
+1697: Le Roy m’appelle ailleurs, il faut que j’obeïsse,
+
+">Vous sçavez que le Roy m’appelle à son service,</span></span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Adieu, faites venir 
+      <span class="variation" data-tooltip="1687, 1697: Hémon
+
+">Hemon </span>
+&amp; Polinice. </span>
+</div>
+</div>
+<div class="locuteur"><span style="font-variant: small-caps;"><span class="variation" style="font-variant: small-caps;" data-tooltip="1664, 1676: IOCASTE.
+
+">JOCASTE. </span></span></div>
+<div class="tirade">
+<div class="vers-container">
+<span class="num-vers">325</span><span class="texte-vers">
+N’en doute 
+      <span class="variation" data-tooltip="1676, 1687, 1697: pas,
+
+">pas </span>
+
+      <span class="variation" data-tooltip="1676, 1687, 1697: méchant,
+
+">meschant, </span>
+ils vont venir tous deux, </span>
+</div>
+<div class="vers-container">
+<span class="num-vers"></span><span class="texte-vers">
+Tous deux ils 
+      <span class="variation" data-tooltip="1664: preuiendront
+
+">previendront </span>
+tes desseins 
+      <span class="variation" data-tooltip="1676, 1687, 1697: malheureux.
+
+">mal-heureux. </span>
+</span>
+</div>
+</div>
+</body>
+</html>

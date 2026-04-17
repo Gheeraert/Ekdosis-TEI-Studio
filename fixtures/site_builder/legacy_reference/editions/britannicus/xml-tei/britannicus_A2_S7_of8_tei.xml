@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0">
+  <teiHeader>
+    <fileDesc>
+      <titleStmt>
+        <title>Britannicus</title>
+        <author>Jean Racine</author>
+        <editor>Caroline Labrune</editor>
+      </titleStmt>
+      <publicationStmt>
+        <publisher>Presses de l'Université de Rouen et du Havre</publisher>
+        <pubPlace>Rouen</pubPlace>
+       <date>30 juillet 2025</date>
+      </publicationStmt>
+      <sourceDesc>
+        <p>généré par Ekdosis-TEI Studio – Acte 2, Scène 7</p>
+      </sourceDesc>
+    </fileDesc>
+  </teiHeader>
+  <text>
+    <body>
+  <div type="scene" n="7">
+    <head>SCENE VII.</head>
+    <stage type='personnages'>NERON, JUNIE, NARCISSE.</stage>
+    <sp>
+      <speaker>NERON.</speaker>
+<l n="744.1">
+
+      <app>
+        <lem wit="#A #C #D #E">MAdame... </lem>
+        <rdg wit="#B">MAdame.... </rdg>
+      </app>
+</l>
+    </sp>
+    <sp>
+      <speaker>JUNIE.</speaker>
+<l n="744.2">
+
+      <app>
+        <lem wit="#A #B #E">Non </lem>
+        <rdg wit="#C #D">Non, </rdg>
+      </app>
+Seigneur, je ne puis rien entendre. </l>
+<l n="745">
+Vous estes 
+      <app>
+        <lem wit="#A #B #E">obey. </lem>
+        <rdg wit="#C #D">obeï. </rdg>
+      </app>
+
+      <app>
+        <lem wit="#A #B #D #E">Laissez </lem>
+        <rdg wit="#C">Laissés </rdg>
+      </app>
+couler du moins </l>
+
+<l n="746">
+Des 
+      <app>
+        <lem wit="#A #E">larmes, </lem>
+        <rdg wit="#B #C #D">larmes </rdg>
+      </app>
+dont ses yeux ne seront pas témoins. </l>
+
+</sp>
+</div>
+</body></text>
+</TEI>

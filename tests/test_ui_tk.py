@@ -1,5 +1,6 @@
 ﻿from __future__ import annotations
 
+import json
 import tkinter as tk
 from pathlib import Path
 from uuid import uuid4
@@ -840,6 +841,157 @@ def test_publication_dialog_builds_rich_request_object(monkeypatch: pytest.Monke
         root.destroy()
 
 
+def test_publication_dialog_save_and_load_config_round_trip(monkeypatch: pytest.MonkeyPatch) -> None:
+    root = _make_root()
+    try:
+        runtime = RUNTIME_DIR / f"publication_dialog_config_{uuid4().hex}"
+        runtime.mkdir(parents=True, exist_ok=True)
+        config_path = runtime / "publication_config.json"
+
+        dramatic_a1 = runtime / "andromaque_A1.xml"
+        dramatic_a2 = runtime / "andromaque_A2.xml"
+        dramatic_b1 = runtime / "berenice_A1.xml"
+        notice_master = runtime / "master_notice.xml"
+        notice_intro = runtime / "notice_intro.xml"
+        logo = runtime / "logo.png"
+        asset_dir = runtime / "assets"
+        output_dir = runtime / "site_out"
+        for path in (dramatic_a1, dramatic_a2, dramatic_b1, notice_master, notice_intro, logo):
+            path.write_text("<xml/>", encoding="utf-8")
+        asset_dir.mkdir(parents=True, exist_ok=True)
+
+        infos: list[str] = []
+        errors: list[str] = []
+        dialog = PublicationDialog(root)
+        monkeypatch.setattr("tkinter.filedialog.asksaveasfilename", lambda **kwargs: str(config_path))
+        monkeypatch.setattr("tkinter.filedialog.askopenfilename", lambda **kwargs: str(config_path))
+        monkeypatch.setattr("tkinter.messagebox.showinfo", lambda _title, message, **kwargs: infos.append(message))
+        monkeypatch.setattr("tkinter.messagebox.showerror", lambda _title, message, **kwargs: errors.append(message))
+
+        dialog.vars.site_title.set("ETS Publication")
+        dialog.vars.site_subtitle.set("Corpus test")
+        dialog.vars.project_name.set("ETS")
+        dialog.vars.editor.set("Equipe ETS")
+        dialog.vars.credits.set("Credits")
+        dialog.homepage_intro.insert("1.0", "Introduction accueil")
+        dialog.vars.output_dir.set(str(output_dir))
+        dialog.vars.asset_directory.set(str(asset_dir))
+        dialog.vars.master_notice.set(str(notice_master))
+        dialog._notice_paths = [notice_intro]
+        dialog.notice_list.insert(tk.END, str(notice_intro))
+        dialog._logo_paths = [logo]
+        dialog.logo_list.insert(tk.END, str(logo))
+        dialog._add_dramatic_entries("andromaque", (dramatic_a1, dramatic_a2))
+        dialog._add_dramatic_entries("berenice", (dramatic_b1,))
+        dialog.play_order_list.delete(0, tk.END)
+        dialog.play_order_list.insert(tk.END, "berenice")
+        dialog.play_order_list.insert(tk.END, "andromaque")
+        dialog.mapping_text.insert("1.0", "andromaque|master-notice\n")
+        dialog.vars.show_xml_download.set(True)
+
+        dialog._on_save_config()
+        assert config_path.exists()
+        saved_payload = json.loads(config_path.read_text(encoding="utf-8"))
+        assert saved_payload["schema"] == "ets.site_publication_dialog_config"
+        assert saved_payload["version"] == 1
+
+        dialog.vars.site_title.set("Autre")
+        dialog.homepage_intro.delete("1.0", "end")
+        dialog._dramatic_entries.clear()
+        dialog.dramatic_list.delete(0, tk.END)
+        dialog.play_order_list.delete(0, tk.END)
+        dialog._notice_paths.clear()
+        dialog.notice_list.delete(0, tk.END)
+        dialog.vars.master_notice.set("")
+        dialog._logo_paths.clear()
+        dialog.logo_list.delete(0, tk.END)
+        dialog.mapping_text.delete("1.0", "end")
+        dialog.vars.output_dir.set("")
+
+        dialog._on_load_config()
+
+        assert not errors
+        assert dialog.vars.site_title.get() == "ETS Publication"
+        assert dialog.homepage_intro.get("1.0", "end-1c") == "Introduction accueil"
+        assert dialog.vars.output_dir.get() == str(output_dir.resolve())
+        assert dialog.vars.asset_directory.get() == str(asset_dir.resolve())
+        assert dialog.vars.master_notice.get() == str(notice_master.resolve())
+        assert dialog._notice_paths == [notice_intro.resolve()]
+        assert dialog._logo_paths == [logo.resolve()]
+        assert dialog._play_order_items() == ["berenice", "andromaque"]
+        assert len(dialog._dramatic_entries) == 3
+        assert dialog.mapping_text.get("1.0", "end-1c").strip() == "andromaque|master-notice"
+        assert infos
+        dialog.destroy()
+    finally:
+        root.destroy()
+
+
+def test_publication_dialog_load_save_config_cancelled_paths_do_nothing(monkeypatch: pytest.MonkeyPatch) -> None:
+    root = _make_root()
+    try:
+        dialog = PublicationDialog(root)
+        infos: list[str] = []
+        errors: list[str] = []
+        monkeypatch.setattr("tkinter.filedialog.asksaveasfilename", lambda **kwargs: "")
+        monkeypatch.setattr("tkinter.filedialog.askopenfilename", lambda **kwargs: "")
+        monkeypatch.setattr("tkinter.messagebox.showinfo", lambda _title, message, **kwargs: infos.append(message))
+        monkeypatch.setattr("tkinter.messagebox.showerror", lambda _title, message, **kwargs: errors.append(message))
+
+        dialog._on_save_config()
+        dialog._on_load_config()
+
+        assert infos == []
+        assert errors == []
+        dialog.destroy()
+    finally:
+        root.destroy()
+
+
+def test_publication_dialog_load_config_invalid_json_shows_error(monkeypatch: pytest.MonkeyPatch) -> None:
+    root = _make_root()
+    try:
+        runtime = RUNTIME_DIR / f"publication_dialog_invalid_json_{uuid4().hex}"
+        runtime.mkdir(parents=True, exist_ok=True)
+        bad_config = runtime / "invalid.json"
+        bad_config.write_text("{", encoding="utf-8")
+
+        dialog = PublicationDialog(root)
+        errors: list[str] = []
+        monkeypatch.setattr("tkinter.filedialog.askopenfilename", lambda **kwargs: str(bad_config))
+        monkeypatch.setattr("tkinter.messagebox.showerror", lambda _title, message, **kwargs: errors.append(message))
+
+        dialog._on_load_config()
+
+        assert errors
+        assert "json" in errors[-1].lower()
+        dialog.destroy()
+    finally:
+        root.destroy()
+
+
+def test_publication_dialog_load_config_invalid_structure_shows_error(monkeypatch: pytest.MonkeyPatch) -> None:
+    root = _make_root()
+    try:
+        runtime = RUNTIME_DIR / f"publication_dialog_invalid_structure_{uuid4().hex}"
+        runtime.mkdir(parents=True, exist_ok=True)
+        bad_config = runtime / "invalid_structure.json"
+        bad_config.write_text(json.dumps({"version": 1}, ensure_ascii=False, indent=2), encoding="utf-8")
+
+        dialog = PublicationDialog(root)
+        errors: list[str] = []
+        monkeypatch.setattr("tkinter.filedialog.askopenfilename", lambda **kwargs: str(bad_config))
+        monkeypatch.setattr("tkinter.messagebox.showerror", lambda _title, message, **kwargs: errors.append(message))
+
+        dialog._on_load_config()
+
+        assert errors
+        assert "schema" in errors[-1].lower()
+        dialog.destroy()
+    finally:
+        root.destroy()
+
+
 def test_publication_dialog_validation_error_is_non_blocking(monkeypatch: pytest.MonkeyPatch) -> None:
     root = _make_root()
     try:
@@ -893,12 +1045,16 @@ def test_publication_dialog_contains_clarified_labels_and_hints() -> None:
         root.update_idletasks()
         all_text = "\n".join(_collect_widget_texts(dialog))
 
-        assert "Identifiant de pièce (slug)" in all_text
-        assert "Ajoutez les fichiers d'une même pièce avec le même slug" in all_text
-        assert "Fichier maître de notice Métopes" in all_text
-        assert "Ordre de navigation des pièces" in all_text
+        assert ("Identifiant de pièce (slug)" in all_text) or ("Identifiant de piÃ¨ce (slug)" in all_text)
+        assert ("Ajoutez les fichiers d'une même pièce avec le même slug" in all_text) or (
+            "Ajoutez les fichiers d'une mÃªme piÃ¨ce avec le mÃªme slug" in all_text
+        )
+        assert ("Fichier maître de notice Métopes" in all_text) or ("Fichier maÃ®tre de notice MÃ©topes" in all_text)
+        assert ("Ordre de navigation des pièces" in all_text) or ("Ordre de navigation des piÃ¨ces" in all_text)
         assert "Dossier d'assets statiques" in all_text
         assert "slug_piece|slug_notice" in all_text
+        assert "Charger config..." in all_text
+        assert "Enregistrer config..." in all_text
         dialog.destroy()
     finally:
         root.destroy()

@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0">
+  <teiHeader>
+    <fileDesc>
+      <titleStmt>
+        <title>La Thébaïde ou les frères ennemis</title>
+        <author>Jean Racine</author>
+        <editor>Claire Fourquet-Gracieux</editor>
+      </titleStmt>
+      <publicationStmt>
+        <publisher>Presses de l'Université de Rouen et du Havre</publisher>
+        <pubPlace>Rouen</pubPlace>
+       <date>02 août 2025</date>
+      </publicationStmt>
+      <sourceDesc>
+        <p>généré par Ekdosis-TEI Studio – Acte 2, Scène 4</p>
+      </sourceDesc>
+    </fileDesc>
+  </teiHeader>
+  <text>
+    <body>
+  <div type="scene" n="4">
+    <head>SCENE V.</head>
+    <stage type='personnages'><app>
+        <lem wit="#E">JOCASTE, POLINICE, ANTIGONE, HEMON, UN SOLDAT Grec. </lem>
+        <rdg wit="#A">IOCASTE, POLINICE, ANTIGONE, HEMON, VN SOLDAT Grec. </rdg>
+        <rdg wit="#B">IOCASTE, POLINICE, ANTIGONE, HEMON, UN SOLDAT. </rdg>
+        <rdg wit="#C">OCASTE, POLINICE, ANTIGONE, HEMON, UN SOLDAT. </rdg>
+        <rdg wit="#D">JOCASTE, POLINICE, ANTIGONE, HEMON, UN SOLDAT. </rdg>
+      </app></stage>
+    <sp>
+      <speaker><app>
+        <lem wit="#E">UN SOLDAT Grec. </lem>
+        <rdg wit="#A">VN SOLDAT Grec. </rdg>
+        <rdg wit="#B #C #D">UN SOLDAT. </rdg>
+      </app></speaker>
+<l n="648">
+
+      <app>
+        <lem wit="#A #B #E">SEigneur </lem>
+        <rdg wit="#C #D">SEigneur, </rdg>
+      </app>
+on est aux mains, &amp; la 
+      <app>
+        <lem wit="#B #C #D #E">tréve </lem>
+        <rdg wit="#A">tréue </rdg>
+      </app>
+est 
+      <app>
+        <lem wit="#A #B #D #E">rompuë, </lem>
+        <rdg wit="#C">rompüe, </rdg>
+      </app>
+</l>
+
+<l n="649">
+      <app>
+        <lem wit="#E">Et les Thebains conduits par Créon, &amp; leur Roy,</lem>
+        <rdg wit="#A">Et les Thebains conduits par Créon, &amp; leur Roy,</rdg>
+        <rdg wit="#B">Et les Thebains conduits par Creon &amp; leur Roy,</rdg>
+        <rdg wit="#C">Et les Thebains conduits par Creon &amp; leur Roy,</rdg>
+        <rdg wit="#D">Creon &amp; les Thebains par l’ordre de leur Roy,</rdg>
+      </app>
+</l>
+
+<l n="650">
+Attaquent vostre Armée &amp; violent leur 
+      <app>
+        <lem wit="#A #E">foy, </lem>
+        <rdg wit="#B #C #D">foy. </rdg>
+      </app>
+</l>
+
+<l n="651">
+Le brave Hippomedon s’efforce en vostre absence, </l>
+
+<l n="652">
+De 
+      <app>
+        <lem wit="#A #B #E">soustenir </lem>
+        <rdg wit="#C #D">soûtenir </rdg>
+      </app>
+leur choc de toute sa puissance, </l>
+
+<l n="653">
+Par son 
+      <app>
+        <lem wit="#A #C #D #E">ordre, </lem>
+        <rdg wit="#B">ordre </rdg>
+      </app>
+Seigneur, 
+      <app>
+        <lem wit="#B #C #D #E">je </lem>
+        <rdg wit="#A">ie </rdg>
+      </app>
+vous viens 
+      <app>
+        <lem wit="#B #C #D #E">avertir. </lem>
+        <rdg wit="#A">auertir. </rdg>
+      </app>
+</l>
+
+    </sp>
+    <sp>
+      <speaker>POLINICE.</speaker>
+<l n="654">
+Ah les traistres&#160;! Allons, 
+      <app>
+        <lem wit="#A #B #C #E">Hemon, </lem>
+        <rdg wit="#D">Hémon, </rdg>
+      </app>
+il faut 
+      <app>
+        <lem wit="#A #E">sortir, </lem>
+        <rdg wit="#B #C #D">sortir. </rdg>
+      </app>
+</l>
+
+      <stage type="stage-direction">
+
+      <app>
+        <lem wit="#A #E">à la Reyne, </lem>
+        <rdg wit="#B">à la Reine, </rdg>
+        <rdg wit="#C #D">à la Reine. </rdg>
+      </app>
+      </stage>
+
+<l n="655">
+
+      <app>
+        <lem wit="#A #B #E">Madame </lem>
+        <rdg wit="#C #D">Madame, </rdg>
+      </app>
+vous 
+      <app>
+        <lem wit="#A #B #D #E">voyez </lem>
+        <rdg wit="#C">voiés </rdg>
+      </app>
+comme il tient sa 
+      <app>
+        <lem wit="#A #B #C #E">parole, </lem>
+        <rdg wit="#D">parole&#160;; </rdg>
+      </app>
+</l>
+
+<l n="656">
+Mais il veut le combat, il m’attaque, &amp; j’y vole. </l>
+
+    </sp>
+    <sp>
+      <speaker><app>
+        <lem wit="#C #D #E">JOCASTE. </lem>
+        <rdg wit="#A #B">IOCASTE. </rdg>
+      </app></speaker>
+<l n="657">
+Polinice, Mon Fils… Mais il ne m’entend plus, </l>
+
+<l n="658">
+Aussi bien que mes pleurs mes cris sont superflus. </l>
+
+<l n="659">
+Chere 
+      <app>
+        <lem wit="#A #E">Antigone </lem>
+        <rdg wit="#B #C #D">Antigone, </rdg>
+      </app>
+
+      <app>
+        <lem wit="#A #B #D #E">allez, </lem>
+        <rdg wit="#C">allés, </rdg>
+      </app>
+
+      <app>
+        <lem wit="#A #B #D #E">courez </lem>
+        <rdg wit="#C">courés </rdg>
+      </app>
+à ce 
+      <app>
+        <lem wit="#A #B #C #E">Barbare, </lem>
+        <rdg wit="#D">Barbare. </rdg>
+      </app>
+</l>
+
+<l n="660">
+Du moins 
+      <app>
+        <lem wit="#A #B #D #E">allez </lem>
+        <rdg wit="#C">allés </rdg>
+      </app>
+prier 
+      <app>
+        <lem wit="#A #B #C #E">Hemon </lem>
+        <rdg wit="#D">Hémon </rdg>
+      </app>
+qu’il les 
+      <app>
+        <lem wit="#A #E">separe, </lem>
+        <rdg wit="#B #C #D">separe. </rdg>
+      </app>
+</l>
+
+<l n="661">
+
+      <app>
+        <lem wit="#A #B #C #E">Le&#160;courage&#160;me&#160;manque, </lem>
+        <rdg wit="#D">La&#160;force&#160;m’abandonne, </rdg>
+      </app>
+&amp; je n’y puis courir, </l>
+
+<l n="662">
+Tout ce que je puis faire, helas&#160;! c’est de mourir. </l>
+
+      <stage type="stage-direction">
+Fin du second Acte.       </stage>
+
+</sp>
+</div>
+</body></text>
+</TEI>

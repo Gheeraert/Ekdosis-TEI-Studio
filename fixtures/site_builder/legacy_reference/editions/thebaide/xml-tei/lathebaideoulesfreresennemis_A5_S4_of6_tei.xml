@@ -1,0 +1,546 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0">
+  <teiHeader>
+    <fileDesc>
+      <titleStmt>
+        <title>La Thébaïde ou les frères ennemis</title>
+        <author>Jean Racine</author>
+        <editor>Claire Fourquet-Gracieux</editor>
+      </titleStmt>
+      <publicationStmt>
+        <publisher>Presses de l'Université de Rouen et du Havre</publisher>
+        <pubPlace>Rouen</pubPlace>
+       <date>03 août 2025</date>
+      </publicationStmt>
+      <sourceDesc>
+        <p>généré par Ekdosis-TEI Studio – Acte 5, Scène 4</p>
+      </sourceDesc>
+    </fileDesc>
+  </teiHeader>
+  <text>
+    <body>
+  <div type="scene" n="4">
+    <head>SCENE IV.</head>
+    <stage type='personnages'>CREON, ATTALE.</stage>
+    <sp>
+      <speaker>ATTALE.</speaker>
+      <l n="1560.2">
+      <app>
+        <lem wit="#A #B #E">Son couroux seroit-il adoucy&#160;? </lem>
+        <rdg wit="#C">Son couroux seroit-il adouci&#160;? </rdg>
+        <rdg wit="#D">Son courroux seroit-il adoucy&#160;? </rdg>
+      </app>
+      </l>
+
+<l n="1561.1">
+
+      <app>
+        <lem wit="#A #E">Croyez-vous, </lem>
+        <rdg wit="#B #D">Croyez-vous </rdg>
+        <rdg wit="#C">Croyés-vous </rdg>
+      </app>
+la fléchir&#160;? </l>
+    </sp>
+    <sp>
+      <speaker>CREON.</speaker>
+<l n="1561.2">
+
+      <app>
+        <lem wit="#A #B #E">Oüy </lem>
+        <rdg wit="#C">Oüi </rdg>
+        <rdg wit="#D">Ouy </rdg>
+      </app>
+
+      <app>
+        <lem wit="#A #B #E">oüy </lem>
+        <rdg wit="#C">oüi </rdg>
+        <rdg wit="#D">ouy </rdg>
+      </app>
+mon cher Attale, </l>
+<l n="1562">
+Il n’est point de fortune à mon bon-heur égale, </l>
+
+<l n="1563">
+Et tu vas voir en 
+      <app>
+        <lem wit="#A #B #D #E">moy </lem>
+        <rdg wit="#C">moi </rdg>
+      </app>
+dans ce 
+      <app>
+        <lem wit="#B #C #D #E">jour </lem>
+        <rdg wit="#A">iour </rdg>
+      </app>
+fortuné, </l>
+
+<l n="1564">
+L’ambitieux au 
+      <app>
+        <lem wit="#A #B #E">Trosne </lem>
+        <rdg wit="#C #D">Trône </rdg>
+      </app>
+&amp; l’amant couronné. </l>
+
+<l n="1565">
+
+      <app>
+        <lem wit="#B #C #D #E">Je </lem>
+        <rdg wit="#A">Ie </rdg>
+      </app>
+demandois au Ciel la Princesse &amp; le 
+      <app>
+        <lem wit="#A #B #E">Trosne, </lem>
+        <rdg wit="#C #D">Trône, </rdg>
+      </app>
+</l>
+
+<l n="1566">
+Il me donne le Sceptre, &amp; m’accorde 
+      <app>
+        <lem wit="#A #E">Antigone, </lem>
+        <rdg wit="#B #C #D">Antigone. </rdg>
+      </app>
+</l>
+
+<l n="1567">
+Pour couronner ma teste, &amp; ma 
+      <app>
+        <lem wit="#A #B #C #E">flamme </lem>
+        <rdg wit="#D">flame </rdg>
+      </app>
+en ce 
+      <app>
+        <lem wit="#B #C #D #E">jour </lem>
+        <rdg wit="#A">iour </rdg>
+      </app>
+</l>
+
+<l n="1568">
+Il arme en ma 
+      <app>
+        <lem wit="#B #C #D #E">faveur </lem>
+        <rdg wit="#A">faueur </rdg>
+      </app>
+&amp; la haine &amp; 
+      <app>
+        <lem wit="#A #E">l’amour&#160;: </lem>
+        <rdg wit="#B #C #D">l’amour. </rdg>
+      </app>
+</l>
+
+<l n="1569">
+Il allume pour 
+      <app>
+        <lem wit="#A #B #D #E">moy </lem>
+        <rdg wit="#C">moi </rdg>
+      </app>
+deux passions contraires, </l>
+
+<l n="1570">
+Il attendrit la Sœur, il endurcit les Freres, </l>
+
+<l n="1571">
+Il aigrit leur 
+      <app>
+        <lem wit="#A #E">couroux, </lem>
+        <rdg wit="#B #C #D">courroux, </rdg>
+      </app>
+il fléchit sa rigueur, </l>
+
+<l n="1572">
+Et 
+      <app>
+        <lem wit="#B #C #D #E">m’ouvre </lem>
+        <rdg wit="#A">m’ouure </rdg>
+      </app>
+en 
+      <app>
+        <lem wit="#A #B #C #E">mesme </lem>
+        <rdg wit="#D">même </rdg>
+      </app>
+temps &amp; leur 
+      <app>
+        <lem wit="#A #B #E">trosne </lem>
+        <rdg wit="#C #D">trône </rdg>
+      </app>
+&amp; son cœur. </l>
+
+    </sp>
+    <sp>
+      <speaker>ATTALE.</speaker>
+<l n="1573">
+Il est 
+      <app>
+        <lem wit="#A #B #C #E">vray, </lem>
+        <rdg wit="#D">vrai, </rdg>
+      </app>
+vous 
+      <app>
+        <lem wit="#B #C #E">avez </lem>
+        <rdg wit="#A">auez </rdg>
+        <rdg wit="#D">avés </rdg>
+      </app>
+toute chose prospere, </l>
+
+<l n="1574">
+Et vous seriez heureux si vous 
+      <app>
+        <lem wit="#A #B #C #E">n’estiez </lem>
+        <rdg wit="#D">n’estiés </rdg>
+      </app>
+point 
+      <app>
+        <lem wit="#A #E">Père, </lem>
+        <rdg wit="#B #C #D">Pere. </rdg>
+      </app>
+</l>
+
+<l n="1575">
+L’ambition, l’amour n’ont rien à desirer, </l>
+
+<l n="1576">
+
+      <app>
+        <lem wit="#A #B #E">Mais </lem>
+        <rdg wit="#C #D">Mais, </rdg>
+      </app>
+Seigneur, la nature 
+      <app>
+        <lem wit="#A #B #E">à </lem>
+        <rdg wit="#C #D">a </rdg>
+      </app>
+beaucoup à 
+      <app>
+        <lem wit="#A #B #E">pleurer. </lem>
+        <rdg wit="#C #D">pleurer </rdg>
+      </app>
+</l>
+
+<l n="1577.1">
+En perdant vos deux Fils… </l>
+    </sp>
+    <sp>
+      <speaker>CREON.</speaker>
+<l n="1577.2">
+
+      <app>
+        <lem wit="#A #B #E">Oüy, </lem>
+        <rdg wit="#C">Oüi, </rdg>
+        <rdg wit="#D">Ouy, </rdg>
+      </app>
+leur perte 
+      <app>
+        <lem wit="#A #B #C #E">m’afflige, </lem>
+        <rdg wit="#D">m’afflige. </rdg>
+      </app>
+</l>
+<l n="1578">
+Je 
+      <app>
+        <lem wit="#A #B #D #E">sçay </lem>
+        <rdg wit="#C">sçai </rdg>
+      </app>
+ce que de 
+      <app>
+        <lem wit="#A #B #D #E">moy </lem>
+        <rdg wit="#C">moi </rdg>
+      </app>
+le rang de Pere 
+      <app>
+        <lem wit="#A #B #C #E">exige, </lem>
+        <rdg wit="#D">exige. </rdg>
+      </app>
+</l>
+
+<l n="1579">
+Je l’estois. Mais sur&#160;tout, j’estois né pour regner, </l>
+
+<l n="1580">
+Et je pers beaucoup moins que je ne crois 
+      <app>
+        <lem wit="#A #B #E">gaigner. </lem>
+        <rdg wit="#C #D">gagner. </rdg>
+      </app>
+</l>
+
+<l n="1581">
+Le nom de Pere, Attale, est 
+      <app>
+        <lem wit="#B #C #D #E">un </lem>
+        <rdg wit="#A">vn </rdg>
+      </app>
+titre vulgaire, </l>
+
+<l n="1582">
+C’est 
+      <app>
+        <lem wit="#B #C #D #E">un </lem>
+        <rdg wit="#A">vn </rdg>
+      </app>
+don, que le Ciel ne nous refuse 
+      <app>
+        <lem wit="#A #B #C #E">guere, </lem>
+        <rdg wit="#D">guere. </rdg>
+      </app>
+</l>
+
+<l n="1583">
+
+      <app>
+        <lem wit="#B #C #D #E">Un </lem>
+        <rdg wit="#A">Vn </rdg>
+      </app>
+bon-heur si commun n’a pour 
+      <app>
+        <lem wit="#A #B #D #E">moy </lem>
+        <rdg wit="#C">moi </rdg>
+      </app>
+rien de 
+      <app>
+        <lem wit="#B #C #D #E">doux&#160;: </lem>
+        <rdg wit="#A">doux&#160;; </rdg>
+      </app>
+</l>
+
+<l n="1584">
+Ce n’est pas 
+      <app>
+        <lem wit="#B #C #D #E">un </lem>
+        <rdg wit="#A">vn </rdg>
+      </app>
+
+      <app>
+        <lem wit="#A #B #E">bonheur </lem>
+        <rdg wit="#C #D">bon-heur </rdg>
+      </app>
+s’il ne fait des jaloux. </l>
+
+<l n="1585">
+Mais le 
+      <app>
+        <lem wit="#A #B #E">Trosne </lem>
+        <rdg wit="#C #D">Trône </rdg>
+      </app>
+est 
+      <app>
+        <lem wit="#B #C #D #E">un </lem>
+        <rdg wit="#A">vn </rdg>
+      </app>
+bien dont le Ciel est 
+      <app>
+        <lem wit="#B #C #D #E">avare, </lem>
+        <rdg wit="#A">auare, </rdg>
+      </app>
+</l>
+
+<l n="1586">
+Du 
+      <app>
+        <lem wit="#A #C #D #E">reste </lem>
+        <rdg wit="#B">Reste </rdg>
+      </app>
+des Mortels ce haut rang nous separe, </l>
+
+<l n="1587">
+Bien peu sont 
+      <app>
+        <lem wit="#A #C #D #E">honorez </lem>
+        <rdg wit="#B">honnorez </rdg>
+      </app>
+
+      <app>
+        <lem wit="#B #C #D #E">d’un </lem>
+        <rdg wit="#A">d’vn </rdg>
+      </app>
+don si 
+      <app>
+        <lem wit="#A #B #C #E">pretieux, </lem>
+        <rdg wit="#D">precieux, </rdg>
+      </app>
+</l>
+
+<l n="1588">
+La Terre a moins de 
+      <app>
+        <lem wit="#A #B #E">Roys </lem>
+        <rdg wit="#C #D">Rois </rdg>
+      </app>
+que le Ciel n’a de Dieux. </l>
+
+<l n="1589">
+D’ailleurs tu sçais 
+      <app>
+        <lem wit="#A #E">qu’Hemon </lem>
+        <rdg wit="#B #C #D">qu’Hémon </rdg>
+      </app>
+adoroit la Princesse, </l>
+
+<l n="1590">
+Et qu’elle 
+      <app>
+        <lem wit="#A #E">eust </lem>
+        <rdg wit="#B #C #D">eut </rdg>
+      </app>
+pour ce Prince 
+      <app>
+        <lem wit="#B #C #D #E">une </lem>
+        <rdg wit="#A">vne </rdg>
+      </app>
+
+      <app>
+        <lem wit="#A #D #E">extrême </lem>
+        <rdg wit="#B #C">extréme </rdg>
+      </app>
+tendresse, </l>
+
+<l n="1591">
+S’il 
+      <app>
+        <lem wit="#B #C #D #E">vivoit, </lem>
+        <rdg wit="#A">viuoit, </rdg>
+      </app>
+son amour au mien seroit fatal, </l>
+
+<l n="1592">
+En me 
+      <app>
+        <lem wit="#B #C #D #E">privant </lem>
+        <rdg wit="#A">priuant </rdg>
+      </app>
+
+      <app>
+        <lem wit="#B #C #D #E">d’un </lem>
+        <rdg wit="#A">d’vn </rdg>
+      </app>
+Fils le Ciel m’oste 
+      <app>
+        <lem wit="#B #C #D #E">un </lem>
+        <rdg wit="#A">vn </rdg>
+      </app>
+
+      <app>
+        <lem wit="#A #E">Rival, </lem>
+        <rdg wit="#B #C #D">Rival. </rdg>
+      </app>
+</l>
+
+<l n="1593">
+Ne me parle donc plus que de sujets de joye, </l>
+
+<l n="1594">
+Souffre qu’à mes transports je m’abandonne en proye, </l>
+
+<l n="1595">
+Et sans me 
+      <app>
+        <lem wit="#A #B #D #E">rappeller </lem>
+        <rdg wit="#C">rappelller </rdg>
+      </app>
+des Ombres des Enfers, </l>
+
+<l n="1596">
+Dy moy ce que je 
+      <app>
+        <lem wit="#A #B #E">gaigne, </lem>
+        <rdg wit="#C #D">gagne, </rdg>
+      </app>
+&amp; non ce que je perds. </l>
+
+<l n="1597">
+
+      <app>
+        <lem wit="#A #B #D #E">Parle-moy </lem>
+        <rdg wit="#C">Parle-moi </rdg>
+      </app>
+de regner, 
+      <app>
+        <lem wit="#A #B #D #E">parle-moy </lem>
+        <rdg wit="#C">parle-moi </rdg>
+      </app>
+d’Antigone, </l>
+
+<l n="1598">
+
+      <app>
+        <lem wit="#B #D #E">J’auray </lem>
+        <rdg wit="#A">I’auray </rdg>
+        <rdg wit="#C">J’aurai </rdg>
+      </app>
+bien-tost son cœur, &amp; 
+      <app>
+        <lem wit="#A #B #D #E">j’ay </lem>
+        <rdg wit="#C">j’ai </rdg>
+      </app>
+
+      <app>
+        <lem wit="#A #B #C #E">dé-ja </lem>
+        <rdg wit="#D">déja </rdg>
+      </app>
+le 
+      <app>
+        <lem wit="#A #B #E">Trosne&#160;; </lem>
+        <rdg wit="#C #D">Trône&#160;; </rdg>
+      </app>
+</l>
+
+<l n="1599">
+Tout ce qui s’est passé n’est 
+      <app>
+        <lem wit="#B #C #D #E">qu’un </lem>
+        <rdg wit="#A">qu’vn </rdg>
+      </app>
+songe pour 
+      <app>
+        <lem wit="#A #B #D #E">moy, </lem>
+        <rdg wit="#C">moi, </rdg>
+      </app>
+</l>
+
+<l n="1600">
+
+      <app>
+        <lem wit="#B #C #D #E">J’estois </lem>
+        <rdg wit="#A">I’estois </rdg>
+      </app>
+Pere &amp; Sujet, 
+      <app>
+        <lem wit="#B #C #D #E">je </lem>
+        <rdg wit="#A">ie </rdg>
+      </app>
+suis Amant &amp; 
+      <app>
+        <lem wit="#A #B #D #E">Roy. </lem>
+        <rdg wit="#C">Roi. </rdg>
+      </app>
+</l>
+
+<l n="1601">
+La Princesse &amp; le 
+      <app>
+        <lem wit="#A #B #E">Trosne </lem>
+        <rdg wit="#C #D">Trône </rdg>
+      </app>
+ont pour 
+      <app>
+        <lem wit="#A #B #E">moy </lem>
+        <rdg wit="#C #D">moi </rdg>
+      </app>
+tant de charmes, </l>
+
+<l n="1602.1">
+Que…mais Olympe vient. </l>
+    </sp>
+    <sp>
+      <speaker>ATTALE.</speaker>
+<l n="1602.2">
+
+      <app>
+        <lem wit="#A #E">Dieux, </lem>
+        <rdg wit="#B">Dieu&#160;! </rdg>
+        <rdg wit="#C #D">Dieux&#160;! </rdg>
+      </app>
+elle est toute en larmes. </l>
+</sp>
+</div>
+</body></text>
+</TEI>

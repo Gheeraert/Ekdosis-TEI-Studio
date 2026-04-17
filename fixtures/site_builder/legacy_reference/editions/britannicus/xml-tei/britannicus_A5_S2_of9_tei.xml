@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0">
+  <teiHeader>
+    <fileDesc>
+      <titleStmt>
+        <title>Britannicus</title>
+        <author>Jean Racine</author>
+        <editor>Caroline Labrune</editor>
+      </titleStmt>
+      <publicationStmt>
+        <publisher>Presses de l'Université de Rouen et du Havre</publisher>
+        <pubPlace>Rouen</pubPlace>
+       <date>31 juillet 2025</date>
+      </publicationStmt>
+      <sourceDesc>
+        <p>généré par Ekdosis-TEI Studio – Acte 5, Scène 2</p>
+      </sourceDesc>
+    </fileDesc>
+  </teiHeader>
+  <text>
+    <body>
+  <div type="scene" n="2">
+    <head>SCENE II.</head>
+    <stage type='personnages'>AGRIPPINE, BRITANNICUS, JUNIE.</stage>
+    <sp>
+      <speaker>AGRIPPINE.</speaker>
+<l n="1571">
+PRince, que 
+      <app>
+        <lem wit="#A #B #D #E">tardez-vous&#160;? </lem>
+        <rdg wit="#C">tardés-vous&#160;? </rdg>
+      </app>
+
+      <app>
+        <lem wit="#A #B #D #E">Partez </lem>
+        <rdg wit="#C">Partés </rdg>
+      </app>
+en diligence. </l>
+
+<l n="1572">
+Neron impatient se plaint de vostre absence. </l>
+
+<l n="1573">
+La joye &amp; le plaisir de tous les 
+      <app>
+        <lem wit="#A #B #D #E">Conviez </lem>
+        <rdg wit="#C">Conviés </rdg>
+      </app>
+</l>
+
+<l n="1574">
+Attend pour 
+      <app>
+        <lem wit="#A #B #E">éclatter </lem>
+        <rdg wit="#C #D">éclater </rdg>
+      </app>
+que vous vous 
+      <app>
+        <lem wit="#A #B #D #E">embrassiez. </lem>
+        <rdg wit="#C">embrassiés. </rdg>
+      </app>
+</l>
+
+<l n="1575">
+Ne faites point languir une si juste envie, </l>
+
+<l n="1576">
+
+      <app>
+        <lem wit="#A #B #D #E">Allez. </lem>
+        <rdg wit="#C">Allés. </rdg>
+      </app>
+Et nous, Madame, allons chez Octavie. </l>
+
+    </sp>
+    <sp>
+      <speaker>BRITANNICUS.</speaker>
+<l n="1577">
+
+      <app>
+        <lem wit="#A #B #D #E">Allez, </lem>
+        <rdg wit="#C">Allés, </rdg>
+      </app>
+belle Junie, &amp; d’un esprit content </l>
+
+<l n="1578">
+
+      <app>
+        <lem wit="#A #B #E">Hastez-vous </lem>
+        <rdg wit="#C">Hâtés&#160;vous </rdg>
+        <rdg wit="#D">Hâtez-vous </rdg>
+      </app>
+d’embrasser ma Sœur qui vous attend. </l>
+
+<l n="1579">
+&#160;&#160;&#160;&#160;&#160;&#160;Dés que je le 
+      <app>
+        <lem wit="#A #B #D #E">pourray </lem>
+        <rdg wit="#C">pourrai </rdg>
+      </app>
+je reviens sur 
+      <app>
+        <lem wit="#A #E">ses </lem>
+        <rdg wit="#B #C #D">vos </rdg>
+      </app>
+traces, </l>
+
+<l n="1580">
+Madame, &amp; de vos soins 
+      <app>
+        <lem wit="#A #B #D #E">j’iray </lem>
+        <rdg wit="#C">j’irai </rdg>
+      </app>
+vous rendre graces. </l>
+
+</sp>
+</div>
+</body></text>
+</TEI>

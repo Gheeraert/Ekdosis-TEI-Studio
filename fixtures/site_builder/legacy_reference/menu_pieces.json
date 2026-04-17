@@ -1,0 +1,400 @@
+[
+  {
+    "titre": "Thébaïde",
+    "url": "editions/thebaide/index.html",
+    "actes": [
+      {
+        "label": "Texte intégral",
+        "scenes": [
+          {
+            "label": "Texte sur une seule page",
+            "file": "html/thebaide_texte_integral.html"
+          }
+        ]
+      },
+      {
+        "label": "Acte I",
+        "scenes": [
+          {
+            "label": "Scène 1",
+            "file": "html/lathebaideoulesfreresennemis_A1_S1_of6.html"
+          },
+          {
+            "label": "Scène 2",
+            "file": "html/lathebaideoulesfreresennemis_A1_S2_of6.html"
+          },
+          {
+            "label": "Scène 3",
+            "file": "html/lathebaideoulesfreresennemis_A1_S3_of6.html"
+          },
+          {
+            "label": "Scène 4",
+            "file": "html/lathebaideoulesfreresennemis_A1_S4_of6.html"
+          },
+          {
+            "label": "Scène 5",
+            "file": "html/lathebaideoulesfreresennemis_A1_S5_of6.html"
+          },
+          {
+            "label": "Scène 6",
+            "file": "html/lathebaideoulesfreresennemis_A1_S6_of6.html"
+          }
+        ]
+      },
+      {
+        "label": "Acte II",
+        "scenes": [
+          {
+            "label": "Scène 1",
+            "file": "html/lathebaideoulesfreresennemis_A2_S1_of5.html"
+          },
+          {
+            "label": "Scène 2",
+            "file": "html/lathebaideoulesfreresennemis_A2_S2_of5.html"
+          },
+          {
+            "label": "Scène 3",
+            "file": "html/lathebaideoulesfreresennemis_A2_S3_of5.html"
+          },
+          {
+            "label": "Scène 4",
+            "file": "html/lathebaideoulesfreresennemis_A2_S4_of5.html"
+          }
+        ]
+      },
+      {
+        "label": "Acte III",
+        "scenes": [
+          {
+            "label": "Scène 1",
+            "file": "html/lathebaideoulesfreresennemis_A3_S1_of6.html"
+          },
+          {
+            "label": "Scène 2",
+            "file": "html/lathebaideoulesfreresennemis_A3_S2_of6.html"
+          },
+          {
+            "label": "Scène 3",
+            "file": "html/lathebaideoulesfreresennemis_A3_S3_of6.html"
+          },
+          {
+            "label": "Scène 4",
+            "file": "html/lathebaideoulesfreresennemis_A3_S4_of6.html"
+          },
+          {
+            "label": "Scène 5",
+            "file": "html/lathebaideoulesfreresennemis_A3_S5_of6.html"
+          },
+          {
+            "label": "Scène 6",
+            "file": "html/lathebaideoulesfreresennemis_A3_S6_of6.html"
+          }
+        ]
+      },
+      {
+        "label": "Acte IV",
+        "scenes": [
+          {
+            "label": "Scène 1",
+            "file": "html/lathebaideoulesfreresennemis_A4_S1_of3.html"
+          },
+          {
+            "label": "Scène 2",
+            "file": "html/lathebaideoulesfreresennemis_A4_S2_of3.html"
+          },
+          {
+            "label": "Scène 3",
+            "file": "html/lathebaideoulesfreresennemis_A4_S3_of3.html"
+          }
+        ]
+      },
+      {
+        "label": "Acte V",
+        "scenes": [
+          {
+            "label": "Scène 1",
+            "file": "html/lathebaideoulesfreresennemis_A5_S1_of6.html"
+          },
+          {
+            "label": "Scène 2",
+            "file": "html/lathebaideoulesfreresennemis_A5_S2_of6.html"
+          },
+          {
+            "label": "Scène 3",
+            "file": "html/lathebaideoulesfreresennemis_A5_S3_of6.html"
+          },
+          {
+            "label": "Scène 4",
+            "file": "html/lathebaideoulesfreresennemis_A5_S4_of6.html"
+          },
+          {
+            "label": "Scène 5",
+            "file": "html/lathebaideoulesfreresennemis_A5_S5_of6.html"
+          },
+          {
+            "label": "Scène 6",
+            "file": "html/lathebaideoulesfreresennemis_A5_S6_of6.html"
+          }
+        ]
+      }
+    ]
+  }
+  ,
+  {
+    "titre": "Andromaque",
+    "url": "editions/andromaque/index.html",
+    "actes": [
+      {
+        "label": "Acte I",
+        "scenes": [
+          {
+            "label": "Scène 1",
+            "file": "html/andromaque_A1_S1_of4.html"
+          },
+          {
+            "label": "Scène 2",
+            "file": "html/andromaque_A1_S2_of4.html"
+          },
+          {
+            "label": "Scène 3",
+            "file": "html/andromaque_A1_S3_of4.html"
+          },
+          {
+            "label": "Scène 4",
+            "file": "html/andromaque_A1_S4_of4.html"
+          }
+        ]
+      },
+      {
+        "label": "Acte III",
+        "scenes": [
+          {
+            "label": "Scène 1",
+            "file": "html/andromaque_A3_S1_of8.html"
+          },
+          {
+            "label": "Scène 2",
+            "file": "html/andromaque_A3_S2_of8.html"
+          },
+          {
+            "label": "Scène 3",
+            "file": "html/andromaque_A3_S3_of8.html"
+          },
+          {
+            "label": "Scène 4",
+            "file": "html/andromaque_A3_S4_of8.html"
+          },
+          {
+            "label": "Scène 5",
+            "file": "html/andromaque_A3_S5_of8.html"
+          },
+          {
+            "label": "Scène 6",
+            "file": "html/andromaque_A3_S6_of8.html"
+          },
+          {
+            "label": "Scène 7",
+            "file": "html/andromaque_A3_S7_of8.html"
+          },
+          {
+            "label": "Scène 8",
+            "file": "html/andromaque_A3_S8_of8.html"
+          }
+        ]
+      }
+    ]
+  }
+  ,
+  {
+    "titre": "Britannicus",
+    "url": "editions/britannicus/index.html",
+    "actes": [
+      {
+        "label": "Texte intégral",
+        "scenes": [
+          {
+            "label": "Texte sur une seule page",
+            "file": "html/britannicus_texte_integral.html"
+          }
+        ]
+          },
+      {
+        "label": "Acte I",
+        "scenes": [
+          {
+            "label": "Scène 1",
+            "file": "html/britannicus_AI_S1_of4.html"
+          },
+          {
+            "label": "Scène 2",
+            "file": "html/britannicus_AI_S2_of4.html"
+          },
+          {
+            "label": "Scène 3",
+            "file": "html/britannicus_AI_S3_of4.html"
+          },
+          {
+            "label": "Scène 4",
+            "file": "html/britannicus_AI_S4_of4.html"
+          }
+        ]
+      },
+      {
+        "label": "Acte II",
+        "scenes": [
+          {
+            "label": "Scène 1",
+            "file": "html/britannicus_A2_S1_of8.html"
+          },
+          {
+            "label": "Scène 2",
+            "file": "html/britannicus_A2_S2_of8.html"
+          },
+          {
+            "label": "Scène 3",
+            "file": "html/britannicus_A2_S3_of8.html"
+          },
+          {
+            "label": "Scène 4",
+            "file": "html/britannicus_A2_S4_of8.html"
+          },
+          {
+            "label": "Scène 5",
+            "file": "html/britannicus_A2_S5_of8.html"
+          },
+          {
+            "label": "Scène 6",
+            "file": "html/britannicus_A2_S6_of8.html"
+          },
+          {
+            "label": "Scène 7",
+            "file": "html/britannicus_A2_S7_of8.html"
+          },
+          {
+            "label": "Scène 8",
+            "file": "html/britannicus_A2_S8_of8.html"
+          }
+        ]
+      },
+      {
+        "label": "Acte III",
+        "scenes": [
+          {
+            "label": "Scène 1",
+            "file": "html/britannicus_A3_S1_of9.html"
+          },
+          {
+            "label": "Scène 2",
+            "file": "html/britannicus_A3_S2_of9.html"
+          },
+          {
+            "label": "Scène 3",
+            "file": "html/britannicus_A3_S3_of9.html"
+          },
+          {
+            "label": "Scène 4",
+            "file": "html/britannicus_A3_S4_of9.html"
+          },
+          {
+            "label": "Scène 5",
+            "file": "html/britannicus_A3_S5_of9.html"
+          },
+          {
+            "label": "Scène 6",
+            "file": "html/britannicus_A3_S6_of9.html"
+          },
+          {
+            "label": "Scène 7",
+            "file": "html/britannicus_A3_S7_of9.html"
+          },
+          {
+            "label": "Scène 8",
+            "file": "html/britannicus_A3_S8_of9.html"
+          },
+          {
+            "label": "Scène 9",
+            "file": "html/britannicus_A3_S9_of9.html"
+          }
+        ]
+      },
+      {
+        "label": "Acte IV",
+        "scenes": [
+          {
+            "label": "Scène 1",
+            "file": "html/britannicus_A4_S1_of4.html"
+          },
+          {
+            "label": "Scène 2",
+            "file": "html/britannicus_A4_S2_of4.html"
+          },
+          {
+            "label": "Scène 3",
+            "file": "html/britannicus_A4_S3_of4.html"
+          },
+          {
+            "label": "Scène 4",
+            "file": "html/britannicus_A4_S4_of4.html"
+          }
+        ]
+      },
+      {
+        "label": "Acte V",
+        "scenes": [
+          {
+            "label": "Scène 1",
+            "file": "html/britannicus_A5_S1_of9.html"
+          },
+          {
+            "label": "Scène 2",
+            "file": "html/britannicus_A5_S2_of9.html"
+          },
+          {
+            "label": "Scène 3",
+            "file": "html/britannicus_A5_S3_of9.html"
+          },
+          {
+            "label": "Scène 4",
+            "file": "html/britannicus_A5_S4_of9.html"
+          },
+          {
+            "label": "Scène 5",
+            "file": "html/britannicus_A5_S5_of9.html"
+          },
+          {
+            "label": "Scène 6",
+            "file": "html/britannicus_A5_S6_of9.html"
+          },
+          {
+            "label": "Scène 7",
+            "file": "html/britannicus_A5_S7_of9.html"
+          },
+          {
+            "label": "Scène 8",
+            "file": "html/britannicus_A5_S8_of9.html"
+          },
+          {
+            "label": "Scène 9",
+            "file": "html/britannicus_A5_S9_of9.html"
+          }
+        ]
+      }
+    ]
+  }
+  ,
+  {
+    "titre": "Bérénice",
+    "url": "editions/berenice/index.html",
+    "actes": [
+      {
+        "label": "Acte I",
+        "scenes": [
+          {
+            "label": "Scène 1",
+            "file": "html/berenice_A1_S1_of5.html"
+          }
+        ]
+      }
+    ]
+  }
+]

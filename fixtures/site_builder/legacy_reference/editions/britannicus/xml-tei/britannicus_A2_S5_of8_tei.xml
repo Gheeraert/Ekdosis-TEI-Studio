@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0">
+  <teiHeader>
+    <fileDesc>
+      <titleStmt>
+        <title>Britannicus</title>
+        <author>Jean Racine</author>
+        <editor>Caroline Labrune</editor>
+      </titleStmt>
+      <publicationStmt>
+        <publisher>Presses de l'Université de Rouen et du Havre</publisher>
+        <pubPlace>Rouen</pubPlace>
+       <date>30 juillet 2025</date>
+      </publicationStmt>
+      <sourceDesc>
+        <p>généré par Ekdosis-TEI Studio – Acte 2, Scène 5</p>
+      </sourceDesc>
+    </fileDesc>
+  </teiHeader>
+  <text>
+    <body>
+  <div type="scene" n="5">
+    <head>SCENE V.</head>
+    <stage type='personnages'>JUNIE, NARCISSE.</stage>
+    <sp>
+      <speaker>JUNIE.</speaker>
+<l n="691">
+AH, cher 
+      <app>
+        <lem wit="#A #B #E">Narcisse, </lem>
+        <rdg wit="#C #D">Narcisse&#160;! </rdg>
+      </app>
+cours au&#160;devant de ton 
+      <app>
+        <lem wit="#A #B #C #E">Maître. </lem>
+        <rdg wit="#D">Maistre. </rdg>
+      </app>
+</l>
+
+<l n="692">
+
+      <app>
+        <lem wit="#A #B #E">Dy&#160;luy... </lem>
+        <rdg wit="#C">Di&#160;lui... </rdg>
+        <rdg wit="#D">Di&#160;luy... </rdg>
+      </app>
+Je suis perduë, &amp; je le 
+      <app>
+        <lem wit="#A #B #E">voy </lem>
+        <rdg wit="#C #D">voi </rdg>
+      </app>
+
+      <app>
+        <lem wit="#A #E">paroître. </lem>
+        <rdg wit="#B #C #D">paraistre. </rdg>
+      </app>
+</l>
+
+</sp>
+</div>
+</body></text>
+</TEI>

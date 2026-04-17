@@ -1,0 +1,271 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0">
+  <teiHeader>
+    <fileDesc>
+      <titleStmt>
+        <title>Britannicus</title>
+        <author>Jean Racine</author>
+        <editor>Caroline Labrune</editor>
+      </titleStmt>
+      <publicationStmt>
+        <publisher>Presses de l'Université de Rouen et du Havre</publisher>
+        <pubPlace>Rouen</pubPlace>
+       <date>31 juillet 2025</date>
+      </publicationStmt>
+      <sourceDesc>
+        <p>généré par Ekdosis-TEI Studio – Acte 5, Scène 5</p>
+      </sourceDesc>
+    </fileDesc>
+  </teiHeader>
+  <text>
+    <body>
+  <div type="scene" n="5">
+    <head>SCENE V.</head>
+    <stage type='personnages'>AGRIPPINE, BURRHUS.</stage>
+    <sp>
+      <speaker>AGRIPPINE.</speaker>
+<l n="1624.1">
+QUel attentat, Burrhus&#160;! </l>
+    </sp>
+    <sp>
+      <speaker>BURRHUS.</speaker>
+<l n="1624.2">
+Je n’y 
+      <app>
+        <lem wit="#A #B #D #E">pourray </lem>
+        <rdg wit="#C">pourrai </rdg>
+      </app>
+survivre, </l>
+<l n="1625">
+
+      <app>
+        <lem wit="#A #B #C #E">Madame, </lem>
+        <rdg wit="#D">Madame </rdg>
+      </app>
+il faut quitter la Cour &amp; l’Empereur. </l>
+
+    </sp>
+    <sp>
+      <speaker>AGRIPPINE.</speaker>
+<l n="1626">
+
+      <app>
+        <lem wit="#A #B #E">Quoy </lem>
+        <rdg wit="#C">Quoi&#160;! </rdg>
+        <rdg wit="#D">Quoy&#160;! </rdg>
+      </app>
+du sang de son Frere il n’a point eu d’horreur&#160;? </l>
+
+    </sp>
+    <sp>
+      <speaker>BURRHUS.</speaker>
+<l n="1627">
+Ce dessein s’est conduit avec plus de 
+      <app>
+        <lem wit="#A #B #D #E">mystere. </lem>
+        <rdg wit="#C">mistere. </rdg>
+      </app>
+</l>
+
+<l n="1628">
+A peine l’Empereur a veu venir son Frere, </l>
+
+<l n="1629">
+Il se leve, il l’embrasse, on se taist, &amp; soudain </l>
+
+<l n="1630">
+Cesar prend le premier une coupe à la main. </l>
+
+<l n="1631">
+<hi rend="italic">Pour achever ce jour sous de meilleurs auspices,</hi> </l>
+
+<l n="1632">
+<hi rend="italic">Ma main de cette coupe épanche les premices,</hi> </l>
+
+<l n="1633">
+Dit-il, <hi rend="italic">Dieux, que j’appelle à cette effusion,</hi> </l>
+
+<l n="1634">
+
+      <app>
+        <lem wit="#A #B #D #E"><hi rend="italic">Venez favoriser nostre reünion.</hi></lem>
+        <rdg wit="#C"><hi rend="italic">Venés favoriser nostre reünion.</hi></rdg>
+      </app>
+</l>
+
+<l n="1635">
+Par les 
+      <app>
+        <lem wit="#A #B #E">mesmes </lem>
+        <rdg wit="#C #D">mêmes </rdg>
+      </app>
+sermens Britannicus se 
+      <app>
+        <lem wit="#A #E">lie, </lem>
+        <rdg wit="#B #C #D">lie. </rdg>
+      </app>
+</l>
+
+<l n="1636">
+La coupe dans ses mains par Narcisse est remplie. </l>
+
+<l n="1637">
+Mais ses levres à peine en ont touché les bords, </l>
+
+<l n="1638">
+Le fer ne produit point de si puissans 
+      <app>
+        <lem wit="#A #E">efforts </lem>
+        <rdg wit="#B #C">efforts, </rdg>
+        <rdg wit="#D">efforts. </rdg>
+      </app>
+</l>
+
+<l n="1639">
+
+      <app>
+        <lem wit="#A #B #C #E">Madame, </lem>
+        <rdg wit="#D">Madame </rdg>
+      </app>
+la lumiere à ses yeux est ravie, </l>
+
+<l n="1640">
+Il tombe sur son lit 
+      <app>
+        <lem wit="#A #C #D #E">sans </lem>
+        <rdg wit="#B">sant </rdg>
+      </app>
+chaleur &amp; sans vie. </l>
+
+<l n="1641">
+
+      <app>
+        <lem wit="#A #B #D #E">Jugez </lem>
+        <rdg wit="#C">Jugés </rdg>
+      </app>
+combien ce coup frappe tous les esprits. </l>
+
+<l n="1642">
+La moitié 
+      <app>
+        <lem wit="#A #E">s’épouvante, </lem>
+        <rdg wit="#B #C #D">s’épouvante </rdg>
+      </app>
+&amp; sort avec des cris. </l>
+
+<l n="1643">
+Mais ceux qui de la Cour ont un plus long usage </l>
+
+<l n="1644">
+Sur les yeux de Cesar composent leur visage. </l>
+
+<l n="1645">
+Cependant sur son lit il demeure panché, </l>
+
+<l n="1646">
+D’aucun 
+      <app>
+        <lem wit="#A #B #C #E">estonnement </lem>
+        <rdg wit="#D">estounement </rdg>
+      </app>
+il ne paroist touché. </l>
+
+<l n="1647">
+
+      <app>
+        <lem wit="#A #B #D #E"><hi rend="italic">Ce mal dont vous craignez</hi></lem>
+        <rdg wit="#C"><hi rend="italic">Ce mal dont vous craignés</hi></rdg>
+      </app>
+, dit-il, <hi rend="italic">la violence</hi> </l>
+
+<l n="1648">
+<hi rend="italic">A souvent sans peril attaqué son enfance.</hi> </l>
+
+<l n="1649">
+Narcisse veut en vain affecter quelque 
+      <app>
+        <lem wit="#A #B #E">ennuy, </lem>
+        <rdg wit="#C #D">ennui, </rdg>
+      </app>
+</l>
+
+<l n="1650">
+Et sa perfide 
+      <app>
+        <lem wit="#A #B #D #E">joye </lem>
+        <rdg wit="#C">joie </rdg>
+      </app>
+éclate malgré 
+      <app>
+        <lem wit="#A #B #D #E">luy. </lem>
+        <rdg wit="#C">lui. </rdg>
+      </app>
+</l>
+
+<l n="1651">
+Pour 
+      <app>
+        <lem wit="#A #B #E">moy, </lem>
+        <rdg wit="#C">moi, </rdg>
+        <rdg wit="#D">moy </rdg>
+      </app>
+dûst l’Empereur punir ma 
+      <app>
+        <lem wit="#A #B #E">hardiesse, </lem>
+        <rdg wit="#C">hardiesse. </rdg>
+        <rdg wit="#D">hardiesse </rdg>
+      </app>
+</l>
+
+<l n="1652">
+D’une odieuse Cour 
+      <app>
+        <lem wit="#A #B #D #E">j’ay </lem>
+        <rdg wit="#C">j’ai </rdg>
+      </app>
+traversé la presse, </l>
+
+<l n="1653">
+Et j’allois accablé de 
+      <app>
+        <lem wit="#A #B #E">cét </lem>
+        <rdg wit="#C #D">cet </rdg>
+      </app>
+Assassinat </l>
+
+<l n="1654">
+Pleurer Britannicus, 
+      <app>
+        <lem wit="#A #C #D #E">Cesar </lem>
+        <rdg wit="#B">Cesar, </rdg>
+      </app>
+&amp; tout l’Estat. </l>
+
+    </sp>
+    <sp>
+      <speaker>AGRIPPINE.</speaker>
+<l n="1655">
+Le 
+      <app>
+        <lem wit="#A #B #D #E">voicy. </lem>
+        <rdg wit="#C">voici. </rdg>
+      </app>
+Vous 
+      <app>
+        <lem wit="#A #E">verrez&#160;si&#160;je&#160;suis&#160;sa&#160;complice, </lem>
+        <rdg wit="#B #D">verrez&#160;si&#160;c’est&#160;moy&#160;qui&#160;l’inspire. </rdg>
+        <rdg wit="#C">verrés&#160;si&#160;c’est&#160;moi&#160;qui&#160;l’inspire. </rdg>
+      </app>
+</l>
+
+<l n="1656.1">
+
+      <app>
+        <lem wit="#A #E">Demeurez. </lem>
+        <rdg wit="#B #C #D">(lacune) </rdg>
+      </app>
+</l>
+</sp>
+</div>
+</body></text>
+</TEI>

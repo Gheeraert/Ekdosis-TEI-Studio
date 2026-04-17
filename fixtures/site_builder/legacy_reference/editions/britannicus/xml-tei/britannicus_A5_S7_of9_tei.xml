@@ -1,0 +1,444 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0">
+  <teiHeader>
+    <fileDesc>
+      <titleStmt>
+        <title>Britannicus</title>
+        <author>Jean Racine</author>
+        <editor>Caroline Labrune</editor>
+      </titleStmt>
+      <publicationStmt>
+        <publisher>Presses de l'Université de Rouen et du Havre</publisher>
+        <pubPlace>Rouen</pubPlace>
+       <date>31 juillet 2025</date>
+      </publicationStmt>
+      <sourceDesc>
+        <p>généré par Ekdosis-TEI Studio – Acte 5, Scène 7</p>
+      </sourceDesc>
+    </fileDesc>
+  </teiHeader>
+  <text>
+    <body>
+  <div type="scene" n="7">
+    <head><app>
+        <lem wit="#A #E">SCENE VII. </lem>
+        <rdg wit="#B #C #D">SCENE VI. </rdg>
+      </app></head>
+    <stage type='personnages'>AGRIPPINE, NERON, BURRHUS, NARCISSE.</stage>
+    <sp>
+      <speaker><app>
+        <lem wit="#A #E">(lacune) </lem>
+        <rdg wit="#B">NERON, </rdg>
+        <rdg wit="#C #D">NERON </rdg>
+      </app></speaker>
+      <stage type="stage-direction">
+
+      <app>
+        <lem wit="#A #E">(lacune) </lem>
+        <rdg wit="#B #D">voyant&#160;Agrippine. </rdg>
+        <rdg wit="#C">voiant&#160;Agrippine. </rdg>
+      </app>
+      </stage>
+
+<l n="1668.1">
+
+      <app>
+        <lem wit="#A #E">(lacune) </lem>
+        <rdg wit="#B #C #D">DIeux&#160;! </rdg>
+      </app>
+</l>
+    </sp>
+    <sp>
+      <speaker>AGRIPPINE.</speaker>
+<l n="1668.2">
+
+      <app>
+        <lem wit="#A #E">ARrestez </lem>
+        <rdg wit="#B #D">Arrestez, </rdg>
+        <rdg wit="#C">Arrestés, </rdg>
+      </app>
+Neron. 
+      <app>
+        <lem wit="#A #B #D #E">J’ay </lem>
+        <rdg wit="#C">I’ai </rdg>
+      </app>
+deux mots à vous dire. </l>
+<l n="1669">
+Britannicus est mort, 
+      <app>
+        <lem wit="#A #B #C #E">je </lem>
+        <rdg wit="#D">Je </rdg>
+      </app>
+
+      <app>
+        <lem wit="#A #B #E">reconnoy </lem>
+        <rdg wit="#C #D">reconnoi </rdg>
+      </app>
+les coups. </l>
+
+<l n="1670.1">
+Je 
+      <app>
+        <lem wit="#A #B #E">connoy </lem>
+        <rdg wit="#C #D">connois </rdg>
+      </app>
+l’Assassin. </l>
+    </sp>
+    <sp>
+      <speaker>NERON.</speaker>
+<l n="1670.2">
+Et qui, Madame&#160;?</l>
+    </sp>
+    <sp>
+      <speaker>AGRIPPINE.</speaker>
+      <l n="1670.3">
+&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;Vous.       </l>
+
+    </sp>
+    <sp>
+      <speaker>NERON.</speaker>
+<l n="1671">
+
+      <app>
+        <lem wit="#A #B #D #E">Moy&#160;! </lem>
+        <rdg wit="#C">Moi&#160;! </rdg>
+      </app>
+Voilà les soupçons dont vous estes capable. </l>
+
+<l n="1672">
+Il n’est point de 
+      <app>
+        <lem wit="#A #B #C #E">mal-heurs </lem>
+        <rdg wit="#D">malheurs </rdg>
+      </app>
+dont je ne sois coupable. </l>
+
+<l n="1673">
+Et si l’on veut, Madame, écouter vos discours, </l>
+
+<l n="1674">
+Ma main de Claude 
+      <app>
+        <lem wit="#A #B #E">mesme </lem>
+        <rdg wit="#C #D">même </rdg>
+      </app>
+aura tranché les jours. </l>
+
+<l n="1675">
+Son Fils vous estoit cher, sa mort peut vous 
+      <app>
+        <lem wit="#B #C #D #E">confondre. </lem>
+        <rdg wit="#A">cõfõdre. </rdg>
+      </app>
+</l>
+
+<l n="1676">
+Mais des coups du destin je ne puis pas répondre. </l>
+
+    </sp>
+    <sp>
+      <speaker>AGRIPPINE.</speaker>
+<l n="1677">
+Non non, Britannicus est mort empoisonné. </l>
+
+<l n="1678">
+Narcisse a fait le coup, vous 
+      <app>
+        <lem wit="#A #B #D #E">l’avez </lem>
+        <rdg wit="#C">l’avés </rdg>
+      </app>
+ordonné. </l>
+
+    </sp>
+    <sp>
+      <speaker>NERON.</speaker>
+<l n="1679">
+Madame, mais qui peut vous tenir ce langage&#160;? </l>
+
+    </sp>
+    <sp>
+      <speaker>NARCISSE.</speaker>
+<l n="1680">
+Hé 
+      <app>
+        <lem wit="#A #B #E">Seigneur, </lem>
+        <rdg wit="#C #D">Seigneur&#160;! </rdg>
+      </app>
+ce soupçon vous fait-il tant d’outrage&#160;? </l>
+
+<l n="1681">
+Britannicus, Madame, eut des desseins secrets </l>
+
+<l n="1682">
+Qui vous auroient cousté de plus justes regrets. </l>
+
+<l n="1683">
+Il aspiroit plus loin qu’à l’Hymen de Junie. </l>
+
+<l n="1684">
+De vos propres 
+      <app>
+        <lem wit="#A #B #D #E">bontez </lem>
+        <rdg wit="#C">bontés </rdg>
+      </app>
+il vous auroit 
+      <app>
+        <lem wit="#A #B #C #E">punie, </lem>
+        <rdg wit="#D">punie. </rdg>
+      </app>
+</l>
+
+<l n="1685">
+
+      <app>
+        <lem wit="#A #B #E">Madame,&#160;il&#160;vous&#160;trompoit, </lem>
+        <rdg wit="#C #D">Il&#160;vous&#160;trompoit&#160;vous&#160;mesme </rdg>
+      </app>
+&amp; son cœur 
+      <app>
+        <lem wit="#A #B #C #E">offensé </lem>
+        <rdg wit="#D">offensé, </rdg>
+      </app>
+</l>
+
+<l n="1686">
+Pretendoit tost ou tard rappeller le passé. </l>
+
+<l n="1687">
+Soit donc que malgré vous le sort vous ait servie&#160;; </l>
+
+<l n="1688">
+Soit qu’instruit des complots qui 
+      <app>
+        <lem wit="#A #E">menassoient </lem>
+        <rdg wit="#B #C #D">menaçoient </rdg>
+      </app>
+sa 
+      <app>
+        <lem wit="#A #E">vie </lem>
+        <rdg wit="#B #C #D">vie, </rdg>
+      </app>
+</l>
+
+<l n="1689">
+Sur ma fidelité Cesar s’en soit remis, </l>
+
+<l n="1690">
+
+      <app>
+        <lem wit="#A #B #D #E">Laissez </lem>
+        <rdg wit="#C">Laissés </rdg>
+      </app>
+les pleurs, Madame, à vos seuls ennemis. </l>
+
+<l n="1691">
+Qu’ils mettent ce 
+      <app>
+        <lem wit="#A #B #C #E">mal-heur </lem>
+        <rdg wit="#D">malheur </rdg>
+      </app>
+au 
+      <app>
+        <lem wit="#B #C #D #E">rang </lem>
+        <rdg wit="#A">rãg </rdg>
+      </app>
+des plus 
+      <app>
+        <lem wit="#A #B #C #E">sinistres, </lem>
+        <rdg wit="#D">sinistres. </rdg>
+      </app>
+</l>
+
+<l n="1692.1">
+Mais 
+      <app>
+        <lem wit="#A #B #C #E">vous.... </lem>
+        <rdg wit="#D">vous... </rdg>
+      </app>
+</l>
+    </sp>
+    <sp>
+      <speaker>AGRIPPINE.</speaker>
+<l n="1692.2">
+
+      <app>
+        <lem wit="#A #B #E">Poursuy, </lem>
+        <rdg wit="#C #D">Poursui, </rdg>
+      </app>
+Neron, avec de tels Ministres. </l>
+<l n="1693">
+Par des faits glorieux tu te vas signaler. </l>
+
+<l n="1694">
+
+      <app>
+        <lem wit="#A #B #E">Poursuy. </lem>
+        <rdg wit="#C #D">Poursui. </rdg>
+      </app>
+Tu n’as pas fait ce pas pour reculer. </l>
+
+<l n="1695">
+Ta main a commencé par le sang de ton Frere. </l>
+
+<l n="1696">
+Je 
+      <app>
+        <lem wit="#A #B #E">prevoy </lem>
+        <rdg wit="#C #D">prevoi </rdg>
+      </app>
+que tes coups viendront jusqu’à ta Mere. </l>
+
+<l n="1697">
+
+      <app>
+        <lem wit="#A #B #E">Tu&#160;te&#160;fatigueras&#160;d’entendre&#160;tes&#160;forfaits. </lem>
+        <rdg wit="#C">Dans&#160;le&#160;fond&#160;de&#160;ton&#160;cœur,&#160;je&#160;sçai&#160;que&#160;tu&#160;me&#160;hais. </rdg>
+        <rdg wit="#D">Dans&#160;le&#160;fond&#160;de&#160;ton&#160;cœur,&#160;je&#160;sçay&#160;que&#160;tu&#160;me&#160;hais. </rdg>
+      </app>
+</l>
+
+<l n="1698">
+Tu voudras t’affranchir du joug de mes 
+      <app>
+        <lem wit="#A #B #C #E">bien-faits. </lem>
+        <rdg wit="#D">bienfaits. </rdg>
+      </app>
+</l>
+
+<l n="1699">
+Mais je veux que ma mort te soit 
+      <app>
+        <lem wit="#A #B #E">même </lem>
+        <rdg wit="#C #D">mesme </rdg>
+      </app>
+
+      <app>
+        <lem wit="#A #B #C #E">inutile, </lem>
+        <rdg wit="#D">inutile&#160;: </rdg>
+      </app>
+</l>
+
+<l n="1700">
+Ne crois pas qu’en mourant je te laisse 
+      <app>
+        <lem wit="#A #B #E">tranquile. </lem>
+        <rdg wit="#C #D">tranquille. </rdg>
+      </app>
+</l>
+
+<l n="1701">
+Rome, ce Ciel, ce jour, que tu 
+      <app>
+        <lem wit="#A #B #E">receus </lem>
+        <rdg wit="#C #D">reçeus </rdg>
+      </app>
+de 
+      <app>
+        <lem wit="#A #B #E">moy, </lem>
+        <rdg wit="#C #D">moi, </rdg>
+      </app>
+</l>
+
+<l n="1702">
+Par&#160;tout, à tout moment, m’offriront devant 
+      <app>
+        <lem wit="#A #B #E">toy. </lem>
+        <rdg wit="#C">toi. </rdg>
+        <rdg wit="#D">toy </rdg>
+      </app>
+</l>
+
+<l n="1703">
+Tes 
+      <app>
+        <lem wit="#A #E">remors </lem>
+        <rdg wit="#B #C #D">remords </rdg>
+      </app>
+te suivront comme autant de furies. </l>
+
+<l n="1704">
+Tu croiras les calmer par d’autres barbaries. </l>
+
+<l n="1705">
+Ta fureur s’irritant 
+      <app>
+        <lem wit="#A #B #D #E">soy-mesme </lem>
+        <rdg wit="#C">soi-mesme </rdg>
+      </app>
+dans son cours </l>
+
+<l n="1706">
+D’un 
+      <app>
+        <lem wit="#B #C #D #E">sang </lem>
+        <rdg wit="#A">sãg </rdg>
+      </app>
+toûjours nouveau marquera tous tes jours. </l>
+
+<l n="1707">
+Mais j’espere qu’enfin le Ciel las de tes crimes </l>
+
+<l n="1708">
+Ajoûtera ta perte à tant d’autres victimes, </l>
+
+<l n="1709">
+
+      <app>
+        <lem wit="#A #B #E">Qu’apres </lem>
+        <rdg wit="#C #D">Qu’aprés </rdg>
+      </app>
+t’estre couvert de leur sang &amp; du mien, </l>
+
+<l n="1710">
+Tu te verras forcé de répandre le 
+      <app>
+        <lem wit="#A #B #C #E">tien, </lem>
+        <rdg wit="#D">tien&#160;; </rdg>
+      </app>
+</l>
+
+<l n="1711">
+Et ton nom paroistra dans la race future </l>
+
+<l n="1712">
+Aux plus cruels 
+      <app>
+        <lem wit="#A #E">tyrans </lem>
+        <rdg wit="#B #C #D">Tyrans </rdg>
+      </app>
+une cruelle injure. </l>
+
+<l n="1713">
+
+      <app>
+        <lem wit="#A #B #E">&#160;&#160;&#160;&#160;&#160;&#160;Voilà </lem>
+        <rdg wit="#C #D">&#160;&#160;&#160;&#160;&#160;&#160;Voila </rdg>
+      </app>
+ce que mon cœur se presage de 
+      <app>
+        <lem wit="#A #B #D #E">toy. </lem>
+        <rdg wit="#C">toi. </rdg>
+      </app>
+</l>
+
+<l n="1714.1">
+Adieu, tu 
+      <app>
+        <lem wit="#A #B #E">peux </lem>
+        <rdg wit="#C #D">peus </rdg>
+      </app>
+sortir. </l>
+    </sp>
+    <sp>
+      <speaker>NERON.</speaker>
+<l n="1714.2">
+Narcisse, 
+      <app>
+        <lem wit="#A #B #D #E">suivez-moy. </lem>
+        <rdg wit="#C">suivés-moi. </rdg>
+      </app>
+</l>
+</sp>
+</div>
+</body></text>
+</TEI>

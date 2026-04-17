@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0">
+  <teiHeader>
+    <fileDesc>
+      <titleStmt>
+        <title>Britannicus</title>
+        <author>Jean Racine</author>
+        <editor>Caroline Labrune</editor>
+      </titleStmt>
+      <publicationStmt>
+        <publisher>Presses de l'Université de Rouen et du Havre</publisher>
+        <pubPlace>Rouen</pubPlace>
+       <date>31 juillet 2025</date>
+      </publicationStmt>
+      <sourceDesc>
+        <p>généré par Ekdosis-TEI Studio – Acte 5, Scène 6</p>
+      </sourceDesc>
+    </fileDesc>
+  </teiHeader>
+  <text>
+    <body>
+  <div type="scene" n="6">
+    <head><app>
+        <lem wit="#A #E">SCENE VI. </lem>
+        <rdg wit="#B #C #D">(lacune) </rdg>
+      </app></head>
+    <stage type='personnages'><app>
+        <lem wit="#A #E">NERON, AGRIPPINE, JUNIE, BURRHUS, NARCISSE. </lem>
+        <rdg wit="#B #C #D">(lacune) (lacune) (lacune) (lacune) (lacune) </rdg>
+      </app></stage>
+    <sp>
+      <speaker><app>
+        <lem wit="#A #E">NERON </lem>
+        <rdg wit="#B #C #D">(lacune) </rdg>
+      </app></speaker>
+      <stage type="stage-direction">
+
+      <app>
+        <lem wit="#A #E">à&#160;Junie. </lem>
+        <rdg wit="#B #C #D">(lacune) </rdg>
+      </app>
+      </stage>
+
+      <l n="1656.2">
+
+      <app>
+        <lem wit="#A #E">DE&#160;vos&#160;pleurs&#160;j’approuve&#160;la&#160;justice. </lem>
+        <rdg wit="#B #C #D">(lacune) </rdg>
+      </app>
+      </l>
+
+<l n="1657">
+      <app>
+        <lem wit="#E">Mais, Madame, évitez ce spectacle odieux.</lem>
+        <rdg wit="#A">Mais, Madame, évitez ce spectacle odieux.</rdg>
+        <rdg wit="#B">(lacune)</rdg>
+        <rdg wit="#C">(lacune)</rdg>
+        <rdg wit="#D">(lacune)</rdg>
+      </app>
+</l>
+
+<l n="1658">
+      <app>
+        <lem wit="#E">Moy-mesme en fremissant j’en détourne les yeux.</lem>
+        <rdg wit="#A">Moy-mesme en fremissant j’en détourne les yeux.</rdg>
+        <rdg wit="#B">(lacune)</rdg>
+        <rdg wit="#C">(lacune)</rdg>
+        <rdg wit="#D">(lacune)</rdg>
+      </app>
+</l>
+
+<l n="1659">
+      <app>
+        <lem wit="#E">Il est mort. Tost ou tard il faut qu’on vous l’avoüe.</lem>
+        <rdg wit="#A">Il est mort. Tost ou tard il faut qu’on vous l’avoüe.</rdg>
+        <rdg wit="#B">(lacune)</rdg>
+        <rdg wit="#C">(lacune)</rdg>
+        <rdg wit="#D">(lacune)</rdg>
+      </app>
+</l>
+
+<l n="1660">
+      <app>
+        <lem wit="#E">Ainsi de nos desseins la Fortune se jouë.</lem>
+        <rdg wit="#A">Ainsi de nos desseins la Fortune se jouë.</rdg>
+        <rdg wit="#B">(lacune)</rdg>
+        <rdg wit="#C">(lacune)</rdg>
+        <rdg wit="#D">(lacune)</rdg>
+      </app>
+</l>
+
+<l n="1661">
+      <app>
+        <lem wit="#E">Quand nous nous rapprochons, le Ciel nous desunit.</lem>
+        <rdg wit="#A">Quand nous nous rapprochons, le Ciel nous desunit.</rdg>
+        <rdg wit="#B">(lacune)</rdg>
+        <rdg wit="#C">(lacune)</rdg>
+        <rdg wit="#D">(lacune)</rdg>
+      </app>
+</l>
+
+    </sp>
+    <sp>
+      <speaker><app>
+        <lem wit="#A #E">JUNIE. </lem>
+        <rdg wit="#B #C #D">(lacune) </rdg>
+      </app></speaker>
+<l n="1662">
+      <app>
+        <lem wit="#E">J’aimois Britannicus, Seigneur, je vous l’ay dit.</lem>
+        <rdg wit="#A">J’aimois Britannicus, Seigneur, je vous l’ay dit.</rdg>
+        <rdg wit="#B">(lacune)</rdg>
+        <rdg wit="#C">(lacune)</rdg>
+        <rdg wit="#D">(lacune)</rdg>
+      </app>
+</l>
+
+<l n="1663">
+      <app>
+        <lem wit="#E">Si de quelque pitié ma misere est suivie,</lem>
+        <rdg wit="#A">Si de quelque pitié ma misere est suivie,</rdg>
+        <rdg wit="#B">(lacune)</rdg>
+        <rdg wit="#C">(lacune)</rdg>
+        <rdg wit="#D">(lacune)</rdg>
+      </app>
+</l>
+
+<l n="1664">
+      <app>
+        <lem wit="#E">Qu’on me laisse chercher dans le sein d’Octavie</lem>
+        <rdg wit="#A">Qu’on me laisse chercher dans le sein d’Octavie</rdg>
+        <rdg wit="#B">(lacune)</rdg>
+        <rdg wit="#C">(lacune)</rdg>
+        <rdg wit="#D">(lacune)</rdg>
+      </app>
+</l>
+
+<l n="1665">
+      <app>
+        <lem wit="#E">Un entretien conforme à l’estat où je suis.</lem>
+        <rdg wit="#A">Un entretien conforme à l’estat où je suis.</rdg>
+        <rdg wit="#B">(lacune)</rdg>
+        <rdg wit="#C">(lacune)</rdg>
+        <rdg wit="#D">(lacune)</rdg>
+      </app>
+</l>
+
+    </sp>
+    <sp>
+      <speaker><app>
+        <lem wit="#A #E">NERON. </lem>
+        <rdg wit="#B #C #D">(lacune) </rdg>
+      </app></speaker>
+<l n="1666">
+      <app>
+        <lem wit="#E">Belle Junie allez, moy-mesme je vous suis.</lem>
+        <rdg wit="#A">Belle Junie allez, moy-mesme je vous suis.</rdg>
+        <rdg wit="#B">(lacune)</rdg>
+        <rdg wit="#C">(lacune)</rdg>
+        <rdg wit="#D">(lacune)</rdg>
+      </app>
+</l>
+
+<l n="1667">
+      <app>
+        <lem wit="#E">Je vais par tous les soins que la tendresse inspire</lem>
+        <rdg wit="#A">Je vais par tous les soins que la tendresse inspire</rdg>
+        <rdg wit="#B">(lacune)</rdg>
+        <rdg wit="#C">(lacune)</rdg>
+        <rdg wit="#D">(lacune)</rdg>
+      </app>
+</l>
+
+<l n="1668.1">
+
+      <app>
+        <lem wit="#A #E">Vous..... </lem>
+        <rdg wit="#B #C #D">(lacune) </rdg>
+      </app>
+</l>
+</sp>
+</div>
+</body></text>
+</TEI>

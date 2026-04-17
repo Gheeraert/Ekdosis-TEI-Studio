@@ -1,0 +1,3 @@
+=== LOG DE REMPLACEMENT (02 août 2025) ===
+
+✗ lathebaideoulesfreresennemis_A3_S1_of6.html : ERREUR → name 'shutil' is not defined

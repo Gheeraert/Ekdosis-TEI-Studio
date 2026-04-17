@@ -1,0 +1,263 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0">
+  <teiHeader>
+    <fileDesc>
+      <titleStmt>
+        <title>La Thébaïde ou les frères ennemis</title>
+        <author>Jean Racine</author>
+        <editor>Claire Fourquet-Gracieux</editor>
+      </titleStmt>
+      <publicationStmt>
+        <publisher>Presses de l'Université de Rouen et du Havre</publisher>
+        <pubPlace>Rouen</pubPlace>
+       <date>02 août 2025</date>
+      </publicationStmt>
+      <sourceDesc>
+        <p>généré par Ekdosis-TEI Studio – Acte 3, Scène 2</p>
+      </sourceDesc>
+    </fileDesc>
+  </teiHeader>
+  <text>
+    <body>
+  <div type="scene" n="2">
+    <head>SCENE II.</head>
+    <stage type='personnages'><app>
+        <lem wit="#C #D #E">JOCASTE </lem>
+        <rdg wit="#A #B">IOCASTE </rdg>
+      </app></stage>
+    <sp>
+      <speaker><app>
+        <lem wit="#C #E">JOCASTE </lem>
+        <rdg wit="#A #B">IOCASTE </rdg>
+        <rdg wit="#D">JOCASTE, </rdg>
+      </app></speaker>
+      <stage type="stage-direction">
+seule.       </stage>
+
+<l n="675">
+
+      <app>
+        <lem wit="#B #C #D #E">DUreront-ils </lem>
+        <rdg wit="#A">DVreront-ils </rdg>
+      </app>
+
+      <app>
+        <lem wit="#E">tousjours </lem>
+        <rdg wit="#A">tousiours </rdg>
+        <rdg wit="#B #C #D">toûjours </rdg>
+      </app>
+ces ennuis si funestes&#160;? </l>
+
+<l n="676">
+
+      <app>
+        <lem wit="#A #E">N’epuiseront-ils </lem>
+        <rdg wit="#B #C #D">N’épuiseront-ils </rdg>
+      </app>
+point les 
+      <app>
+        <lem wit="#A #B #C #E">vangeances </lem>
+        <rdg wit="#D">vengeances </rdg>
+      </app>
+celestes&#160;? </l>
+
+<l n="677">
+Me feront-ils souffrir tant de cruels trépas, </l>
+
+<l n="678">
+Sans jamais au tombeau précipiter mes pas&#160;? </l>
+
+<l n="679">
+O Ciel&#160;! que tes rigueurs seroient peu redoutables, </l>
+
+<l n="680">
+Si la foudre d’abord accabloit les 
+      <app>
+        <lem wit="#A #B #C #E">coupables, </lem>
+        <rdg wit="#D">coupables&#160;! </rdg>
+      </app>
+</l>
+
+<l n="681">
+Et que tes 
+      <app>
+        <lem wit="#A #B #E">chastimens </lem>
+        <rdg wit="#C #D">châtimens </rdg>
+      </app>
+paroissent infinis, </l>
+
+<l n="682">
+Quand tu laisses la vie à ceux que tu punis&#160;! </l>
+
+<l n="683">
+Tu ne l’ignores pas, depuis le 
+      <app>
+        <lem wit="#B #C #D #E">jour </lem>
+        <rdg wit="#A">iour </rdg>
+      </app>
+infame, </l>
+
+<l n="684">
+
+      <app>
+        <lem wit="#A #E">Ou </lem>
+        <rdg wit="#B #C #D">Où </rdg>
+      </app>
+de mon propre Fils je me 
+      <app>
+        <lem wit="#B #C #D #E">trouvay </lem>
+        <rdg wit="#A">trouuay </rdg>
+      </app>
+la 
+      <app>
+        <lem wit="#A #E">Femme </lem>
+        <rdg wit="#B #C">Femme, </rdg>
+        <rdg wit="#D">femme, </rdg>
+      </app>
+</l>
+
+<l n="685">
+Le moindre des tourmens que mon cœur a soufferts, </l>
+
+<l n="686">
+Egale tous les maux que l’on souffre aux 
+      <app>
+        <lem wit="#A #B #E">Enfers. </lem>
+        <rdg wit="#C">Enfers, </rdg>
+        <rdg wit="#D">Enfers&#160;: </rdg>
+      </app>
+</l>
+
+<l n="687">
+Et 
+      <app>
+        <lem wit="#A #B #E">toutesfois, </lem>
+        <rdg wit="#C #D">toutefois, </rdg>
+      </app>
+ô Dieux, 
+      <app>
+        <lem wit="#B #C #D #E">un </lem>
+        <rdg wit="#A">vn </rdg>
+      </app>
+crime 
+      <app>
+        <lem wit="#B #E">involontaire, </lem>
+        <rdg wit="#A">inuolontaire, </rdg>
+        <rdg wit="#C #D">involontaire </rdg>
+      </app>
+</l>
+
+<l n="688">
+
+      <app>
+        <lem wit="#B #C #D #E">Devoit-il </lem>
+        <rdg wit="#A">Deuoit-il </rdg>
+      </app>
+attirer toute vostre colere&#160;? </l>
+
+<l n="689">
+Le connoissois-je, helas&#160;! ce Fils 
+      <app>
+        <lem wit="#B #C #D #E">infortuné&#160;? </lem>
+        <rdg wit="#A">infortuné, </rdg>
+      </app>
+</l>
+
+<l n="690">
+
+      <app>
+        <lem wit="#A #E">Lors&#160;que </lem>
+        <rdg wit="#B #C">Vous&#160;mesmes </rdg>
+        <rdg wit="#D">Vous&#160;mêmes </rdg>
+      </app>
+
+      <app>
+        <lem wit="#A #E">dedans </lem>
+        <rdg wit="#B #C #D">dans </rdg>
+      </app>
+mes bras vous 
+      <app>
+        <lem wit="#B #D #E">l’avez </lem>
+        <rdg wit="#A">l’auez </rdg>
+        <rdg wit="#C">l’avés </rdg>
+      </app>
+
+      <app>
+        <lem wit="#A #B #E">amené&#160;? </lem>
+        <rdg wit="#C #D">amené. </rdg>
+      </app>
+</l>
+
+<l n="691">
+C’est vous dont la rigueur 
+      <app>
+        <lem wit="#B #C #D #E">m’ouvrit </lem>
+        <rdg wit="#A">m’ouurit </rdg>
+      </app>
+ce precipice. </l>
+
+<l n="692">
+
+      <app>
+        <lem wit="#B #C #D #E">Voilà </lem>
+        <rdg wit="#A">Voila </rdg>
+      </app>
+de ces grands Dieux la suprême 
+      <app>
+        <lem wit="#B #C #D #E">justice, </lem>
+        <rdg wit="#A">iustice, </rdg>
+      </app>
+</l>
+
+<l n="693">
+
+      <app>
+        <lem wit="#B #C #D #E">Jusques </lem>
+        <rdg wit="#A">Iusques </rdg>
+      </app>
+au bord du crime ils conduisent nos 
+      <app>
+        <lem wit="#A #D #E">pas, </lem>
+        <rdg wit="#B #C">pas. </rdg>
+      </app>
+</l>
+
+<l n="694">
+Ils nous le font commettre, &amp; ne l’excusent pas. </l>
+
+<l n="695">
+Prennent-ils donc plaisir à faire des coupables, </l>
+
+<l n="696">
+Afin d’en faire 
+      <app>
+        <lem wit="#A #B #E">apres </lem>
+        <rdg wit="#C #D">aprés </rdg>
+      </app>
+d’illustres 
+      <app>
+        <lem wit="#A #E">miserables, </lem>
+        <rdg wit="#B #C #D">miserables&#160;? </rdg>
+      </app>
+</l>
+
+<l n="697">
+Et ne 
+      <app>
+        <lem wit="#B #C #D #E">peuvent-ils </lem>
+        <rdg wit="#A">peuuent-ils </rdg>
+      </app>
+point quand ils sont en couroux, </l>
+
+<l n="698">
+Chercher des criminels à qui le crime est 
+      <app>
+        <lem wit="#A #B #D #E">doux&#160;? </lem>
+        <rdg wit="#C">doux&#160;! </rdg>
+      </app>
+</l>
+
+</sp>
+</div>
+</body></text>
+</TEI>

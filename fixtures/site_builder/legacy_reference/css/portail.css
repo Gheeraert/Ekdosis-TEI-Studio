@@ -1,0 +1,618 @@
+html, body {
+  max-width: 1200px; 
+  margin: 0 auto;
+  padding: 0 1em;
+  font-size: 20px;     /* Taille de base intermédiaire */
+  line-height: normal;
+  font-family: 'Old Standard TT', serif;
+}
+.italic {
+  font-style: italic;
+}
+.logo-container {
+  text-align: center;
+  margin: 3em 0 2em 0;
+  margin-top: 0;
+  padding-top: 0;
+}
+.logo-main {
+  max-width: 410px;
+  height: auto;
+  margin-bottom: 1.6em;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Conteneurs centraux */
+.menu, .lecteur, main {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+.menu { display: block; }
+.lecteur { display: none; }
+
+/* Titres centrés et agrandis raisonnablement */
+h1, h2 {
+  text-align: center;
+}
+h1 {
+  font-size: 2.08em;
+  margin-bottom: 0.45em;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+h2 {
+  font-size: 1.58em;
+  margin: 1.2em 0 0.6em 0;
+  font-weight: 500;
+}
+.sous-titre {
+  font-size: 1.15em;
+  margin-bottom: 1.4em;
+  text-align: center;
+}
+.retour-bouton {
+  display: inline-block;
+  margin-bottom: 2em;
+  padding: 0.7em 1.7em;
+  font-size: 1.11em;
+  background: #e5dac6;
+  color: #653813;
+  border: 1.5px solid #ccbfa5;
+  border-radius: 0.7em;
+  font-family: inherit;
+  font-weight: 500;
+  cursor: pointer;
+  box-shadow: 0 1px 4px #0001;
+  transition: background 0.15s, color 0.15s, box-shadow 0.15s;
+}
+
+.retour-bouton:hover,
+.retour-bouton:focus {
+  background: #f1e5c8;
+  color: #3a2306;
+  box-shadow: 0 2px 8px #0002;
+  outline: none;
+}
+
+nav {
+  font-size: 1.11em;
+  margin-bottom: 2.3em;
+  text-align: center;
+}
+
+.titre-navigation {
+  margin-bottom: 1em;
+  font-size: 1.2em;
+  color: #003366;
+  font-weight: 600;
+  text-align: left;
+  font-family: sans-serif
+}
+
+
+
+/* Iframe adapté - gardé pour mémoire */
+iframe {
+  width: 100%;
+  height: 1700px;
+  border: 1px solid #ccbfa5;
+  border-radius: 13px;
+  background: #fff;
+  display: block;
+}
+
+ul {
+  font-size: 1.13em;
+  margin: 0 auto 1em auto;
+  padding-left: 2em;
+}
+li { margin-bottom: 0.4em; }
+
+ul, li {
+  line-height: 1.2;
+}
+
+ul, ul ul {
+  line-height: 1.1;
+  margin-bottom: 0.6em;
+  margin-top: 0.3em;
+}
+
+ul ul {
+  list-style-type: '· '; /* Point milieu suivi d’une espace fine */
+}
+
+main {
+  max-width: 1200px;
+  margin: 0 auto 3em auto;
+  font-size: 1.08em;
+  flex-grow: 1;
+  padding: 2em;
+}
+/* Style spécial pour la zone À propos (infos) */
+section#infos {
+  background: #f7f4ee;
+  border-left: 5px solid #ccbfa5;
+  border-radius: 0 0.8em 0.8em 0;
+  padding: 2em 2.5em 1.5em 2em;
+  margin: 2em 0 3em 0;
+  box-shadow: 0 2px 8px 0 #0001;
+  text-align: left;      /* Calé à gauche */
+  max-width: 1200px;
+  text-align: justify;
+}
+
+section#infos h2 {
+  text-align: left;      /* Titre du À propos aligné à gauche */
+  margin-top: 0;
+  margin-bottom: 0.5em;
+  font-weight: 600;
+  color: #7c4d1e;
+}
+
+section#infos p {
+  text-align: left;      /* Texte à gauche */
+  margin-bottom: 0.7em;
+  font-size: 1.08em;     /* NE PAS MODIFIER la taille ici */
+  color: #2e2111;
+}
+section#infos ul {
+  list-style: disc inside;
+  padding-left: 1.5em;
+  margin-bottom: 0.6em;
+}
+section#infos li {
+  margin-bottom: 0.7em;
+  line-height: normal;
+}
+section#infos table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1em 0 0.5em 0;
+  background: #fcfaf7;
+}
+section#infos td, section#infos th {
+  border: 1px solid #ccbfa5;
+  padding: 0.5em 1em;
+  /* font-size: 1em;  déjà précisé plus haut */
+}
+footer {
+  background: #ece6da;
+  text-align: center;
+  padding: 1.15em 0 0.85em 0;
+  font-size: 1.03em;
+  margin-top: 3em;
+}
+section#infos ul,
+section#infos ul ul,
+section#infos ol,
+section#infos ol ol,
+section#infos table,
+section#infos td,
+section#infos th {
+  font-size: 1em;  /* force taille “normale” pour listes et tableaux dans #infos */
+}
+.variante-info {
+  margin: 0.2em 0 1.2em 0;
+  text-align: left;
+  color: #6b5e3e;
+  font-size: 0.98em;
+  padding-left: 0.2em;
+  font-style: italic;
+  letter-spacing: 0.01em;
+}
+.liste-boutons-pieces {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1em 1.2em;
+  justify-content: center;
+  margin: 2em 0 1.5em 0;
+}
+
+.bouton-piece {
+  display: inline-block;
+  background: #e9dfcc;
+  color: #563f1b;
+  border: 1.7px solid #ccbfa5;
+  border-radius: 0.9em;
+  padding: 0.68em 1.45em;
+  margin-bottom: 0.7em;
+  font-size: 1.07em;
+  font-family: inherit;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background 0.18s, color 0.18s, border 0.18s, box-shadow 0.18s;
+  box-shadow: 0 1px 4px #0001;
+  cursor: pointer;
+  text-align: center;
+}
+
+.bouton-piece:hover, .bouton-piece:focus {
+  background: #f4ead4;
+  color: #3a2306;
+  border-color: #af9b77;
+  box-shadow: 0 2px 9px #ccbfa533;
+  outline: none;
+}
+.liens-telechargement {
+  margin: 0.7em 0 1.1em 0;
+  text-align: left;
+  font-size: 1em;
+}
+.lien-telech {
+  color: #7c4d1e;
+  background: #f5eedd;
+  border: 1px solid #ccbfa5;
+  border-radius: 0.6em;
+  padding: 0.32em 1.2em;
+  margin-right: 0.7em;
+  text-decoration: none;
+  font-weight: 500;
+  transition: background 0.17s, color 0.17s, border 0.17s;
+}
+.lien-telech:hover, .lien-telech:focus {
+  background: #f7ebce;
+  color: #3a2306;
+  border-color: #bca77d;
+  outline: none;
+}
+/* Conteneur général de la page */
+#container {
+  display: flex;
+  align-items: stretch;
+  min-height: 100vh;  /* ← prend au moins la hauteur de la fenêtre, peut s’étirer si contenu long */
+}
+
+/* Menu latéral */
+aside {
+  width: 300px;
+  background-color: #f4f4f4;
+  border-right: 1px solid #ccc;
+  box-shadow: inset -1px 0 0 #ccc;
+  overflow-y: auto;        /* scroll uniquement si le menu déborde lui-même */
+  padding: 1.2em 1em 1.5em 1.2em;
+  position: relative;
+  height: auto;            /* ← important : plus de height: 100vh ici */
+}
+
+/* Bouton de pliage/dépliage de pièce */
+.piece-title {
+  background: none;
+  border: none;
+  font-weight: bold;
+  font-size: 1.05em;
+  margin: 1em 0 0.4em;
+  padding-left: 0.4em;
+  text-align: left;
+  cursor: pointer;
+  color: #003366;
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+}
+.piece-title:hover {
+  background-color: #e6f0ff;
+}
+
+/* Bloc contenant les liens d'une pièce */
+.sous-menu {
+  margin-left: 0.5em;
+  margin-bottom: 1em;
+  display: none;
+}
+
+/* Liens vers les scènes ou préfaces */
+.sous-menu a {
+  display: block;
+  padding: 0.2em 0.8em;
+  margin: 0.1em 0;
+  color: #003366;
+  text-decoration: none;
+  font-size: 0.95em;
+}
+/* Bouton de pliage/dépliage d’un acte */
+.acte-title {
+  background: none;
+  border: none;
+  font-weight: normal;
+  font-size: 0.97em;
+  margin: 0.3em 0 0.3em 1em;
+  padding-left: 0.4em;
+  text-align: left;
+  cursor: pointer;
+  color: #003366;
+  display: block;
+  width: 100%;
+  margin: 0.3em 0;
+}
+.acte-title:hover {
+  background-color: #e6f0ff;
+}
+
+/* Sous-menu de niveau 2 (scènes d’un acte) */
+.sous-sous-menu {
+  margin-left: 2em;
+  margin-bottom: 0.6em;
+  display: none;
+}
+
+/* Liens vers les scènes (déjà défini, mais pour rappel) */
+.sous-sous-menu a {
+  display: block;
+  padding: 0.15em 0.6em;
+  margin: 0.1em 0;
+  font-size: 0.94em;
+  color: #003366;
+  text-decoration: none;
+}
+.sous-sous-menu a:hover {
+  background: #f0f7ff;
+  border-radius: 0.3em;
+}
+
+/* === Ajouts non conflictuels depuis edition.css === */
+
+.ligne-logos-gauche {display: flex;
+           align-items: center;
+           gap: 1em;
+           margin-bottom: 0.5em;}
+
+.logo-credit {width: 200px;
+           height: auto;
+           opacity: 0.85;}
+
+.logo-ekdosis {width: 50px;
+           height: auto;
+           opacity: 0.9;}
+
+.bloc-credit {font-family: "Source Sans Pro", sans-serif;
+           font-size: 0.8em;
+           color: #3a3a3a;
+           margin: 1.5em 0;
+           padding: 0.6em 1.1em;
+           border: 1px solid #ccc2b2;
+           background: #fefdf8;
+           line-height: 1.2;
+           text-align: left;
+           max-width: 650px;
+           margin-left: auto;
+           margin-right: auto;
+          border-radius: 6px;
+          box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.04);}
+
+.bold {font-weight: bold;}
+
+.underline {text-decoration: underline;}
+
+.acte-titre-sans-variation {font-weight: bold;
+          margin-top: 1.5em;
+          margin-bottom: 0.5em;
+          margin-left: 11em;}
+
+.scene-titre-sans-variation {font-weight: bold;
+          margin-top: 1.5em;
+          margin-bottom: 0.5em;
+          margin-left: 11em;}
+
+.scene-titre {font-style: italic;
+          margin-bottom: 0.5em;
+          margin-left: 0em;}
+
+.acte, .scene, .personnages {font-weight: bold;
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+            margin-left: 11em;}
+
+.titre-piece {font-style: italic;}
+
+.locuteur {font-variant: small-caps;
+            margin-top: 1em;
+            margin-bottom: 0.2em;
+            margin-left: 11em;}
+
+.tirade {margin-left: 1em;
+            margin-bottom: 1em;}
+
+.vers {margin: 0.2em 0;}
+
+.didascalie {font-style: italic;
+            color: #555;
+            margin-left: 9em;
+            margin-bottom: 0.5em;}
+
+.variation {position: relative;
+            border-bottom: 1px dotted #8b5e3c;
+            cursor: help;}
+
+.variation::after {content: attr(data-tooltip);
+            position: absolute;
+            top: 1.5em;
+            left: 0;
+            background: #fef3c7;
+            color: #111;
+            padding: 0.5em;
+            border: 1px solid #e0b973;
+            border-radius: 6px;
+            font-size: 0.8em;
+            white-space: pre-line;
+            display: none;
+            z-index: 1000;
+            max-width: 400px;
+            overflow-wrap: break-word;}
+
+.variation:hover::after {display: block;}
+
+p.vers {display: flex;
+            gap: 1em;
+            margin: 0.2em 0;}
+
+.vers-container {position: relative;
+            margin-left: 5em;
+            margin-bottom: 0.4em;
+            line-height: 1;}
+
+.num-vers {position: absolute;
+            left: -4.5em;
+            width: 4em;
+            text-align: right;
+            font-size: 0.85em;
+            color: #5a5245;
+            font-style: italic;}
+
+.texte-vers {display: inline;}
+
+.vers-decale {margin-left: 14em;}
+
+h1, h2 {text-align: center;}
+
+h1 {font-size: 2.08em;
+		    margin-bottom: 0.45em;
+		    font-weight: 600;
+		    letter-spacing: 0.01em;}
+
+h2 {font-size: 1.58em;
+		    margin: 1.2em 0 0.6em 0;
+		    font-weight: 500;}
+
+.sous-titre {font-size: 1.15em;
+		    margin-bottom: 1.4em;
+		    text-align: center;}
+
+#site-header {
+  background: #fff;
+  padding: 0;
+  padding-top: 0;
+  margin: 0;
+  border-bottom: 1px solid #ccc;
+  text-align: center;
+}
+
+.header-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+#site-header img {
+  width: 50%;
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 0;
+  padding: 0;
+  display: inline-block;
+}
+
+.header-texte {
+  text-align: center;
+  padding: 1.2em 1em 1.8em 1em;
+}
+
+#site-header h1 {
+  font-size: 2.4em;
+  font-weight: 600;
+  margin: 0 0 0.4em 0;
+  letter-spacing: 0.02em;
+}
+
+#site-header .sous-titre {
+  font-size: 1.1em;
+  line-height: 1.6;
+  color: #333;
+  margin: 0;
+}
+.lien-accueil {
+  display: block;
+  margin-bottom: 1em;
+  font-weight: bold;
+  text-decoration: none;
+  color: #333;
+}
+.lien-accueil:hover {
+  text-decoration: underline;
+}
+.bouton-accueil {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: block;
+  margin: 0 0 1em 0;
+  padding: 0.6em 1.2em;
+  border: 1px solid #ccc;
+  border-radius: 12px;
+  background-color: #f9f9f9;
+  font-family: 'Old Standard TT', serif;
+  font-size: 1.05em;
+  color: #333;
+  text-decoration: none;
+  box-shadow: 1px 1px 4px rgba(0,0,0,0.1);
+  transition: all 0.2s ease-in-out;
+}
+
+.bouton-accueil:hover {
+  background-color: #efefef;
+  box-shadow: 1px 1px 6px rgba(0,0,0,0.15);
+  text-decoration: none;
+  color: black;
+}
+
+.icone-accueil {
+  position: fixed;
+  top: 1.2em;
+  right: 1.2em;  /* ou 'right' si tu préfères */
+  z-index: 999;
+  padding: 0.4em 0.6em;
+  background-color: #f9f9f9;
+  border: 1px solid #ccc;
+  border-radius: 50%;
+  font-size: 1.4em;
+  color: #333;
+  text-decoration: none;
+  box-shadow: 2px 2px 6px rgba(0,0,0,0.15);
+  transition: background-color 0.2s, box-shadow 0.2s;
+}
+
+.icone-accueil:hover {
+  background-color: #e0e0e0;
+  box-shadow: 2px 2px 8px rgba(0,0,0,0.2);
+}
+
+/* ──────────────────────────────────────────────────────
+   Didascalies implicites (annotation éditoriale)
+   ────────────────────────────────────────────────────── */
+
+/* Étiquette “didas. implicites” juste après le bloc crédit */
+.didas-implicites-label {
+  text-align: right;
+  font-style: normal;
+  color: #777;            /* gris discret */
+  font-weight: 500;
+  font-size: 0.95em;
+  margin: 1.2em 0 0.6em;  /* espace haut/bas */
+  letter-spacing: 0.02em;
+}
+
+/* Conteneur des vers interprétés */
+.stage-implicite {
+  position: relative;
+  padding-right: 5em;     /* laisse de la place pour le type */
+  margin: 0.8em 0;        /* espace entre les blocs */
+}
+
+/* Affichage du type (data-type) à droite du bloc */
+.stage-implicite::after {
+  content: attr(data-type);  
+  position: absolute;
+  top: 0;
+  right: 0.5em;
+  font-style: italic;
+  color: #777;
+  font-size: 0.9em;
+  white-space: nowrap;
+}
+

@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0">
+  <teiHeader>
+    <fileDesc>
+      <titleStmt>
+        <title>La Thébaïde ou les frères ennemis</title>
+        <author>Jean Racine</author>
+        <editor>Claire Fourquet-Gracieux</editor>
+      </titleStmt>
+      <publicationStmt>
+        <publisher>Presses de l'Université de Rouen et du Havre</publisher>
+        <pubPlace>Rouen</pubPlace>
+       <date>03 août 2025</date>
+      </publicationStmt>
+      <sourceDesc>
+        <p>généré par Ekdosis-TEI Studio – Acte 4, Scène 2</p>
+      </sourceDesc>
+    </fileDesc>
+  </teiHeader>
+  <text>
+    <body>
+  <div type="scene" n="2">
+    <head>SCENE II.</head>
+    <stage type='personnages'>ETEOCLE, CREON, ATTALE.</stage>
+    <sp>
+      <speaker>ETEOCLE.</speaker>
+      <l n="1065.2">
+
+      <app>
+        <lem wit="#A #E">HE&#160;bien, sont ils bien prés d’icy&#160;? </lem>
+        <rdg wit="#B #D">(lacune) SOnt ils bien prés d’icy&#160;? </rdg>
+        <rdg wit="#C">(lacune) SOnt ils bien prés d’ici&#160;? </rdg>
+      </app>
+      </l>
+
+<l n="1066.1">
+
+      <app>
+        <lem wit="#A #B #E">Vont&#160;ils </lem>
+        <rdg wit="#C #D">Vont-ils </rdg>
+      </app>
+
+      <app>
+        <lem wit="#A #B #E">venir </lem>
+        <rdg wit="#C #D">venir, </rdg>
+      </app>
+
+      <app>
+        <lem wit="#A #C #D #E">Attale&#160;? </lem>
+        <rdg wit="#B">Attale, </rdg>
+      </app>
+</l>
+    </sp>
+    <sp>
+      <speaker>ATTALE.</speaker>
+<l n="1066.2">
+
+      <app>
+        <lem wit="#A #B #E">Oüy, </lem>
+        <rdg wit="#C">Oüi, </rdg>
+        <rdg wit="#D">Ouy, </rdg>
+      </app>
+Seigneur, les 
+      <app>
+        <lem wit="#A #B #D #E">voicy. </lem>
+        <rdg wit="#C">voici. </rdg>
+      </app>
+</l>
+<l n="1067">
+Ils ont 
+      <app>
+        <lem wit="#B #C #D #E">trouvé </lem>
+        <rdg wit="#A">troué </rdg>
+      </app>
+d’abord la Princesse, &amp; la Reine, </l>
+
+<l n="1068">
+Et bien-tost ils seront dans la chambre prochaine. </l>
+
+    </sp>
+    <sp>
+      <speaker>ETEOCLE.</speaker>
+<l n="1069">
+Qu’ils entrent. Cette approche excite mon 
+      <app>
+        <lem wit="#A #B #E">couroux. </lem>
+        <rdg wit="#C #D">courroux. </rdg>
+      </app>
+</l>
+
+<l n="1070">
+Qu’on hait 
+      <app>
+        <lem wit="#B #C #D #E">un </lem>
+        <rdg wit="#A">vn </rdg>
+      </app>
+
+      <app>
+        <lem wit="#A #B #C #E">ennemy </lem>
+        <rdg wit="#D">ennemi </rdg>
+      </app>
+quand il est 
+      <app>
+        <lem wit="#A #C #D #E">prés </lem>
+        <rdg wit="#B">pres </rdg>
+      </app>
+de nous&#160;! </l>
+
+    </sp>
+    <sp>
+      <speaker>CREON.</speaker>
+<l n="1071">
+Ah&#160;! le 
+      <app>
+        <lem wit="#A #B #D #E">voicy. </lem>
+        <rdg wit="#C">voici. </rdg>
+      </app>
+Fortune 
+      <app>
+        <lem wit="#B #C #D #E">acheve </lem>
+        <rdg wit="#A">acheue </rdg>
+      </app>
+mon 
+      <app>
+        <lem wit="#B #C #D #E">ouvrage, </lem>
+        <rdg wit="#A">ouurage, </rdg>
+      </app>
+</l>
+
+<l n="1072">
+Et 
+      <app>
+        <lem wit="#B #C #E">livre&#160;les </lem>
+        <rdg wit="#A">liure&#160;les </rdg>
+        <rdg wit="#D">livre-les </rdg>
+      </app>
+tous deux aux transports de leur rage. </l>
+
+</sp>
+</div>
+</body></text>
+</TEI>

@@ -1,0 +1,585 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0">
+  <teiHeader>
+    <fileDesc>
+      <titleStmt>
+        <title>Britannicus</title>
+        <author>Jean Racine</author>
+        <editor>Caroline Labrune</editor>
+      </titleStmt>
+      <publicationStmt>
+        <publisher>Presses de l'Université de Rouen et du Havre</publisher>
+        <pubPlace>Rouen</pubPlace>
+       <date>30 juillet 2025</date>
+      </publicationStmt>
+      <sourceDesc>
+        <p>généré par Ekdosis-TEI Studio – Acte 3, Scène 8</p>
+      </sourceDesc>
+    </fileDesc>
+  </teiHeader>
+  <text>
+    <body>
+  <div type="scene" n="8">
+    <head>SCENE VIII.</head>
+    <stage type='personnages'>NERON, BRITANNICUS, JUNIE.</stage>
+    <sp>
+      <speaker>NERON.</speaker>
+<l n="1025">
+PRince, 
+      <app>
+        <lem wit="#A #B #D #E">continuez </lem>
+        <rdg wit="#C">continués </rdg>
+      </app>
+des transports si charmans. </l>
+
+<l n="1026">
+Je 
+      <app>
+        <lem wit="#A #B #E">conçoy </lem>
+        <rdg wit="#C #D">conçoi </rdg>
+      </app>
+vos bontez par ses 
+      <app>
+        <lem wit="#A #B #C #E">remercimens, </lem>
+        <rdg wit="#D">remercîmens, </rdg>
+      </app>
+</l>
+
+<l n="1027">
+Madame, à vos 
+      <app>
+        <lem wit="#A #B #E">genoux </lem>
+        <rdg wit="#C #D">genoux, </rdg>
+      </app>
+je viens de le surprendre. </l>
+
+<l n="1028">
+Mais il auroit aussi quelque grace à me rendre, </l>
+
+<l n="1029">
+Ce lieu le favorise, &amp; je vous y retiens </l>
+
+<l n="1030">
+Pour 
+      <app>
+        <lem wit="#A #B #D #E">luy </lem>
+        <rdg wit="#C">lui </rdg>
+      </app>
+faciliter de si doux 
+      <app>
+        <lem wit="#A #B #C #E">entretiens. </lem>
+        <rdg wit="#D">entretiens.. </rdg>
+      </app>
+</l>
+
+    </sp>
+    <sp>
+      <speaker>BRITANNICUS.</speaker>
+<l n="1031">
+Je puis mettre à ses 
+      <app>
+        <lem wit="#A #D #E">pieds </lem>
+        <rdg wit="#B">piez </rdg>
+        <rdg wit="#C">piés </rdg>
+      </app>
+ma douleur, ou ma 
+      <app>
+        <lem wit="#A #B #D #E">joye, </lem>
+        <rdg wit="#C">joie, </rdg>
+      </app>
+</l>
+
+<l n="1032">
+Par&#160;tout où sa bonté consent que je la voye. </l>
+
+<l n="1033">
+Et l’aspect de ces 
+      <app>
+        <lem wit="#A #E">lieux, </lem>
+        <rdg wit="#B #C #D">lieux </rdg>
+      </app>
+où vous la 
+      <app>
+        <lem wit="#A #B #E">retenez </lem>
+        <rdg wit="#C">retenés, </rdg>
+        <rdg wit="#D">retenez, </rdg>
+      </app>
+</l>
+
+<l n="1034">
+N’a rien dont mes regards doivent estre 
+      <app>
+        <lem wit="#A #B #D #E">estonnez. </lem>
+        <rdg wit="#C">estonnés. </rdg>
+      </app>
+</l>
+
+    </sp>
+    <sp>
+      <speaker>NERON.</speaker>
+<l n="1035">
+Et que vous monstrent-ils qui ne vous avertisse </l>
+
+<l n="1036">
+Qu’il faut qu’on me respecte, &amp; que l’on 
+      <app>
+        <lem wit="#A #B #E">m’obeïsse&#160;? </lem>
+        <rdg wit="#C #D">m’obeïsse. </rdg>
+      </app>
+</l>
+
+    </sp>
+    <sp>
+      <speaker>BRITANNICUS.</speaker>
+<l n="1037">
+Ils ne nous ont pas 
+      <app>
+        <lem wit="#E">veu </lem>
+        <rdg wit="#A">veuë </rdg>
+        <rdg wit="#B #C #D">vû </rdg>
+      </app>
+l’un &amp; l’autre élever, </l>
+
+<l n="1038">
+
+      <app>
+        <lem wit="#A #B #D #E">Moy </lem>
+        <rdg wit="#C">Moi </rdg>
+      </app>
+pour vous obeïr, &amp; vous pour me braver, </l>
+
+<l n="1039">
+Et ne 
+      <app>
+        <lem wit="#B #C #D #E">s’attendoient </lem>
+        <rdg wit="#A">s’attendoiẽt </rdg>
+      </app>
+
+      <app>
+        <lem wit="#A #E">pas, </lem>
+        <rdg wit="#B #C #D">pas </rdg>
+      </app>
+lors&#160;qu’ils nous virent 
+      <app>
+        <lem wit="#A #E">naître, </lem>
+        <rdg wit="#B #C #D">naistre, </rdg>
+      </app>
+</l>
+
+<l n="1040">
+Qu’un jour Domitius me 
+      <app>
+        <lem wit="#A #C #D #E">dût </lem>
+        <rdg wit="#B">dust </rdg>
+      </app>
+parler en maistre. </l>
+
+    </sp>
+    <sp>
+      <speaker>NERON.</speaker>
+<l n="1041">
+Ainsi par le destin nos vœux sont 
+      <app>
+        <lem wit="#A #B #D #E">traversez, </lem>
+        <rdg wit="#C">traversés, </rdg>
+      </app>
+</l>
+
+<l n="1042">
+J’obeïssois 
+      <app>
+        <lem wit="#A #E">alors, </lem>
+        <rdg wit="#B #C #D">alors </rdg>
+      </app>
+&amp; vous 
+      <app>
+        <lem wit="#A #B #D #E">obeïssez. </lem>
+        <rdg wit="#C">obeïssés. </rdg>
+      </app>
+</l>
+
+<l n="1043">
+Si vous 
+      <app>
+        <lem wit="#A #B #D #E">n’avez </lem>
+        <rdg wit="#C">n’avés </rdg>
+      </app>
+appris à vous laisser conduire, </l>
+
+<l n="1044">
+Vous estes jeune 
+      <app>
+        <lem wit="#A #E">encore, </lem>
+        <rdg wit="#B #C #D">encore </rdg>
+      </app>
+&amp; l’on peut vous instruire. </l>
+
+    </sp>
+    <sp>
+      <speaker>BRITANNICUS.</speaker>
+<l n="1045.1">
+Et qui m’en instruira&#160;? </l>
+    </sp>
+    <sp>
+      <speaker>NERON.</speaker>
+<l n="1045.2">
+Tout l’Empire à la 
+      <app>
+        <lem wit="#A #B #D #E">fois, </lem>
+        <rdg wit="#C">fois </rdg>
+      </app>
+</l>
+<l n="1046.1">
+Rome. </l>
+    </sp>
+    <sp>
+      <speaker>BRITANNICUS.</speaker>
+<l n="1046.2">
+Rome 
+      <app>
+        <lem wit="#A #B #E">met&#160;elle </lem>
+        <rdg wit="#C #D">met-elle </rdg>
+      </app>
+au nombre de vos droits </l>
+<l n="1047">
+Tout ce qu’a de cruel l’injustice &amp; la force, </l>
+
+<l n="1048">
+Les emprisonnemens, le rapt, &amp; le divorce&#160;? </l>
+
+    </sp>
+    <sp>
+      <speaker>NERON.</speaker>
+<l n="1049">
+Rome ne porte point ses regards curieux </l>
+
+<l n="1050">
+Jusques dans des secrets que je cache à ses yeux. </l>
+
+<l n="1051.1">
+
+      <app>
+        <lem wit="#A #B #D #E">Imitez </lem>
+        <rdg wit="#C">Imités </rdg>
+      </app>
+son respect. </l>
+    </sp>
+    <sp>
+      <speaker>BRITANNICUS.</speaker>
+<l n="1051.2">
+On sçait ce qu’elle en pense. </l>
+    </sp>
+    <sp>
+      <speaker>NERON.</speaker>
+<l n="1052">
+Elle se taist du moins, 
+      <app>
+        <lem wit="#A #B #D #E">imitez </lem>
+        <rdg wit="#C">imités </rdg>
+      </app>
+son silence. </l>
+
+    </sp>
+    <sp>
+      <speaker>BRITANNICUS.</speaker>
+<l n="1053">
+Ainsi Neron commence à ne se plus forcer. </l>
+
+    </sp>
+    <sp>
+      <speaker>NERON.</speaker>
+<l n="1054">
+Neron de vos discours commence à se lasser. </l>
+
+    </sp>
+    <sp>
+      <speaker>BRITANNICUS.</speaker>
+<l n="1055">
+Chacun devoit benir le 
+      <app>
+        <lem wit="#A #B #C #E">bon-heur </lem>
+        <rdg wit="#D">bonheur </rdg>
+      </app>
+de son regne. </l>
+
+    </sp>
+    <sp>
+      <speaker>NERON.</speaker>
+<l n="1056">
+Heureux ou 
+      <app>
+        <lem wit="#A #B #C #E">mal-heureux, </lem>
+        <rdg wit="#D">malheureux, </rdg>
+      </app>
+il suffit qu’on me craigne. </l>
+
+    </sp>
+    <sp>
+      <speaker>BRITANNICUS.</speaker>
+<l n="1057">
+Je 
+      <app>
+        <lem wit="#A #B #D #E">connoy </lem>
+        <rdg wit="#C">connoi </rdg>
+      </app>
+mal Junie, ou de tels sentimens </l>
+
+<l n="1058">
+Ne meriteront pas ses applaudissemens. </l>
+
+    </sp>
+    <sp>
+      <speaker>NERON.</speaker>
+<l n="1059">
+Du moins si je ne 
+      <app>
+        <lem wit="#A #B #D #E">sçay </lem>
+        <rdg wit="#C">sçai </rdg>
+      </app>
+le secret de 
+      <app>
+        <lem wit="#A #B #D #E">luy </lem>
+        <rdg wit="#C">lui </rdg>
+      </app>
+plaire, </l>
+
+<l n="1060">
+Je 
+      <app>
+        <lem wit="#A #B #D #E">sçay </lem>
+        <rdg wit="#C">sçai </rdg>
+      </app>
+l’art de punir un Rival temeraire. </l>
+
+    </sp>
+    <sp>
+      <speaker>BRITANNICUS.</speaker>
+<l n="1061">
+Pour 
+      <app>
+        <lem wit="#A #B #D #E">moy, </lem>
+        <rdg wit="#C">moi, </rdg>
+      </app>
+quelque peril qui me puisse accabler, </l>
+
+<l n="1062">
+Sa seule inimitié peut me faire trembler. </l>
+
+    </sp>
+    <sp>
+      <speaker>NERON.</speaker>
+<l n="1063">
+
+      <app>
+        <lem wit="#A #B #E">Souhaittez&#160;la. </lem>
+        <rdg wit="#C">Souhaittés&#160;la. </rdg>
+        <rdg wit="#D">Souhaittez-la. </rdg>
+      </app>
+C’est tout ce que je vous puis dire. </l>
+
+    </sp>
+    <sp>
+      <speaker>BRITANNICUS.</speaker>
+<l n="1064">
+Le 
+      <app>
+        <lem wit="#A #B #C #E">bon-heur </lem>
+        <rdg wit="#D">bonheur </rdg>
+      </app>
+de 
+      <app>
+        <lem wit="#A #B #D #E">luy </lem>
+        <rdg wit="#C">lui </rdg>
+      </app>
+plaire est le seul où j’aspire. </l>
+
+    </sp>
+    <sp>
+      <speaker>NERON.</speaker>
+<l n="1065">
+Elle vous l’a promis, vous 
+      <app>
+        <lem wit="#A #B #D #E">luy </lem>
+        <rdg wit="#C">lui </rdg>
+      </app>
+
+      <app>
+        <lem wit="#A #B #D #E">plairez </lem>
+        <rdg wit="#C">plairés </rdg>
+      </app>
+
+      <app>
+        <lem wit="#A #D #E">toûjours. </lem>
+        <rdg wit="#B">toujours. </rdg>
+        <rdg wit="#C">toûjours, </rdg>
+      </app>
+</l>
+
+    </sp>
+    <sp>
+      <speaker>BRITANNICUS.</speaker>
+<l n="1066">
+Je ne 
+      <app>
+        <lem wit="#A #B #D #E">sçay </lem>
+        <rdg wit="#C">sçai </rdg>
+      </app>
+pas du moins épier ses discours. </l>
+
+<l n="1067">
+Je la laisse expliquer sur tout ce qui me touche, </l>
+
+<l n="1068">
+Et ne me cache point pour 
+      <app>
+        <lem wit="#A #B #D #E">luy </lem>
+        <rdg wit="#C">lui </rdg>
+      </app>
+fermer la bouche. </l>
+
+    </sp>
+    <sp>
+      <speaker>NERON.</speaker>
+<l n="1069.1">
+Je vous entens. Hé bien, Gardes. </l>
+    </sp>
+    <sp>
+      <speaker>JUNIE.</speaker>
+<l n="1069.2">
+Que faites-vous&#160;? </l>
+<l n="1070">
+C’est vostre Frere. Helas&#160;! C’est un Amant 
+      <app>
+        <lem wit="#A #E">jaloux. </lem>
+        <rdg wit="#B #C #D">jaloux, </rdg>
+      </app>
+</l>
+
+<l n="1071">
+Seigneur, mille 
+      <app>
+        <lem wit="#A #B #C #E">mal-heurs </lem>
+        <rdg wit="#D">malheurs </rdg>
+      </app>
+persecutent sa vie. </l>
+
+<l n="1072">
+Ah&#160;! son bon-heur peut-il exciter vostre envie&#160;? </l>
+
+<l n="1073">
+
+      <app>
+        <lem wit="#A #B #D #E">Souffrez </lem>
+        <rdg wit="#C">Souffrés </rdg>
+      </app>
+que de vos cœurs rapprochant les liens, </l>
+
+<l n="1074">
+Je me cache à vos yeux, &amp; me dérobe aux siens. </l>
+
+<l n="1075">
+Ma fuite arrestera vos discordes fatales, </l>
+
+<l n="1076">
+Seigneur, 
+      <app>
+        <lem wit="#A #B #D #E">j’iray </lem>
+        <rdg wit="#C">j’irai </rdg>
+      </app>
+remplir le nombre des Vestales. </l>
+
+<l n="1077">
+Ne 
+      <app>
+        <lem wit="#A #B #D #E">luy </lem>
+        <rdg wit="#C">lui </rdg>
+      </app>
+
+      <app>
+        <lem wit="#A #B #D #E">disputez </lem>
+        <rdg wit="#C">disputés </rdg>
+      </app>
+plus mes vœux 
+      <app>
+        <lem wit="#A #B #D #E">infortunez, </lem>
+        <rdg wit="#C">infortunés, </rdg>
+      </app>
+</l>
+
+<l n="1078">
+
+      <app>
+        <lem wit="#A #B #D #E">Souffrez </lem>
+        <rdg wit="#C">Souffrés </rdg>
+      </app>
+que les Dieux seuls en soient 
+      <app>
+        <lem wit="#A #B #D #E">importunez. </lem>
+        <rdg wit="#C">importunés. </rdg>
+      </app>
+</l>
+
+    </sp>
+    <sp>
+      <speaker>NERON.</speaker>
+<l n="1079">
+L’entreprise, Madame, est 
+      <app>
+        <lem wit="#A #B #C #E">estrange </lem>
+        <rdg wit="#D">étrange </rdg>
+      </app>
+&amp; soudaine. </l>
+
+<l n="1080">
+Dans son Apartement, Gardes, qu’on la remeine. </l>
+
+<l n="1081">
+
+      <app>
+        <lem wit="#A #B #D #E">Gardez </lem>
+        <rdg wit="#C">Gardés </rdg>
+      </app>
+Britannicus dans 
+      <app>
+        <lem wit="#A #B #C #E">celui </lem>
+        <rdg wit="#D">celuy </rdg>
+      </app>
+de sa Sœur. </l>
+
+    </sp>
+    <sp>
+      <speaker>BRITANNICUS.</speaker>
+<l n="1082">
+C’est ainsi que Neron sçait disputer un cœur. </l>
+
+    </sp>
+    <sp>
+      <speaker>JUNIE.</speaker>
+<l n="1083">
+Prince, sans l’irriter, cedons à 
+      <app>
+        <lem wit="#A #B #C #E">cét </lem>
+        <rdg wit="#D">cet </rdg>
+      </app>
+orage. </l>
+
+    </sp>
+    <sp>
+      <speaker>NERON.</speaker>
+<l n="1084">
+Gardes, 
+      <app>
+        <lem wit="#A #B #D #E">obeïssez, </lem>
+        <rdg wit="#C">obeïssés, </rdg>
+      </app>
+sans tarder 
+      <app>
+        <lem wit="#A #E">d’avantage. </lem>
+        <rdg wit="#B #C #D">davantage. </rdg>
+      </app>
+</l>
+
+</sp>
+</div>
+</body></text>
+</TEI>

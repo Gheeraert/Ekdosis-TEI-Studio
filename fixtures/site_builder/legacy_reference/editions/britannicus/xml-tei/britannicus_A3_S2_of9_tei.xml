@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0">
+  <teiHeader>
+    <fileDesc>
+      <titleStmt>
+        <title>Britannicus</title>
+        <author>Jean Racine</author>
+        <editor>Caroline Labrune</editor>
+      </titleStmt>
+      <publicationStmt>
+        <publisher>Presses de l'Université de Rouen et du Havre</publisher>
+        <pubPlace>Rouen</pubPlace>
+       <date>30 juillet 2025</date>
+      </publicationStmt>
+      <sourceDesc>
+        <p>généré par Ekdosis-TEI Studio – Acte 3, Scène 2</p>
+      </sourceDesc>
+    </fileDesc>
+  </teiHeader>
+  <text>
+    <body>
+  <div type="scene" n="2">
+    <head>SCENE II.</head>
+    <stage type='personnages'><app>
+        <lem wit="#A #E">BURRHUS. </lem>
+        <rdg wit="#B #C">BURRHUS </rdg>
+        <rdg wit="#D">BURRHUS, </rdg>
+      </app></stage>
+    <sp>
+      <speaker><app>
+        <lem wit="#A #E">BURRHUS. </lem>
+        <rdg wit="#B #C">BURRHUS </rdg>
+        <rdg wit="#D">BURRHUS, </rdg>
+      </app></speaker>
+      <stage type="stage-direction">
+seul.       </stage>
+
+<l n="800">
+
+      <app>
+        <lem wit="#A #E">HE’&#160;bien, </lem>
+        <rdg wit="#B #C #D">ENfin, </rdg>
+      </app>
+Burrhus, Neron découvre son genie. </l>
+
+<l n="801">
+Cette ferocité que tu 
+      <app>
+        <lem wit="#A #B #D #E">croyois </lem>
+        <rdg wit="#C">croiois </rdg>
+      </app>
+
+      <app>
+        <lem wit="#A #E">flêchir </lem>
+        <rdg wit="#B #C #D">fléchir </rdg>
+      </app>
+</l>
+
+<l n="802">
+De tes foibles liens est preste à s’affranchir. </l>
+
+<l n="803">
+En quels 
+      <app>
+        <lem wit="#A #B #D #E">excez </lem>
+        <rdg wit="#C">excés </rdg>
+      </app>
+peut-estre elle va se répandre&#160;! </l>
+
+<l n="804">
+O dieux&#160;! 
+      <app>
+        <lem wit="#A #E">En </lem>
+        <rdg wit="#B #C #D">en </rdg>
+      </app>
+ce mal-heur quel conseil dois-je 
+      <app>
+        <lem wit="#B #C #D #E">prendre&#160;? </lem>
+        <rdg wit="#A">prẽdre&#160;? </rdg>
+      </app>
+</l>
+
+<l n="805">
+Seneque, dont les soins me devroient soulager, </l>
+
+<l n="806">
+Occupé loin de Rome ignore ce danger. </l>
+
+<l n="807">
+Mais 
+      <app>
+        <lem wit="#A #B #D #E">quoy&#160;? </lem>
+        <rdg wit="#C">quoi&#160;? </rdg>
+      </app>
+Si d’Agrippine excitant la tendresse </l>
+
+<l n="808">
+Je pouvois... La 
+      <app>
+        <lem wit="#A #B #D #E">voicy, </lem>
+        <rdg wit="#C">voici, </rdg>
+      </app>
+mon bon-heur me l’adresse. </l>
+
+</sp>
+</div>
+</body></text>
+</TEI>

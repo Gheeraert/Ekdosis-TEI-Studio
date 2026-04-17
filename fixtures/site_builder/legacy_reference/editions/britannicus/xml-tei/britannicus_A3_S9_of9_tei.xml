@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0">
+  <teiHeader>
+    <fileDesc>
+      <titleStmt>
+        <title>Britannicus</title>
+        <author>Jean Racine</author>
+        <editor>Caroline Labrune</editor>
+      </titleStmt>
+      <publicationStmt>
+        <publisher>Presses de l'Université de Rouen et du Havre</publisher>
+        <pubPlace>Rouen</pubPlace>
+       <date>30 juillet 2025</date>
+      </publicationStmt>
+      <sourceDesc>
+        <p>généré par Ekdosis-TEI Studio – Acte 3, Scène 9</p>
+      </sourceDesc>
+    </fileDesc>
+  </teiHeader>
+  <text>
+    <body>
+  <div type="scene" n="9">
+    <head><app>
+        <lem wit="#A #C #D #E">SCENE IX. </lem>
+        <rdg wit="#B">SCENE. IX. </rdg>
+      </app></head>
+    <stage type='personnages'>NERON, BURRHUS.</stage>
+    <sp>
+      <speaker>BURRHUS.</speaker>
+<l n="1085.1">
+QUe vois-je&#160;? O Ciel&#160;! </l>
+    </sp>
+    <sp>
+      <speaker>NERON.</speaker>
+<l n="1085.2">
+Ainsi leurs feux sont 
+      <app>
+        <lem wit="#A #B #E">redoublez. </lem>
+        <rdg wit="#C">redoublés. </rdg>
+        <rdg wit="#D">redoublez, </rdg>
+      </app>
+</l>
+      <stage type="stage-direction">
+sans voir Burrhus.       </stage>
+
+<l n="1086">
+Je 
+      <app>
+        <lem wit="#A #B #D #E">reconnoy </lem>
+        <rdg wit="#C">reconnoi </rdg>
+      </app>
+la main qui les a 
+      <app>
+        <lem wit="#A #B #D #E">rassemblez. </lem>
+        <rdg wit="#C">rassemblés. </rdg>
+      </app>
+</l>
+
+<l n="1087">
+Agrippine ne s’est presentée à ma veuë, </l>
+
+<l n="1088">
+Ne s’est dans ses discours si long-temps 
+      <app>
+        <lem wit="#A #B #C #E">estenduë, </lem>
+        <rdg wit="#D">étenduë, </rdg>
+      </app>
+</l>
+
+<l n="1089">
+Que pour faire 
+      <app>
+        <lem wit="#A #B #C #E">joüer </lem>
+        <rdg wit="#D">jouer </rdg>
+      </app>
+ce ressort odieux. </l>
+
+<l n="1090">
+Qu’on sçache si ma Mere est encore en ces lieux. </l>
+
+<l n="1091">
+Burrhus, dans ce Palais je veux qu’on la retienne, </l>
+
+<l n="1092">
+Et qu’au lieu de sa Garde, on 
+      <app>
+        <lem wit="#A #B #D #E">luy </lem>
+        <rdg wit="#C">lui </rdg>
+      </app>
+donne la mienne. </l>
+
+    </sp>
+    <sp>
+      <speaker>BURRHUS.</speaker>
+<l n="1093.1">
+
+      <app>
+        <lem wit="#A #B #D #E">Quoy, </lem>
+        <rdg wit="#C">Quoi, </rdg>
+      </app>
+Seigneur&#160;? sans 
+      <app>
+        <lem wit="#A #E">l’oüir&#160;? </lem>
+        <rdg wit="#B #D">l’ouïr&#160;? </rdg>
+        <rdg wit="#C">l’ouir&#160;? </rdg>
+      </app>
+Une Mere&#160;? </l>
+    </sp>
+    <sp>
+      <speaker>NERON.</speaker>
+<l n="1093.2">
+
+      <app>
+        <lem wit="#A #B #D #E">Arrestez. </lem>
+        <rdg wit="#C">Arrestés. </rdg>
+      </app>
+</l>
+<l n="1094">
+J’ignore quel projet, Burrhus, vous 
+      <app>
+        <lem wit="#A #B #D #E">meditez. </lem>
+        <rdg wit="#C">medités. </rdg>
+      </app>
+</l>
+
+<l n="1095">
+Mais depuis quelques jours tout ce que je desire </l>
+
+<l n="1096">
+Trouve en vous un Censeur, prest à me contredire. </l>
+
+<l n="1097">
+
+      <app>
+        <lem wit="#A #B #E">Répondez&#160;m’en </lem>
+        <rdg wit="#C">Répondés&#160;m’en, </rdg>
+        <rdg wit="#D">Répondez&#160;m’en, </rdg>
+      </app>
+vous dis-je, ou sur vostre refus </l>
+
+<l n="1098">
+D’autres me répondront &amp; d’Elle, &amp; de Burrhus. </l>
+
+      <stage type="stage-direction">
+
+      <app>
+        <lem wit="#A #E">(lacune) </lem>
+        <rdg wit="#B #C #D">Fin&#160;du&#160;troisiéme&#160;Acte. </rdg>
+      </app>
+      </stage>
+
+</sp>
+</div>
+</body></text>
+</TEI>
