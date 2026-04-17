@@ -3,6 +3,8 @@ from __future__ import annotations
 from pathlib import Path
 from uuid import uuid4
 
+from lxml import html as lxml_html
+
 from ets.site_builder.builder import build_static_site
 from ets.site_builder.config import site_config_from_dict
 from ets.site_builder.extractors import extract_notice_entry
@@ -163,6 +165,14 @@ def test_realistic_publication_build_links_output_tree_and_downloads() -> None:
     assert (output_dir / "xml" / "notices" / "heraldique-et-papaute.xml").exists()
     assert (output_dir / "assets" / "logos" / "logo-realistic.txt").exists()
     assert (output_dir / "assets" / "brand" / "palette.txt").exists()
+
+    play_doc = lxml_html.document_fromstring(play_html)
+    local_anchor_targets = play_doc.xpath("//main/nav//div[contains(@class, 'play-structure-nav')]//a/@href")
+    assert local_anchor_targets
+    for href in local_anchor_targets:
+        anchor_id = href[1:]
+        assert play_doc.xpath(f"//*[@id='{anchor_id}']")
+    assert not play_doc.xpath("//main/nav//a[starts-with(@href, '../plays/andromaque.html#')]")
 
     relpaths = {path.relative_to(output_dir).as_posix() for path in result.generated_pages}
     assert relpaths == {

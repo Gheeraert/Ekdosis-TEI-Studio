@@ -4,7 +4,8 @@ from dataclasses import replace
 from pathlib import Path
 
 from .extractors import SiteBuilderExtractionError, extract_notice_entry, extract_play_entry
-from .models import NavigationItem, NoticeEntry, PlayEntry, SiteConfig, SiteManifest, SitePage
+from .models import NavigationItem, NoticeEntry, PlayEntry, PlayNavigation, SiteConfig, SiteManifest, SitePage
+from .play_navigation import extract_play_navigation
 
 
 def _discover_xml_files(directory: Path) -> list[Path]:
@@ -121,51 +122,15 @@ def _apply_general_notice_selection(
     return remapped, updated.slug
 
 
-def _normalize_division_label(raw_label: str) -> str:
-    cleaned = " ".join(raw_label.split())
-    if not cleaned:
-        return ""
-    parts = cleaned.split(" ", 1)
-    kind = parts[0].lower()
-    suffix = parts[1] if len(parts) > 1 else ""
-    if kind.startswith("act"):
-        prefix = "Acte"
-    elif kind.startswith("scene"):
-        prefix = "Scene"
-    else:
-        prefix = parts[0].capitalize()
-    return f"{prefix} {suffix}".strip()
-
-
-def _play_division_tree(play: PlayEntry) -> tuple[tuple[str, tuple[str, ...]], ...]:
-    acts: list[tuple[str, tuple[str, ...]]] = []
-    current_act_label: str | None = None
-    current_scenes: list[str] = []
-
-    def flush_current() -> None:
-        nonlocal current_act_label, current_scenes
-        if current_act_label is None:
-            return
-        acts.append((current_act_label, tuple(current_scenes)))
-        current_act_label = None
-        current_scenes = []
-
-    for division in play.main_divisions:
-        label = _normalize_division_label(division)
-        lowered = division.strip().lower()
-        if lowered.startswith("act"):
-            flush_current()
-            current_act_label = label or "Acte"
-            current_scenes = []
-            continue
-        if lowered.startswith("scene"):
-            if current_act_label is None:
-                current_act_label = "Scenes"
-                current_scenes = []
-            current_scenes.append(label or "Scene")
-
-    flush_current()
-    return tuple(acts)
+def _collect_play_navigation(plays: list[PlayEntry], warnings: list[str]) -> tuple[PlayNavigation, ...]:
+    structures: list[PlayNavigation] = []
+    for play in plays:
+        try:
+            structures.append(extract_play_navigation(play))
+        except ValueError as exc:
+            warnings.append(str(exc))
+            structures.append(PlayNavigation(play_slug=play.slug, play_title=play.title, acts=()))
+    return tuple(structures)
 
 
 def _build_navigation_tree(
@@ -207,24 +172,6 @@ def _build_navigation_tree(
                     label="Notice de piece",
                     href=f"notices/{related_notice.slug}.html",
                     kind="notice",
-                )
-            )
-
-        for act_label, scenes in _play_division_tree(play):
-            scene_nodes = tuple(
-                NavigationItem(
-                    label=scene_label,
-                    href=f"plays/{play.slug}.html",
-                    kind="scene",
-                )
-                for scene_label in scenes
-            )
-            children.append(
-                NavigationItem(
-                    label=act_label,
-                    href=f"plays/{play.slug}.html",
-                    kind="act",
-                    children=scene_nodes,
                 )
             )
 
@@ -282,6 +229,7 @@ def build_site_manifest(config: SiteConfig) -> SiteManifest:
         except SiteBuilderExtractionError as exc:
             warnings.append(str(exc))
     plays = _order_plays(plays, play_order=config.play_order, warnings=warnings)
+    play_navigation = _collect_play_navigation(plays, warnings)
 
     notices: list[NoticeEntry] = []
     if config.publish_notices:
@@ -356,6 +304,7 @@ def build_site_manifest(config: SiteConfig) -> SiteManifest:
     return SiteManifest(
         config=config,
         plays=tuple(plays),
+        play_navigation=play_navigation,
         notices=tuple(notices),
         pages=tuple(pages),
         navigation=navigation,

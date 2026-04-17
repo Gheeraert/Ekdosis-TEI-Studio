@@ -275,6 +275,11 @@ New capabilities:
 Navigation is now emitted with semantic nested structure (`details`/`summary` + nested lists) so it is technically ready for later expand/collapse visual refinement.
 This milestone focuses on editorial/site hierarchy and keeps final CSS/theme polish for a later dedicated pass.
 
+Current dramatic navigation coherence:
+- play act/scene hierarchy is extracted from one shared TEI-based play-navigation structure;
+- the same structure drives manifest navigation hrefs (`plays/<slug>.html#...`), play-local sidebar links, and anchor injection into rendered dramatic HTML;
+- act/scene links are therefore deterministic and aligned with real in-page anchor targets.
+
 ## Realistic integration coverage (current)
 
 The test suite now includes realistic integration validation against `fixtures/metopes/realistic/`:

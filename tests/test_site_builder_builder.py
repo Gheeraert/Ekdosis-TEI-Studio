@@ -8,6 +8,16 @@ from lxml import html as lxml_html
 
 from ets.site_builder.builder import build_static_site
 from ets.site_builder.config import site_config_from_dict
+from ets.site_builder.extractors import extract_play_entry
+from ets.site_builder.manifest import build_site_manifest
+from ets.site_builder.models import (
+    NavigationItem,
+    PlayActNavigation,
+    PlayNavigation,
+    PlaySceneNavigation,
+    SiteManifest,
+)
+from ets.site_builder.render import render_play_page
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -93,6 +103,9 @@ def test_builder_generates_cross_links_and_home_intro_from_explicit_mapping() ->
     assert "IM Fell DW Pica" in play_html
     assert ".vers-container" in play_html
     assert "#container {" not in play_html
+    assert "scroll-behavior: smooth" in play_html
+    assert "position: sticky" in play_html
+    assert "prefers-reduced-motion: reduce" in play_html
 
     nav_targets = doc.xpath("//main/nav//div[contains(@class, 'play-structure-nav')]//a/@href")
     assert nav_targets
@@ -100,6 +113,12 @@ def test_builder_generates_cross_links_and_home_intro_from_explicit_mapping() ->
         assert href.startswith("#")
         anchor_id = href[1:]
         assert doc.xpath(f"//*[@id='{anchor_id}']")
+
+    assert len(doc.xpath("//main/nav//div[contains(@class, 'play-structure-nav')]")) == 1
+    assert not doc.xpath("//main/nav//a[starts-with(@href, '../plays/andromaque.html#')]")
+    assert not doc.xpath(
+        "//main/nav//ul[contains(@class, 'site-nav')]//a[starts-with(normalize-space(.), 'Acte') or starts-with(normalize-space(.), 'Scene')]"
+    )
 
 
 def test_builder_copies_branding_assets_and_references_logos() -> None:
@@ -284,6 +303,44 @@ def test_builder_supports_general_notice_home_editorial_sections_and_hierarchica
     assert doc.xpath("//main/nav//a[contains(., 'Notice de piece')]")
     assert doc.xpath("//main/nav//a[contains(., 'Acte 1')]")
     assert doc.xpath("//main/nav//a[contains(., 'Scene 1')]")
+    assert not doc.xpath("//main/nav//a[starts-with(@href, '../plays/andromaque.html#')]")
+
+
+def test_builder_local_play_navigation_matches_manifest_play_navigation_and_has_single_block() -> None:
+    base_dir = _runtime_dir("site_builder_nav_coherence")
+    output_dir = base_dir / "site_nav_coherence"
+    config = site_config_from_dict(
+        {
+            "site_title": "ETS Demo",
+            "dramatic_xml_dir": str(FIXTURE_ROOT / "dramatic"),
+            "output_dir": str(output_dir),
+            "publish_notices": False,
+        }
+    )
+
+    manifest = build_site_manifest(config)
+    build_static_site(config)
+    play_html = (output_dir / "plays" / "andromaque.html").read_text(encoding="utf-8")
+    doc = lxml_html.document_fromstring(play_html)
+
+    andromaque_structure = next(item for item in manifest.play_navigation if item.play_slug == "andromaque")
+    expected_pairs = [
+        (act.label, act.anchor_id) for act in andromaque_structure.acts
+    ] + [
+        (scene.label, scene.anchor_id) for act in andromaque_structure.acts for scene in act.scenes
+    ]
+
+    local_pairs = [
+        (node.text_content().strip(), node.get("href", "").lstrip("#"))
+        for node in doc.xpath("//main/nav//div[contains(@class, 'play-structure-nav')]//a")
+    ]
+    assert local_pairs == expected_pairs
+    assert len(doc.xpath("//main/nav//div[contains(@class, 'play-structure-nav')]")) == 1
+
+    assert not doc.xpath("//main/nav//a[starts-with(@href, '../plays/andromaque.html#')]")
+
+    for _, anchor_id in expected_pairs:
+        assert doc.xpath(f"//*[@id='{anchor_id}']")
 
 
 def test_play_page_keeps_xml_download_and_embeds_transformed_text() -> None:
@@ -314,3 +371,95 @@ def test_play_page_keeps_xml_download_and_embeds_transformed_text() -> None:
     assert doc.xpath("//*[contains(@class, 'vers-container')]")
     assert not doc.xpath("//*[contains(@class, 'play-reading-layout')]")
     assert not doc.xpath("//*[contains(., 'Divisions reperees')]")
+
+
+def test_play_anchor_injection_prefers_outer_title_wrappers_and_keeps_scene_alignment(
+    monkeypatch,
+) -> None:
+    play = extract_play_entry(FIXTURE_ROOT / "dramatic" / "andromaque.xml")
+    config = site_config_from_dict(
+        {
+            "site_title": "ETS Demo",
+            "dramatic_xml_dir": str(FIXTURE_ROOT / "dramatic"),
+            "output_dir": str(ROOT / "tests" / "_runtime" / "site_builder_nested_titles"),
+            "publish_notices": False,
+        }
+    )
+    play_navigation = PlayNavigation(
+        play_slug=play.slug,
+        play_title=play.title,
+        acts=(
+            PlayActNavigation(
+                label="Acte 1",
+                anchor_id="ets-nav-andromaque-act-1",
+                start_speech_index=0,
+                scenes=(
+                    PlaySceneNavigation(
+                        label="Scene 1",
+                        anchor_id="ets-nav-andromaque-scene-1",
+                        start_speech_index=0,
+                    ),
+                    PlaySceneNavigation(
+                        label="Scene 2",
+                        anchor_id="ets-nav-andromaque-scene-2",
+                        start_speech_index=1,
+                    ),
+                ),
+            ),
+        ),
+    )
+    manifest = SiteManifest(
+        config=config,
+        plays=(play,),
+        play_navigation=(play_navigation,),
+        navigation=(
+            NavigationItem(
+                label="Pieces",
+                href="",
+                kind="plays_group",
+                children=(
+                    NavigationItem(
+                        label=play.title,
+                        href="",
+                        kind="play_group",
+                        children=(NavigationItem(label="Lecture", href=f"plays/{play.slug}.html", kind="play_page"),),
+                    ),
+                ),
+            ),
+        ),
+    )
+
+    nested_export_html = """<!doctype html>
+<html>
+  <head></head>
+  <body>
+    <section id="contenu-editorial">
+      <div class="acte-titre-sans-variation"><div class="acte-titre">Acte I</div></div>
+      <div class="scene-titre-sans-variation"><div class="scene-titre">Scene 1</div></div>
+      <div class="locuteur">ORESTE</div>
+      <div class="scene-titre-sans-variation"><div class="scene-titre">Scene 2</div></div>
+      <div class="locuteur">PYLADE</div>
+    </section>
+  </body>
+</html>"""
+
+    monkeypatch.setattr("ets.site_builder.render.render_html_export_from_tei", lambda *_args, **_kwargs: nested_export_html)
+
+    play_html = render_play_page(manifest, play)
+    doc = lxml_html.document_fromstring(play_html)
+
+    assert doc.xpath("//div[contains(@class, 'acte-titre-sans-variation') and @id='ets-nav-andromaque-act-1']")
+    assert doc.xpath("(//div[contains(@class, 'scene-titre-sans-variation')])[1][@id='ets-nav-andromaque-scene-1']")
+    assert doc.xpath("(//div[contains(@class, 'scene-titre-sans-variation')])[2][@id='ets-nav-andromaque-scene-2']")
+    assert not doc.xpath(
+        "//div[contains(concat(' ', normalize-space(@class), ' '), ' scene-titre ') and @id='ets-nav-andromaque-scene-2']"
+    )
+
+    local_targets = doc.xpath("//main/nav//div[contains(@class, 'play-structure-nav')]//a/@href")
+    assert local_targets == [
+        "#ets-nav-andromaque-act-1",
+        "#ets-nav-andromaque-scene-1",
+        "#ets-nav-andromaque-scene-2",
+    ]
+    for href in local_targets:
+        assert doc.xpath(f"//*[@id='{href[1:]}']")

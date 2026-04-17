@@ -2,18 +2,25 @@ from __future__ import annotations
 
 import html
 import re
-import unicodedata
-from dataclasses import dataclass
 
 from lxml import etree, html as lxml_html
 
 from ets.html import HtmlExportOptions, render_html_export_from_tei
 
-from .models import HomePageSection, NavigationItem, NoticeDocument, NoticeEntry, NoticeSection, PlayEntry, SiteManifest
+from .models import (
+    HomePageSection,
+    NavigationItem,
+    NoticeDocument,
+    NoticeEntry,
+    NoticeSection,
+    PlayEntry,
+    PlayNavigation,
+    SiteManifest,
+)
+from .play_navigation import extract_play_navigation, index_play_navigation
 
 
 NOTE_REF_PATTERN = re.compile(r'<sup class="note-ref"><a href="#note-([^"]+)">\[([^\]]+)\]</a></sup>')
-XML_NS = "http://www.w3.org/XML/1998/namespace"
 
 
 def _asset_prefix(current_href: str) -> str:
@@ -102,6 +109,7 @@ def _layout(
   <title>{html.escape(page_title)}</title>
   {head_extra_html}
   <style>
+    html {{ scroll-behavior: smooth; }}
     body {{ font-family: Georgia, 'Times New Roman', serif; margin: 0; color: #1f2328; line-height: 1.5; }}
     header {{ padding: 1rem 1.25rem; border-bottom: 1px solid #d5d7da; background: #f8f9fb; }}
     main {{ display: grid; grid-template-columns: 280px 1fr; gap: 1rem; min-height: 100vh; }}
@@ -174,9 +182,29 @@ def _layout(
     .notice-notes li {{ margin: 0.4rem 0; }}
     .note-backlink {{ margin-left: 0.45rem; text-decoration: none; }}
 
+    @media (prefers-reduced-motion: reduce) {{
+      html {{ scroll-behavior: auto; }}
+    }}
+
+    @media (min-width: 901px) {{
+      nav {{
+        position: sticky;
+        top: 1rem;
+        align-self: start;
+        max-height: calc(100vh - 2rem);
+        overflow: auto;
+      }}
+    }}
+
     @media (max-width: 900px) {{
       main {{ grid-template-columns: 1fr; }}
-      nav {{ border-right: none; border-bottom: 1px solid #eceef1; }}
+      nav {{
+        position: static;
+        max-height: none;
+        overflow: visible;
+        border-right: none;
+        border-bottom: 1px solid #eceef1;
+      }}
       .notice-meta dl {{ grid-template-columns: 1fr; }}
       .notice-meta dt {{ margin-top: 0.25rem; }}
       .home-overview dl {{ grid-template-columns: 1fr; }}
@@ -205,119 +233,58 @@ def _notice_for_play(manifest: SiteManifest, play_slug: str) -> NoticeEntry | No
     return None
 
 
-@dataclass
-class _SceneNav:
-    anchor_id: str
-    label: str
-    start_speech_index: int
+def _class_tokens(node: etree._Element) -> set[str]:
+    class_attr = node.get("class") or ""
+    return {token for token in class_attr.split() if token}
 
 
-@dataclass
-class _ActNav:
-    anchor_id: str
-    label: str
-    start_speech_index: int
-    scenes: tuple[_SceneNav, ...]
+def _has_class(node: etree._Element, token: str) -> bool:
+    return token in _class_tokens(node)
 
 
-def _slugify(value: str) -> str:
-    normalized = unicodedata.normalize("NFKD", value.strip())
-    ascii_only = normalized.encode("ascii", "ignore").decode("ascii")
-    ascii_only = ascii_only.lower()
-    ascii_only = re.sub(r"[^a-z0-9]+", "-", ascii_only)
-    ascii_only = ascii_only.strip("-")
-    return ascii_only or "section"
-
-
-def _division_label(node: etree._Element, default_kind: str, position: int) -> str:
-    number = (node.get("n") or "").strip()
-    if default_kind == "act":
-        base = "Acte"
-    elif default_kind == "scene":
-        base = "Scene"
-    else:
-        base = default_kind.capitalize()
-    return f"{base} {number}" if number else f"{base} {position}"
-
-
-def _anchor_from_node(node: etree._Element, fallback: str, used: set[str]) -> str:
-    xml_id = (node.get(f"{{{XML_NS}}}id") or "").strip()
-    base = _slugify(xml_id) if xml_id else _slugify(fallback)
-    candidate = base
-    index = 2
-    while candidate in used:
-        candidate = f"{base}-{index}"
-        index += 1
-    used.add(candidate)
-    return candidate
-
-
-def _extract_play_structure(play: PlayEntry) -> tuple[etree._ElementTree, tuple[_ActNav, ...]]:
-    parser = etree.XMLParser(recover=False, remove_blank_text=False)
-    tree = etree.parse(str(play.source_path), parser)
-    body_nodes = tree.xpath("//*[local-name()='text']/*[local-name()='body']")
-    if not body_nodes:
-        return tree, ()
-    body = body_nodes[0]
-    used_ids: set[str] = set()
-    acts: list[_ActNav] = []
-    speech_cursor = 0
-    act_index = 0
-    for child in body:
-        if not isinstance(child.tag, str) or etree.QName(child).localname != "div":
+def _collect_title_blocks(
+    body: etree._Element,
+    *,
+    base_token: str,
+    wrapper_token: str,
+) -> list[etree._Element]:
+    blocks: list[etree._Element] = []
+    for node in body.xpath(".//div[@class]"):
+        if not isinstance(node, etree._Element):
             continue
-        if (child.get("type") or "").strip().lower() != "act":
+        if _has_class(node, wrapper_token):
+            blocks.append(node)
             continue
-        act_index += 1
-        act_label = _division_label(child, "act", act_index)
-        act_anchor = _anchor_from_node(child, f"act-{child.get('n') or act_index}", used_ids)
-        act_start_speech_index = speech_cursor
+        if not _has_class(node, base_token):
+            continue
 
-        scene_index = 0
-        scenes: list[_SceneNav] = []
-        for scene_node in child:
-            if not isinstance(scene_node.tag, str) or etree.QName(scene_node).localname != "div":
-                continue
-            if (scene_node.get("type") or "").strip().lower() != "scene":
-                continue
-            scene_index += 1
-            scene_label = _division_label(scene_node, "scene", scene_index)
-            scene_anchor = _anchor_from_node(
-                scene_node,
-                f"{act_anchor}-scene-{scene_node.get('n') or scene_index}",
-                used_ids,
-            )
-            scene_start_speech_index = speech_cursor
-            scene_speeches = len(scene_node.xpath(".//*[local-name()='sp']"))
-            speech_cursor += scene_speeches
-            scenes.append(
-                _SceneNav(
-                    anchor_id=scene_anchor,
-                    label=scene_label,
-                    start_speech_index=scene_start_speech_index,
-                )
-            )
-
-        if not scenes:
-            speech_cursor += len(child.xpath(".//*[local-name()='sp']"))
-
-        acts.append(
-            _ActNav(
-                anchor_id=act_anchor,
-                label=act_label,
-                start_speech_index=act_start_speech_index,
-                scenes=tuple(scenes),
-            )
-        )
-
-    return tree, tuple(acts)
+        wrapped = False
+        for ancestor in node.iterancestors(tag="div"):
+            if isinstance(ancestor, etree._Element) and _has_class(ancestor, wrapper_token):
+                wrapped = True
+                break
+        if wrapped:
+            continue
+        blocks.append(node)
+    return blocks
 
 
-def _play_structure_nav_html(acts: tuple[_ActNav, ...]) -> str:
-    if not acts:
+def _play_navigation_for(manifest: SiteManifest, play: PlayEntry) -> PlayNavigation:
+    by_slug = index_play_navigation(manifest.play_navigation)
+    existing = by_slug.get(play.slug)
+    if existing is not None:
+        return existing
+    try:
+        return extract_play_navigation(play)
+    except ValueError:
+        return PlayNavigation(play_slug=play.slug, play_title=play.title, acts=())
+
+
+def _play_structure_nav_html(play_navigation: PlayNavigation) -> str:
+    if not play_navigation.acts:
         return ""
     lines: list[str] = ['<div class="play-structure-nav" aria-label="Navigation actes et scenes">', "<h3>Dans la piece</h3>", "<ul>"]
-    for act in acts:
+    for act in play_navigation.acts:
         lines.append(
             f'<li><a href="#{html.escape(act.anchor_id, quote=True)}">{html.escape(act.label)}</a>'
         )
@@ -333,62 +300,35 @@ def _play_structure_nav_html(acts: tuple[_ActNav, ...]) -> str:
     return "".join(lines)
 
 
-def _bind_anchor_id(
-    body: etree._Element,
-    target: etree._Element | None,
-    desired_id: str,
-    used_ids: set[str],
-    reusable_existing_ids: set[str],
-) -> str:
-    def _unique_id(base: str) -> str:
-        candidate = base
-        suffix = 2
-        while candidate in used_ids:
-            candidate = f"{base}-{suffix}"
-            suffix += 1
-        used_ids.add(candidate)
-        return candidate
-
+def _ensure_anchor_id(body: etree._Element, target: etree._Element | None, desired_id: str) -> None:
     if target is not None:
         existing_id = (target.get("id") or "").strip()
-        if existing_id and existing_id in reusable_existing_ids:
-            reusable_existing_ids.remove(existing_id)
-            return existing_id
-        if existing_id:
-            candidate = _unique_id(desired_id)
-            anchor = etree.Element("div")
-            anchor.set("id", candidate)
-            anchor.set("class", "dramatic-anchor")
-            parent = target.getparent()
-            if parent is None:
-                body.insert(0, anchor)
-            else:
-                parent.insert(parent.index(target), anchor)
-            return candidate
-        candidate = _unique_id(desired_id)
-        target.set("id", candidate)
-        return candidate
+        if existing_id == desired_id:
+            return
+        if not existing_id:
+            target.set("id", desired_id)
+            return
+        parent = target.getparent()
+        anchor = etree.Element("div")
+        anchor.set("id", desired_id)
+        anchor.set("class", "dramatic-anchor")
+        if parent is None:
+            body.insert(0, anchor)
+        else:
+            parent.insert(parent.index(target), anchor)
+        return
 
-    candidate = _unique_id(desired_id)
     anchor = etree.Element("div")
-    anchor.set("id", candidate)
+    anchor.set("id", desired_id)
     anchor.set("class", "dramatic-anchor")
     body.insert(0, anchor)
-    return candidate
 
 
-def _inject_play_anchors(body: etree._Element, acts: tuple[_ActNav, ...]) -> None:
-    act_headers = body.xpath(
-        ".//div[contains(@class, 'acte-titre') or contains(@class, 'acte-titre-sans-variation')]"
-    )
-    scene_headers = body.xpath(
-        ".//div[contains(@class, 'scene-titre') or contains(@class, 'scene-titre-sans-variation')]"
-    )
+def _inject_play_anchors(body: etree._Element, play_navigation: PlayNavigation) -> None:
+    act_headers = _collect_title_blocks(body, base_token="acte-titre", wrapper_token="acte-titre-sans-variation")
+    scene_headers = _collect_title_blocks(body, base_token="scene-titre", wrapper_token="scene-titre-sans-variation")
     speakers = body.xpath(".//div[contains(@class, 'locuteur')]")
-    existing_ids = {item for item in body.xpath(".//*[@id]/@id") if isinstance(item, str) and item.strip()}
-    used_ids = set(existing_ids)
-    reusable_existing_ids = set(existing_ids)
-
+    acts = play_navigation.acts
     for index, act in enumerate(acts):
         target: etree._Element | None = None
         if index < len(act_headers):
@@ -397,7 +337,7 @@ def _inject_play_anchors(body: etree._Element, acts: tuple[_ActNav, ...]) -> Non
             target = speakers[act.start_speech_index]
         elif len(body):
             target = body[0]
-        act.anchor_id = _bind_anchor_id(body, target, act.anchor_id, used_ids, reusable_existing_ids)
+        _ensure_anchor_id(body, target, act.anchor_id)
 
     scene_index = 0
     for act in acts:
@@ -409,7 +349,7 @@ def _inject_play_anchors(body: etree._Element, acts: tuple[_ActNav, ...]) -> Non
                 target = speakers[scene.start_speech_index]
             elif len(body):
                 target = body[0]
-            scene.anchor_id = _bind_anchor_id(body, target, scene.anchor_id, used_ids, reusable_existing_ids)
+            _ensure_anchor_id(body, target, scene.anchor_id)
             scene_index += 1
 
 
@@ -433,8 +373,13 @@ def _dramatic_assets_from_export_doc(export_doc: etree._Element) -> str:
     return "".join(chunks)
 
 
-def _play_reading_html(play: PlayEntry) -> tuple[str, str, str]:
-    tei_tree, acts = _extract_play_structure(play)
+def _play_reading_html(play: PlayEntry, play_navigation: PlayNavigation) -> tuple[str, str, str]:
+    try:
+        parser = etree.XMLParser(recover=False, remove_blank_text=False)
+        tei_tree = etree.parse(str(play.source_path), parser)
+    except (OSError, etree.XMLSyntaxError):
+        return _play_structure_nav_html(play_navigation), '<article class="dramatic-content"></article>', ""
+
     tei_xml = etree.tostring(tei_tree.getroot(), encoding="unicode")
     export_html = render_html_export_from_tei(
         tei_xml,
@@ -449,7 +394,7 @@ def _play_reading_html(play: PlayEntry) -> tuple[str, str, str]:
     asset_html = _dramatic_assets_from_export_doc(doc)
     sections = doc.xpath("//section[@id='contenu-editorial']")
     if not sections:
-        return _play_structure_nav_html(acts), '<article class="dramatic-content"></article>', asset_html
+        return _play_structure_nav_html(play_navigation), '<article class="dramatic-content"></article>', asset_html
 
     editorial = sections[0]
     existing_class = (editorial.get("class") or "").strip()
@@ -457,9 +402,9 @@ def _play_reading_html(play: PlayEntry) -> tuple[str, str, str]:
     if "dramatic-content" not in class_parts:
         class_parts.append("dramatic-content")
     editorial.set("class", " ".join(class_parts))
-    _inject_play_anchors(editorial, acts)
+    _inject_play_anchors(editorial, play_navigation)
     dramatic_html = etree.tostring(editorial, encoding="unicode", method="html")
-    return _play_structure_nav_html(acts), dramatic_html, asset_html
+    return _play_structure_nav_html(play_navigation), dramatic_html, asset_html
 
 
 def _homepage_sections(manifest: SiteManifest) -> tuple[HomePageSection, ...]:
@@ -563,7 +508,8 @@ def render_play_page(manifest: SiteManifest, play: PlayEntry) -> str:
     if manifest.config.credits:
         lines.append(f'<p class="meta">{html.escape(manifest.config.credits)}</p>')
 
-    navigation_html, dramatic_html, dramatic_assets = _play_reading_html(play)
+    play_navigation = _play_navigation_for(manifest, play)
+    navigation_html, dramatic_html, dramatic_assets = _play_reading_html(play, play_navigation)
     lines.append(dramatic_html)
 
     return _layout(

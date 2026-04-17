@@ -51,6 +51,28 @@ class PlayEntry:
 
 
 @dataclass(frozen=True)
+class PlaySceneNavigation:
+    label: str
+    anchor_id: str
+    start_speech_index: int
+
+
+@dataclass(frozen=True)
+class PlayActNavigation:
+    label: str
+    anchor_id: str
+    start_speech_index: int
+    scenes: tuple[PlaySceneNavigation, ...] = ()
+
+
+@dataclass(frozen=True)
+class PlayNavigation:
+    play_slug: str
+    play_title: str
+    acts: tuple[PlayActNavigation, ...] = ()
+
+
+@dataclass(frozen=True)
 class NoticeEntry:
     source_path: Path
     slug: str
@@ -136,6 +158,7 @@ class NavigationItem:
 class SiteManifest:
     config: SiteConfig
     plays: tuple[PlayEntry, ...] = ()
+    play_navigation: tuple[PlayNavigation, ...] = ()
     notices: tuple[NoticeEntry, ...] = ()
     pages: tuple[SitePage, ...] = ()
     navigation: tuple[NavigationItem, ...] = ()
