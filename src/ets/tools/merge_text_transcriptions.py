@@ -22,14 +22,19 @@ class TextTranscriptionMergeError(ValueError):
     """Raised when a text transcription merge request is invalid."""
 
 
+from pathlib import Path
+
 def merge_text_transcription_files(request: TextTranscriptionMergeRequest) -> TextTranscriptionMergeOutcome:
     if len(request.input_paths) < 2:
         raise TextTranscriptionMergeError("At least two input transcription files are required.")
 
     resolved_inputs = tuple(Path(path).resolve() for path in request.input_paths)
     output_path = Path(request.output_path).resolve()
-    chunks = [path.read_text(encoding="utf-8") for path in resolved_inputs]
-    merged_text = request.separator.join(chunks)
+
+    chunks = [path.read_text(encoding="utf-8").rstrip("\n\r") for path in resolved_inputs]
+
+    boundary = request.separator if request.separator else "\n"
+    merged_text = boundary.join(chunks) + "\n"
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(merged_text, encoding="utf-8")
