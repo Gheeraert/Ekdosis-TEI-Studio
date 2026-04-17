@@ -52,6 +52,13 @@ It should not yet aim at:
 
 Presentation work is allowed only if it remains a separate layer over the core.
 
+## Convenience utilities
+
+ETS also includes small autonomous workflow utilities exposed in the Tkinter **Tools** menu.
+
+- A plain-text transcription merge tool can concatenate multiple `.txt`/`.md` transcription files in explicit user-defined order.
+- This utility is independent from TEI parsing, TEI generation, and `site_builder`.
+
 ## Future publication layer: ETS Site Builder
 
 A planned autonomous module, **ETS Site Builder**, will extend the project from TEI generation to full static scholarly publication.

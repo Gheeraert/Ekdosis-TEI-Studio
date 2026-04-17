@@ -11,6 +11,7 @@ from ets.annotations import Annotation, AnnotationCollection, AnnotationValidati
 from ets.application import (
     AppDiagnostic,
     merge_dramatic_tei_files,
+    merge_text_transcription_files,
     build_site_from_publication_request,
     create_annotation,
     delete_annotation,
@@ -41,6 +42,7 @@ from .dialogs import (
     open_config_dialog,
     open_dramatic_merge_dialog,
     open_publication_dialog,
+    open_text_transcription_merge_dialog,
     show_about_dialog,
     show_help_dialog,
 )
@@ -213,6 +215,7 @@ class MainWindow(ttk.Frame):
                 preview_html=self.action_preview_html,
                 export_tei=self.action_export_tei,
                 export_html=self.action_export_html,
+                merge_text_transcriptions=self.action_merge_text_transcriptions,
                 merge_dramatic_tei=self.action_merge_dramatic_tei,
                 build_publication_site=self.action_build_publication_site,
                 add_annotation=self.action_add_annotation,
@@ -1142,6 +1145,47 @@ class MainWindow(ttk.Frame):
             return
 
         messagebox.showinfo("Fusion XML dramatiques", base_message, parent=self.master)
+
+    def action_merge_text_transcriptions(self) -> None:
+        request = open_text_transcription_merge_dialog(self.master)
+        if request is None:
+            return
+
+        try:
+            result = merge_text_transcription_files(request)
+        except Exception as exc:  # pragma: no cover - defensive UI boundary
+            messagebox.showerror(
+                "Fusion transcriptions texte",
+                f"Echec de la fusion de transcriptions.\n\n{exc}",
+                parent=self.master,
+            )
+            return
+
+        if not result.ok:
+            detail = result.error_detail or "Erreur inconnue."
+            messagebox.showerror(
+                "Fusion transcriptions texte",
+                f"{result.message or 'Echec de la fusion de transcriptions.'}\n\n{detail}",
+                parent=self.master,
+            )
+            return
+
+        output_text = str(result.output_path) if result.output_path is not None else "(inconnu)"
+        base_message = (
+            "Fusion de transcriptions terminee.\n\n"
+            f"Fichier de sortie: {output_text}\n"
+            f"Fichiers fusionnes: {result.merged_file_count}"
+        )
+        if result.warnings:
+            warning_lines = "\n".join(f"- {item}" for item in result.warnings[:20])
+            messagebox.showwarning(
+                "Fusion transcriptions texte (avec avertissements)",
+                f"{base_message}\n\nAvertissements:\n{warning_lines}",
+                parent=self.master,
+            )
+            return
+
+        messagebox.showinfo("Fusion transcriptions texte", base_message, parent=self.master)
 
     def action_undo(self) -> None:
         widget = self._active_text_widget()

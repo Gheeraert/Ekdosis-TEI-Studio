@@ -16,6 +16,8 @@ from ets.application import (
     GenerationResult,
     SiteIdentityInput,
     SitePublicationRequest,
+    TextTranscriptionMergeRequest,
+    TextTranscriptionMergeServiceResult,
     load_annotations,
     load_config,
 )
@@ -363,8 +365,137 @@ def test_tools_menu_contains_manual_tei_validation_action() -> None:
             if tools_menu_widget.type(i) == "command":
                 labels.append(tools_menu_widget.entrycget(i, "label"))
         assert "Valider la TEI générée" in labels
+        assert "Fusionner des transcriptions texte…" in labels
         assert "Fusionner des XML dramatiques…" in labels
         assert "Générer le site de publication…" in labels
+    finally:
+        root.destroy()
+
+
+def test_action_merge_text_transcriptions_success_routes_through_service(monkeypatch: pytest.MonkeyPatch) -> None:
+    root = _make_root()
+    try:
+        window = MainWindow(root)
+        request = TextTranscriptionMergeRequest(
+            input_paths=(RUNTIME_DIR / "scene1.txt", RUNTIME_DIR / "scene2.txt"),
+            output_path=RUNTIME_DIR / "merged.txt",
+            separator="\n\n",
+        )
+        messages: list[str] = []
+        called: list[TextTranscriptionMergeRequest] = []
+        monkeypatch.setattr("ets.ui.tk.main_window.open_text_transcription_merge_dialog", lambda _parent: request)
+        monkeypatch.setattr("tkinter.messagebox.showerror", lambda *args, **kwargs: None)
+        monkeypatch.setattr("tkinter.messagebox.showwarning", lambda *args, **kwargs: None)
+
+        def _fake_merge(payload: TextTranscriptionMergeRequest) -> TextTranscriptionMergeServiceResult:
+            called.append(payload)
+            return TextTranscriptionMergeServiceResult(
+                ok=True,
+                output_path=(RUNTIME_DIR / "merged.txt").resolve(),
+                merged_file_count=2,
+                warnings=(),
+                message="ok",
+            )
+
+        monkeypatch.setattr("ets.ui.tk.main_window.merge_text_transcription_files", _fake_merge)
+        monkeypatch.setattr("tkinter.messagebox.showinfo", lambda _title, message, **kwargs: messages.append(message))
+
+        window.action_merge_text_transcriptions()
+
+        assert called == [request]
+        assert messages
+        assert "Fusion de transcriptions terminee" in messages[-1]
+        assert "Fichiers fusionnes: 2" in messages[-1]
+    finally:
+        root.destroy()
+
+
+def test_action_merge_text_transcriptions_failure_shows_error(monkeypatch: pytest.MonkeyPatch) -> None:
+    root = _make_root()
+    try:
+        window = MainWindow(root)
+        request = TextTranscriptionMergeRequest(
+            input_paths=(RUNTIME_DIR / "scene1.txt", RUNTIME_DIR / "scene2.txt"),
+            output_path=RUNTIME_DIR / "merged.txt",
+        )
+        errors: list[str] = []
+        monkeypatch.setattr("ets.ui.tk.main_window.open_text_transcription_merge_dialog", lambda _parent: request)
+        monkeypatch.setattr("tkinter.messagebox.showinfo", lambda *args, **kwargs: None)
+        monkeypatch.setattr("tkinter.messagebox.showwarning", lambda *args, **kwargs: None)
+        monkeypatch.setattr(
+            "ets.ui.tk.main_window.merge_text_transcription_files",
+            lambda _request: TextTranscriptionMergeServiceResult(
+                ok=False,
+                message="Text transcription merge failed.",
+                error_code="E_TEXT_TRANSCRIPTION_MERGE",
+                error_detail="invalid encoding",
+            ),
+        )
+        monkeypatch.setattr("tkinter.messagebox.showerror", lambda _title, message, **kwargs: errors.append(message))
+
+        window.action_merge_text_transcriptions()
+
+        assert errors
+        assert "Text transcription merge failed." in errors[-1]
+        assert "invalid encoding" in errors[-1]
+    finally:
+        root.destroy()
+
+
+def test_action_merge_text_transcriptions_surfaces_warnings(monkeypatch: pytest.MonkeyPatch) -> None:
+    root = _make_root()
+    try:
+        window = MainWindow(root)
+        request = TextTranscriptionMergeRequest(
+            input_paths=(RUNTIME_DIR / "scene1.txt", RUNTIME_DIR / "scene2.txt"),
+            output_path=RUNTIME_DIR / "merged.txt",
+        )
+        warnings: list[str] = []
+        called: list[TextTranscriptionMergeRequest] = []
+        monkeypatch.setattr("ets.ui.tk.main_window.open_text_transcription_merge_dialog", lambda _parent: request)
+        monkeypatch.setattr("tkinter.messagebox.showinfo", lambda *args, **kwargs: None)
+        monkeypatch.setattr("tkinter.messagebox.showerror", lambda *args, **kwargs: None)
+
+        def _fake_merge(payload: TextTranscriptionMergeRequest) -> TextTranscriptionMergeServiceResult:
+            called.append(payload)
+            return TextTranscriptionMergeServiceResult(
+                ok=True,
+                output_path=(RUNTIME_DIR / "merged.txt").resolve(),
+                merged_file_count=2,
+                warnings=("Skipped duplicate path.",),
+                message="ok",
+            )
+
+        monkeypatch.setattr("ets.ui.tk.main_window.merge_text_transcription_files", _fake_merge)
+        monkeypatch.setattr("tkinter.messagebox.showwarning", lambda _title, message, **kwargs: warnings.append(message))
+
+        window.action_merge_text_transcriptions()
+
+        assert called == [request]
+        assert warnings
+        assert "Avertissements" in warnings[-1]
+        assert "Skipped duplicate path." in warnings[-1]
+    finally:
+        root.destroy()
+
+
+def test_action_merge_text_transcriptions_cancelled_dialog_does_nothing(monkeypatch: pytest.MonkeyPatch) -> None:
+    root = _make_root()
+    try:
+        window = MainWindow(root)
+        called: list[str] = []
+        monkeypatch.setattr("ets.ui.tk.main_window.open_text_transcription_merge_dialog", lambda _parent: None)
+        monkeypatch.setattr(
+            "ets.ui.tk.main_window.merge_text_transcription_files",
+            lambda _request: called.append("service") or TextTranscriptionMergeServiceResult(ok=False),
+        )
+        monkeypatch.setattr("tkinter.messagebox.showinfo", lambda *args, **kwargs: called.append("info"))
+        monkeypatch.setattr("tkinter.messagebox.showwarning", lambda *args, **kwargs: called.append("warn"))
+        monkeypatch.setattr("tkinter.messagebox.showerror", lambda *args, **kwargs: called.append("error"))
+
+        window.action_merge_text_transcriptions()
+
+        assert called == []
     finally:
         root.destroy()
 

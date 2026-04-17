@@ -4,6 +4,11 @@ from .merge_dramatic_tei_service import (
     DramaticTeiMergeServiceResult,
     merge_dramatic_tei_files,
 )
+from .merge_text_transcriptions_service import (
+    TextTranscriptionMergeService,
+    TextTranscriptionMergeServiceResult,
+    merge_text_transcription_files,
+)
 from .site_builder_models import (
     DramaticDocumentInput,
     DramaticPlayInput,
@@ -39,6 +44,7 @@ from .services import (
     validate_text,
 )
 from ets.site_builder.dramatic_merge import DramaticTeiMergeRequest
+from ets.tools import TextTranscriptionMergeRequest
 
 __all__ = [
     "AppDiagnostic",
@@ -49,6 +55,10 @@ __all__ = [
     "DramaticTeiMergeServiceResult",
     "DramaticTeiMergeService",
     "merge_dramatic_tei_files",
+    "TextTranscriptionMergeRequest",
+    "TextTranscriptionMergeServiceResult",
+    "TextTranscriptionMergeService",
+    "merge_text_transcription_files",
     "load_config",
     "load_annotations",
     "save_config",

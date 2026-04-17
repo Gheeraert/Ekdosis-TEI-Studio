@@ -7,6 +7,7 @@ from .dramatic_merge_dialog import open_dramatic_merge_dialog
 from .help_dialog import show_help_dialog
 from .publication_dialog import open_publication_dialog
 from .search_dialog import SearchReplaceDialog
+from .text_transcription_merge_dialog import open_text_transcription_merge_dialog
 
 __all__ = [
     "show_about_dialog",
@@ -14,6 +15,7 @@ __all__ = [
     "open_config_dialog",
     "open_annotation_dialog",
     "open_dramatic_merge_dialog",
+    "open_text_transcription_merge_dialog",
     "open_publication_dialog",
     "SearchReplaceDialog",
 ]
