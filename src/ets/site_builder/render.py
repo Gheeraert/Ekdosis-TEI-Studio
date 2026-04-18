@@ -35,10 +35,25 @@ def _kind_class(kind: str) -> str:
     return re.sub(r"[^a-z0-9_-]+", "-", kind.lower()).strip("-") or "item"
 
 
+def _href_without_hash(href: str) -> str:
+    return href.split("#", maxsplit=1)[0]
+
+
+def _contains_descendant_for_page(item: NavigationItem, current_href: str) -> bool:
+    for child in item.children:
+        if child.href and _href_without_hash(child.href) == current_href:
+            return True
+        if _contains_descendant_for_page(child, current_href):
+            return True
+    return False
+
+
 def _nav_item_contains_current(item: NavigationItem, current_href: str) -> bool:
     if item.href == current_href:
         return True
-    if item.href and item.href.split("#", maxsplit=1)[0] == current_href:
+    # Keep high-level play branches open on play pages, but do not auto-open
+    # every act/scene branch when current_href has no hash.
+    if item.kind in {"plays_group", "play_group"} and _contains_descendant_for_page(item, current_href):
         return True
     return any(_nav_item_contains_current(child, current_href) for child in item.children)
 
@@ -376,6 +391,62 @@ def _play_reading_html(play: PlayEntry, play_navigation: PlayNavigation) -> tupl
     return dramatic_html, asset_html
 
 
+def _play_nav_hash_sync_script() -> str:
+    return """<script>
+(() => {
+  function findActDetailsForLink(link) {
+    const actBranch = link.closest('li.nav-item.nav-kind-act.nav-branch');
+    if (!actBranch) return null;
+    return actBranch.querySelector(':scope > details.nav-details');
+  }
+
+  function closeSiblingActDetails(targetDetails) {
+    const parentList = targetDetails.closest('ul');
+    if (!parentList) return;
+    parentList.querySelectorAll(':scope > li.nav-item.nav-kind-act.nav-branch > details.nav-details').forEach((details) => {
+      details.open = details === targetDetails;
+    });
+  }
+
+  function openParentDetails(link) {
+    let details = link.closest('details.nav-details');
+    while (details) {
+      details.open = true;
+      details = details.parentElement ? details.parentElement.closest('details.nav-details') : null;
+    }
+  }
+
+  function closeAllActDetails(navRoot) {
+    navRoot.querySelectorAll('li.nav-item.nav-kind-act.nav-branch > details.nav-details').forEach((details) => {
+      details.open = false;
+    });
+  }
+
+  function syncFromHash() {
+    const navRoot = document.querySelector('main nav[aria-label="Navigation principale"]');
+    if (!navRoot) return;
+    const hash = window.location.hash || '';
+    if (!hash) {
+      closeAllActDetails(navRoot);
+      return;
+    }
+    const escaped = (window.CSS && typeof window.CSS.escape === 'function') ? window.CSS.escape(hash) : hash.replace(/"/g, '\\"');
+    const link = navRoot.querySelector('a[href$="' + escaped + '"]');
+    if (!link) return;
+    const actDetails = findActDetailsForLink(link);
+    if (actDetails) {
+      closeSiblingActDetails(actDetails);
+      actDetails.open = true;
+    }
+    openParentDetails(link);
+  }
+
+  window.addEventListener('hashchange', syncFromHash);
+  window.addEventListener('DOMContentLoaded', syncFromHash);
+})();
+</script>"""
+
+
 def _homepage_sections(manifest: SiteManifest) -> tuple[HomePageSection, ...]:
     if manifest.config.homepage_sections:
         return manifest.config.homepage_sections
@@ -464,13 +535,14 @@ def render_play_page(manifest: SiteManifest, play: PlayEntry) -> str:
     play_navigation = _play_navigation_for(manifest, play)
     dramatic_html, dramatic_assets = _play_reading_html(play, play_navigation)
     lines.append(dramatic_html)
+    head_extras = f"{dramatic_assets}{_play_nav_hash_sync_script()}"
 
     return _layout(
         manifest,
         page_title=play.title,
         current_href=f"plays/{play.slug}.html",
         content_html="".join(lines),
-        head_extra_html=dramatic_assets,
+        head_extra_html=head_extras,
     )
 
 

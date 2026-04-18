@@ -17,7 +17,7 @@ from ets.site_builder.models import (
     PlaySceneNavigation,
     SiteManifest,
 )
-from ets.site_builder.render import render_play_page
+from ets.site_builder.render import _nav_item_contains_current, render_play_page
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -100,12 +100,17 @@ def test_builder_generates_cross_links_and_home_intro_from_explicit_mapping() ->
     assert doc.xpath("//main/nav//ul[contains(@class, 'site-nav') and contains(@class, 'nested')]")
     assert doc.xpath("//main/nav//a[contains(normalize-space(.), 'Acte 1')]")
     assert doc.xpath("//main/nav//a[contains(normalize-space(.), 'Scène 1')]")
+    assert len(doc.xpath("//main/nav//li[contains(@class, 'nav-kind-plays_group')]/details[@open]")) == 1
+    assert len(doc.xpath("//main/nav//li[contains(@class, 'nav-kind-play_group')]/details[@open]")) == 1
+    assert not doc.xpath("//main/nav//li[contains(@class, 'nav-kind-act')]/details[@open]")
     assert "IM Fell DW Pica" in play_html
     assert ".vers-container" in play_html
     assert "#container {" not in play_html
     assert "scroll-behavior: smooth" in play_html
     assert "position: sticky" in play_html
     assert "prefers-reduced-motion: reduce" in play_html
+    assert "hashchange" in play_html
+    assert "closeSiblingActDetails" in play_html
 
     nav_targets = doc.xpath("//main/nav//a[starts-with(@href, '../plays/andromaque.html#')]/@href")
     assert nav_targets
@@ -490,3 +495,28 @@ def test_play_anchor_injection_prefers_outer_title_wrappers_and_keeps_scene_alig
     ]
     for href in local_targets:
         assert doc.xpath(f"//*[@id='{href.split('#', maxsplit=1)[1]}']")
+
+
+def test_nav_item_contains_current_keeps_play_group_open_without_auto_opening_all_acts() -> None:
+    act_one = NavigationItem(
+        label="Acte 1",
+        href="plays/andromaque.html#acte-1",
+        kind="act",
+        children=(NavigationItem(label="Scène 1", href="plays/andromaque.html#scene-1", kind="scene"),),
+    )
+    act_two = NavigationItem(
+        label="Acte 2",
+        href="plays/andromaque.html#acte-2",
+        kind="act",
+        children=(NavigationItem(label="Scène 1", href="plays/andromaque.html#scene-2-1", kind="scene"),),
+    )
+    play_group = NavigationItem(
+        label="Andromaque",
+        href="",
+        kind="play_group",
+        children=(act_one, act_two),
+    )
+
+    assert _nav_item_contains_current(play_group, "plays/andromaque.html")
+    assert not _nav_item_contains_current(act_one, "plays/andromaque.html")
+    assert not _nav_item_contains_current(act_two, "plays/andromaque.html")
