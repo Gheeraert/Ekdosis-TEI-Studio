@@ -118,6 +118,7 @@ class MainWindow(ttk.Frame):
         self.state = UIState()
         self._diagnostics_visible = True
         self._preview_server = preview_server or LocalPreviewServer()
+        self._site_preview_server: LocalPreviewServer | None = None
         self._autosave_store = autosave_store or AutosaveStore()
         self._open_browser = open_browser or webbrowser.open_new_tab
         self._autosave_after_id: str | None = None
@@ -1101,9 +1102,29 @@ class MainWindow(ttk.Frame):
                 f"{base_message}\n\nAvertissements:\n{warning_lines}",
                 parent=self.master,
             )
-            return
+        else:
+            messagebox.showinfo("Génération du site", base_message, parent=self.master)
 
-        messagebox.showinfo("Génération du site", base_message, parent=self.master)
+        if result.output_dir is not None:
+            try:
+                self._open_publication_site_preview(result.output_dir)
+            except OSError as exc:
+                messagebox.showwarning(
+                    "Génération du site",
+                    f"Le site a bien été généré, mais l'ouverture automatique a échoué.\n\n{exc}",
+                    parent=self.master,
+                )
+
+    def _open_publication_site_preview(self, output_dir: Path) -> None:
+        resolved_output_dir = output_dir.resolve()
+        if self._site_preview_server is None or self._site_preview_server.root_dir.resolve() != resolved_output_dir:
+            if self._site_preview_server is not None:
+                self._site_preview_server.stop()
+            self._site_preview_server = LocalPreviewServer(root_dir=resolved_output_dir)
+
+        self._site_preview_server.ensure_running()
+        site_url = self._site_preview_server.url_for("index.html")
+        self._open_browser(site_url)
 
     def action_merge_dramatic_tei(self) -> None:
         request = open_dramatic_merge_dialog(self.master)
@@ -1304,4 +1325,6 @@ class MainWindow(ttk.Frame):
         except Exception:
             pass
         self._preview_server.stop()
+        if self._site_preview_server is not None:
+            self._site_preview_server.stop()
         self.master.destroy()

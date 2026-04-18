@@ -631,7 +631,8 @@ def test_action_merge_dramatic_tei_cancelled_dialog_does_nothing(monkeypatch: py
 def test_action_build_publication_site_success_routes_through_service(monkeypatch: pytest.MonkeyPatch) -> None:
     root = _make_root()
     try:
-        window = MainWindow(root)
+        opened_urls: list[str] = []
+        window = MainWindow(root, open_browser=lambda url: opened_urls.append(url) or True)
         request = SitePublicationRequest(
             identity=SiteIdentityInput(site_title="ETS"),
             output_dir=RUNTIME_DIR,
@@ -664,11 +665,13 @@ def test_action_build_publication_site_success_routes_through_service(monkeypatc
 
         monkeypatch.setattr("ets.ui.tk.main_window.build_site_from_publication_request", _fake_build)
         monkeypatch.setattr("tkinter.messagebox.showinfo", lambda _title, message, **kwargs: messages.append(message))
+        monkeypatch.setattr(window, "_open_publication_site_preview", lambda output_dir: opened_urls.append(str(output_dir)))
 
         window.action_build_publication_site()
 
         assert called == [request]
         assert messages
+        assert opened_urls == [str(RUNTIME_DIR.resolve())]
         assert "Génération du site terminée." in messages[-1]
         assert "Pages générées: 2" in messages[-1]
     finally:
@@ -678,7 +681,8 @@ def test_action_build_publication_site_success_routes_through_service(monkeypatc
 def test_action_build_publication_site_failure_shows_error(monkeypatch: pytest.MonkeyPatch) -> None:
     root = _make_root()
     try:
-        window = MainWindow(root)
+        opened_urls: list[str] = []
+        window = MainWindow(root, open_browser=lambda url: opened_urls.append(url) or True)
         request = SitePublicationRequest(
             identity=SiteIdentityInput(site_title="ETS"),
             output_dir=RUNTIME_DIR,
@@ -703,10 +707,12 @@ def test_action_build_publication_site_failure_shows_error(monkeypatch: pytest.M
             ),
         )
         monkeypatch.setattr("tkinter.messagebox.showerror", lambda _title, message, **kwargs: errors.append(message))
+        monkeypatch.setattr(window, "_open_publication_site_preview", lambda output_dir: opened_urls.append(str(output_dir)))
 
         window.action_build_publication_site()
 
         assert errors
+        assert opened_urls == []
         assert "Site build configuration failed." in errors[-1]
         assert "site_title" in errors[-1]
     finally:
@@ -716,7 +722,8 @@ def test_action_build_publication_site_failure_shows_error(monkeypatch: pytest.M
 def test_action_build_publication_site_surfaces_warnings(monkeypatch: pytest.MonkeyPatch) -> None:
     root = _make_root()
     try:
-        window = MainWindow(root)
+        opened_urls: list[str] = []
+        window = MainWindow(root, open_browser=lambda url: opened_urls.append(url) or True)
         request = SitePublicationRequest(
             identity=SiteIdentityInput(site_title="ETS"),
             output_dir=RUNTIME_DIR,
@@ -749,11 +756,13 @@ def test_action_build_publication_site_surfaces_warnings(monkeypatch: pytest.Mon
 
         monkeypatch.setattr("ets.ui.tk.main_window.build_site_from_publication_request", _fake_build)
         monkeypatch.setattr("tkinter.messagebox.showwarning", lambda _title, message, **kwargs: warnings.append(message))
+        monkeypatch.setattr(window, "_open_publication_site_preview", lambda output_dir: opened_urls.append(str(output_dir)))
 
         window.action_build_publication_site()
 
         assert called == [request]
         assert warnings
+        assert opened_urls == [str(RUNTIME_DIR.resolve())]
         assert "Avertissements" in warnings[-1]
         assert "unknown play slug" in warnings[-1]
     finally:
