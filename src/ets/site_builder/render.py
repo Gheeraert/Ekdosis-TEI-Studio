@@ -116,6 +116,7 @@ def _layout(
     current_href: str,
     content_html: str,
     head_extra_html: str = "",
+    section_class: str = "content-shell",
 ) -> str:
     return f"""<!doctype html>
 <html lang=\"fr\">
@@ -234,9 +235,58 @@ def _layout(
     .home-play-list li {{ margin: 0.45rem 0; }}
     .home-play-links {{ color: var(--ink-muted); font-size: 0.95rem; }}
     .home-general-notice {{ margin: 1rem 0 1.25rem; padding: 0.85rem 1rem; border: 1px solid var(--line); background: var(--bg-soft); }}
-    section {{ padding: 1rem 1.2rem 2.5rem; max-width: 960px; background: var(--bg-panel); border: 1px solid var(--line); box-shadow: var(--shadow-soft); min-width: 0; }}
+    .content-shell {{ padding: 1rem 1.2rem 2.5rem; max-width: 960px; background: var(--bg-panel); border: 1px solid var(--line); box-shadow: var(--shadow-soft); min-width: 0; }}
+    .content-shell-play {{
+      padding: 0.55rem 0.1rem 2.5rem;
+      max-width: 980px;
+      background: transparent;
+      border: none;
+      box-shadow: none;
+    }}
     .meta {{ color: var(--ink-muted); font-family: var(--font-ui); font-size: 0.94rem; }}
-    .dramatic-content {{ min-width: 0; max-width: 920px; }}
+    .content-shell-play > h2 {{ margin: 0.15rem 0 0.6rem; }}
+    .content-shell-play .meta {{ margin: 0.2rem 0 0.35rem; }}
+    .dramatic-content {{
+      min-width: 0;
+      max-width: none;
+      margin: 0;
+      background: transparent;
+      color: var(--ink);
+      font-family: var(--font-body);
+    }}
+    .content-shell-play .dramatic-content .acte-titre,
+    .content-shell-play .dramatic-content .acte-titre-sans-variation,
+    .content-shell-play .dramatic-content .scene-titre,
+    .content-shell-play .dramatic-content .scene-titre-sans-variation,
+    .content-shell-play .dramatic-content .personnages,
+    .content-shell-play .dramatic-content .locuteur,
+    .content-shell-play .dramatic-content .tirade,
+    .content-shell-play .dramatic-content .didascalie,
+    .content-shell-play .dramatic-content .notes {{
+      margin-left: 0;
+    }}
+    .content-shell-play .dramatic-content .vers-container {{
+      margin-left: 0;
+      margin-bottom: 0.35rem;
+      padding-left: 2.9rem;
+      line-height: 1.3;
+    }}
+    .content-shell-play .dramatic-content .num-vers {{
+      left: 0;
+      width: 2.5rem;
+      color: var(--ink-muted);
+      font-size: 0.82em;
+    }}
+    .content-shell-play .dramatic-content .vers-decale {{ margin-left: 1.65rem; }}
+    .content-shell-play .dramatic-content .notes {{
+      margin-top: 1.8rem;
+      padding-top: 0.75rem;
+      border-top-color: var(--line);
+    }}
+    .content-shell-play .dramatic-content .note-call a {{ color: var(--accent); }}
+    .content-shell-play .dramatic-content .note-call a:hover,
+    .content-shell-play .dramatic-content .note-call a:focus {{ border-bottom-color: var(--accent); }}
+    .content-shell-play .dramatic-content .variation {{ border-bottom-color: color-mix(in oklab, var(--accent) 50%, var(--ink-muted)); }}
     .dramatic-anchor {{ display: block; height: 0; margin: 0; padding: 0; }}
     .branding {{ margin-top: 0.65rem; display: flex; gap: 0.65rem; align-items: center; flex-wrap: wrap; }}
     .branding img {{ max-height: 52px; width: auto; border: 1px solid rgba(243, 236, 224, 0.45); background: rgba(255, 255, 255, 0.92); padding: 0.2rem; }}
@@ -295,7 +345,11 @@ def _layout(
         overflow: visible;
         border-right: 1px solid var(--line);
       }}
-      section {{ padding: 1rem; }}
+      .content-shell {{ padding: 1rem; }}
+      .content-shell-play {{ padding: 0.45rem 0 2rem; }}
+      .content-shell-play .dramatic-content .vers-container {{ padding-left: 2.55rem; }}
+      .content-shell-play .dramatic-content .num-vers {{ width: 2.2rem; }}
+      .content-shell-play .dramatic-content .vers-decale {{ margin-left: 1.3rem; }}
       .notice-meta dl {{ grid-template-columns: 1fr; }}
       .notice-meta dt {{ margin-top: 0.25rem; }}
       .home-overview dl {{ grid-template-columns: 1fr; }}
@@ -315,7 +369,7 @@ def _layout(
   </header>
   <main>
     <nav aria-label=\"Navigation principale\">{_nav_html(manifest, current_href=current_href)}</nav>
-    <section>{content_html}</section>
+    <section class="{html.escape(section_class, quote=True)}">{content_html}</section>
   </main>
   <script>
     (() => {{
@@ -647,6 +701,7 @@ def render_play_page(manifest: SiteManifest, play: PlayEntry) -> str:
         current_href=f"plays/{play.slug}.html",
         content_html="".join(lines),
         head_extra_html=head_extras,
+        section_class="content-shell content-shell-play",
     )
 
 
