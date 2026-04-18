@@ -8,12 +8,14 @@ from typing import Any
 from uuid import uuid4
 
 from ets.site_builder import BuildResult, build_static_site, load_site_config
+from ets.site_builder.dramatic_merge import DramaticTeiMergeRequest
 
 from .site_builder_models import (
     SiteBuildRequest,
     SiteBuildServiceResult,
     SitePublicationRequest,
 )
+from .merge_dramatic_tei_service import merge_dramatic_tei_files
 
 
 class SiteBuilderService:
@@ -160,14 +162,24 @@ def _normalize_publication_request(
         if not play.documents:
             raise ValueError(f"Invalid publication request: play '{play_slug}' has no dramatic XML files.")
 
-        primary_document = _require_existing_file(play.documents[0].source_path, label=f"dramatic file for play '{play_slug}'")
-        shutil.copy2(primary_document, dramatic_dir / f"{play_slug}.xml")
-        if len(play.documents) > 1:
-            warnings.append(
-                f"Play '{play_slug}' provided {len(play.documents)} dramatic XML files; only the first file is used in current builder scope."
+        dramatic_sources = tuple(
+            _require_existing_file(doc.source_path, label=f"dramatic file for play '{play_slug}'")
+            for doc in play.documents
+        )
+        play_output = dramatic_dir / f"{play_slug}.xml"
+        if len(dramatic_sources) == 1:
+            shutil.copy2(dramatic_sources[0], play_output)
+        else:
+            merge_result = merge_dramatic_tei_files(
+                DramaticTeiMergeRequest(
+                    act_xml_paths=dramatic_sources,
+                    output_path=play_output,
+                )
             )
-            for extra in play.documents[1:]:
-                _require_existing_file(extra.source_path, label=f"dramatic file for play '{play_slug}'")
+            if not merge_result.ok:
+                detail = merge_result.error_detail or "unknown merge error"
+                raise ValueError(f"Invalid publication request: merge failed for play '{play_slug}': {detail}")
+            warnings.extend(merge_result.warnings)
 
         if play.related_notice_slug:
             mapping_pairs.append((play_slug, play.related_notice_slug))

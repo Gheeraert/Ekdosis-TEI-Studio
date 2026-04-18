@@ -5,6 +5,8 @@ import shutil
 from pathlib import Path
 from uuid import uuid4
 
+from lxml import etree
+
 from ets.application import (
     DramaticDocumentInput,
     DramaticPlayInput,
@@ -23,6 +25,7 @@ from ets.application import (
 
 ROOT = Path(__file__).resolve().parents[1]
 DRAMATIC_FIXTURES = ROOT / "fixtures" / "site_builder" / "minimal" / "dramatic"
+DRAMATIC_MERGE_FIXTURES = ROOT / "fixtures" / "site_builder" / "merge_dramatic"
 MINIMAL_NOTICES = ROOT / "fixtures" / "site_builder" / "minimal" / "notices"
 REALISTIC_NOTICES = ROOT / "fixtures" / "metopes" / "realistic"
 RUNTIME_ROOT = ROOT / "tests" / "_runtime"
@@ -136,8 +139,8 @@ def test_site_builder_service_build_from_publication_request_supports_grouping_o
     andromaque_a1 = dramatic_pool / "andromaque_A1.xml"
     andromaque_a2 = dramatic_pool / "andromaque_A2.xml"
     berenice_a1 = dramatic_pool / "berenice_A1.xml"
-    shutil.copy2(DRAMATIC_FIXTURES / "andromaque.xml", andromaque_a1)
-    shutil.copy2(DRAMATIC_FIXTURES / "andromaque.xml", andromaque_a2)
+    shutil.copy2(DRAMATIC_MERGE_FIXTURES / "andromaque_act1.xml", andromaque_a1)
+    shutil.copy2(DRAMATIC_MERGE_FIXTURES / "andromaque_act2.xml", andromaque_a2)
     shutil.copy2(DRAMATIC_FIXTURES / "berenice.xml", berenice_a1)
 
     logo_file = base / "logo.txt"
@@ -187,11 +190,15 @@ def test_site_builder_service_build_from_publication_request_supports_grouping_o
     assert result.generated_page_relpaths.index("plays/berenice.html") < result.generated_page_relpaths.index(
         "plays/andromaque.html"
     )
-    assert any("only the first file is used" in warning for warning in result.warnings)
+    assert not any("only the first file is used" in warning for warning in result.warnings)
     assert (output_dir / "assets" / "logos" / "logo.txt").exists()
     assert (output_dir / "assets" / "brand" / "palette.txt").exists()
     assert (output_dir / "xml" / "dramatic" / "andromaque.xml").exists()
     assert (output_dir / "xml" / "notices" / "andromaque-notice.xml").exists()
+    merged_xml = (output_dir / "xml" / "dramatic" / "andromaque.xml").read_text(encoding="utf-8")
+    merged_tree = etree.fromstring(merged_xml.encode("utf-8"))
+    act_divisions = merged_tree.xpath("//*[local-name()='body']/*[local-name()='div' and @type='act']")
+    assert len(act_divisions) == 2
 
 
 def test_site_builder_service_build_from_publication_request_fails_cleanly_on_invalid_request() -> None:
