@@ -124,71 +124,150 @@ def _layout(
   <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">
   <title>{html.escape(page_title)}</title>
   {head_extra_html}
+  <script>
+    (() => {{
+      const storageKey = "ets-theme";
+      const root = document.documentElement;
+      const savedTheme = window.localStorage.getItem(storageKey);
+      if (savedTheme === "light" || savedTheme === "dark") {{
+        root.dataset.theme = savedTheme;
+        return;
+      }}
+      const prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+      root.dataset.theme = prefersDark ? "dark" : "light";
+    }})();
+  </script>
   <style>
+    :root {{
+      color-scheme: light;
+      --font-body: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Palatino, "Times New Roman", serif;
+      --font-ui: "Avenir Next", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+      --bg: #f5f1e8;
+      --bg-panel: #fdfaf4;
+      --bg-soft: #f3ece0;
+      --ink: #2d2620;
+      --ink-muted: #5d5249;
+      --accent: #6d2f38;
+      --accent-soft: #8a4a54;
+      --line: #d8cbb7;
+      --header-bg: #12100f;
+      --header-ink: #f3ece0;
+      --header-muted: #d6c8b3;
+      --focus: #a8783a;
+      --shadow-soft: 0 1px 0 rgba(46, 34, 24, 0.04);
+    }}
+    html[data-theme="dark"] {{
+      color-scheme: dark;
+      --bg: #181412;
+      --bg-panel: #221c18;
+      --bg-soft: #2b231e;
+      --ink: #ede2cf;
+      --ink-muted: #c8b79f;
+      --accent: #c1878f;
+      --accent-soft: #ddb0b6;
+      --line: #4f4237;
+      --header-bg: #0e0b0a;
+      --header-ink: #f1e6d1;
+      --header-muted: #cdbda6;
+      --focus: #c99a59;
+      --shadow-soft: 0 1px 0 rgba(0, 0, 0, 0.25);
+    }}
     html {{ scroll-behavior: smooth; }}
-    body {{ font-family: Georgia, 'Times New Roman', serif; margin: 0; color: #1f2328; line-height: 1.5; }}
-    header {{ padding: 1rem 1.25rem; border-bottom: 1px solid #d5d7da; background: #f8f9fb; }}
-    main {{ display: grid; grid-template-columns: 280px 1fr; gap: 1rem; min-height: 100vh; }}
-    nav {{ border-right: 1px solid #eceef1; padding: 1rem 1.25rem; }}
+    body {{ margin: 0; background: var(--bg); color: var(--ink); line-height: 1.6; font-family: var(--font-body); }}
+    a {{ color: var(--accent); text-underline-offset: 0.14em; }}
+    a:hover {{ color: var(--accent-soft); }}
+    a:focus-visible, button:focus-visible, summary:focus-visible {{
+      outline: 2px solid var(--focus);
+      outline-offset: 2px;
+    }}
+    .site-header {{
+      background: var(--header-bg);
+      color: var(--header-ink);
+      border-bottom: 1px solid #000;
+      padding: 1rem 1.4rem;
+    }}
+    .site-header-row {{
+      display: flex;
+      justify-content: space-between;
+      align-items: start;
+      gap: 0.75rem 1rem;
+      flex-wrap: wrap;
+    }}
+    .site-header h1 {{ margin: 0; font-weight: 600; letter-spacing: 0.01em; font-size: clamp(1.45rem, 2.4vw, 1.95rem); }}
+    .site-header p {{ margin: 0.3rem 0 0; color: var(--header-muted); max-width: 66ch; }}
+    .theme-toggle {{
+      border: 1px solid rgba(243, 236, 224, 0.32);
+      background: transparent;
+      color: var(--header-ink);
+      font-family: var(--font-ui);
+      font-size: 0.85rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      padding: 0.4rem 0.65rem;
+      cursor: pointer;
+    }}
+    .theme-toggle:hover {{ border-color: rgba(243, 236, 224, 0.6); }}
+    main {{ display: grid; grid-template-columns: 250px minmax(0, 1fr); gap: 0.75rem; min-height: calc(100vh - 4.8rem); padding: 0.85rem 1rem 1.4rem; max-width: 1320px; margin: 0 auto; }}
+    nav {{ border: 1px solid var(--line); background: var(--bg-soft); padding: 0.9rem 0.95rem; box-shadow: var(--shadow-soft); }}
     nav ul {{ margin: 0; padding-left: 1.1rem; }}
     nav li {{ margin: 0.35rem 0; }}
     .site-nav {{ margin-bottom: 1rem; }}
     .site-nav.nested {{ margin-top: 0.35rem; }}
-    .nav-item > a, .nav-summary a {{ color: #1e3a5f; text-decoration: none; }}
-    .nav-item > a:hover, .nav-summary a:hover {{ text-decoration: underline; }}
-    .nav-label {{ color: #2d3d51; font-weight: 600; }}
+    .nav-item > a, .nav-summary a {{ color: var(--ink); text-decoration: none; }}
+    .nav-item > a:hover, .nav-summary a:hover {{ color: var(--accent); text-decoration: underline; }}
+    .nav-label {{ color: var(--ink); font-weight: 600; font-family: var(--font-ui); font-size: 0.92rem; letter-spacing: 0.02em; text-transform: uppercase; }}
     .nav-summary {{ cursor: pointer; }}
-    .nav-summary::marker {{ color: #66778c; }}
-    .nav-summary a[aria-current="page"], .nav-item > a[aria-current="page"] {{ font-weight: 700; }}
+    .nav-summary::marker {{ color: var(--ink-muted); }}
+    .nav-summary a[aria-current="page"], .nav-item > a[aria-current="page"] {{ font-weight: 700; color: var(--accent); }}
 
     .home-overview {{ margin-bottom: 1.4rem; }}
     .home-overview h2 {{ margin-bottom: 0.45rem; }}
-    .home-overview .home-project {{ margin: 0.25rem 0 0.55rem; color: #304257; }}
+    .home-overview .home-project {{ margin: 0.25rem 0 0.55rem; color: var(--ink-muted); font-style: italic; }}
     .home-overview dl {{ margin: 0; display: grid; grid-template-columns: 180px 1fr; gap: 0.35rem 0.9rem; }}
-    .home-overview dt {{ font-weight: 600; color: #304257; }}
-    .home-overview dd {{ margin: 0; color: #2e3946; }}
+    .home-overview dt {{ font-weight: 600; color: var(--ink-muted); }}
+    .home-overview dd {{ margin: 0; color: var(--ink); }}
     .home-editorial-section {{ margin: 1.1rem 0 1.35rem; }}
     .home-editorial-section h3 {{ margin-bottom: 0.45rem; }}
     .home-editorial-section p {{ margin: 0.4rem 0; }}
     .home-plays {{ margin-top: 1.3rem; }}
     .home-play-list {{ margin: 0.45rem 0 0; padding-left: 1.15rem; }}
     .home-play-list li {{ margin: 0.45rem 0; }}
-    .home-play-links {{ color: #3f5065; font-size: 0.95rem; }}
-    .home-general-notice {{ margin: 1rem 0 1.25rem; padding: 0.85rem 1rem; border: 1px solid #dce4ed; border-radius: 6px; background: #f8fafc; }}
-    section {{ padding: 1rem 1.25rem 2.5rem; max-width: 980px; }}
-    .meta {{ color: #505a67; }}
-    .dramatic-content {{ min-width: 0; max-width: 980px; }}
+    .home-play-links {{ color: var(--ink-muted); font-size: 0.95rem; }}
+    .home-general-notice {{ margin: 1rem 0 1.25rem; padding: 0.85rem 1rem; border: 1px solid var(--line); background: var(--bg-soft); }}
+    section {{ padding: 1rem 1.2rem 2.5rem; max-width: 960px; background: var(--bg-panel); border: 1px solid var(--line); box-shadow: var(--shadow-soft); min-width: 0; }}
+    .meta {{ color: var(--ink-muted); font-family: var(--font-ui); font-size: 0.94rem; }}
+    .dramatic-content {{ min-width: 0; max-width: 920px; }}
     .dramatic-anchor {{ display: block; height: 0; margin: 0; padding: 0; }}
     .branding {{ margin-top: 0.65rem; display: flex; gap: 0.65rem; align-items: center; flex-wrap: wrap; }}
-    .branding img {{ max-height: 54px; width: auto; border: 1px solid #dfe4eb; background: #fff; padding: 0.2rem; border-radius: 4px; }}
+    .branding img {{ max-height: 52px; width: auto; border: 1px solid rgba(243, 236, 224, 0.45); background: rgba(255, 255, 255, 0.92); padding: 0.2rem; }}
 
-    .notice-title-block {{ margin: 0.2rem 0 1rem; padding-bottom: 0.7rem; border-bottom: 1px solid #dde3ea; }}
+    .notice-title-block {{ margin: 0.2rem 0 1rem; padding-bottom: 0.7rem; border-bottom: 1px solid var(--line); }}
     .notice-title-block h2 {{ margin: 0 0 0.4rem; }}
-    .notice-subtitle {{ margin: 0.1rem 0 0.4rem; color: #4e6177; font-style: italic; }}
-    .notice-byline {{ margin: 0; color: #3f4d5d; }}
+    .notice-subtitle {{ margin: 0.1rem 0 0.4rem; color: var(--ink-muted); font-style: italic; }}
+    .notice-byline {{ margin: 0; color: var(--ink-muted); }}
 
-    .notice-meta {{ margin: 1rem 0 1.2rem; padding: 0.85rem 1rem; background: #f8fafc; border: 1px solid #dce4ed; border-radius: 6px; }}
+    .notice-meta {{ margin: 1rem 0 1.2rem; padding: 0.85rem 1rem; background: var(--bg-soft); border: 1px solid var(--line); }}
     .notice-meta dl {{ margin: 0; display: grid; grid-template-columns: 180px 1fr; gap: 0.35rem 0.9rem; }}
-    .notice-meta dt {{ font-weight: 600; color: #304257; }}
-    .notice-meta dd {{ margin: 0; color: #2e3946; }}
+    .notice-meta dt {{ font-weight: 600; color: var(--ink-muted); }}
+    .notice-meta dd {{ margin: 0; color: var(--ink); }}
 
-    .notice-front {{ margin: 1rem 0 1.2rem; color: #435365; }}
+    .notice-front {{ margin: 1rem 0 1.2rem; color: var(--ink-muted); }}
 
-    .notice-toc {{ margin: 1.2rem 0 1.8rem; padding: 0.9rem 1rem; border: 1px solid #dbe2eb; border-radius: 6px; background: #fcfdff; }}
+    .notice-toc {{ margin: 1.2rem 0 1.8rem; padding: 0.9rem 1rem; border: 1px solid var(--line); background: var(--bg-soft); }}
     .notice-toc h3 {{ margin: 0 0 0.6rem; }}
     .notice-toc ul {{ margin: 0.25rem 0 0.3rem; padding-left: 1.2rem; }}
     .notice-toc li {{ margin: 0.22rem 0; }}
-    .toc-label {{ display: inline-block; min-width: 3.9rem; margin-right: 0.35rem; color: #5d6c80; font-size: 0.86rem; text-transform: uppercase; letter-spacing: 0.03em; }}
+    .toc-label {{ display: inline-block; min-width: 3.9rem; margin-right: 0.35rem; color: var(--ink-muted); font-size: 0.86rem; text-transform: uppercase; letter-spacing: 0.03em; font-family: var(--font-ui); }}
 
     .notice-section {{ margin: 1.8rem 0; }}
-    .notice-group {{ margin: 2rem 0; padding: 0.7rem 0.9rem 0.8rem; border-left: 4px solid #8ca7c7; background: #f8fbff; }}
-    .notice-included-document {{ margin: 1.2rem 0 1.6rem; padding: 0.95rem 1rem; border: 1px solid #d7dfea; border-radius: 6px; background: #ffffff; }}
-    .notice-included-document .doc-meta {{ margin: 0.35rem 0 0.8rem; color: #4c5a6b; font-size: 0.93rem; }}
+    .notice-group {{ margin: 2rem 0; padding: 0.7rem 0.9rem 0.8rem; border-left: 4px solid var(--accent); background: var(--bg-soft); }}
+    .notice-included-document {{ margin: 1.2rem 0 1.6rem; padding: 0.95rem 1rem; border: 1px solid var(--line); background: var(--bg-panel); }}
+    .notice-included-document .doc-meta {{ margin: 0.35rem 0 0.8rem; color: var(--ink-muted); font-size: 0.93rem; }}
     .notice-section h3, .notice-section h4, .notice-section h5 {{ margin: 0 0 0.65rem; line-height: 1.28; }}
     .notice-section p {{ margin: 0.6rem 0; }}
 
     .note-ref a {{ text-decoration: none; }}
-    .notice-notes {{ margin-top: 2.4rem; padding-top: 1rem; border-top: 1px solid #dde3ea; }}
+    .notice-notes {{ margin-top: 2.4rem; padding-top: 1rem; border-top: 1px solid var(--line); }}
     .notice-notes h3 {{ margin-top: 0; }}
     .notice-notes ol {{ padding-left: 1.4rem; }}
     .notice-notes li {{ margin: 0.4rem 0; }}
@@ -201,9 +280,9 @@ def _layout(
     @media (min-width: 901px) {{
       nav {{
         position: sticky;
-        top: 1rem;
+        top: 0.75rem;
         align-self: start;
-        max-height: calc(100vh - 2rem);
+        max-height: calc(100vh - 1.5rem);
         overflow: auto;
       }}
     }}
@@ -214,9 +293,9 @@ def _layout(
         position: static;
         max-height: none;
         overflow: visible;
-        border-right: none;
-        border-bottom: 1px solid #eceef1;
+        border-right: 1px solid var(--line);
       }}
+      section {{ padding: 1rem; }}
       .notice-meta dl {{ grid-template-columns: 1fr; }}
       .notice-meta dt {{ margin-top: 0.25rem; }}
       .home-overview dl {{ grid-template-columns: 1fr; }}
@@ -224,15 +303,40 @@ def _layout(
   </style>
 </head>
 <body>
-  <header>
-    <h1>{html.escape(manifest.config.site_title)}</h1>
-    <p>{html.escape(manifest.config.site_subtitle)}</p>
+  <header class="site-header">
+    <div class="site-header-row">
+      <div>
+        <h1>{html.escape(manifest.config.site_title)}</h1>
+        <p>{html.escape(manifest.config.site_subtitle)}</p>
+      </div>
+      <button class="theme-toggle" type="button" data-theme-toggle aria-label="Basculer le theme">Mode sombre</button>
+    </div>
     {_branding_html(manifest, current_href)}
   </header>
   <main>
     <nav aria-label=\"Navigation principale\">{_nav_html(manifest, current_href=current_href)}</nav>
     <section>{content_html}</section>
   </main>
+  <script>
+    (() => {{
+      const storageKey = "ets-theme";
+      const root = document.documentElement;
+      const button = document.querySelector("[data-theme-toggle]");
+      if (!button) return;
+
+      function refreshLabel() {{
+        button.textContent = root.dataset.theme === "dark" ? "Mode clair" : "Mode sombre";
+      }}
+
+      button.addEventListener("click", () => {{
+        root.dataset.theme = root.dataset.theme === "dark" ? "light" : "dark";
+        window.localStorage.setItem(storageKey, root.dataset.theme);
+        refreshLabel();
+      }});
+
+      refreshLabel();
+    }})();
+  </script>
 </body>
 </html>
 """
