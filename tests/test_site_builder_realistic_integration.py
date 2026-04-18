@@ -150,7 +150,7 @@ def test_realistic_publication_build_links_output_tree_and_downloads() -> None:
     home_html = (output_dir / "index.html").read_text(encoding="utf-8")
 
     assert "../notices/introduction.html" in play_html
-    assert 'class="play-structure-nav"' in play_html
+    assert 'class="play-structure-nav"' not in play_html
     assert 'class="play-reading-layout"' not in play_html
     assert 'id="contenu-editorial"' in play_html
     assert "IM Fell DW Pica" in play_html
@@ -167,12 +167,18 @@ def test_realistic_publication_build_links_output_tree_and_downloads() -> None:
     assert (output_dir / "assets" / "brand" / "palette.txt").exists()
 
     play_doc = lxml_html.document_fromstring(play_html)
-    local_anchor_targets = play_doc.xpath("//main/nav//div[contains(@class, 'play-structure-nav')]//a/@href")
+    local_anchor_targets = play_doc.xpath("//main/nav//a[starts-with(@href, '../plays/andromaque.html#')]/@href")
     assert local_anchor_targets
     for href in local_anchor_targets:
-        anchor_id = href[1:]
+        anchor_id = href.split("#", maxsplit=1)[1]
         assert play_doc.xpath(f"//*[@id='{anchor_id}']")
-    assert not play_doc.xpath("//main/nav//a[starts-with(@href, '../plays/andromaque.html#')]")
+    assert "Lecture" not in play_html
+    assert "Lire" not in play_html
+    assert "Dans la piece" not in play_html
+
+    intro_notice_doc = lxml_html.document_fromstring(intro_notice_html)
+    assert "Aller a la piece associee" not in intro_notice_html
+    assert not intro_notice_doc.xpath("//section//a[starts-with(@href, '../plays/')]")
 
     relpaths = {path.relative_to(output_dir).as_posix() for path in result.generated_pages}
     assert relpaths == {

@@ -25,7 +25,7 @@ def _division_label(node: etree._Element, default_kind: str, position: int) -> s
     if default_kind == "act":
         base = "Acte"
     elif default_kind == "scene":
-        base = "Scene"
+        base = "Scène"
     else:
         base = default_kind.capitalize()
     return f"{base} {number}" if number else f"{base} {position}"
@@ -132,4 +132,3 @@ def extract_play_navigation(play: PlayEntry) -> PlayNavigation:
 
 def index_play_navigation(items: tuple[PlayNavigation, ...]) -> dict[str, PlayNavigation]:
     return {item.play_slug: item for item in items}
-

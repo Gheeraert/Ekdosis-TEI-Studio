@@ -91,15 +91,15 @@ def test_builder_generates_cross_links_and_home_intro_from_explicit_mapping() ->
     assert "../notices/andromaque-notice.html" in play_html
     assert "../plays/andromaque.html" in notice_html
     assert "Pour qui sont ces serpents" in play_html
-    assert 'class="play-structure-nav"' in play_html
 
     doc = lxml_html.document_fromstring(play_html)
     assert len(doc.xpath("//main/nav")) == 1
-    assert doc.xpath("//main/nav//div[contains(@class, 'play-structure-nav')]")
-    assert not doc.xpath("//section//aside[contains(@class, 'play-structure-nav')]")
+    assert not doc.xpath("//main/nav//*[contains(@class, 'play-structure-nav')]")
     assert doc.xpath("//section[@id='contenu-editorial' and contains(@class, 'dramatic-content')]")
     assert doc.xpath("//main/nav//details[contains(@class, 'nav-details')]")
     assert doc.xpath("//main/nav//ul[contains(@class, 'site-nav') and contains(@class, 'nested')]")
+    assert doc.xpath("//main/nav//a[contains(normalize-space(.), 'Acte 1')]")
+    assert doc.xpath("//main/nav//a[contains(normalize-space(.), 'Scène 1')]")
     assert "IM Fell DW Pica" in play_html
     assert ".vers-container" in play_html
     assert "#container {" not in play_html
@@ -107,18 +107,20 @@ def test_builder_generates_cross_links_and_home_intro_from_explicit_mapping() ->
     assert "position: sticky" in play_html
     assert "prefers-reduced-motion: reduce" in play_html
 
-    nav_targets = doc.xpath("//main/nav//div[contains(@class, 'play-structure-nav')]//a/@href")
+    nav_targets = doc.xpath("//main/nav//a[starts-with(@href, '../plays/andromaque.html#')]/@href")
     assert nav_targets
     for href in nav_targets:
-        assert href.startswith("#")
-        anchor_id = href[1:]
+        anchor_id = href.split("#", maxsplit=1)[1]
         assert doc.xpath(f"//*[@id='{anchor_id}']")
 
-    assert len(doc.xpath("//main/nav//div[contains(@class, 'play-structure-nav')]")) == 1
-    assert not doc.xpath("//main/nav//a[starts-with(@href, '../plays/andromaque.html#')]")
-    assert not doc.xpath(
-        "//main/nav//ul[contains(@class, 'site-nav')]//a[starts-with(normalize-space(.), 'Acte') or starts-with(normalize-space(.), 'Scene')]"
-    )
+    assert "Lecture" not in play_html
+    assert "Lire" not in play_html
+    assert "Dans la piece" not in play_html
+    assert "Lire" not in home_html
+
+    notice_doc = lxml_html.document_fromstring(notice_html)
+    assert "Aller a la piece associee" not in notice_html
+    assert not notice_doc.xpath("//section//a[starts-with(@href, '../plays/')]")
 
 
 def test_builder_copies_branding_assets_and_references_logos() -> None:
@@ -292,21 +294,26 @@ def test_builder_supports_general_notice_home_editorial_sections_and_hierarchica
 
     assert "Presentation du projet" in home_html
     assert "Cadre institutionnel" in home_html
-    assert "Notice generale" in home_html
+    assert "Introduction générale" in home_html
     assert 'href="notices/bibliographie.html"' in home_html
     assert result.notice_count >= 2
 
     doc = lxml_html.document_fromstring(play_html)
     assert doc.xpath("//main/nav//a[@href='../notices/bibliographie.html']")
-    assert doc.xpath("//main/nav//span[contains(@class, 'nav-label') and contains(., 'Pieces')]")
-    assert doc.xpath("//main/nav//a[contains(., 'Lecture')]")
-    assert doc.xpath("//main/nav//a[contains(., 'Notice de piece')]")
+    assert doc.xpath("//main/nav//span[contains(@class, 'nav-label') and contains(., 'Pièces')]")
+    assert not doc.xpath("//main/nav//*[normalize-space(.)='Lecture']")
+    assert not doc.xpath("//main/nav//*[normalize-space(.)='Lire']")
+    assert not doc.xpath("//main/nav//*[contains(normalize-space(.), 'Dans la piece')]")
+    assert doc.xpath("//main/nav//a[contains(., 'Notice de pièce')]")
     assert doc.xpath("//main/nav//a[contains(., 'Acte 1')]")
-    assert doc.xpath("//main/nav//a[contains(., 'Scene 1')]")
-    assert not doc.xpath("//main/nav//a[starts-with(@href, '../plays/andromaque.html#')]")
+    assert doc.xpath("//main/nav//a[contains(., 'Scène 1')]")
+    andromaque_anchors = doc.xpath("//main/nav//a[starts-with(@href, '../plays/andromaque.html#')]/@href")
+    assert andromaque_anchors
+    for href in andromaque_anchors:
+        assert doc.xpath(f"//*[@id='{href.split('#', maxsplit=1)[1]}']")
 
 
-def test_builder_local_play_navigation_matches_manifest_play_navigation_and_has_single_block() -> None:
+def test_builder_sidebar_play_navigation_matches_manifest_play_navigation_without_local_block() -> None:
     base_dir = _runtime_dir("site_builder_nav_coherence")
     output_dir = base_dir / "site_nav_coherence"
     config = site_config_from_dict(
@@ -330,14 +337,15 @@ def test_builder_local_play_navigation_matches_manifest_play_navigation_and_has_
         (scene.label, scene.anchor_id) for act in andromaque_structure.acts for scene in act.scenes
     ]
 
-    local_pairs = [
-        (node.text_content().strip(), node.get("href", "").lstrip("#"))
-        for node in doc.xpath("//main/nav//div[contains(@class, 'play-structure-nav')]//a")
+    sidebar_pairs = [
+        (node.text_content().strip(), node.get("href", "").split("#", maxsplit=1)[1])
+        for node in doc.xpath("//main/nav//a[starts-with(@href, '../plays/andromaque.html#')]")
     ]
-    assert local_pairs == expected_pairs
-    assert len(doc.xpath("//main/nav//div[contains(@class, 'play-structure-nav')]")) == 1
-
-    assert not doc.xpath("//main/nav//a[starts-with(@href, '../plays/andromaque.html#')]")
+    assert sidebar_pairs == expected_pairs
+    assert not doc.xpath("//main/nav//*[contains(@class, 'play-structure-nav')]")
+    assert "Lecture" not in play_html
+    assert "Lire" not in play_html
+    assert "Dans la piece" not in play_html
 
     for _, anchor_id in expected_pairs:
         assert doc.xpath(f"//*[@id='{anchor_id}']")
@@ -363,8 +371,9 @@ def test_play_page_keeps_xml_download_and_embeds_transformed_text() -> None:
     doc = lxml_html.document_fromstring(play_html)
 
     assert doc.xpath("//a[@href='../xml/dramatic/andromaque.xml' and @download]")
-    assert doc.xpath("//a[@href='../notices/andromaque-notice.html']")
-    assert doc.xpath("//main/nav//div[contains(@class, 'play-structure-nav')]")
+    assert doc.xpath("//main/nav//a[@href='../notices/andromaque-notice.html']")
+    assert doc.xpath("//main/nav//a[starts-with(@href, '../plays/andromaque.html#')]")
+    assert not doc.xpath("//main/nav//*[contains(@class, 'play-structure-nav')]")
     assert doc.xpath("//section[@id='contenu-editorial' and contains(@class, 'dramatic-content')]")
     assert "IM Fell DW Pica" in play_html
     assert doc.xpath("//*[contains(@class, 'locuteur')]")
@@ -395,12 +404,12 @@ def test_play_anchor_injection_prefers_outer_title_wrappers_and_keeps_scene_alig
                 start_speech_index=0,
                 scenes=(
                     PlaySceneNavigation(
-                        label="Scene 1",
+                        label="Scène 1",
                         anchor_id="ets-nav-andromaque-scene-1",
                         start_speech_index=0,
                     ),
                     PlaySceneNavigation(
-                        label="Scene 2",
+                        label="Scène 2",
                         anchor_id="ets-nav-andromaque-scene-2",
                         start_speech_index=1,
                     ),
@@ -414,7 +423,7 @@ def test_play_anchor_injection_prefers_outer_title_wrappers_and_keeps_scene_alig
         play_navigation=(play_navigation,),
         navigation=(
             NavigationItem(
-                label="Pieces",
+                label="Pièces",
                 href="",
                 kind="plays_group",
                 children=(
@@ -422,7 +431,25 @@ def test_play_anchor_injection_prefers_outer_title_wrappers_and_keeps_scene_alig
                         label=play.title,
                         href="",
                         kind="play_group",
-                        children=(NavigationItem(label="Lecture", href=f"plays/{play.slug}.html", kind="play_page"),),
+                        children=(
+                            NavigationItem(
+                                label="Acte 1",
+                                href=f"plays/{play.slug}.html#ets-nav-andromaque-act-1",
+                                kind="act",
+                                children=(
+                                    NavigationItem(
+                                        label="Scène 1",
+                                        href=f"plays/{play.slug}.html#ets-nav-andromaque-scene-1",
+                                        kind="scene",
+                                    ),
+                                    NavigationItem(
+                                        label="Scène 2",
+                                        href=f"plays/{play.slug}.html#ets-nav-andromaque-scene-2",
+                                        kind="scene",
+                                    ),
+                                ),
+                            ),
+                        ),
                     ),
                 ),
             ),
@@ -455,11 +482,11 @@ def test_play_anchor_injection_prefers_outer_title_wrappers_and_keeps_scene_alig
         "//div[contains(concat(' ', normalize-space(@class), ' '), ' scene-titre ') and @id='ets-nav-andromaque-scene-2']"
     )
 
-    local_targets = doc.xpath("//main/nav//div[contains(@class, 'play-structure-nav')]//a/@href")
+    local_targets = doc.xpath("//main/nav//a[starts-with(@href, '../plays/andromaque.html#')]/@href")
     assert local_targets == [
-        "#ets-nav-andromaque-act-1",
-        "#ets-nav-andromaque-scene-1",
-        "#ets-nav-andromaque-scene-2",
+        "../plays/andromaque.html#ets-nav-andromaque-act-1",
+        "../plays/andromaque.html#ets-nav-andromaque-scene-1",
+        "../plays/andromaque.html#ets-nav-andromaque-scene-2",
     ]
     for href in local_targets:
-        assert doc.xpath(f"//*[@id='{href[1:]}']")
+        assert doc.xpath(f"//*[@id='{href.split('#', maxsplit=1)[1]}']")

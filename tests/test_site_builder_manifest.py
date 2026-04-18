@@ -45,8 +45,9 @@ def test_manifest_builds_navigation_and_notice_entries() -> None:
     assert any(item.kind == "plays_group" for item in flat_nav)
     assert any(item.kind == "play_group" for item in flat_nav)
     assert any(item.kind == "notice" for item in flat_nav)
-    assert not any(item.kind == "act" for item in flat_nav)
-    assert not any(item.kind == "scene" for item in flat_nav)
+    assert any(item.kind == "act" for item in flat_nav)
+    assert any(item.kind == "scene" for item in flat_nav)
+    assert not any(item.kind == "play_page" for item in flat_nav)
     assert any(page.kind == "notice" for page in manifest.pages)
     assert {play.slug for play in manifest.plays} == {"andromaque", "berenice"}
     assert manifest.notices[0].slug == "andromaque-notice"
@@ -99,13 +100,13 @@ def test_manifest_supports_optional_general_notice_and_hierarchical_navigation()
 
     plays_group = next(item for item in manifest.navigation if item.kind == "plays_group")
     andromaque_branch = next(item for item in plays_group.children if item.label == "Andromaque")
-    assert any(child.kind == "play_page" for child in andromaque_branch.children)
-    assert any(child.label == "Notice de piece" for child in andromaque_branch.children)
-    assert not any(child.kind == "act" for child in andromaque_branch.children)
-    assert not any(child.kind == "scene" for child in andromaque_branch.children)
+    assert not any(child.kind == "play_page" for child in andromaque_branch.children)
+    assert any(child.label == "Notice de pièce" for child in andromaque_branch.children)
+    assert any(child.kind == "act" for child in andromaque_branch.children)
+    assert any(scene.kind == "scene" for act in andromaque_branch.children for scene in act.children)
 
 
-def test_manifest_navigation_keeps_play_branch_without_act_scene_details() -> None:
+def test_manifest_navigation_includes_play_notice_acts_and_scenes() -> None:
     config = site_config_from_dict(
         {
             "site_title": "ETS Demo",
@@ -121,6 +122,14 @@ def test_manifest_navigation_keeps_play_branch_without_act_scene_details() -> No
     plays_group = next(item for item in manifest.navigation if item.kind == "plays_group")
     for play_structure in manifest.play_navigation:
         play_branch = next(item for item in plays_group.children if item.label == play_structure.play_title)
-        assert any(node.kind == "play_page" for node in play_branch.children)
-        assert not any(node.kind == "act" for node in play_branch.children)
-        assert not any(node.kind == "scene" for node in play_branch.children)
+        assert not any(node.kind == "play_page" for node in play_branch.children)
+        for act in play_structure.acts:
+            act_node = next(node for node in play_branch.children if node.kind == "act" and node.label == act.label)
+            assert act_node.href == f"plays/{play_structure.play_slug}.html#{act.anchor_id}"
+            for scene in act.scenes:
+                scene_node = next(
+                    node
+                    for node in act_node.children
+                    if node.kind == "scene" and node.label == scene.label
+                )
+                assert scene_node.href == f"plays/{play_structure.play_slug}.html#{scene.anchor_id}"

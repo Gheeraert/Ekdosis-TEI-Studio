@@ -246,4 +246,4 @@ def test_site_builder_service_publication_request_supports_general_notice_and_ho
     assert "notices/heraldique-et-papaute.html" in result.generated_page_relpaths
     home_html = (output_dir / "index.html").read_text(encoding="utf-8")
     assert "Cadre scientifique" in home_html
-    assert "Notice generale" in home_html
+    assert "Introduction générale" in home_html

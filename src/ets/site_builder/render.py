@@ -38,6 +38,8 @@ def _kind_class(kind: str) -> str:
 def _nav_item_contains_current(item: NavigationItem, current_href: str) -> bool:
     if item.href == current_href:
         return True
+    if item.href and item.href.split("#", maxsplit=1)[0] == current_href:
+        return True
     return any(_nav_item_contains_current(child, current_href) for child in item.children)
 
 
@@ -72,9 +74,9 @@ def _nav_item_html(item: NavigationItem, current_href: str) -> str:
     )
 
 
-def _nav_html(manifest: SiteManifest, current_href: str, sidebar_extra_html: str = "") -> str:
+def _nav_html(manifest: SiteManifest, current_href: str) -> str:
     items = "".join(_nav_item_html(item, current_href) for item in manifest.navigation)
-    return f'<ul class="site-nav">{items}</ul>{sidebar_extra_html}'
+    return f'<ul class="site-nav">{items}</ul>'
 
 
 def _branding_html(manifest: SiteManifest, current_href: str) -> str:
@@ -98,7 +100,6 @@ def _layout(
     page_title: str,
     current_href: str,
     content_html: str,
-    sidebar_extra_html: str = "",
     head_extra_html: str = "",
 ) -> str:
     return f"""<!doctype html>
@@ -141,10 +142,6 @@ def _layout(
     .home-general-notice {{ margin: 1rem 0 1.25rem; padding: 0.85rem 1rem; border: 1px solid #dce4ed; border-radius: 6px; background: #f8fafc; }}
     section {{ padding: 1rem 1.25rem 2.5rem; max-width: 980px; }}
     .meta {{ color: #505a67; }}
-    .play-structure-nav {{ border-top: 1px solid #e3e8ef; padding-top: 0.85rem; }}
-    .play-structure-nav h3 {{ margin: 0 0 0.55rem; font-size: 1rem; color: #314356; }}
-    .play-structure-nav ul {{ margin: 0; padding-left: 1rem; }}
-    .play-structure-nav li {{ margin: 0.28rem 0; }}
     .dramatic-content {{ min-width: 0; max-width: 980px; }}
     .dramatic-anchor {{ display: block; height: 0; margin: 0; padding: 0; }}
     .branding {{ margin-top: 0.65rem; display: flex; gap: 0.65rem; align-items: center; flex-wrap: wrap; }}
@@ -218,20 +215,12 @@ def _layout(
     {_branding_html(manifest, current_href)}
   </header>
   <main>
-    <nav aria-label=\"Navigation principale\">{_nav_html(manifest, current_href=current_href, sidebar_extra_html=sidebar_extra_html)}</nav>
+    <nav aria-label=\"Navigation principale\">{_nav_html(manifest, current_href=current_href)}</nav>
     <section>{content_html}</section>
   </main>
 </body>
 </html>
 """
-
-
-def _notice_for_play(manifest: SiteManifest, play_slug: str) -> NoticeEntry | None:
-    for notice in manifest.notices:
-        if notice.related_play_slug == play_slug:
-            return notice
-    return None
-
 
 def _class_tokens(node: etree._Element) -> set[str]:
     class_attr = node.get("class") or ""
@@ -278,26 +267,6 @@ def _play_navigation_for(manifest: SiteManifest, play: PlayEntry) -> PlayNavigat
         return extract_play_navigation(play)
     except ValueError:
         return PlayNavigation(play_slug=play.slug, play_title=play.title, acts=())
-
-
-def _play_structure_nav_html(play_navigation: PlayNavigation) -> str:
-    if not play_navigation.acts:
-        return ""
-    lines: list[str] = ['<div class="play-structure-nav" aria-label="Navigation actes et scenes">', "<h3>Dans la piece</h3>", "<ul>"]
-    for act in play_navigation.acts:
-        lines.append(
-            f'<li><a href="#{html.escape(act.anchor_id, quote=True)}">{html.escape(act.label)}</a>'
-        )
-        if act.scenes:
-            lines.append("<ul>")
-            for scene in act.scenes:
-                lines.append(
-                    f'<li><a href="#{html.escape(scene.anchor_id, quote=True)}">{html.escape(scene.label)}</a></li>'
-                )
-            lines.append("</ul>")
-        lines.append("</li>")
-    lines.append("</ul></div>")
-    return "".join(lines)
 
 
 def _ensure_anchor_id(body: etree._Element, target: etree._Element | None, desired_id: str) -> None:
@@ -373,12 +342,12 @@ def _dramatic_assets_from_export_doc(export_doc: etree._Element) -> str:
     return "".join(chunks)
 
 
-def _play_reading_html(play: PlayEntry, play_navigation: PlayNavigation) -> tuple[str, str, str]:
+def _play_reading_html(play: PlayEntry, play_navigation: PlayNavigation) -> tuple[str, str]:
     try:
         parser = etree.XMLParser(recover=False, remove_blank_text=False)
         tei_tree = etree.parse(str(play.source_path), parser)
     except (OSError, etree.XMLSyntaxError):
-        return _play_structure_nav_html(play_navigation), '<article class="dramatic-content"></article>', ""
+        return '<article class="dramatic-content"></article>', ""
 
     tei_xml = etree.tostring(tei_tree.getroot(), encoding="unicode")
     export_html = render_html_export_from_tei(
@@ -394,7 +363,7 @@ def _play_reading_html(play: PlayEntry, play_navigation: PlayNavigation) -> tupl
     asset_html = _dramatic_assets_from_export_doc(doc)
     sections = doc.xpath("//section[@id='contenu-editorial']")
     if not sections:
-        return _play_structure_nav_html(play_navigation), '<article class="dramatic-content"></article>', asset_html
+        return '<article class="dramatic-content"></article>', asset_html
 
     editorial = sections[0]
     existing_class = (editorial.get("class") or "").strip()
@@ -404,7 +373,7 @@ def _play_reading_html(play: PlayEntry, play_navigation: PlayNavigation) -> tupl
     editorial.set("class", " ".join(class_parts))
     _inject_play_anchors(editorial, play_navigation)
     dramatic_html = etree.tostring(editorial, encoding="unicode", method="html")
-    return _play_structure_nav_html(play_navigation), dramatic_html, asset_html
+    return dramatic_html, asset_html
 
 
 def _homepage_sections(manifest: SiteManifest) -> tuple[HomePageSection, ...]:
@@ -447,21 +416,10 @@ def _render_home_editorial_sections(manifest: SiteManifest) -> str:
 
 def _render_home_play_list(manifest: SiteManifest) -> str:
     if not manifest.plays:
-        return '<section class="home-plays" id="pieces"><h3>Pieces</h3><p class="meta">Aucune piece detectee.</p></section>'
+        return '<section class="home-plays" id="pieces"><h3>Pièces</h3><p class="meta">Aucune piece detectee.</p></section>'
 
-    items: list[str] = []
-    for play in manifest.plays:
-        links = [f'<a href="{html.escape(f"plays/{play.slug}.html", quote=True)}">Lire</a>']
-        notice = _notice_for_play(manifest, play.slug)
-        if notice is not None:
-            links.append(
-                f'<a href="{html.escape(f"notices/{notice.slug}.html", quote=True)}">Notice de piece</a>'
-            )
-        links_html = " | ".join(links)
-        items.append(
-            f"<li><strong>{html.escape(play.title)}</strong><br><span class=\"home-play-links\">{links_html}</span></li>"
-        )
-    return f'<section class="home-plays" id="pieces"><h3>Pieces</h3><ul class="home-play-list">{"".join(items)}</ul></section>'
+    items = [f"<li><strong>{html.escape(play.title)}</strong></li>" for play in manifest.plays]
+    return f'<section class="home-plays" id="pieces"><h3>Pièces</h3><ul class="home-play-list">{"".join(items)}</ul></section>'
 
 
 def _render_home_general_notice(manifest: SiteManifest) -> str:
@@ -471,7 +429,7 @@ def _render_home_general_notice(manifest: SiteManifest) -> str:
         if notice.slug == manifest.general_notice_slug:
             return (
                 f'<section class="home-general-notice">'
-                f"<h3>Notice generale</h3>"
+                f"<h3>Introduction générale</h3>"
                 f'<p><a href="{html.escape(f"notices/{notice.slug}.html", quote=True)}">'
                 f"{html.escape(notice.title)}</a></p>"
                 f"</section>"
@@ -500,16 +458,11 @@ def render_play_page(manifest: SiteManifest, play: PlayEntry) -> str:
         lines.append(
             f'<p><a href="../{html.escape(play.xml_download_relpath, quote=True)}" download>Telecharger le XML</a></p>'
         )
-    notice = _notice_for_play(manifest, play.slug)
-    if notice is not None:
-        lines.append(
-            f'<p><a href="../notices/{html.escape(notice.slug, quote=True)}.html">Lire la notice savante associee</a></p>'
-        )
     if manifest.config.credits:
         lines.append(f'<p class="meta">{html.escape(manifest.config.credits)}</p>')
 
     play_navigation = _play_navigation_for(manifest, play)
-    navigation_html, dramatic_html, dramatic_assets = _play_reading_html(play, play_navigation)
+    dramatic_html, dramatic_assets = _play_reading_html(play, play_navigation)
     lines.append(dramatic_html)
 
     return _layout(
@@ -517,7 +470,6 @@ def render_play_page(manifest: SiteManifest, play: PlayEntry) -> str:
         page_title=play.title,
         current_href=f"plays/{play.slug}.html",
         content_html="".join(lines),
-        sidebar_extra_html=navigation_html,
         head_extra_html=dramatic_assets,
     )
 
@@ -632,7 +584,7 @@ def _render_metadata_block(notice: NoticeEntry, document: NoticeDocument) -> str
     rows.append(("Type de texte", html.escape(document.text_type)))
     rows.append(("Modele", html.escape(document.notice_kind)))
     if document.related_play_slug:
-        rows.append(("Piece associee", html.escape(document.related_play_slug)))
+        rows.append(("Pièce associée", html.escape(document.related_play_slug)))
     if document.notice_kind == "master_volume" and document.included_documents:
         rows.append(("Documents inclus", str(len(document.included_documents))))
     if notice.xml_download_relpath:
@@ -653,30 +605,11 @@ def _render_metadata_block(notice: NoticeEntry, document: NoticeDocument) -> str
     return "".join(chunks)
 
 
-def _associated_play_link(manifest: SiteManifest, related_play_slug: str | None) -> str:
-    if not related_play_slug:
-        return ""
-    for play in manifest.plays:
-        if play.slug == related_play_slug:
-            return (
-                f'<p><a href="../plays/{html.escape(play.slug, quote=True)}.html">'
-                f'Aller a la piece associee: {html.escape(play.title)}</a></p>'
-            )
-    return (
-        f'<p><a href="../plays/{html.escape(related_play_slug, quote=True)}.html">'
-        f'Aller a la piece associee ({html.escape(related_play_slug)})</a></p>'
-    )
-
-
 def _render_notice_document(manifest: SiteManifest, notice: NoticeEntry, document: NoticeDocument) -> str:
     ref_counts: dict[str, int] = {}
     first_refs: dict[str, str] = {}
 
     lines: list[str] = [_render_title_block(notice, document), _render_metadata_block(notice, document)]
-    play_link = _associated_play_link(manifest, notice.related_play_slug)
-    if play_link:
-        lines.append(play_link)
-
     if document.front_title_page:
         lines.append("<div class=\"notice-front\">")
         lines.extend(f"<p>{html.escape(item)}</p>" for item in document.front_title_page)
@@ -721,7 +654,6 @@ def render_notice_page(manifest: SiteManifest, notice: NoticeEntry) -> str:
     else:
         content = (
             f'<h2>{html.escape(notice.title)}</h2>'
-            f"{_associated_play_link(manifest, notice.related_play_slug)}"
             '<p class="meta">Notice sans document structure.</p>'
         )
     return _layout(

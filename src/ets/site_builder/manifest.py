@@ -136,6 +136,7 @@ def _collect_play_navigation(plays: list[PlayEntry], warnings: list[str]) -> tup
 def _build_navigation_tree(
     *,
     plays: list[PlayEntry],
+    play_navigation: tuple[PlayNavigation, ...],
     notices: list[NoticeEntry],
     general_notice_slug: str | None,
 ) -> tuple[NavigationItem, ...]:
@@ -149,31 +150,46 @@ def _build_navigation_tree(
     if general_notice_slug:
         navigation.append(
             NavigationItem(
-                label="Notice generale",
+                label="Introduction générale",
                 href=f"notices/{general_notice_slug}.html",
                 kind="notice_general",
             )
         )
 
+    play_nav_by_slug = {item.play_slug: item for item in play_navigation}
     play_nodes: list[NavigationItem] = []
     for play in plays:
-        children: list[NavigationItem] = [
-            NavigationItem(
-                label="Lecture",
-                href=f"plays/{play.slug}.html",
-                kind="play_page",
-            )
-        ]
+        children: list[NavigationItem] = []
 
         related_notice = notice_by_play_slug.get(play.slug)
         if related_notice is not None:
             children.append(
                 NavigationItem(
-                    label="Notice de piece",
+                    label="Notice de pièce",
                     href=f"notices/{related_notice.slug}.html",
                     kind="notice",
                 )
             )
+
+        play_structure = play_nav_by_slug.get(play.slug)
+        if play_structure is not None:
+            for act in play_structure.acts:
+                scene_nodes = tuple(
+                    NavigationItem(
+                        label=scene.label,
+                        href=f"plays/{play.slug}.html#{scene.anchor_id}",
+                        kind="scene",
+                    )
+                    for scene in act.scenes
+                )
+                children.append(
+                    NavigationItem(
+                        label=act.label,
+                        href=f"plays/{play.slug}.html#{act.anchor_id}",
+                        kind="act",
+                        children=scene_nodes,
+                    )
+                )
 
         play_nodes.append(
             NavigationItem(
@@ -187,7 +203,7 @@ def _build_navigation_tree(
     if play_nodes:
         navigation.append(
             NavigationItem(
-                label="Pieces",
+                label="Pièces",
                 href="",
                 kind="plays_group",
                 children=tuple(play_nodes),
@@ -297,6 +313,7 @@ def build_site_manifest(config: SiteConfig) -> SiteManifest:
 
     navigation = _build_navigation_tree(
         plays=plays,
+        play_navigation=play_navigation,
         notices=notices if config.publish_notices else [],
         general_notice_slug=general_notice_slug if config.publish_notices else None,
     )
