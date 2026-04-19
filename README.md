@@ -150,6 +150,7 @@ Whenever possible, new behavior should be added through:
 - `docs/SPEC_V2.md`
 - `docs/ETS_SITE_BUILDER.md`
 - `docs/SITE_BUILDER_TARGET.md`
+- `docs/MARKDOWN_EDITOR.md`
 
 ## Current development principle
 

@@ -8,6 +8,7 @@ from typing import Callable
 import webbrowser
 
 from ets.annotations import Annotation, AnnotationCollection, AnnotationValidationError
+from ets.markdown_editor import MarkdownEditorWidget
 from ets.application import (
     AppDiagnostic,
     merge_dramatic_tei_files,
@@ -141,8 +142,20 @@ class MainWindow(ttk.Frame):
         self.top.columnconfigure(0, weight=1)
         self.top.rowconfigure(0, weight=1)
 
-        self.editor = TextEditor(self.top)
+        self.editor_tabs = ttk.Notebook(self.top)
+        self.editor_tabs.grid(row=0, column=0, sticky="nsew")
+
+        self.transcription_tab = ttk.Frame(self.editor_tabs)
+        self.transcription_tab.columnconfigure(0, weight=1)
+        self.transcription_tab.rowconfigure(0, weight=1)
+        self.editor = TextEditor(self.transcription_tab)
         self.editor.grid(row=0, column=0, sticky="nsew")
+
+        self.markdown_editor = MarkdownEditorWidget(self.editor_tabs)
+
+        self.editor_tabs.add(self.transcription_tab, text="Transcription")
+        self.editor_tabs.add(self.markdown_editor, text="Éditeur Markdown")
+        self.editor_tabs.bind("<<NotebookTabChanged>>", self._on_editor_tab_changed, add="+")
 
         self.bottom = ttk.Frame(self.vertical_pane)
         self.bottom.columnconfigure(0, weight=1)
@@ -185,6 +198,30 @@ class MainWindow(ttk.Frame):
         self._refresh_config_ui()
         self._install_menus()
         self._install_shortcuts()
+        self.markdown_editor.reset_split_view()
+
+    def _on_editor_tab_changed(self, _event: tk.Event[tk.Misc]) -> None:
+        self._refresh_window_title()
+
+    def _is_markdown_mode(self) -> bool:
+        selected = self.editor_tabs.select()
+        return bool(selected) and self.editor_tabs.nametowidget(selected) is self.markdown_editor
+
+    def _select_markdown_mode(self) -> None:
+        self.editor_tabs.select(self.markdown_editor)
+        self.markdown_editor.focus_source()
+
+    def _refresh_window_title(self) -> None:
+        if self._is_markdown_mode():
+            if self.markdown_editor.current_path is not None:
+                self.master.title(f"Ekdosis TEI Studio v2 - {self.markdown_editor.current_path.name} [Markdown]")
+            else:
+                self.master.title("Ekdosis TEI Studio v2 - Document Markdown")
+            return
+        if self.state.current_file_path is not None:
+            self.master.title(f"Ekdosis TEI Studio v2 - {self.state.current_file_path.name}")
+            return
+        self.master.title("Ekdosis TEI Studio v2")
 
     def _install_menus(self) -> None:
         install_menus(
@@ -194,6 +231,9 @@ class MainWindow(ttk.Frame):
                 open_file=self.action_open_file,
                 save_file=self.action_save_file,
                 save_file_as=self.action_save_file_as,
+                close_document=self.action_close_document,
+                export_markdown=self.action_export_markdown,
+                export_xml_tei=self.action_export_xml_tei,
                 restore_autosave=self.action_restore_autosave,
                 new_config=self.action_new_config,
                 edit_config=self.action_edit_config,
@@ -210,6 +250,29 @@ class MainWindow(ttk.Frame):
                 select_all=self.action_select_all,
                 find=self.action_find,
                 replace=self.action_replace,
+                find_in_preview=self.action_find_in_preview,
+                insert_note=self.action_markdown_insert_note,
+                insert_link=self.action_markdown_insert_link,
+                insert_french_quotes=self.action_markdown_insert_french_quotes,
+                insert_thin_nbsp=self.action_markdown_insert_thin_nbsp,
+                insert_em_dash=self.action_markdown_insert_em_dash,
+                insert_bibliography_block=self.action_markdown_insert_bibliography_block,
+                format_bold=self.action_markdown_format_bold,
+                format_italic=self.action_markdown_format_italic,
+                format_underline=self.action_markdown_format_underline,
+                format_sup=self.action_markdown_format_sup,
+                format_sub=self.action_markdown_format_sub,
+                format_caps=self.action_markdown_format_caps,
+                format_smallcaps=self.action_markdown_format_smallcaps,
+                structure_h1=self.action_markdown_structure_h1,
+                structure_h2=self.action_markdown_structure_h2,
+                structure_h3=self.action_markdown_structure_h3,
+                structure_h4=self.action_markdown_structure_h4,
+                structure_quote=self.action_markdown_structure_quote,
+                structure_bulleted_list=self.action_markdown_structure_bulleted_list,
+                structure_numbered_list=self.action_markdown_structure_numbered_list,
+                structure_separator=self.action_markdown_structure_separator,
+                structure_bibliography=self.action_markdown_structure_bibliography,
                 validate=self.action_validate,
                 validate_generated_tei=self.action_validate_generated_tei,
                 generate_tei=self.action_generate_tei,
@@ -222,6 +285,8 @@ class MainWindow(ttk.Frame):
                 add_annotation=self.action_add_annotation,
                 edit_annotation=self.action_edit_annotation,
                 delete_annotation=self.action_delete_annotation,
+                force_preview_refresh=self.action_markdown_force_preview_refresh,
+                reset_split_view=self.action_markdown_reset_split_view,
                 toggle_diagnostics=self.action_toggle_diagnostics,
                 show_about=lambda: show_about_dialog(self.master),
                 show_help=lambda: show_help_dialog(self.master),
@@ -239,11 +304,22 @@ class MainWindow(ttk.Frame):
         self.master.bind_all("<Control-C>", self._shortcut_copy, add="+")
         self.master.bind_all("<Control-v>", self._shortcut_paste, add="+")
         self.master.bind_all("<Control-V>", self._shortcut_paste, add="+")
+        self.master.bind_all("<Control-h>", self._shortcut_replace, add="+")
+        self.master.bind_all("<Control-H>", self._shortcut_replace, add="+")
+        self.master.bind_all("<Control-s>", self._shortcut_save, add="+")
+        self.master.bind_all("<Control-S>", self._shortcut_save, add="+")
+        self.master.bind_all("<Control-Shift-S>", self._shortcut_save_as, add="+")
+        self.master.bind_all("<Control-b>", self._shortcut_bold, add="+")
+        self.master.bind_all("<Control-B>", self._shortcut_bold, add="+")
+        self.master.bind_all("<Control-i>", self._shortcut_italic, add="+")
+        self.master.bind_all("<Control-I>", self._shortcut_italic, add="+")
 
     def _active_text_widget(self) -> tk.Text | None:
         focused = self.master.focus_get()
         if isinstance(focused, tk.Text):
             return focused
+        if self._is_markdown_mode():
+            return self.markdown_editor.source_text
         return None
 
     def _shortcut_find(self, _event: tk.Event[tk.Misc]) -> str:
@@ -265,6 +341,30 @@ class MainWindow(ttk.Frame):
     def _shortcut_paste(self, _event: tk.Event[tk.Misc]) -> str:
         self.action_paste()
         return "break"
+
+    def _shortcut_replace(self, _event: tk.Event[tk.Misc]) -> str:
+        self.action_replace()
+        return "break"
+
+    def _shortcut_save(self, _event: tk.Event[tk.Misc]) -> str:
+        self.action_save_file()
+        return "break"
+
+    def _shortcut_save_as(self, _event: tk.Event[tk.Misc]) -> str:
+        self.action_save_file_as()
+        return "break"
+
+    def _shortcut_bold(self, _event: tk.Event[tk.Misc]) -> str:
+        if self._is_markdown_mode():
+            self.markdown_editor.apply_bold()
+            return "break"
+        return ""
+
+    def _shortcut_italic(self, _event: tk.Event[tk.Misc]) -> str:
+        if self._is_markdown_mode():
+            self.markdown_editor.apply_italic()
+            return "break"
+        return ""
 
     def _refresh_config_ui(self) -> None:
         self.control.set_config_status(
@@ -542,7 +642,7 @@ class MainWindow(ttk.Frame):
     def _write_current_file(self, target: Path) -> None:
         target.write_text(self._current_text(), encoding="utf-8")
         self.state.current_file_path = target
-        self.master.title(f"Ekdosis TEI Studio v2 - {target.name}")
+        self._refresh_window_title()
 
     def _on_editor_content_changed(self, _event: tk.Event[tk.Misc]) -> None:
         self.after_idle(lambda: self._invalidate_outputs(reason="text_changed"))
@@ -661,13 +761,27 @@ class MainWindow(ttk.Frame):
         self._schedule_autosave()
 
     def action_new_file(self) -> None:
+        if self._is_markdown_mode():
+            self.markdown_editor.new_document()
+            self._refresh_window_title()
+            return
         self.editor.clear()
         self._invalidate_outputs(reason="new_file")
         self.state.current_file_path = None
-        self.master.title("Ekdosis TEI Studio v2")
+        self._refresh_window_title()
         self._schedule_autosave()
 
     def action_open_file(self) -> None:
+        if self._is_markdown_mode():
+            try:
+                opened = self.markdown_editor.open_file()
+            except OSError as exc:
+                messagebox.showerror("Erreur d'ouverture", str(exc), parent=self.master)
+                return
+            if opened is None:
+                return
+            self._refresh_window_title()
+            return
         chosen = filedialog.askopenfilename(
             parent=self.master,
             title="Ouvrir un fichier de transcription",
@@ -684,10 +798,19 @@ class MainWindow(ttk.Frame):
         self.editor.set_text(text)
         self._invalidate_outputs(reason="open_file")
         self.state.current_file_path = path
-        self.master.title(f"Ekdosis TEI Studio v2 - {path.name}")
+        self._refresh_window_title()
         self._schedule_autosave()
 
     def action_save_file(self) -> None:
+        if self._is_markdown_mode():
+            try:
+                saved = self.markdown_editor.save_file()
+            except OSError as exc:
+                messagebox.showerror("Erreur d'enregistrement", str(exc), parent=self.master)
+                return
+            if saved is not None:
+                self._refresh_window_title()
+            return
         if self.state.current_file_path is None:
             self.action_save_file_as()
             return
@@ -697,6 +820,15 @@ class MainWindow(ttk.Frame):
             messagebox.showerror("Erreur d'enregistrement", str(exc), parent=self.master)
 
     def action_save_file_as(self) -> None:
+        if self._is_markdown_mode():
+            try:
+                saved = self.markdown_editor.save_file_as()
+            except OSError as exc:
+                messagebox.showerror("Erreur d'enregistrement", str(exc), parent=self.master)
+                return
+            if saved is not None:
+                self._refresh_window_title()
+            return
         chosen = filedialog.asksaveasfilename(
             parent=self.master,
             title="Enregistrer la transcription",
@@ -712,6 +844,36 @@ class MainWindow(ttk.Frame):
             messagebox.showerror("Erreur d'enregistrement", str(exc), parent=self.master)
             return
         self._schedule_autosave()
+
+    def action_close_document(self) -> None:
+        if self._is_markdown_mode():
+            self.markdown_editor.close_document()
+            self._refresh_window_title()
+            return
+        self.action_new_file()
+
+    def action_export_markdown(self) -> None:
+        try:
+            exported = self.markdown_editor.export_markdown()
+        except OSError as exc:
+            messagebox.showerror("Exporter Markdown", str(exc), parent=self.master)
+            return
+        if exported is None:
+            return
+        messagebox.showinfo("Exporter Markdown", f"Fichier exporté:\n{exported}", parent=self.master)
+
+    def action_export_xml_tei(self) -> None:
+        if self._is_markdown_mode():
+            try:
+                exported = self.markdown_editor.export_tei_document()
+            except OSError as exc:
+                messagebox.showerror("Exporter XML-TEI", str(exc), parent=self.master)
+                return
+            if exported is None:
+                return
+            messagebox.showinfo("Exporter XML-TEI", f"Fichier exporté:\n{exported}", parent=self.master)
+            return
+        self.action_export_tei()
 
     def action_load_config(self) -> None:
         chosen = filedialog.askopenfilename(
@@ -999,10 +1161,7 @@ class MainWindow(ttk.Frame):
         self._invalidate_outputs(reason="open_file")
 
         self.state.current_file_path = Path(payload.current_file_path) if payload.current_file_path else None
-        if self.state.current_file_path is not None:
-            self.master.title(f"Ekdosis TEI Studio v2 - {self.state.current_file_path.name}")
-        else:
-            self.master.title("Ekdosis TEI Studio v2")
+        self._refresh_window_title()
 
         if payload.config_path:
             config_path = Path(payload.config_path)
@@ -1241,7 +1400,7 @@ class MainWindow(ttk.Frame):
     def action_select_all(self) -> None:
         widget = self._active_text_widget()
         if widget is None:
-            widget = self.editor.text
+            widget = self.markdown_editor.source_text if self._is_markdown_mode() else self.editor.text
         widget.tag_add("sel", "1.0", "end-1c")
         widget.mark_set("insert", "1.0")
         widget.see("insert")
@@ -1297,6 +1456,13 @@ class MainWindow(ttk.Frame):
         return count
 
     def action_find(self) -> None:
+        if self._is_markdown_mode():
+            focus = self.master.focus_get()
+            if focus is self.markdown_editor.preview_text:
+                self.markdown_editor.open_preview_search_dialog()
+            else:
+                self.markdown_editor.open_source_search_dialog()
+            return
         target = self._active_text_widget() or self.editor.text
 
         SearchReplaceDialog(
@@ -1307,7 +1473,110 @@ class MainWindow(ttk.Frame):
         )
 
     def action_replace(self) -> None:
+        if self._is_markdown_mode():
+            self.markdown_editor.open_source_search_dialog()
+            return
         self.action_find()
+
+    def action_find_in_preview(self) -> None:
+        self._select_markdown_mode()
+        self.markdown_editor.open_preview_search_dialog()
+
+    def action_markdown_insert_note(self) -> None:
+        self._select_markdown_mode()
+        self.markdown_editor.insert_note()
+
+    def action_markdown_insert_link(self) -> None:
+        self._select_markdown_mode()
+        self.markdown_editor.insert_link()
+
+    def action_markdown_insert_french_quotes(self) -> None:
+        self._select_markdown_mode()
+        self.markdown_editor.insert_french_quotes()
+
+    def action_markdown_insert_thin_nbsp(self) -> None:
+        self._select_markdown_mode()
+        self.markdown_editor.insert_thin_nbsp()
+
+    def action_markdown_insert_em_dash(self) -> None:
+        self._select_markdown_mode()
+        self.markdown_editor.insert_em_dash()
+
+    def action_markdown_insert_bibliography_block(self) -> None:
+        self._select_markdown_mode()
+        self.markdown_editor.insert_bibliography_block()
+
+    def action_markdown_format_bold(self) -> None:
+        self._select_markdown_mode()
+        self.markdown_editor.apply_bold()
+
+    def action_markdown_format_italic(self) -> None:
+        self._select_markdown_mode()
+        self.markdown_editor.apply_italic()
+
+    def action_markdown_format_underline(self) -> None:
+        self._select_markdown_mode()
+        self.markdown_editor.apply_underline()
+
+    def action_markdown_format_sup(self) -> None:
+        self._select_markdown_mode()
+        self.markdown_editor.apply_sup()
+
+    def action_markdown_format_sub(self) -> None:
+        self._select_markdown_mode()
+        self.markdown_editor.apply_sub()
+
+    def action_markdown_format_caps(self) -> None:
+        self._select_markdown_mode()
+        self.markdown_editor.apply_caps()
+
+    def action_markdown_format_smallcaps(self) -> None:
+        self._select_markdown_mode()
+        self.markdown_editor.apply_smallcaps()
+
+    def action_markdown_structure_h1(self) -> None:
+        self._select_markdown_mode()
+        self.markdown_editor.apply_heading_1()
+
+    def action_markdown_structure_h2(self) -> None:
+        self._select_markdown_mode()
+        self.markdown_editor.apply_heading_2()
+
+    def action_markdown_structure_h3(self) -> None:
+        self._select_markdown_mode()
+        self.markdown_editor.apply_heading_3()
+
+    def action_markdown_structure_h4(self) -> None:
+        self._select_markdown_mode()
+        self.markdown_editor.apply_heading_4()
+
+    def action_markdown_structure_quote(self) -> None:
+        self._select_markdown_mode()
+        self.markdown_editor.apply_quote()
+
+    def action_markdown_structure_bulleted_list(self) -> None:
+        self._select_markdown_mode()
+        self.markdown_editor.apply_bullet_list()
+
+    def action_markdown_structure_numbered_list(self) -> None:
+        self._select_markdown_mode()
+        self.markdown_editor.apply_numbered_list()
+
+    def action_markdown_structure_separator(self) -> None:
+        self._select_markdown_mode()
+        self.markdown_editor.insert_separator()
+
+    def action_markdown_structure_bibliography(self) -> None:
+        self._select_markdown_mode()
+        self.markdown_editor.insert_bibliography_block()
+
+    def action_markdown_force_preview_refresh(self) -> None:
+        self._select_markdown_mode()
+        self.markdown_editor.force_refresh_preview()
+
+    def action_markdown_reset_split_view(self) -> None:
+        self._select_markdown_mode()
+        self.markdown_editor.reset_split_view()
 
     def action_toggle_diagnostics(self) -> None:
         self._diagnostics_visible = not self._diagnostics_visible

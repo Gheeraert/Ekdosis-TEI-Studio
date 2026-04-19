@@ -11,6 +11,9 @@ class MenuCallbacks:
     open_file: Callable[[], None]
     save_file: Callable[[], None]
     save_file_as: Callable[[], None]
+    close_document: Callable[[], None]
+    export_markdown: Callable[[], None]
+    export_xml_tei: Callable[[], None]
     restore_autosave: Callable[[], None]
     new_config: Callable[[], None]
     edit_config: Callable[[], None]
@@ -27,6 +30,29 @@ class MenuCallbacks:
     select_all: Callable[[], None]
     find: Callable[[], None]
     replace: Callable[[], None]
+    find_in_preview: Callable[[], None]
+    insert_note: Callable[[], None]
+    insert_link: Callable[[], None]
+    insert_french_quotes: Callable[[], None]
+    insert_thin_nbsp: Callable[[], None]
+    insert_em_dash: Callable[[], None]
+    insert_bibliography_block: Callable[[], None]
+    format_bold: Callable[[], None]
+    format_italic: Callable[[], None]
+    format_underline: Callable[[], None]
+    format_sup: Callable[[], None]
+    format_sub: Callable[[], None]
+    format_caps: Callable[[], None]
+    format_smallcaps: Callable[[], None]
+    structure_h1: Callable[[], None]
+    structure_h2: Callable[[], None]
+    structure_h3: Callable[[], None]
+    structure_h4: Callable[[], None]
+    structure_quote: Callable[[], None]
+    structure_bulleted_list: Callable[[], None]
+    structure_numbered_list: Callable[[], None]
+    structure_separator: Callable[[], None]
+    structure_bibliography: Callable[[], None]
     validate: Callable[[], None]
     validate_generated_tei: Callable[[], None]
     generate_tei: Callable[[], None]
@@ -39,6 +65,8 @@ class MenuCallbacks:
     add_annotation: Callable[[], None]
     edit_annotation: Callable[[], None]
     delete_annotation: Callable[[], None]
+    force_preview_refresh: Callable[[], None]
+    reset_split_view: Callable[[], None]
     toggle_diagnostics: Callable[[], None]
     show_about: Callable[[], None]
     show_help: Callable[[], None]
@@ -53,6 +81,10 @@ def install_menus(root: tk.Tk, cb: MenuCallbacks) -> None:
     file_menu.add_command(label="Ouvrir", command=cb.open_file)
     file_menu.add_command(label="Enregistrer", command=cb.save_file)
     file_menu.add_command(label="Enregistrer sous…", command=cb.save_file_as)
+    file_menu.add_command(label="Exporter Markdown", command=cb.export_markdown)
+    file_menu.add_command(label="Exporter XML-TEI", command=cb.export_xml_tei)
+    file_menu.add_command(label="Fermer", command=cb.close_document)
+    file_menu.add_separator()
     file_menu.add_command(label="Restaurer l'enregistrement automatique", command=cb.restore_autosave)
     file_menu.add_separator()
     file_menu.add_command(label="Nouvelle configuration…", command=cb.new_config)
@@ -77,7 +109,39 @@ def install_menus(root: tk.Tk, cb: MenuCallbacks) -> None:
     edit_menu.add_separator()
     edit_menu.add_command(label="Rechercher", command=cb.find)
     edit_menu.add_command(label="Remplacer", command=cb.replace)
+    edit_menu.add_command(label="Rechercher dans l’aperçu", command=cb.find_in_preview)
     menu.add_cascade(label="Édition", menu=edit_menu)
+
+    insertion_menu = tk.Menu(menu, tearoff=False)
+    insertion_menu.add_command(label="Note", command=cb.insert_note)
+    insertion_menu.add_command(label="Lien", command=cb.insert_link)
+    insertion_menu.add_command(label="Guillemets français", command=cb.insert_french_quotes)
+    insertion_menu.add_command(label="Espace insécable fine", command=cb.insert_thin_nbsp)
+    insertion_menu.add_command(label="Tiret cadratin", command=cb.insert_em_dash)
+    insertion_menu.add_command(label="Bloc bibliographie", command=cb.insert_bibliography_block)
+    menu.add_cascade(label="Insertion", menu=insertion_menu)
+
+    format_menu = tk.Menu(menu, tearoff=False)
+    format_menu.add_command(label="Gras", command=cb.format_bold)
+    format_menu.add_command(label="Italique", command=cb.format_italic)
+    format_menu.add_command(label="Souligné", command=cb.format_underline)
+    format_menu.add_command(label="Exposant", command=cb.format_sup)
+    format_menu.add_command(label="Indice", command=cb.format_sub)
+    format_menu.add_command(label="Capitales", command=cb.format_caps)
+    format_menu.add_command(label="Petites capitales", command=cb.format_smallcaps)
+    menu.add_cascade(label="Format", menu=format_menu)
+
+    structure_menu = tk.Menu(menu, tearoff=False)
+    structure_menu.add_command(label="Titre 1", command=cb.structure_h1)
+    structure_menu.add_command(label="Titre 2", command=cb.structure_h2)
+    structure_menu.add_command(label="Titre 3", command=cb.structure_h3)
+    structure_menu.add_command(label="Titre 4", command=cb.structure_h4)
+    structure_menu.add_command(label="Citation", command=cb.structure_quote)
+    structure_menu.add_command(label="Liste à puces", command=cb.structure_bulleted_list)
+    structure_menu.add_command(label="Liste numérotée", command=cb.structure_numbered_list)
+    structure_menu.add_command(label="Séparateur", command=cb.structure_separator)
+    structure_menu.add_command(label="Bibliographie", command=cb.structure_bibliography)
+    menu.add_cascade(label="Structure", menu=structure_menu)
 
     tools_menu = tk.Menu(menu, tearoff=False)
     tools_menu.add_command(label="Valider la saisie", command=cb.validate)
@@ -97,6 +161,9 @@ def install_menus(root: tk.Tk, cb: MenuCallbacks) -> None:
     menu.add_cascade(label="Outils", menu=tools_menu)
 
     view_menu = tk.Menu(menu, tearoff=False)
+    view_menu.add_command(label="Forcer le rafraîchissement de l’aperçu", command=cb.force_preview_refresh)
+    view_menu.add_command(label="Réinitialiser la vue scindée", command=cb.reset_split_view)
+    view_menu.add_separator()
     view_menu.add_command(label="Afficher/masquer diagnostics", command=cb.toggle_diagnostics)
     menu.add_cascade(label="Affichage", menu=view_menu)
 
