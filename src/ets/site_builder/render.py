@@ -217,6 +217,14 @@ def _layout(
     .nav-item > a, .nav-summary a {{ color: var(--ink); text-decoration: none; }}
     .nav-item > a:hover, .nav-summary a:hover {{ color: var(--accent); text-decoration: underline; }}
     .nav-label {{ color: var(--ink); font-weight: 600; font-family: var(--font-ui); font-size: 0.92rem; letter-spacing: 0.02em; text-transform: uppercase; }}
+    .nav-item.nav-kind-play_group .nav-label,
+    .nav-item.nav-kind-play_group > a,
+    .nav-item.nav-kind-play_group .nav-summary a {{
+      text-transform: none;
+      letter-spacing: 0;
+      font-family: var(--font-body);
+      font-weight: 700;
+    }}
     .nav-summary {{ cursor: pointer; }}
     .nav-summary::marker {{ color: var(--ink-muted); }}
     .nav-summary a[aria-current="page"], .nav-item > a[aria-current="page"] {{ font-weight: 700; color: var(--accent); }}
@@ -254,30 +262,77 @@ def _layout(
       color: var(--ink);
       font-family: var(--font-body);
     }}
+    .content-shell-play .dramatic-content {{
+      --ets-speaker-offset: 11rem;
+      --ets-heading-offset: 10.4rem;
+      --ets-cast-offset: 10.2rem;
+      --ets-stage-offset: 9rem;
+      --ets-tirade-offset: 1rem;
+      --ets-verse-offset: 5rem;
+      --ets-verse-num-left: -4.5rem;
+      --ets-verse-num-width: 4rem;
+      --ets-verse-decale: 14rem;
+    }}
     .content-shell-play .dramatic-content .acte-titre,
     .content-shell-play .dramatic-content .acte-titre-sans-variation,
     .content-shell-play .dramatic-content .scene-titre,
-    .content-shell-play .dramatic-content .scene-titre-sans-variation,
-    .content-shell-play .dramatic-content .personnages,
-    .content-shell-play .dramatic-content .locuteur,
-    .content-shell-play .dramatic-content .tirade,
+    .content-shell-play .dramatic-content .scene-titre-sans-variation {{
+      width: auto;
+      max-width: calc(100% - var(--ets-heading-offset));
+      margin-left: var(--ets-heading-offset);
+      margin-right: 0;
+      margin-bottom: 1.05rem;
+      padding: 0 0.2rem;
+      text-align: left;
+      white-space: normal;
+      overflow-wrap: anywhere;
+      box-sizing: border-box;
+    }}
+    .content-shell-play .dramatic-content .personnages {{
+      width: auto;
+      max-width: calc(100% - var(--ets-cast-offset));
+      margin-left: var(--ets-cast-offset);
+      margin-right: 0;
+      margin-bottom: 1.05rem;
+      padding: 0 0.2rem;
+      text-align: left;
+      white-space: normal;
+      overflow-wrap: anywhere;
+      box-sizing: border-box;
+    }}
+    .content-shell-play .dramatic-content .locuteur {{
+      max-width: calc(100% - var(--ets-speaker-offset));
+      margin-left: var(--ets-speaker-offset);
+      margin-right: 0;
+      margin-bottom: 0.45rem;
+      padding-left: 0.2rem;
+      padding-right: 0.2rem;
+      text-align: left;
+      white-space: normal;
+      overflow-wrap: anywhere;
+      box-sizing: border-box;
+    }}
+    .content-shell-play .dramatic-content .tirade {{
+      margin-left: var(--ets-tirade-offset);
+    }}
     .content-shell-play .dramatic-content .didascalie,
     .content-shell-play .dramatic-content .notes {{
-      margin-left: 0;
+      margin-left: var(--ets-stage-offset);
     }}
     .content-shell-play .dramatic-content .vers-container {{
-      margin-left: 0;
+      margin-left: var(--ets-verse-offset);
       margin-bottom: 0.35rem;
-      padding-left: 2.9rem;
+      padding-left: 0;
       line-height: 1.3;
     }}
     .content-shell-play .dramatic-content .num-vers {{
-      left: 0;
-      width: 2.5rem;
+      left: var(--ets-verse-num-left);
+      width: var(--ets-verse-num-width);
+      text-align: right;
       color: var(--ink-muted);
       font-size: 0.82em;
     }}
-    .content-shell-play .dramatic-content .vers-decale {{ margin-left: 1.65rem; }}
+    .content-shell-play .dramatic-content .vers-decale {{ margin-left: var(--ets-verse-decale); }}
     .content-shell-play .dramatic-content .notes {{
       margin-top: 1.8rem;
       padding-top: 0.75rem;
@@ -347,9 +402,28 @@ def _layout(
       }}
       .content-shell {{ padding: 1rem; }}
       .content-shell-play {{ padding: 0.45rem 0 2rem; }}
-      .content-shell-play .dramatic-content .vers-container {{ padding-left: 2.55rem; }}
-      .content-shell-play .dramatic-content .num-vers {{ width: 2.2rem; }}
-      .content-shell-play .dramatic-content .vers-decale {{ margin-left: 1.3rem; }}
+      .content-shell-play .dramatic-content {{
+        --ets-speaker-offset: 2.6rem;
+        --ets-heading-offset: 2.35rem;
+        --ets-cast-offset: 2.3rem;
+        --ets-stage-offset: 2.25rem;
+        --ets-tirade-offset: 0.35rem;
+        --ets-verse-offset: 2.55rem;
+        --ets-verse-num-left: -2.3rem;
+        --ets-verse-num-width: 2.2rem;
+        --ets-verse-decale: 1.3rem;
+      }}
+      .content-shell-play .dramatic-content .acte-titre,
+      .content-shell-play .dramatic-content .acte-titre-sans-variation,
+      .content-shell-play .dramatic-content .scene-titre,
+      .content-shell-play .dramatic-content .scene-titre-sans-variation {{
+        max-width: calc(100% - var(--ets-heading-offset));
+        margin-left: var(--ets-heading-offset);
+      }}
+      .content-shell-play .dramatic-content .personnages {{
+        max-width: calc(100% - var(--ets-cast-offset));
+        margin-left: var(--ets-cast-offset);
+      }}
       .notice-meta dl {{ grid-template-columns: 1fr; }}
       .notice-meta dt {{ margin-top: 0.25rem; }}
       .home-overview dl {{ grid-template-columns: 1fr; }}
