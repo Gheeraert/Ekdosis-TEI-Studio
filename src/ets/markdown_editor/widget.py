@@ -431,6 +431,12 @@ class MarkdownEditorWidget(ttk.Frame):
         self.source_text.insert("insert", "—")
         self._on_source_changed(tk.Event())
 
+    def insert_text_at_cursor(self, value: str) -> None:
+        if value:
+            self.source_text.insert("insert", value)
+        self.source_text.focus_set()
+        self._on_source_changed(tk.Event())
+
     def close_document(self) -> None:
         if self._dirty and not messagebox.askyesno(
             "Fermer le document",

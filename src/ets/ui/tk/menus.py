@@ -37,6 +37,11 @@ class MenuCallbacks:
     insert_thin_nbsp: Callable[[], None]
     insert_em_dash: Callable[[], None]
     insert_bibliography_block: Callable[[], None]
+    references_add: Callable[[], None]
+    references_import: Callable[[], None]
+    references_insert_citation: Callable[[], None]
+    references_bibliography: Callable[[], None]
+    references_style: Callable[[], None]
     format_bold: Callable[[], None]
     format_italic: Callable[[], None]
     format_underline: Callable[[], None]
@@ -120,6 +125,14 @@ def install_menus(root: tk.Tk, cb: MenuCallbacks) -> None:
     insertion_menu.add_command(label="Tiret cadratin", command=cb.insert_em_dash)
     insertion_menu.add_command(label="Bloc bibliographie", command=cb.insert_bibliography_block)
     menu.add_cascade(label="Insertion", menu=insertion_menu)
+
+    references_menu = tk.Menu(menu, tearoff=False)
+    references_menu.add_command(label="Ajouter une référence", command=cb.references_add)
+    references_menu.add_command(label="Importer des références", command=cb.references_import)
+    references_menu.add_command(label="Insérer une citation", command=cb.references_insert_citation)
+    references_menu.add_command(label="Bibliographie", command=cb.references_bibliography)
+    references_menu.add_command(label="Style de publication", command=cb.references_style)
+    menu.add_cascade(label="Références", menu=references_menu)
 
     format_menu = tk.Menu(menu, tearoff=False)
     format_menu.add_command(label="Gras", command=cb.format_bold)

@@ -9,6 +9,7 @@ import webbrowser
 
 from ets.annotations import Annotation, AnnotationCollection, AnnotationValidationError
 from ets.markdown_editor import MarkdownEditorWidget
+from ets.references import ReferencesPanel
 from ets.application import (
     AppDiagnostic,
     merge_dramatic_tei_files,
@@ -152,9 +153,17 @@ class MainWindow(ttk.Frame):
         self.editor.grid(row=0, column=0, sticky="nsew")
 
         self.markdown_editor = MarkdownEditorWidget(self.editor_tabs)
+        self._last_editor_mode = "transcription"
+        self._last_editable_text_widget: tk.Text = self.editor.text
+        self.references_panel = ReferencesPanel(
+            self.editor_tabs,
+            get_current_text=self._get_text_for_references,
+            insert_citation_token=self._insert_citation_token_into_active_editor,
+        )
 
         self.editor_tabs.add(self.transcription_tab, text="Transcription")
         self.editor_tabs.add(self.markdown_editor, text="Éditeur Markdown")
+        self.editor_tabs.add(self.references_panel, text="Références")
         self.editor_tabs.bind("<<NotebookTabChanged>>", self._on_editor_tab_changed, add="+")
 
         self.bottom = ttk.Frame(self.vertical_pane)
@@ -194,6 +203,8 @@ class MainWindow(ttk.Frame):
         self.editor.text.bind("<<Paste>>", self._on_editor_content_changed, add="+")
         self.editor.text.bind("<<Cut>>", self._on_editor_content_changed, add="+")
         self.editor.text.bind("<Delete>", self._on_editor_content_changed, add="+")
+        self.editor.text.bind("<FocusIn>", self._track_transcription_focus, add="+")
+        self.markdown_editor.source_text.bind("<FocusIn>", self._track_markdown_focus, add="+")
 
         self._refresh_config_ui()
         self._install_menus()
@@ -202,13 +213,21 @@ class MainWindow(ttk.Frame):
 
     def _on_editor_tab_changed(self, _event: tk.Event[tk.Misc]) -> None:
         if self._is_markdown_mode():
+            self._last_editor_mode = "markdown"
             self.after_idle(self.markdown_editor.focus_source)
             self.after_idle(self.markdown_editor.reset_split_view)
+        elif self._is_transcription_mode():
+            self._last_editor_mode = "transcription"
+            self.after_idle(self.editor.focus_editor)
         self._refresh_window_title()
 
     def _is_markdown_mode(self) -> bool:
         selected = self.editor_tabs.select()
         return bool(selected) and self.editor_tabs.nametowidget(selected) is self.markdown_editor
+
+    def _is_transcription_mode(self) -> bool:
+        selected = self.editor_tabs.select()
+        return bool(selected) and self.editor_tabs.nametowidget(selected) is self.transcription_tab
 
     def _select_markdown_mode(self) -> None:
         self.editor_tabs.select(self.markdown_editor)
@@ -260,6 +279,11 @@ class MainWindow(ttk.Frame):
                 insert_thin_nbsp=self.action_markdown_insert_thin_nbsp,
                 insert_em_dash=self.action_markdown_insert_em_dash,
                 insert_bibliography_block=self.action_markdown_insert_bibliography_block,
+                references_add=self.action_references_add,
+                references_import=self.action_references_import,
+                references_insert_citation=self.action_references_insert_citation,
+                references_bibliography=self.action_references_bibliography,
+                references_style=self.action_references_style,
                 format_bold=self.action_markdown_format_bold,
                 format_italic=self.action_markdown_format_italic,
                 format_underline=self.action_markdown_format_underline,
@@ -323,7 +347,45 @@ class MainWindow(ttk.Frame):
             return focused
         if self._is_markdown_mode():
             return self.markdown_editor.source_text
+        if self._is_transcription_mode():
+            return self.editor.text
         return None
+
+    def _track_transcription_focus(self, _event: tk.Event[tk.Misc]) -> None:
+        self._last_editable_text_widget = self.editor.text
+        self._last_editor_mode = "transcription"
+
+    def _track_markdown_focus(self, _event: tk.Event[tk.Misc]) -> None:
+        self._last_editable_text_widget = self.markdown_editor.source_text
+        self._last_editor_mode = "markdown"
+
+    def _editable_insertion_target(self) -> tk.Text:
+        focused = self.master.focus_get()
+        if isinstance(focused, tk.Text) and str(focused.cget("state")) == "normal":
+            self._last_editable_text_widget = focused
+            return focused
+        if str(self._last_editable_text_widget.cget("state")) == "normal":
+            return self._last_editable_text_widget
+        if self._last_editor_mode == "markdown":
+            return self.markdown_editor.source_text
+        return self.editor.text
+
+    def _insert_citation_token_into_active_editor(self, token: str) -> bool:
+        focused = self.master.focus_get()
+        markdown_source = self.markdown_editor.source_text
+        if focused is markdown_source and str(markdown_source.cget("state")) == "normal":
+            self.markdown_editor.insert_text_at_cursor(token)
+            self._last_editor_mode = "markdown"
+            self._last_editable_text_widget = markdown_source
+            return True
+        if self._last_editor_mode == "markdown" and str(markdown_source.cget("state")) == "normal":
+            self.markdown_editor.insert_text_at_cursor(token)
+            self._last_editable_text_widget = markdown_source
+            return True
+        return False
+
+    def _get_text_for_references(self) -> str:
+        return self.markdown_editor.get_text()
 
     def _shortcut_find(self, _event: tk.Event[tk.Misc]) -> str:
         self.action_find()
@@ -1508,6 +1570,25 @@ class MainWindow(ttk.Frame):
     def action_markdown_insert_bibliography_block(self) -> None:
         self._select_markdown_mode()
         self.markdown_editor.insert_bibliography_block()
+
+    def action_references_add(self) -> None:
+        self.editor_tabs.select(self.references_panel)
+        self.references_panel.action_add_reference()
+
+    def action_references_import(self) -> None:
+        self.editor_tabs.select(self.references_panel)
+        self.references_panel.action_import_references()
+
+    def action_references_insert_citation(self) -> None:
+        self.references_panel.action_insert_citation()
+
+    def action_references_bibliography(self) -> None:
+        self.editor_tabs.select(self.references_panel)
+        self.references_panel.action_show_bibliography()
+
+    def action_references_style(self) -> None:
+        self.editor_tabs.select(self.references_panel)
+        self.references_panel.action_choose_style()
 
     def action_markdown_format_bold(self) -> None:
         self._select_markdown_mode()
