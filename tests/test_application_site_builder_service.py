@@ -1,11 +1,8 @@
 from __future__ import annotations
 
 import json
-import shutil
 from pathlib import Path
 from uuid import uuid4
-
-from lxml import etree
 
 from ets.application import (
     DramaticDocumentInput,
@@ -25,7 +22,6 @@ from ets.application import (
 
 ROOT = Path(__file__).resolve().parents[1]
 DRAMATIC_FIXTURES = ROOT / "fixtures" / "site_builder" / "minimal" / "dramatic"
-DRAMATIC_MERGE_FIXTURES = ROOT / "fixtures" / "site_builder" / "merge_dramatic"
 MINIMAL_NOTICES = ROOT / "fixtures" / "site_builder" / "minimal" / "notices"
 REALISTIC_NOTICES = ROOT / "fixtures" / "metopes" / "realistic"
 RUNTIME_ROOT = ROOT / "tests" / "_runtime"
@@ -131,17 +127,40 @@ def test_site_builder_service_fails_cleanly_on_invalid_config() -> None:
     assert "site_title" in result.error_detail
 
 
-def test_site_builder_service_build_from_publication_request_supports_grouping_order_and_assets() -> None:
+def test_site_builder_service_build_from_publication_request_single_play_uses_one_xml() -> None:
+    base = _runtime_dir("app_site_builder_service_publication_request_single")
+    output_dir = base / "site"
+    source_xml = DRAMATIC_FIXTURES / "andromaque.xml"
+
+    request = SitePublicationRequest(
+        identity=SiteIdentityInput(site_title="ETS Publication Request Single Play"),
+        output_dir=output_dir,
+        plays=(
+            DramaticPlayInput(
+                play_slug="andromaque",
+                document=DramaticDocumentInput(source_path=source_xml),
+            ),
+        ),
+        show_xml_download=True,
+        publish_notices=False,
+    )
+
+    result = build_site_from_publication_request(request)
+
+    assert result.ok is True
+    assert result.play_count == 1
+    assert result.notice_count == 0
+    assert "plays/andromaque.html" in result.generated_page_relpaths
+    copied_xml = output_dir / "xml" / "dramatic" / "andromaque.xml"
+    assert copied_xml.exists()
+    assert copied_xml.read_text(encoding="utf-8") == source_xml.read_text(encoding="utf-8")
+
+
+def test_site_builder_service_build_from_publication_request_supports_multiple_plays_order_and_assets() -> None:
     base = _runtime_dir("app_site_builder_service_publication_request")
     output_dir = base / "site"
-    dramatic_pool = base / "dramatic_pool"
-    dramatic_pool.mkdir(parents=True, exist_ok=True)
-    andromaque_a1 = dramatic_pool / "andromaque_A1.xml"
-    andromaque_a2 = dramatic_pool / "andromaque_A2.xml"
-    berenice_a1 = dramatic_pool / "berenice_A1.xml"
-    shutil.copy2(DRAMATIC_MERGE_FIXTURES / "andromaque_act1.xml", andromaque_a1)
-    shutil.copy2(DRAMATIC_MERGE_FIXTURES / "andromaque_act2.xml", andromaque_a2)
-    shutil.copy2(DRAMATIC_FIXTURES / "berenice.xml", berenice_a1)
+    andromaque = DRAMATIC_FIXTURES / "andromaque.xml"
+    berenice = DRAMATIC_FIXTURES / "berenice.xml"
 
     logo_file = base / "logo.txt"
     logo_file.write_text("ETS", encoding="utf-8")
@@ -159,15 +178,12 @@ def test_site_builder_service_build_from_publication_request_supports_grouping_o
         plays=(
             DramaticPlayInput(
                 play_slug="andromaque",
-                documents=(
-                    DramaticDocumentInput(source_path=andromaque_a1),
-                    DramaticDocumentInput(source_path=andromaque_a2),
-                ),
+                document=DramaticDocumentInput(source_path=andromaque),
                 related_notice_slug="andromaque-notice",
             ),
             DramaticPlayInput(
                 play_slug="berenice",
-                documents=(DramaticDocumentInput(source_path=berenice_a1),),
+                document=DramaticDocumentInput(source_path=berenice),
             ),
         ),
         play_order=("berenice", "andromaque"),
@@ -194,11 +210,42 @@ def test_site_builder_service_build_from_publication_request_supports_grouping_o
     assert (output_dir / "assets" / "logos" / "logo.txt").exists()
     assert (output_dir / "assets" / "brand" / "palette.txt").exists()
     assert (output_dir / "xml" / "dramatic" / "andromaque.xml").exists()
+    assert (output_dir / "xml" / "dramatic" / "berenice.xml").exists()
     assert (output_dir / "xml" / "notices" / "andromaque-notice.xml").exists()
-    merged_xml = (output_dir / "xml" / "dramatic" / "andromaque.xml").read_text(encoding="utf-8")
-    merged_tree = etree.fromstring(merged_xml.encode("utf-8"))
-    act_divisions = merged_tree.xpath("//*[local-name()='body']/*[local-name()='div' and @type='act']")
-    assert len(act_divisions) == 2
+    assert (output_dir / "xml" / "dramatic" / "andromaque.xml").read_text(encoding="utf-8") == andromaque.read_text(
+        encoding="utf-8"
+    )
+    assert (output_dir / "xml" / "dramatic" / "berenice.xml").read_text(encoding="utf-8") == berenice.read_text(
+        encoding="utf-8"
+    )
+
+
+def test_site_builder_service_build_from_publication_request_supports_play_notice_path_mapping() -> None:
+    base = _runtime_dir("app_site_builder_service_publication_request_play_notice_path")
+    output_dir = base / "site"
+
+    request = SitePublicationRequest(
+        identity=SiteIdentityInput(site_title="ETS Publication Request Play Notice Path"),
+        output_dir=output_dir,
+        plays=(
+            DramaticPlayInput(
+                play_slug="andromaque",
+                document=DramaticDocumentInput(source_path=DRAMATIC_FIXTURES / "andromaque.xml"),
+                related_notice_path=MINIMAL_NOTICES / "andromaque-notice.xml",
+            ),
+        ),
+        publish_notices=True,
+    )
+
+    result = build_site_from_publication_request(request)
+
+    assert result.ok is True
+    assert result.play_count == 1
+    assert result.notice_count == 1
+    assert "plays/andromaque.html" in result.generated_page_relpaths
+    assert "notices/andromaque-notice.html" in result.generated_page_relpaths
+    play_html = (output_dir / "plays" / "andromaque.html").read_text(encoding="utf-8")
+    assert "Notice de pièce" in play_html
 
 
 def test_site_builder_service_build_from_publication_request_fails_cleanly_on_invalid_request() -> None:
@@ -235,7 +282,7 @@ def test_site_builder_service_publication_request_supports_general_notice_and_ho
         plays=(
             DramaticPlayInput(
                 play_slug="andromaque",
-                documents=(DramaticDocumentInput(source_path=DRAMATIC_FIXTURES / "andromaque.xml"),),
+                document=DramaticDocumentInput(source_path=DRAMATIC_FIXTURES / "andromaque.xml"),
                 related_notice_slug="introduction",
             ),
         ),

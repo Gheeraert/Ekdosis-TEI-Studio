@@ -40,8 +40,9 @@ class DramaticDocumentInput:
 @dataclass(frozen=True)
 class DramaticPlayInput:
     play_slug: str
-    documents: tuple[DramaticDocumentInput, ...]
+    document: DramaticDocumentInput
     related_notice_slug: str | None = None
+    related_notice_path: Path | None = None
 
 
 @dataclass(frozen=True)

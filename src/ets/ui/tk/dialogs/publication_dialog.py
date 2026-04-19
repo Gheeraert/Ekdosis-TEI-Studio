@@ -6,34 +6,38 @@ import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
 
 from ets.application import (
-    DramaticDocumentInput,
-    DramaticPlayInput,
-    NoticeInput,
-    SiteAssetsInput,
     SitePublicationDialogConfig,
     SitePublicationDialogPlayConfig,
-    SiteIdentityInput,
     SitePublicationRequest,
+    derive_corpus_slug,
     load_site_publication_dialog_config,
+    normalize_publication_identifier,
     save_site_publication_dialog_config,
+    site_publication_request_from_dialog_config,
 )
 
 
 @dataclass
 class _PublicationVars:
-    site_title: tk.StringVar
-    site_subtitle: tk.StringVar
-    project_name: tk.StringVar
-    editor: tk.StringVar
-    credits: tk.StringVar
-    output_dir: tk.StringVar
-    play_slug: tk.StringVar
-    master_notice: tk.StringVar
+    author_name: tk.StringVar
+    corpus_title: tk.StringVar
+    scientific_editor: tk.StringVar
+    corpus_slug: tk.StringVar
+    home_page_tei: tk.StringVar
+    general_intro_tei: tk.StringVar
     asset_directory: tk.StringVar
+    output_dir: tk.StringVar
     show_xml_download: tk.BooleanVar
     publish_notices: tk.BooleanVar
     include_metadata: tk.BooleanVar
     resolve_notice_xincludes: tk.BooleanVar
+
+
+@dataclass
+class _PlayEntry:
+    play_slug: str
+    dramatic_xml_path: Path
+    notice_xml_path: Path | None = None
 
 
 class PublicationDialog(tk.Toplevel):
@@ -43,44 +47,40 @@ class PublicationDialog(tk.Toplevel):
         self.transient(parent)
         self.grab_set()
         self.resizable(True, True)
-        self.geometry("980x720")
-        self.minsize(840, 560)
+        self.geometry("1020x760")
+        self.minsize(900, 620)
         self.result: SitePublicationRequest | None = None
 
         self.vars = _PublicationVars(
-            site_title=tk.StringVar(value=""),
-            site_subtitle=tk.StringVar(value=""),
-            project_name=tk.StringVar(value=""),
-            editor=tk.StringVar(value=""),
-            credits=tk.StringVar(value=""),
-            output_dir=tk.StringVar(value=""),
-            play_slug=tk.StringVar(value=""),
-            master_notice=tk.StringVar(value=""),
+            author_name=tk.StringVar(value=""),
+            corpus_title=tk.StringVar(value=""),
+            scientific_editor=tk.StringVar(value=""),
+            corpus_slug=tk.StringVar(value=""),
+            home_page_tei=tk.StringVar(value=""),
+            general_intro_tei=tk.StringVar(value=""),
             asset_directory=tk.StringVar(value=""),
+            output_dir=tk.StringVar(value=""),
             show_xml_download=tk.BooleanVar(value=False),
             publish_notices=tk.BooleanVar(value=True),
             include_metadata=tk.BooleanVar(value=True),
             resolve_notice_xincludes=tk.BooleanVar(value=True),
         )
 
-        self._dramatic_entries: list[tuple[str, Path]] = []
-        self._notice_paths: list[Path] = []
+        self._play_entries: list[_PlayEntry] = []
         self._logo_paths: list[Path] = []
         self._config_path: Path | None = None
+
+        self.vars.author_name.trace_add("write", self._on_corpus_identity_changed)
+        self.vars.corpus_title.trace_add("write", self._on_corpus_identity_changed)
 
         self.columnconfigure(0, weight=1)
         self.rowconfigure(0, weight=1)
         self.rowconfigure(1, weight=0)
 
         self._scroll_canvas, form = self._build_scrollable_form()
-
-        self._build_identity_section(form, row=0)
-        self._build_dramatic_section(form, row=1)
-        self._build_notice_section(form, row=2)
-        self._build_assets_section(form, row=3)
-        self._build_output_section(form, row=4)
-        self._build_mapping_section(form, row=5)
-        self._build_options_section(form, row=6)
+        self._build_metadata_section(form, row=0)
+        self._build_intro_section(form, row=1)
+        self._build_corpus_section(form, row=2)
 
         self.action_bar = ttk.Frame(self, padding=(10, 8, 10, 10))
         self.action_bar.grid(row=1, column=0, sticky="ew")
@@ -88,9 +88,11 @@ class PublicationDialog(tk.Toplevel):
         buttons = ttk.Frame(self.action_bar)
         buttons.grid(row=0, column=1, sticky="e")
         ttk.Button(buttons, text="Charger config...", command=self._on_load_config).grid(row=0, column=0, padx=(0, 6))
+        ttk.Button(buttons, text="Generer le site", command=self._on_validate).grid(row=0, column=1)
         ttk.Button(buttons, text="Enregistrer config...", command=self._on_save_config).grid(row=0, column=2, padx=(12, 6))
         ttk.Button(buttons, text="Annuler", command=self._on_cancel).grid(row=0, column=3, padx=(0, 6))
-        ttk.Button(buttons, text="Générer le site", command=self._on_validate).grid(row=0, column=1)
+
+        self._refresh_corpus_slug()
 
     def _build_scrollable_form(self) -> tuple[tk.Canvas, ttk.Frame]:
         container = ttk.Frame(self, padding=(10, 10, 10, 0))
@@ -124,36 +126,93 @@ class PublicationDialog(tk.Toplevel):
         canvas.bind("<MouseWheel>", _on_mousewheel)
         return canvas, form
 
-    def _build_identity_section(self, parent: ttk.Frame, *, row: int) -> None:
-        box = ttk.LabelFrame(parent, text="Identité éditoriale du site")
+    def _build_metadata_section(self, parent: ttk.Frame, *, row: int) -> None:
+        box = ttk.LabelFrame(parent, text="Metadonnees generales")
         box.grid(row=row, column=0, sticky="ew", pady=(0, 8))
         box.columnconfigure(1, weight=1)
-        self._add_entry(box, 0, "Titre du site", self.vars.site_title)
-        self._add_entry(box, 1, "Sous-titre", self.vars.site_subtitle)
-        self._add_entry(box, 2, "Projet", self.vars.project_name)
-        self._add_entry(box, 3, "Éditeur", self.vars.editor)
-        self._add_entry(box, 4, "Crédits", self.vars.credits)
-        ttk.Label(box, text="Introduction d'accueil").grid(row=5, column=0, sticky="nw", padx=(0, 6), pady=2)
-        self.homepage_intro = tk.Text(box, height=3, wrap="word")
-        self.homepage_intro.grid(row=5, column=1, sticky="ew", pady=2)
+        self._add_entry(box, 0, "Auteur", self.vars.author_name)
+        self._add_entry(box, 1, "Titre de l'oeuvre/corpus", self.vars.corpus_title)
+        self._add_entry(box, 2, "Responsable scientifique", self.vars.scientific_editor)
 
-    def _build_dramatic_section(self, parent: ttk.Frame, *, row: int) -> None:
-        box = ttk.LabelFrame(parent, text="XML dramatiques (regroupés par pièce)")
-        box.grid(row=row, column=0, sticky="nsew", pady=(0, 8))
+        ttk.Label(box, text="Slug corpus (auteur + 2 premiers mots du titre)").grid(
+            row=3,
+            column=0,
+            sticky="w",
+            padx=(0, 6),
+            pady=2,
+        )
+        slug_entry = ttk.Entry(box, textvariable=self.vars.corpus_slug, state="readonly")
+        slug_entry.grid(row=3, column=1, sticky="ew", pady=2)
+
+        ttk.Label(box, text="XML-TEI page d'accueil").grid(row=4, column=0, sticky="w", padx=(0, 6), pady=2)
+        ttk.Entry(box, textvariable=self.vars.home_page_tei).grid(row=4, column=1, sticky="ew", pady=2)
+        ttk.Button(box, text="Choisir...", command=self._choose_home_page_tei).grid(row=4, column=2, padx=(6, 0), pady=2)
+
+        ttk.Label(box, text="Dossier d'assets").grid(row=5, column=0, sticky="w", padx=(0, 6), pady=2)
+        ttk.Entry(box, textvariable=self.vars.asset_directory).grid(row=5, column=1, sticky="ew", pady=2)
+        ttk.Button(box, text="Choisir...", command=self._choose_asset_directory).grid(row=5, column=2, padx=(6, 0), pady=2)
+
+        logos = ttk.Frame(box)
+        logos.grid(row=6, column=0, columnspan=3, sticky="ew")
+        logos.columnconfigure(0, weight=1)
+        self.logo_list = tk.Listbox(logos, height=2, selectmode=tk.EXTENDED)
+        self.logo_list.grid(row=0, column=0, sticky="ew")
+        logo_buttons = ttk.Frame(logos)
+        logo_buttons.grid(row=0, column=1, sticky="ns", padx=(6, 0))
+        ttk.Button(logo_buttons, text="Ajouter logos...", command=self._add_logo_files).grid(row=0, column=0, pady=(0, 4))
+        ttk.Button(logo_buttons, text="Supprimer", command=self._remove_logo_selected).grid(row=1, column=0)
+
+        ttk.Label(box, text="Dossier de sortie").grid(row=7, column=0, sticky="w", padx=(0, 6), pady=2)
+        ttk.Entry(box, textvariable=self.vars.output_dir).grid(row=7, column=1, sticky="ew", pady=2)
+        ttk.Button(box, text="Choisir...", command=self._choose_output_directory).grid(row=7, column=2, padx=(6, 0), pady=2)
+
+        options = ttk.LabelFrame(box, text="Options")
+        options.grid(row=8, column=0, columnspan=3, sticky="ew", pady=(6, 0))
+        ttk.Checkbutton(options, text="Publier les notices", variable=self.vars.publish_notices).grid(row=0, column=0, sticky="w")
+        ttk.Checkbutton(options, text="Activer les telechargements XML", variable=self.vars.show_xml_download).grid(
+            row=0, column=1, sticky="w", padx=(12, 0)
+        )
+        ttk.Checkbutton(options, text="Inclure les metadonnees", variable=self.vars.include_metadata).grid(
+            row=1, column=0, sticky="w"
+        )
+        ttk.Checkbutton(options, text="Resoudre les xi:include locaux", variable=self.vars.resolve_notice_xincludes).grid(
+            row=1, column=1, sticky="w", padx=(12, 0)
+        )
+
+    def _build_intro_section(self, parent: ttk.Frame, *, row: int) -> None:
+        box = ttk.LabelFrame(parent, text="Introduction generale")
+        box.grid(row=row, column=0, sticky="ew", pady=(0, 8))
+        box.columnconfigure(1, weight=1)
+        ttk.Label(box, text="XML-TEI introduction generale").grid(row=0, column=0, sticky="w", padx=(0, 6), pady=2)
+        ttk.Entry(box, textvariable=self.vars.general_intro_tei).grid(row=0, column=1, sticky="ew", pady=2)
+        ttk.Button(box, text="Choisir...", command=self._choose_general_intro_tei).grid(row=0, column=2, padx=(6, 0), pady=2)
+
+    def _build_corpus_section(self, parent: ttk.Frame, *, row: int) -> None:
+        box = ttk.LabelFrame(parent, text="Corpus de pieces")
+        box.grid(row=row, column=0, sticky="nsew")
         box.columnconfigure(0, weight=1)
         box.rowconfigure(1, weight=1)
 
         controls = ttk.Frame(box)
         controls.grid(row=0, column=0, sticky="ew", pady=(0, 4))
-        controls.columnconfigure(1, weight=1)
-        ttk.Label(controls, text="Identifiant de pièce (slug)").grid(row=0, column=0, sticky="w", padx=(0, 6))
-        ttk.Entry(controls, textvariable=self.vars.play_slug).grid(row=0, column=1, sticky="ew", padx=(0, 6))
-        ttk.Button(controls, text="Ajouter XML…", command=self._add_dramatic_files).grid(row=0, column=2, padx=(0, 6))
-        ttk.Button(controls, text="Supprimer sélection", command=self._remove_dramatic_selected).grid(row=0, column=3)
+        ttk.Button(controls, text="Ajouter piece XML...", command=self._add_dramatic_files).grid(row=0, column=0, padx=(0, 6))
+        ttk.Button(controls, text="Remplacer piece XML...", command=self._replace_dramatic_for_selected_play).grid(
+            row=0, column=1, padx=(0, 6)
+        )
+        ttk.Button(controls, text="Associer notice XML...", command=self._attach_notice_to_selected_play).grid(
+            row=0, column=2, padx=(0, 6)
+        )
+        ttk.Button(controls, text="Retirer notice", command=self._clear_notice_for_selected_play).grid(row=0, column=3, padx=(0, 6))
+        ttk.Button(controls, text="Supprimer piece", command=self._remove_dramatic_selected).grid(row=0, column=4)
+
         ttk.Label(
             box,
-            text="Ajoutez les fichiers d'une même pièce avec le même slug (ex: andromaque).",
-            wraplength=850,
+            text=(
+                "Regle: 1 XML dramatique = 1 piece complete. "
+                "Chaque piece du corpus a son XML dramatique propre. "
+                "Les fragments doivent etre fusionnes en amont avec l'outil dedie."
+            ),
+            wraplength=900,
             justify="left",
         ).grid(row=1, column=0, sticky="w", pady=(0, 4))
 
@@ -163,152 +222,159 @@ class PublicationDialog(tk.Toplevel):
         lists.columnconfigure(1, weight=1)
         lists.rowconfigure(0, weight=1)
 
-        self.dramatic_list = tk.Listbox(lists, height=5, selectmode=tk.EXTENDED)
+        self.dramatic_list = tk.Listbox(lists, height=7, selectmode=tk.SINGLE, exportselection=False)
         self.dramatic_list.grid(row=0, column=0, sticky="nsew", padx=(0, 8))
 
-        order_box = ttk.LabelFrame(lists, text="Ordre de navigation des pièces")
+        order_box = ttk.LabelFrame(lists, text="Ordre de navigation des pieces")
         order_box.grid(row=0, column=1, sticky="nsew")
         order_box.columnconfigure(0, weight=1)
         order_box.rowconfigure(0, weight=1)
-        self.play_order_list = tk.Listbox(order_box, height=5, selectmode=tk.SINGLE, exportselection=False)
+        self.play_order_list = tk.Listbox(order_box, height=7, selectmode=tk.SINGLE, exportselection=False)
         self.play_order_list.grid(row=0, column=0, sticky="nsew", padx=4, pady=4)
         order_buttons = ttk.Frame(order_box)
         order_buttons.grid(row=1, column=0, sticky="e", padx=4, pady=(0, 4))
         ttk.Button(order_buttons, text="Monter", command=self._move_play_order_up).grid(row=0, column=0, padx=(0, 4))
         ttk.Button(order_buttons, text="Descendre", command=self._move_play_order_down).grid(row=0, column=1)
 
-    def _build_notice_section(self, parent: ttk.Frame, *, row: int) -> None:
-        box = ttk.LabelFrame(parent, text="Notices XML Métopes")
-        box.grid(row=row, column=0, sticky="ew", pady=(0, 8))
-        box.columnconfigure(1, weight=1)
-        ttk.Label(box, text="Fichier maître de notice Métopes").grid(row=0, column=0, sticky="w", padx=(0, 6), pady=2)
-        ttk.Entry(box, textvariable=self.vars.master_notice).grid(row=0, column=1, sticky="ew", pady=2)
-        ttk.Button(box, text="Choisir…", command=self._choose_master_notice).grid(row=0, column=2, padx=(6, 0), pady=2)
-        ttk.Label(
-            box,
-            text="Ajoutez ensuite des notices complémentaires (introduction, chapitre, etc.) si nécessaire.",
-            wraplength=850,
-            justify="left",
-        ).grid(row=1, column=0, columnspan=3, sticky="w", pady=(0, 4))
-
-        extras = ttk.Frame(box)
-        extras.grid(row=2, column=0, columnspan=3, sticky="ew")
-        extras.columnconfigure(0, weight=1)
-        self.notice_list = tk.Listbox(extras, height=3, selectmode=tk.EXTENDED)
-        self.notice_list.grid(row=0, column=0, sticky="ew")
-        notice_buttons = ttk.Frame(extras)
-        notice_buttons.grid(row=0, column=1, sticky="ns", padx=(6, 0))
-        ttk.Button(notice_buttons, text="Ajouter…", command=self._add_notice_files).grid(row=0, column=0, pady=(0, 4))
-        ttk.Button(notice_buttons, text="Supprimer", command=self._remove_notice_selected).grid(row=1, column=0)
-
-    def _build_assets_section(self, parent: ttk.Frame, *, row: int) -> None:
-        box = ttk.LabelFrame(parent, text="Logos et assets (optionnel)")
-        box.grid(row=row, column=0, sticky="ew", pady=(0, 8))
-        box.columnconfigure(1, weight=1)
-
-        ttk.Label(box, text="Dossier d'assets statiques").grid(row=0, column=0, sticky="w", padx=(0, 6), pady=2)
-        ttk.Entry(box, textvariable=self.vars.asset_directory).grid(row=0, column=1, sticky="ew", pady=2)
-        ttk.Button(box, text="Choisir…", command=self._choose_asset_directory).grid(row=0, column=2, padx=(6, 0), pady=2)
-        ttk.Label(
-            box,
-            text="Le dossier est copié tel quel dans la publication (images, CSS, JS, etc.).",
-            wraplength=850,
-            justify="left",
-        ).grid(row=1, column=0, columnspan=3, sticky="w", pady=(0, 4))
-
-        logos = ttk.Frame(box)
-        logos.grid(row=2, column=0, columnspan=3, sticky="ew")
-        logos.columnconfigure(0, weight=1)
-        self.logo_list = tk.Listbox(logos, height=2, selectmode=tk.EXTENDED)
-        self.logo_list.grid(row=0, column=0, sticky="ew")
-        logo_buttons = ttk.Frame(logos)
-        logo_buttons.grid(row=0, column=1, sticky="ns", padx=(6, 0))
-        ttk.Button(logo_buttons, text="Ajouter logos…", command=self._add_logo_files).grid(row=0, column=0, pady=(0, 4))
-        ttk.Button(logo_buttons, text="Supprimer", command=self._remove_logo_selected).grid(row=1, column=0)
-
-    def _build_output_section(self, parent: ttk.Frame, *, row: int) -> None:
-        box = ttk.LabelFrame(parent, text="Sortie")
-        box.grid(row=row, column=0, sticky="ew", pady=(0, 8))
-        box.columnconfigure(1, weight=1)
-        ttk.Label(box, text="Dossier de sortie").grid(row=0, column=0, sticky="w", padx=(0, 6), pady=2)
-        ttk.Entry(box, textvariable=self.vars.output_dir).grid(row=0, column=1, sticky="ew", pady=2)
-        ttk.Button(box, text="Choisir…", command=self._choose_output_directory).grid(row=0, column=2, padx=(6, 0), pady=2)
-
-    def _build_mapping_section(self, parent: ttk.Frame, *, row: int) -> None:
-        box = ttk.LabelFrame(parent, text="Associations pièce -> notice (optionnel)")
-        box.grid(row=row, column=0, sticky="ew", pady=(0, 8))
-        ttk.Label(
-            box,
-            text="Une association par ligne: slug_piece|slug_notice (ex: andromaque|intro-andromaque)",
-            wraplength=850,
-            justify="left",
-        ).grid(row=0, column=0, sticky="w", pady=(0, 4))
-        self.mapping_text = tk.Text(box, height=3, wrap="word")
-        self.mapping_text.grid(row=1, column=0, sticky="ew")
-
-    def _build_options_section(self, parent: ttk.Frame, *, row: int) -> None:
-        box = ttk.LabelFrame(parent, text="Options")
-        box.grid(row=row, column=0, sticky="ew")
-        ttk.Checkbutton(box, text="Publier les notices", variable=self.vars.publish_notices).grid(row=0, column=0, sticky="w")
-        ttk.Checkbutton(box, text="Activer les téléchargements XML", variable=self.vars.show_xml_download).grid(
-            row=0, column=1, sticky="w", padx=(12, 0)
-        )
-        ttk.Checkbutton(box, text="Inclure les métadonnées", variable=self.vars.include_metadata).grid(row=1, column=0, sticky="w")
-        ttk.Checkbutton(box, text="Résoudre les xi:include locaux", variable=self.vars.resolve_notice_xincludes).grid(
-            row=1, column=1, sticky="w", padx=(12, 0)
-        )
-
     @staticmethod
     def _add_entry(parent: ttk.Frame, row: int, label: str, variable: tk.StringVar) -> None:
         ttk.Label(parent, text=label).grid(row=row, column=0, sticky="w", padx=(0, 6), pady=2)
         ttk.Entry(parent, textvariable=variable).grid(row=row, column=1, sticky="ew", pady=2)
 
-    def _add_dramatic_files(self) -> None:
-        play_slug = self.vars.play_slug.get().strip()
-        if not play_slug:
-            messagebox.showerror("Publication", "Le slug de pièce est requis avant l'ajout de fichiers.", parent=self)
-            return
-        chosen = filedialog.askopenfilenames(
-            parent=self,
-            title="Ajouter des XML dramatiques",
-            filetypes=[("XML files", "*.xml"), ("All files", "*.*")],
-        )
-        if not chosen:
-            return
-        self._add_dramatic_entries(play_slug, tuple(Path(item).resolve() for item in chosen))
+    def _on_corpus_identity_changed(self, *_args: str) -> None:
+        self._refresh_corpus_slug()
 
-    def _add_dramatic_entries(self, play_slug: str, paths: tuple[Path, ...]) -> None:
-        normalized_slug = play_slug.strip()
-        if not normalized_slug:
-            return
-        for path in paths:
-            self._dramatic_entries.append((normalized_slug, path))
-            self.dramatic_list.insert(tk.END, f"{normalized_slug} | {path}")
-        existing_order = self._play_order_items()
-        if normalized_slug not in existing_order:
-            self.play_order_list.insert(tk.END, normalized_slug)
+    def _refresh_corpus_slug(self) -> None:
+        self.vars.corpus_slug.set(derive_corpus_slug(self.vars.author_name.get(), self.vars.corpus_title.get()))
 
-    def _remove_dramatic_selected(self) -> None:
-        selected = list(self.dramatic_list.curselection())
-        for index in reversed(selected):
-            del self._dramatic_entries[index]
-            self.dramatic_list.delete(index)
-        self._sync_play_order_from_entries()
+    @staticmethod
+    def _slug_from_file(path: Path) -> str:
+        slug = normalize_publication_identifier(path.stem)
+        return slug or "piece"
+
+    def _unique_slug_from_path(self, path: Path) -> str:
+        base_slug = self._slug_from_file(path)
+        existing = {item.play_slug for item in self._play_entries}
+        candidate = base_slug
+        suffix = 2
+        while candidate in existing:
+            candidate = f"{base_slug}-{suffix}"
+            suffix += 1
+        return candidate
+
+    def _refresh_dramatic_list(self) -> None:
+        self.dramatic_list.delete(0, tk.END)
+        for entry in self._play_entries:
+            notice_text = entry.notice_xml_path.name if entry.notice_xml_path is not None else "-"
+            row = f"{entry.play_slug} | piece: {entry.dramatic_xml_path.name} | notice: {notice_text}"
+            self.dramatic_list.insert(tk.END, row)
+
+    def _play_order_items(self) -> list[str]:
+        return [self.play_order_list.get(i) for i in range(self.play_order_list.size())]
 
     def _sync_play_order_from_entries(self) -> None:
         current = self._play_order_items()
-        active_slugs = [slug for slug, _path in self._dramatic_entries]
-        unique_active: list[str] = []
+        active_slugs = [item.play_slug for item in self._play_entries]
+        updated = [slug for slug in current if slug in active_slugs]
         for slug in active_slugs:
-            if slug not in unique_active:
-                unique_active.append(slug)
-        updated = [slug for slug in current if slug in unique_active]
-        for slug in unique_active:
             if slug not in updated:
                 updated.append(slug)
         self.play_order_list.delete(0, tk.END)
         for slug in updated:
             self.play_order_list.insert(tk.END, slug)
+
+    def _append_play_from_path(self, dramatic_xml_path: Path) -> None:
+        self._play_entries.append(
+            _PlayEntry(
+                play_slug=self._unique_slug_from_path(dramatic_xml_path),
+                dramatic_xml_path=dramatic_xml_path.resolve(),
+            )
+        )
+
+    def _selected_play_index(self) -> int | None:
+        selection = self.dramatic_list.curselection()
+        if not selection:
+            return None
+        return int(selection[0])
+
+    def _add_dramatic_files(self) -> None:
+        chosen = filedialog.askopenfilenames(
+            parent=self,
+            title="Ajouter des XML dramatiques (pieces completes)",
+            filetypes=[("XML files", "*.xml"), ("All files", "*.*")],
+        )
+        if not chosen:
+            return
+
+        for item in chosen:
+            self._append_play_from_path(Path(item).resolve())
+        self._refresh_dramatic_list()
+        self._sync_play_order_from_entries()
+
+    def _replace_dramatic_for_selected_play(self) -> None:
+        selected_index = self._selected_play_index()
+        if selected_index is None:
+            messagebox.showerror("Publication", "Selectionnez une piece a modifier.", parent=self)
+            return
+
+        chosen = filedialog.askopenfilename(
+            parent=self,
+            title="Remplacer le XML dramatique de la piece selectionnee",
+            filetypes=[("XML files", "*.xml"), ("All files", "*.*")],
+        )
+        if not chosen:
+            return
+
+        selected = self._play_entries[selected_index]
+        self._play_entries[selected_index] = _PlayEntry(
+            play_slug=selected.play_slug,
+            dramatic_xml_path=Path(chosen).resolve(),
+            notice_xml_path=selected.notice_xml_path,
+        )
+        self._refresh_dramatic_list()
+        self.dramatic_list.selection_set(selected_index)
+
+    def _attach_notice_to_selected_play(self) -> None:
+        selected_index = self._selected_play_index()
+        if selected_index is None:
+            messagebox.showerror("Publication", "Selectionnez une piece avant d'associer une notice.", parent=self)
+            return
+        chosen = filedialog.askopenfilename(
+            parent=self,
+            title="Associer une notice XML a la piece selectionnee",
+            filetypes=[("XML files", "*.xml"), ("All files", "*.*")],
+        )
+        if not chosen:
+            return
+        selected = self._play_entries[selected_index]
+        self._play_entries[selected_index] = _PlayEntry(
+            play_slug=selected.play_slug,
+            dramatic_xml_path=selected.dramatic_xml_path,
+            notice_xml_path=Path(chosen).resolve(),
+        )
+        self._refresh_dramatic_list()
+        self.dramatic_list.selection_set(selected_index)
+
+    def _clear_notice_for_selected_play(self) -> None:
+        selected_index = self._selected_play_index()
+        if selected_index is None:
+            return
+        selected = self._play_entries[selected_index]
+        self._play_entries[selected_index] = _PlayEntry(
+            play_slug=selected.play_slug,
+            dramatic_xml_path=selected.dramatic_xml_path,
+            notice_xml_path=None,
+        )
+        self._refresh_dramatic_list()
+        self.dramatic_list.selection_set(selected_index)
+
+    def _remove_dramatic_selected(self) -> None:
+        selected_index = self._selected_play_index()
+        if selected_index is None:
+            return
+        del self._play_entries[selected_index]
+        self._refresh_dramatic_list()
+        self._sync_play_order_from_entries()
 
     def _move_play_order_up(self) -> None:
         selection = self.play_order_list.curselection()
@@ -335,34 +401,23 @@ class PublicationDialog(tk.Toplevel):
         self.play_order_list.insert(idx + 1, value)
         self.play_order_list.selection_set(idx + 1)
 
-    def _choose_master_notice(self) -> None:
+    def _choose_home_page_tei(self) -> None:
         chosen = filedialog.askopenfilename(
             parent=self,
-            title="Choisir la notice maître",
+            title="Choisir le XML-TEI de la page d'accueil",
             filetypes=[("XML files", "*.xml"), ("All files", "*.*")],
         )
         if chosen:
-            self.vars.master_notice.set(chosen)
+            self.vars.home_page_tei.set(chosen)
 
-    def _add_notice_files(self) -> None:
-        chosen = filedialog.askopenfilenames(
+    def _choose_general_intro_tei(self) -> None:
+        chosen = filedialog.askopenfilename(
             parent=self,
-            title="Ajouter des notices XML",
+            title="Choisir le XML-TEI de l'introduction generale",
             filetypes=[("XML files", "*.xml"), ("All files", "*.*")],
         )
-        if not chosen:
-            return
-        for item in chosen:
-            path = Path(item).resolve()
-            if path in self._notice_paths:
-                continue
-            self._notice_paths.append(path)
-            self.notice_list.insert(tk.END, str(path))
-
-    def _remove_notice_selected(self) -> None:
-        for index in reversed(list(self.notice_list.curselection())):
-            del self._notice_paths[index]
-            self.notice_list.delete(index)
+        if chosen:
+            self.vars.general_intro_tei.set(chosen)
 
     def _choose_asset_directory(self) -> None:
         chosen = filedialog.askdirectory(parent=self, title="Choisir un dossier assets")
@@ -394,88 +449,30 @@ class PublicationDialog(tk.Toplevel):
         if chosen:
             self.vars.output_dir.set(chosen)
 
-    def _play_order_items(self) -> list[str]:
-        return [self.play_order_list.get(i) for i in range(self.play_order_list.size())]
-
-    def _parse_explicit_mapping(self) -> tuple[tuple[str, str], ...]:
-        lines = [line.strip() for line in self.mapping_text.get("1.0", "end-1c").splitlines() if line.strip()]
-        pairs: list[tuple[str, str]] = []
-        for line in lines:
-            if "|" in line:
-                left, right = line.split("|", maxsplit=1)
-            elif "->" in line:
-                left, right = line.split("->", maxsplit=1)
-            else:
-                raise ValueError("Format d'association invalide. Utilisez 'play_slug|notice_slug'.")
-            play_slug = left.strip()
-            notice_slug = right.strip()
-            if not play_slug or not notice_slug:
-                raise ValueError("Association pièce/notice invalide: slug vide.")
-            pairs.append((play_slug, notice_slug))
-        return tuple(pairs)
-
-    def _collect_notice_inputs(self) -> tuple[NoticeInput, ...]:
-        collected: list[Path] = []
-        master = self.vars.master_notice.get().strip()
-        if master:
-            collected.append(Path(master).resolve())
-        for path in self._notice_paths:
-            if path not in collected:
-                collected.append(path)
-        return tuple(NoticeInput(source_path=path) for path in collected)
-
     def _collect_dialog_config(self) -> SitePublicationDialogConfig:
-        grouped: dict[str, list[Path]] = {}
-        for play_slug, path in self._dramatic_entries:
-            normalized_slug = play_slug.strip()
-            if not normalized_slug:
-                continue
-            grouped.setdefault(normalized_slug, []).append(path)
-
-        plays = tuple(
-            SitePublicationDialogPlayConfig(
-                play_slug=play_slug,
-                document_paths=tuple(paths),
-            )
-            for play_slug, paths in grouped.items()
-        )
-
-        master_notice = self.vars.master_notice.get().strip()
-        master_notice_path = Path(master_notice).resolve() if master_notice else None
-
-        additional_notices: list[Path] = []
-        for path in self._notice_paths:
-            if master_notice_path is not None and path == master_notice_path:
-                continue
-            if path not in additional_notices:
-                additional_notices.append(path)
-
-        logo_paths: list[Path] = []
-        for path in self._logo_paths:
-            if path not in logo_paths:
-                logo_paths.append(path)
-
+        home_page_tei = self.vars.home_page_tei.get().strip()
+        general_intro_tei = self.vars.general_intro_tei.get().strip()
         asset_directory = self.vars.asset_directory.get().strip()
-        asset_directories = (Path(asset_directory).resolve(),) if asset_directory else ()
-
         output_raw = self.vars.output_dir.get().strip()
-        output_dir = Path(output_raw).resolve() if output_raw else None
 
         return SitePublicationDialogConfig(
-            site_title=self.vars.site_title.get().strip(),
-            site_subtitle=self.vars.site_subtitle.get().strip(),
-            project_name=self.vars.project_name.get().strip(),
-            editor=self.vars.editor.get().strip(),
-            credits=self.vars.credits.get().strip(),
-            homepage_intro=self.homepage_intro.get("1.0", "end-1c").strip(),
-            output_dir=output_dir,
-            plays=plays,
+            author_name=self.vars.author_name.get().strip(),
+            corpus_title=self.vars.corpus_title.get().strip(),
+            scientific_editor=self.vars.scientific_editor.get().strip(),
+            home_page_tei=Path(home_page_tei).resolve() if home_page_tei else None,
+            general_intro_tei=Path(general_intro_tei).resolve() if general_intro_tei else None,
+            output_dir=Path(output_raw).resolve() if output_raw else None,
+            plays=tuple(
+                SitePublicationDialogPlayConfig(
+                    play_slug=entry.play_slug,
+                    dramatic_xml_path=entry.dramatic_xml_path,
+                    notice_xml_path=entry.notice_xml_path,
+                )
+                for entry in self._play_entries
+            ),
             play_order=tuple(self._play_order_items()),
-            master_notice=master_notice_path,
-            additional_notices=tuple(additional_notices),
-            logo_paths=tuple(logo_paths),
-            asset_directories=asset_directories,
-            play_notice_map=self._parse_explicit_mapping(),
+            logo_paths=tuple(self._logo_paths),
+            asset_directories=(Path(asset_directory).resolve(),) if asset_directory else (),
             show_xml_download=bool(self.vars.show_xml_download.get()),
             publish_notices=bool(self.vars.publish_notices.get()),
             include_metadata=bool(self.vars.include_metadata.get()),
@@ -483,25 +480,24 @@ class PublicationDialog(tk.Toplevel):
         )
 
     def _apply_dialog_config(self, config: SitePublicationDialogConfig) -> None:
-        self.vars.site_title.set(config.site_title)
-        self.vars.site_subtitle.set(config.site_subtitle)
-        self.vars.project_name.set(config.project_name)
-        self.vars.editor.set(config.editor)
-        self.vars.credits.set(config.credits)
-        self.homepage_intro.delete("1.0", "end")
-        if config.homepage_intro:
-            self.homepage_intro.insert("1.0", config.homepage_intro)
+        self.vars.author_name.set(config.author_name)
+        self.vars.corpus_title.set(config.corpus_title)
+        self.vars.scientific_editor.set(config.scientific_editor)
+        self.vars.home_page_tei.set(str(config.home_page_tei) if config.home_page_tei is not None else "")
+        self.vars.general_intro_tei.set(str(config.general_intro_tei) if config.general_intro_tei is not None else "")
+        self.vars.output_dir.set(str(config.output_dir) if config.output_dir is not None else "")
 
-        self._dramatic_entries.clear()
-        self.dramatic_list.delete(0, tk.END)
-        self.play_order_list.delete(0, tk.END)
-        for play in config.plays:
-            self._add_dramatic_entries(play.play_slug, play.document_paths)
+        self._play_entries = [
+            _PlayEntry(
+                play_slug=play.play_slug,
+                dramatic_xml_path=play.dramatic_xml_path,
+                notice_xml_path=play.notice_xml_path,
+            )
+            for play in config.plays
+        ]
+        self._refresh_dramatic_list()
 
-        available_slugs: list[str] = []
-        for slug, _path in self._dramatic_entries:
-            if slug not in available_slugs:
-                available_slugs.append(slug)
+        available_slugs = [item.play_slug for item in self._play_entries]
         ordered_slugs = [slug for slug in config.play_order if slug in available_slugs]
         for slug in available_slugs:
             if slug not in ordered_slugs:
@@ -510,12 +506,6 @@ class PublicationDialog(tk.Toplevel):
         for slug in ordered_slugs:
             self.play_order_list.insert(tk.END, slug)
 
-        self.vars.master_notice.set(str(config.master_notice) if config.master_notice is not None else "")
-        self._notice_paths = list(config.additional_notices)
-        self.notice_list.delete(0, tk.END)
-        for path in self._notice_paths:
-            self.notice_list.insert(tk.END, str(path))
-
         self._logo_paths = list(config.logo_paths)
         self.logo_list.delete(0, tk.END)
         for path in self._logo_paths:
@@ -523,18 +513,11 @@ class PublicationDialog(tk.Toplevel):
 
         asset_directory = config.asset_directories[0] if config.asset_directories else None
         self.vars.asset_directory.set(str(asset_directory) if asset_directory is not None else "")
-        self.vars.output_dir.set(str(config.output_dir) if config.output_dir is not None else "")
-        self.vars.play_slug.set("")
-
-        self.mapping_text.delete("1.0", "end")
-        if config.play_notice_map:
-            mapping_lines = "\n".join(f"{play_slug}|{notice_slug}" for play_slug, notice_slug in config.play_notice_map)
-            self.mapping_text.insert("1.0", mapping_lines)
-
         self.vars.show_xml_download.set(config.show_xml_download)
         self.vars.publish_notices.set(config.publish_notices)
         self.vars.include_metadata.set(config.include_metadata)
         self.vars.resolve_notice_xincludes.set(config.resolve_notice_xincludes)
+        self._refresh_corpus_slug()
 
     def _on_save_config(self) -> None:
         try:
@@ -582,63 +565,8 @@ class PublicationDialog(tk.Toplevel):
         messagebox.showinfo("Publication", f"Configuration de publication chargee:\n{self._config_path}", parent=self)
 
     def _build_request(self) -> SitePublicationRequest:
-        site_title = self.vars.site_title.get().strip()
-        if not site_title:
-            raise ValueError("Le titre du site est requis.")
-        output_dir_raw = self.vars.output_dir.get().strip()
-        if not output_dir_raw:
-            raise ValueError("Le dossier de sortie est requis.")
-        if not self._dramatic_entries:
-            raise ValueError("Ajoutez au moins un XML dramatique.")
-
-        grouped: dict[str, list[DramaticDocumentInput]] = {}
-        for play_slug, path in self._dramatic_entries:
-            grouped.setdefault(play_slug, []).append(DramaticDocumentInput(source_path=path))
-
-        play_order = self._play_order_items()
-        if not play_order:
-            play_order = list(grouped.keys())
-        ordered_slugs = [slug for slug in play_order if slug in grouped]
-        for slug in grouped:
-            if slug not in ordered_slugs:
-                ordered_slugs.append(slug)
-
-        plays = tuple(
-            DramaticPlayInput(
-                play_slug=slug,
-                documents=tuple(grouped[slug]),
-            )
-            for slug in ordered_slugs
-        )
-
-        asset_directory = self.vars.asset_directory.get().strip()
-        assets = SiteAssetsInput(
-            logo_files=tuple(self._logo_paths),
-            asset_directories=(Path(asset_directory).resolve(),) if asset_directory else (),
-        )
-
-        identity = SiteIdentityInput(
-            site_title=site_title,
-            site_subtitle=self.vars.site_subtitle.get().strip(),
-            project_name=self.vars.project_name.get().strip(),
-            editor=self.vars.editor.get().strip(),
-            credits=self.vars.credits.get().strip(),
-            homepage_intro=self.homepage_intro.get("1.0", "end-1c").strip(),
-        )
-
-        return SitePublicationRequest(
-            identity=identity,
-            output_dir=Path(output_dir_raw).resolve(),
-            plays=plays,
-            play_order=tuple(ordered_slugs),
-            notices=self._collect_notice_inputs(),
-            assets=assets,
-            show_xml_download=bool(self.vars.show_xml_download.get()),
-            publish_notices=bool(self.vars.publish_notices.get()),
-            include_metadata=bool(self.vars.include_metadata.get()),
-            resolve_notice_xincludes=bool(self.vars.resolve_notice_xincludes.get()),
-            play_notice_map=self._parse_explicit_mapping(),
-        )
+        config = self._collect_dialog_config()
+        return site_publication_request_from_dialog_config(config)
 
     def _on_validate(self) -> None:
         try:

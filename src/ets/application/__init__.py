@@ -21,12 +21,15 @@ from .site_builder_models import (
     SitePublicationRequest,
 )
 from .site_publication_config import (
+    normalize_publication_identifier,
     SitePublicationDialogConfig,
     SitePublicationDialogPlayConfig,
+    derive_corpus_slug,
     load_site_publication_dialog_config,
     save_site_publication_dialog_config,
     site_publication_dialog_config_from_dict,
     site_publication_dialog_config_to_dict,
+    site_publication_request_from_dialog_config,
 )
 from .site_builder_service import (
     SiteBuilderService,
@@ -95,8 +98,11 @@ __all__ = [
     "SitePublicationRequest",
     "SitePublicationDialogPlayConfig",
     "SitePublicationDialogConfig",
+    "normalize_publication_identifier",
+    "derive_corpus_slug",
     "site_publication_dialog_config_to_dict",
     "site_publication_dialog_config_from_dict",
+    "site_publication_request_from_dialog_config",
     "save_site_publication_dialog_config",
     "load_site_publication_dialog_config",
     "SiteBuilderService",

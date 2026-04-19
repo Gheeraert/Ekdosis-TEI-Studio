@@ -1,37 +1,45 @@
 from __future__ import annotations
 
 import json
+import re
+import unicodedata
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from .site_builder_models import (
+    DramaticDocumentInput,
+    DramaticPlayInput,
+    NoticeInput,
+    SiteAssetsInput,
+    SiteIdentityInput,
+    SitePublicationRequest,
+)
+
 
 PUBLICATION_DIALOG_CONFIG_SCHEMA = "ets.site_publication_dialog_config"
-PUBLICATION_DIALOG_CONFIG_VERSION = 1
+PUBLICATION_DIALOG_CONFIG_VERSION = 2
 
 
 @dataclass(frozen=True)
 class SitePublicationDialogPlayConfig:
     play_slug: str
-    document_paths: tuple[Path, ...] = ()
+    dramatic_xml_path: Path
+    notice_xml_path: Path | None = None
 
 
 @dataclass(frozen=True)
 class SitePublicationDialogConfig:
-    site_title: str = ""
-    site_subtitle: str = ""
-    project_name: str = ""
-    editor: str = ""
-    credits: str = ""
-    homepage_intro: str = ""
+    author_name: str = ""
+    corpus_title: str = ""
+    scientific_editor: str = ""
+    home_page_tei: Path | None = None
+    general_intro_tei: Path | None = None
     output_dir: Path | None = None
     plays: tuple[SitePublicationDialogPlayConfig, ...] = ()
     play_order: tuple[str, ...] = ()
-    master_notice: Path | None = None
-    additional_notices: tuple[Path, ...] = ()
     logo_paths: tuple[Path, ...] = ()
     asset_directories: tuple[Path, ...] = ()
-    play_notice_map: tuple[tuple[str, str], ...] = ()
     show_xml_download: bool = False
     publish_notices: bool = True
     include_metadata: bool = True
@@ -87,19 +95,6 @@ def _resolve_path_list(value: Any, *, field_name: str, base_dir: Path) -> tuple[
     return tuple(resolved)
 
 
-def _normalize_mapping(value: Any) -> tuple[tuple[str, str], ...]:
-    entries = _expect_list(value, field_name="play_notice_map")
-    normalized: list[tuple[str, str]] = []
-    for index, item in enumerate(entries):
-        entry = _expect_object(item, field_name=f"play_notice_map[{index}]")
-        play_slug = _expect_text(entry.get("play_slug"), field_name=f"play_notice_map[{index}].play_slug")
-        notice_slug = _expect_text(entry.get("notice_slug"), field_name=f"play_notice_map[{index}].notice_slug")
-        if not play_slug or not notice_slug:
-            raise ValueError("Invalid publication dialog config: play_notice_map entries require non-empty slugs.")
-        normalized.append((play_slug, notice_slug))
-    return tuple(normalized)
-
-
 def _normalize_play_order(value: Any) -> tuple[str, ...]:
     entries = _expect_list(value, field_name="play_order")
     ordered: list[str] = []
@@ -108,6 +103,25 @@ def _normalize_play_order(value: Any) -> tuple[str, ...]:
         if slug:
             ordered.append(slug)
     return tuple(ordered)
+
+
+def _normalize_identifier(value: str) -> str:
+    normalized = unicodedata.normalize("NFKD", value.strip())
+    ascii_only = normalized.encode("ascii", "ignore").decode("ascii").lower()
+    return re.sub(r"[^a-z0-9]+", "-", ascii_only).strip("-")
+
+
+def normalize_publication_identifier(value: str) -> str:
+    return _normalize_identifier(value)
+
+
+def derive_corpus_slug(author_name: str, corpus_title: str) -> str:
+    author = _normalize_identifier(author_name)
+    words = [item for item in re.split(r"\s+", corpus_title.strip()) if item]
+    first_two = " ".join(words[:2])
+    title_part = _normalize_identifier(first_two)
+    parts = [item for item in (author, title_part) if item]
+    return "-".join(parts)
 
 
 def _normalize_plays(value: Any, *, base_dir: Path) -> tuple[SitePublicationDialogPlayConfig, ...]:
@@ -122,12 +136,46 @@ def _normalize_plays(value: Any, *, base_dir: Path) -> tuple[SitePublicationDial
         if play_slug in seen:
             raise ValueError(f"Invalid publication dialog config: duplicate play_slug '{play_slug}'.")
         seen.add(play_slug)
-        document_paths = _resolve_path_list(
-            entry.get("document_paths", []),
-            field_name=f"plays[{index}].document_paths",
+
+        dramatic_xml_path = _resolve_optional_path(
+            entry.get("dramatic_xml_path"),
+            field_name=f"plays[{index}].dramatic_xml_path",
             base_dir=base_dir,
         )
-        plays.append(SitePublicationDialogPlayConfig(play_slug=play_slug, document_paths=document_paths))
+        if dramatic_xml_path is None:
+            document_path = _resolve_optional_path(
+                entry.get("document_path"),
+                field_name=f"plays[{index}].document_path",
+                base_dir=base_dir,
+            )
+            if document_path is None:
+                document_paths = _resolve_path_list(
+                    entry.get("document_paths", []),
+                    field_name=f"plays[{index}].document_paths",
+                    base_dir=base_dir,
+                )
+                if len(document_paths) != 1:
+                    raise ValueError(
+                        "Invalid publication dialog config: a play must reference exactly one dramatic XML file. "
+                        "Merge fragments upstream before publication."
+                    )
+                dramatic_xml_path = document_paths[0]
+            else:
+                dramatic_xml_path = document_path
+
+        notice_xml_path = _resolve_optional_path(
+            entry.get("notice_xml_path"),
+            field_name=f"plays[{index}].notice_xml_path",
+            base_dir=base_dir,
+        )
+
+        plays.append(
+            SitePublicationDialogPlayConfig(
+                play_slug=play_slug,
+                dramatic_xml_path=dramatic_xml_path,
+                notice_xml_path=notice_xml_path,
+            )
+        )
     return tuple(plays)
 
 
@@ -135,26 +183,26 @@ def site_publication_dialog_config_to_dict(config: SitePublicationDialogConfig) 
     return {
         "schema": PUBLICATION_DIALOG_CONFIG_SCHEMA,
         "version": PUBLICATION_DIALOG_CONFIG_VERSION,
-        "identity": {
-            "site_title": config.site_title,
-            "site_subtitle": config.site_subtitle,
-            "project_name": config.project_name,
-            "editor": config.editor,
-            "credits": config.credits,
-            "homepage_intro": config.homepage_intro,
+        "metadata": {
+            "author_name": config.author_name,
+            "corpus_title": config.corpus_title,
+            "scientific_editor": config.scientific_editor,
+        },
+        "xml_sources": {
+            "home_page_tei_path": str(config.home_page_tei.resolve()) if config.home_page_tei is not None else None,
+            "general_intro_tei_path": (
+                str(config.general_intro_tei.resolve()) if config.general_intro_tei is not None else None
+            ),
         },
         "plays": [
             {
                 "play_slug": play.play_slug,
-                "document_paths": [str(path.resolve()) for path in play.document_paths],
+                "dramatic_xml_path": str(play.dramatic_xml_path.resolve()),
+                "notice_xml_path": str(play.notice_xml_path.resolve()) if play.notice_xml_path is not None else None,
             }
             for play in config.plays
         ],
         "play_order": list(config.play_order),
-        "notices": {
-            "master_notice_path": str(config.master_notice.resolve()) if config.master_notice is not None else None,
-            "additional_notice_paths": [str(path.resolve()) for path in config.additional_notices],
-        },
         "output": {
             "output_dir": str(config.output_dir.resolve()) if config.output_dir is not None else None,
         },
@@ -162,10 +210,6 @@ def site_publication_dialog_config_to_dict(config: SitePublicationDialogConfig) 
             "logo_paths": [str(path.resolve()) for path in config.logo_paths],
             "asset_directories": [str(path.resolve()) for path in config.asset_directories],
         },
-        "play_notice_map": [
-            {"play_slug": play_slug, "notice_slug": notice_slug}
-            for play_slug, notice_slug in config.play_notice_map
-        ],
         "options": {
             "show_xml_download": config.show_xml_download,
             "publish_notices": config.publish_notices,
@@ -189,25 +233,39 @@ def site_publication_dialog_config_from_dict(
             f"Expected '{PUBLICATION_DIALOG_CONFIG_SCHEMA}'."
         )
     version = payload.get("version")
-    if version != PUBLICATION_DIALOG_CONFIG_VERSION:
+    if version not in {1, PUBLICATION_DIALOG_CONFIG_VERSION}:
         raise ValueError(
             "Invalid publication dialog config: unsupported version. "
             f"Expected {PUBLICATION_DIALOG_CONFIG_VERSION}."
         )
 
-    identity = _expect_object(payload.get("identity", {}), field_name="identity")
+    if version == 1:
+        identity = _expect_object(payload.get("identity", {}), field_name="identity")
+        notices = _expect_object(payload.get("notices", {}), field_name="notices")
+        metadata = {
+            "author_name": identity.get("site_subtitle", ""),
+            "corpus_title": identity.get("site_title", ""),
+            "scientific_editor": identity.get("editor", ""),
+        }
+        xml_sources = {
+            "home_page_tei_path": notices.get("master_notice_path"),
+            "general_intro_tei_path": None,
+        }
+    else:
+        metadata = _expect_object(payload.get("metadata", {}), field_name="metadata")
+        xml_sources = _expect_object(payload.get("xml_sources", {}), field_name="xml_sources")
+
     plays = _normalize_plays(payload.get("plays", []), base_dir=base)
     play_order = _normalize_play_order(payload.get("play_order", []))
 
-    notices = _expect_object(payload.get("notices", {}), field_name="notices")
-    master_notice = _resolve_optional_path(
-        notices.get("master_notice_path"),
-        field_name="notices.master_notice_path",
+    home_page_tei = _resolve_optional_path(
+        xml_sources.get("home_page_tei_path"),
+        field_name="xml_sources.home_page_tei_path",
         base_dir=base,
     )
-    additional_notices = _resolve_path_list(
-        notices.get("additional_notice_paths", []),
-        field_name="notices.additional_notice_paths",
+    general_intro_tei = _resolve_optional_path(
+        xml_sources.get("general_intro_tei_path"),
+        field_name="xml_sources.general_intro_tei_path",
         base_dir=base,
     )
 
@@ -226,20 +284,19 @@ def site_publication_dialog_config_from_dict(
     options = _expect_object(payload.get("options", {}), field_name="options")
 
     return SitePublicationDialogConfig(
-        site_title=_expect_text(identity.get("site_title", ""), field_name="identity.site_title"),
-        site_subtitle=_expect_text(identity.get("site_subtitle", ""), field_name="identity.site_subtitle"),
-        project_name=_expect_text(identity.get("project_name", ""), field_name="identity.project_name"),
-        editor=_expect_text(identity.get("editor", ""), field_name="identity.editor"),
-        credits=_expect_text(identity.get("credits", ""), field_name="identity.credits"),
-        homepage_intro=_expect_text(identity.get("homepage_intro", ""), field_name="identity.homepage_intro"),
+        author_name=_expect_text(metadata.get("author_name", ""), field_name="metadata.author_name"),
+        corpus_title=_expect_text(metadata.get("corpus_title", ""), field_name="metadata.corpus_title"),
+        scientific_editor=_expect_text(
+            metadata.get("scientific_editor", ""),
+            field_name="metadata.scientific_editor",
+        ),
+        home_page_tei=home_page_tei,
+        general_intro_tei=general_intro_tei,
         output_dir=output_dir,
         plays=plays,
         play_order=play_order,
-        master_notice=master_notice,
-        additional_notices=additional_notices,
         logo_paths=_resolve_path_list(assets.get("logo_paths", []), field_name="assets.logo_paths", base_dir=base),
         asset_directories=asset_directories,
-        play_notice_map=_normalize_mapping(payload.get("play_notice_map", [])),
         show_xml_download=_expect_bool(
             options.get("show_xml_download"),
             field_name="options.show_xml_download",
@@ -260,6 +317,96 @@ def site_publication_dialog_config_from_dict(
             field_name="options.resolve_notice_xincludes",
             default=True,
         ),
+    )
+
+
+def site_publication_request_from_dialog_config(config: SitePublicationDialogConfig) -> SitePublicationRequest:
+    corpus_title = config.corpus_title.strip()
+    if not corpus_title:
+        raise ValueError("Le titre de l'œuvre/corpus est requis.")
+    if config.output_dir is None:
+        raise ValueError("Le dossier de sortie est requis.")
+    if not config.plays:
+        raise ValueError("Ajoutez au moins une pièce XML complète.")
+
+    seen_play_slugs: set[str] = set()
+    plays: list[DramaticPlayInput] = []
+    for play in config.plays:
+        play_slug = play.play_slug.strip()
+        if not play_slug:
+            raise ValueError("Chaque pièce doit avoir un slug non vide.")
+        if play_slug in seen_play_slugs:
+            raise ValueError(f"Slug de pièce dupliqué: '{play_slug}'.")
+        seen_play_slugs.add(play_slug)
+
+        plays.append(
+            DramaticPlayInput(
+                play_slug=play_slug,
+                document=DramaticDocumentInput(source_path=play.dramatic_xml_path),
+                related_notice_path=play.notice_xml_path,
+            )
+        )
+
+    play_order = tuple(item for item in config.play_order if item in seen_play_slugs)
+    if not play_order:
+        play_order = tuple(play.play_slug for play in config.plays)
+    else:
+        missing = [play.play_slug for play in config.plays if play.play_slug not in play_order]
+        play_order = tuple((*play_order, *missing))
+
+    play_by_slug = {play.play_slug: play for play in plays}
+    ordered_plays: list[DramaticPlayInput] = [play_by_slug[slug] for slug in play_order if slug in play_by_slug]
+    ordered_slugs = {play.play_slug for play in ordered_plays}
+    for play in plays:
+        if play.play_slug not in ordered_slugs:
+            ordered_plays.append(play)
+            ordered_slugs.add(play.play_slug)
+
+    notices: list[NoticeInput] = []
+    seen_notice_paths: set[Path] = set()
+
+    def _push_notice(path: Path | None) -> None:
+        if path is None:
+            return
+        resolved = path.resolve()
+        if resolved in seen_notice_paths:
+            return
+        seen_notice_paths.add(resolved)
+        notices.append(NoticeInput(source_path=resolved))
+
+    _push_notice(config.home_page_tei)
+    _push_notice(config.general_intro_tei)
+    for play in config.plays:
+        _push_notice(play.notice_xml_path)
+
+    general_notice_slug = ""
+    if config.general_intro_tei is not None:
+        general_notice_slug = _normalize_identifier(config.general_intro_tei.stem)
+
+    identity = SiteIdentityInput(
+        site_title=corpus_title,
+        site_subtitle=config.author_name.strip(),
+        project_name=derive_corpus_slug(config.author_name, corpus_title),
+        editor=config.scientific_editor.strip(),
+    )
+
+    assets = SiteAssetsInput(
+        logo_files=tuple(path.resolve() for path in config.logo_paths),
+        asset_directories=tuple(path.resolve() for path in config.asset_directories),
+    )
+
+    return SitePublicationRequest(
+        identity=identity,
+        output_dir=config.output_dir.resolve(),
+        plays=tuple(ordered_plays),
+        play_order=play_order,
+        notices=tuple(notices),
+        assets=assets,
+        show_xml_download=config.show_xml_download,
+        publish_notices=config.publish_notices,
+        include_metadata=config.include_metadata,
+        resolve_notice_xincludes=config.resolve_notice_xincludes,
+        general_notice_slug=general_notice_slug,
     )
 
 

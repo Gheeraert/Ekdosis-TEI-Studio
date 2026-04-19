@@ -639,7 +639,7 @@ def test_action_build_publication_site_success_routes_through_service(monkeypatc
             plays=(
                 DramaticPlayInput(
                     play_slug="andromaque",
-                    documents=(DramaticDocumentInput(source_path=RUNTIME_DIR / "andromaque.xml"),),
+                    document=DramaticDocumentInput(source_path=RUNTIME_DIR / "andromaque.xml"),
                 ),
             ),
         )
@@ -689,7 +689,7 @@ def test_action_build_publication_site_failure_shows_error(monkeypatch: pytest.M
             plays=(
                 DramaticPlayInput(
                     play_slug="andromaque",
-                    documents=(DramaticDocumentInput(source_path=RUNTIME_DIR / "andromaque.xml"),),
+                    document=DramaticDocumentInput(source_path=RUNTIME_DIR / "andromaque.xml"),
                 ),
             ),
         )
@@ -730,7 +730,7 @@ def test_action_build_publication_site_surfaces_warnings(monkeypatch: pytest.Mon
             plays=(
                 DramaticPlayInput(
                     play_slug="andromaque",
-                    documents=(DramaticDocumentInput(source_path=RUNTIME_DIR / "andromaque.xml"),),
+                    document=DramaticDocumentInput(source_path=RUNTIME_DIR / "andromaque.xml"),
                 ),
             ),
         )
@@ -795,39 +795,37 @@ def test_publication_dialog_builds_rich_request_object(monkeypatch: pytest.Monke
     try:
         runtime = RUNTIME_DIR / f"publication_dialog_{uuid4().hex}"
         runtime.mkdir(parents=True, exist_ok=True)
-        dramatic_a1 = runtime / "andromaque_A1.xml"
-        dramatic_a2 = runtime / "andromaque_A2.xml"
-        dramatic_b1 = runtime / "berenice_A1.xml"
-        notice_master = runtime / "master_notice.xml"
-        notice_intro = runtime / "notice_intro.xml"
+        dramatic_a1 = runtime / "andromaque.xml"
+        dramatic_b1 = runtime / "berenice.xml"
+        notice_play = runtime / "andromaque_notice.xml"
+        home_page_tei = runtime / "home_page.xml"
+        general_intro = runtime / "introduction_generale.xml"
         logo = runtime / "logo.png"
         asset_dir = runtime / "assets"
         output_dir = runtime / "site_out"
-        for path in (dramatic_a1, dramatic_a2, dramatic_b1, notice_master, notice_intro, logo):
+        for path in (dramatic_a1, dramatic_b1, notice_play, home_page_tei, general_intro, logo):
             path.write_text("<xml/>", encoding="utf-8")
         asset_dir.mkdir(parents=True, exist_ok=True)
 
         dialog = PublicationDialog(root)
         monkeypatch.setattr("tkinter.messagebox.showerror", lambda *args, **kwargs: None)
-        dialog.vars.site_title.set("ETS Publication")
-        dialog.vars.site_subtitle.set("Corpus test")
-        dialog.vars.project_name.set("ETS")
-        dialog.vars.editor.set("Equipe ETS")
-        dialog.vars.credits.set("Credits")
-        dialog.homepage_intro.insert("1.0", "Introduction accueil")
+        dialog.vars.author_name.set("Jean Racine")
+        dialog.vars.corpus_title.set("Théâtre complet")
+        dialog.vars.scientific_editor.set("Caroline Labrune")
         dialog.vars.output_dir.set(str(output_dir))
+        dialog.vars.home_page_tei.set(str(home_page_tei))
+        dialog.vars.general_intro_tei.set(str(general_intro))
         dialog.vars.asset_directory.set(str(asset_dir))
-        dialog.vars.master_notice.set(str(notice_master))
-        dialog._notice_paths = [notice_intro]
-        dialog.notice_list.insert(tk.END, str(notice_intro))
         dialog._logo_paths = [logo]
         dialog.logo_list.insert(tk.END, str(logo))
-        dialog._add_dramatic_entries("andromaque", (dramatic_a1, dramatic_a2))
-        dialog._add_dramatic_entries("berenice", (dramatic_b1,))
+        dialog._append_play_from_path(dramatic_a1)
+        dialog._append_play_from_path(dramatic_b1)
+        dialog._play_entries[0].notice_xml_path = notice_play.resolve()
+        dialog._refresh_dramatic_list()
+        dialog._sync_play_order_from_entries()
         dialog.play_order_list.delete(0, tk.END)
         dialog.play_order_list.insert(tk.END, "berenice")
         dialog.play_order_list.insert(tk.END, "andromaque")
-        dialog.mapping_text.insert("1.0", "andromaque|master-notice\n")
         dialog.vars.show_xml_download.set(True)
         dialog.vars.publish_notices.set(True)
 
@@ -835,17 +833,94 @@ def test_publication_dialog_builds_rich_request_object(monkeypatch: pytest.Monke
 
         request = dialog.result
         assert request is not None
-        assert request.identity.site_title == "ETS Publication"
-        assert request.identity.homepage_intro == "Introduction accueil"
+        assert request.identity.site_title == "Théâtre complet"
+        assert request.identity.site_subtitle == "Jean Racine"
+        assert request.identity.editor == "Caroline Labrune"
+        assert request.identity.project_name == "jean-racine-theatre-complet"
+        assert request.general_notice_slug == "introduction-generale"
         assert request.play_order == ("berenice", "andromaque")
         assert len(request.plays) == 2
         assert request.plays[0].play_slug == "berenice"
         assert request.plays[1].play_slug == "andromaque"
-        assert len(request.plays[1].documents) == 2
-        assert len(request.notices) == 2
+        assert request.plays[1].document.source_path == dramatic_a1
+        assert request.plays[1].related_notice_path == notice_play.resolve()
+        assert len(request.notices) == 3
         assert request.assets.logo_files == (logo,)
         assert request.assets.asset_directories == (asset_dir.resolve(),)
-        assert request.play_notice_map == (("andromaque", "master-notice"),)
+        assert request.play_notice_map == ()
+    finally:
+        root.destroy()
+
+
+def test_publication_dialog_multiselect_without_slug_creates_distinct_plays(monkeypatch: pytest.MonkeyPatch) -> None:
+    root = _make_root()
+    try:
+        runtime = RUNTIME_DIR / f"publication_dialog_multiselect_{uuid4().hex}"
+        runtime.mkdir(parents=True, exist_ok=True)
+        andromaque = runtime / "andromaque.xml"
+        berenice = runtime / "berenice.xml"
+        andromaque.write_text("<xml/>", encoding="utf-8")
+        berenice.write_text("<xml/>", encoding="utf-8")
+
+        dialog = PublicationDialog(root)
+        errors: list[str] = []
+        monkeypatch.setattr(
+            "tkinter.filedialog.askopenfilenames",
+            lambda **kwargs: (str(andromaque), str(berenice)),
+        )
+        monkeypatch.setattr("tkinter.messagebox.showerror", lambda _title, message, **kwargs: errors.append(message))
+
+        dialog._add_dramatic_files()
+
+        assert not errors
+        assert [item.play_slug for item in dialog._play_entries] == ["andromaque", "berenice"]
+
+        dialog.vars.corpus_title.set("Théâtre complet")
+        dialog.vars.output_dir.set(str(runtime / "site_out"))
+        request = dialog._build_request()
+        assert len(request.plays) == 2
+        assert request.plays[0].play_slug == "andromaque"
+        assert request.plays[0].document.source_path == andromaque.resolve()
+        assert request.plays[1].play_slug == "berenice"
+        assert request.plays[1].document.source_path == berenice.resolve()
+        dialog.destroy()
+    finally:
+        root.destroy()
+
+
+def test_publication_dialog_each_play_keeps_single_dramatic_xml_source(monkeypatch: pytest.MonkeyPatch) -> None:
+    root = _make_root()
+    try:
+        runtime = RUNTIME_DIR / f"publication_dialog_single_xml_per_play_{uuid4().hex}"
+        runtime.mkdir(parents=True, exist_ok=True)
+        andromaque = runtime / "andromaque.xml"
+        andromaque_revised = runtime / "andromaque_revised.xml"
+        andromaque.write_text("<xml/>", encoding="utf-8")
+        andromaque_revised.write_text("<xml/>", encoding="utf-8")
+
+        dialog = PublicationDialog(root)
+        monkeypatch.setattr(
+            "tkinter.filedialog.askopenfilenames",
+            lambda **kwargs: (str(andromaque),),
+        )
+        monkeypatch.setattr(
+            "tkinter.filedialog.askopenfilename",
+            lambda **kwargs: str(andromaque_revised),
+        )
+        monkeypatch.setattr("tkinter.messagebox.showerror", lambda *args, **kwargs: None)
+
+        dialog._add_dramatic_files()
+        dialog.dramatic_list.selection_set(0)
+        dialog._replace_dramatic_for_selected_play()
+
+        dialog.vars.corpus_title.set("Theatre complet")
+        dialog.vars.output_dir.set(str(runtime / "site_out"))
+        request = dialog._build_request()
+
+        assert len(request.plays) == 1
+        assert request.plays[0].play_slug == "andromaque"
+        assert request.plays[0].document.source_path == andromaque_revised.resolve()
+        dialog.destroy()
     finally:
         root.destroy()
 
@@ -857,15 +932,15 @@ def test_publication_dialog_save_and_load_config_round_trip(monkeypatch: pytest.
         runtime.mkdir(parents=True, exist_ok=True)
         config_path = runtime / "publication_config.json"
 
-        dramatic_a1 = runtime / "andromaque_A1.xml"
-        dramatic_a2 = runtime / "andromaque_A2.xml"
-        dramatic_b1 = runtime / "berenice_A1.xml"
-        notice_master = runtime / "master_notice.xml"
-        notice_intro = runtime / "notice_intro.xml"
+        dramatic_a1 = runtime / "andromaque.xml"
+        dramatic_b1 = runtime / "berenice.xml"
+        notice_play = runtime / "notice_andromaque.xml"
+        home_page_tei = runtime / "home_page.xml"
+        general_intro = runtime / "general_intro.xml"
         logo = runtime / "logo.png"
         asset_dir = runtime / "assets"
         output_dir = runtime / "site_out"
-        for path in (dramatic_a1, dramatic_a2, dramatic_b1, notice_master, notice_intro, logo):
+        for path in (dramatic_a1, dramatic_b1, notice_play, home_page_tei, general_intro, logo):
             path.write_text("<xml/>", encoding="utf-8")
         asset_dir.mkdir(parents=True, exist_ok=True)
 
@@ -877,59 +952,57 @@ def test_publication_dialog_save_and_load_config_round_trip(monkeypatch: pytest.
         monkeypatch.setattr("tkinter.messagebox.showinfo", lambda _title, message, **kwargs: infos.append(message))
         monkeypatch.setattr("tkinter.messagebox.showerror", lambda _title, message, **kwargs: errors.append(message))
 
-        dialog.vars.site_title.set("ETS Publication")
-        dialog.vars.site_subtitle.set("Corpus test")
-        dialog.vars.project_name.set("ETS")
-        dialog.vars.editor.set("Equipe ETS")
-        dialog.vars.credits.set("Credits")
-        dialog.homepage_intro.insert("1.0", "Introduction accueil")
+        dialog.vars.author_name.set("Jean Racine")
+        dialog.vars.corpus_title.set("Théâtre complet")
+        dialog.vars.scientific_editor.set("Caroline Labrune")
         dialog.vars.output_dir.set(str(output_dir))
+        dialog.vars.home_page_tei.set(str(home_page_tei))
+        dialog.vars.general_intro_tei.set(str(general_intro))
         dialog.vars.asset_directory.set(str(asset_dir))
-        dialog.vars.master_notice.set(str(notice_master))
-        dialog._notice_paths = [notice_intro]
-        dialog.notice_list.insert(tk.END, str(notice_intro))
         dialog._logo_paths = [logo]
         dialog.logo_list.insert(tk.END, str(logo))
-        dialog._add_dramatic_entries("andromaque", (dramatic_a1, dramatic_a2))
-        dialog._add_dramatic_entries("berenice", (dramatic_b1,))
+        dialog._append_play_from_path(dramatic_a1)
+        dialog._append_play_from_path(dramatic_b1)
+        dialog._play_entries[0].notice_xml_path = notice_play.resolve()
+        dialog._refresh_dramatic_list()
+        dialog._sync_play_order_from_entries()
         dialog.play_order_list.delete(0, tk.END)
         dialog.play_order_list.insert(tk.END, "berenice")
         dialog.play_order_list.insert(tk.END, "andromaque")
-        dialog.mapping_text.insert("1.0", "andromaque|master-notice\n")
         dialog.vars.show_xml_download.set(True)
 
         dialog._on_save_config()
         assert config_path.exists()
         saved_payload = json.loads(config_path.read_text(encoding="utf-8"))
         assert saved_payload["schema"] == "ets.site_publication_dialog_config"
-        assert saved_payload["version"] == 1
+        assert saved_payload["version"] == 2
 
-        dialog.vars.site_title.set("Autre")
-        dialog.homepage_intro.delete("1.0", "end")
-        dialog._dramatic_entries.clear()
+        dialog.vars.corpus_title.set("Autre")
+        dialog.vars.author_name.set("")
+        dialog.vars.scientific_editor.set("")
+        dialog.vars.home_page_tei.set("")
+        dialog.vars.general_intro_tei.set("")
+        dialog._play_entries.clear()
         dialog.dramatic_list.delete(0, tk.END)
         dialog.play_order_list.delete(0, tk.END)
-        dialog._notice_paths.clear()
-        dialog.notice_list.delete(0, tk.END)
-        dialog.vars.master_notice.set("")
         dialog._logo_paths.clear()
         dialog.logo_list.delete(0, tk.END)
-        dialog.mapping_text.delete("1.0", "end")
         dialog.vars.output_dir.set("")
 
         dialog._on_load_config()
 
         assert not errors
-        assert dialog.vars.site_title.get() == "ETS Publication"
-        assert dialog.homepage_intro.get("1.0", "end-1c") == "Introduction accueil"
+        assert dialog.vars.author_name.get() == "Jean Racine"
+        assert dialog.vars.corpus_title.get() == "Théâtre complet"
+        assert dialog.vars.scientific_editor.get() == "Caroline Labrune"
+        assert dialog.vars.home_page_tei.get() == str(home_page_tei.resolve())
+        assert dialog.vars.general_intro_tei.get() == str(general_intro.resolve())
         assert dialog.vars.output_dir.get() == str(output_dir.resolve())
         assert dialog.vars.asset_directory.get() == str(asset_dir.resolve())
-        assert dialog.vars.master_notice.get() == str(notice_master.resolve())
-        assert dialog._notice_paths == [notice_intro.resolve()]
         assert dialog._logo_paths == [logo.resolve()]
         assert dialog._play_order_items() == ["berenice", "andromaque"]
-        assert len(dialog._dramatic_entries) == 3
-        assert dialog.mapping_text.get("1.0", "end-1c").strip() == "andromaque|master-notice"
+        assert len(dialog._play_entries) == 2
+        assert dialog._play_entries[0].notice_xml_path == notice_play.resolve()
         assert infos
         dialog.destroy()
     finally:
@@ -1011,7 +1084,7 @@ def test_publication_dialog_validation_error_is_non_blocking(monkeypatch: pytest
         dialog._on_validate()
 
         assert errors
-        assert "titre du site" in errors[-1].lower()
+        assert "titre de l'œuvre/corpus" in errors[-1].lower()
         assert dialog.result is None
         dialog.destroy()
     finally:
@@ -1054,16 +1127,26 @@ def test_publication_dialog_contains_clarified_labels_and_hints() -> None:
         root.update_idletasks()
         all_text = "\n".join(_collect_widget_texts(dialog))
 
-        assert ("Identifiant de pièce (slug)" in all_text) or ("Identifiant de piÃ¨ce (slug)" in all_text)
-        assert ("Ajoutez les fichiers d'une même pièce avec le même slug" in all_text) or (
-            "Ajoutez les fichiers d'une mÃªme piÃ¨ce avec le mÃªme slug" in all_text
-        )
-        assert ("Fichier maître de notice Métopes" in all_text) or ("Fichier maÃ®tre de notice MÃ©topes" in all_text)
-        assert ("Ordre de navigation des pièces" in all_text) or ("Ordre de navigation des piÃ¨ces" in all_text)
-        assert "Dossier d'assets statiques" in all_text
-        assert "slug_piece|slug_notice" in all_text
+        assert "Metadonnees generales" in all_text
+        assert "Auteur" in all_text
+        assert "Titre de l'oeuvre/corpus" in all_text
+        assert "Responsable scientifique" in all_text
+        assert "XML-TEI page d'accueil" in all_text
+        assert "Introduction generale" in all_text
+        assert "XML-TEI introduction generale" in all_text
+        assert "Corpus de pieces" in all_text
+        assert "Ajouter piece XML" in all_text
+        assert "Associer notice XML" in all_text
+        assert "Regle: 1 XML dramatique = 1 piece complete" in all_text
+        assert "Ordre de navigation des pieces" in all_text
+        assert "Dossier d'assets" in all_text
         assert "Charger config..." in all_text
         assert "Enregistrer config..." in all_text
+        assert "Slug de piece" not in all_text
+        assert "Projet" not in all_text
+        assert "Credits" not in all_text
+        assert "notice maitre" not in all_text.lower()
+        assert "notices additionnelles" not in all_text.lower()
         dialog.destroy()
     finally:
         root.destroy()

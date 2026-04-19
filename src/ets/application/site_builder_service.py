@@ -8,14 +8,12 @@ from typing import Any
 from uuid import uuid4
 
 from ets.site_builder import BuildResult, build_static_site, load_site_config
-from ets.site_builder.dramatic_merge import DramaticTeiMergeRequest
 
 from .site_builder_models import (
     SiteBuildRequest,
     SiteBuildServiceResult,
     SitePublicationRequest,
 )
-from .merge_dramatic_tei_service import merge_dramatic_tei_files
 
 
 class SiteBuilderService:
@@ -124,7 +122,7 @@ def _require_existing_file(path: Path, *, label: str) -> Path:
     return resolved
 
 
-def _copy_notice_source(source: Path, destination_dir: Path, used_names: set[str]) -> None:
+def _copy_notice_source(source: Path, destination_dir: Path, used_names: set[str]) -> str:
     stem = _normalize_identifier(source.stem) or "notice"
     candidate = f"{stem}.xml"
     counter = 2
@@ -133,6 +131,7 @@ def _copy_notice_source(source: Path, destination_dir: Path, used_names: set[str
         counter += 1
     used_names.add(candidate)
     shutil.copy2(source, destination_dir / candidate)
+    return Path(candidate).stem
 
 
 def _normalize_publication_request(
@@ -149,6 +148,7 @@ def _normalize_publication_request(
     play_slugs: list[str] = []
     seen_play_slugs: set[str] = set()
     mapping_pairs: list[tuple[str, str]] = list(request.play_notice_map)
+    play_notice_sources: list[tuple[str, Path]] = []
 
     for play in request.plays:
         play_slug = _normalize_identifier(play.play_slug)
@@ -159,39 +159,50 @@ def _normalize_publication_request(
         seen_play_slugs.add(play_slug)
         play_slugs.append(play_slug)
 
-        if not play.documents:
-            raise ValueError(f"Invalid publication request: play '{play_slug}' has no dramatic XML files.")
-
-        dramatic_sources = tuple(
-            _require_existing_file(doc.source_path, label=f"dramatic file for play '{play_slug}'")
-            for doc in play.documents
+        dramatic_source = _require_existing_file(
+            play.document.source_path,
+            label=f"dramatic file for play '{play_slug}'",
         )
         play_output = dramatic_dir / f"{play_slug}.xml"
-        if len(dramatic_sources) == 1:
-            shutil.copy2(dramatic_sources[0], play_output)
-        else:
-            merge_result = merge_dramatic_tei_files(
-                DramaticTeiMergeRequest(
-                    act_xml_paths=dramatic_sources,
-                    output_path=play_output,
-                )
-            )
-            if not merge_result.ok:
-                detail = merge_result.error_detail or "unknown merge error"
-                raise ValueError(f"Invalid publication request: merge failed for play '{play_slug}': {detail}")
-            warnings.extend(merge_result.warnings)
+        shutil.copy2(dramatic_source, play_output)
 
         if play.related_notice_slug:
             mapping_pairs.append((play_slug, play.related_notice_slug))
+        if play.related_notice_path is not None:
+            notice_source = _require_existing_file(
+                play.related_notice_path,
+                label=f"notice file for play '{play_slug}'",
+            )
+            play_notice_sources.append((play_slug, notice_source))
 
     notice_dir_value: str | None = None
-    if request.notices:
+    if request.notices or play_notice_sources:
         notices_dir.mkdir(parents=True, exist_ok=True)
         notice_dir_value = str(notices_dir)
         used_notice_names: set[str] = set()
+        notice_slug_by_source: dict[Path, str] = {}
+        notice_sources: list[Path] = []
+
+        def _push_notice_source(source: Path) -> None:
+            if source not in notice_sources:
+                notice_sources.append(source)
+
         for notice in request.notices:
             source = _require_existing_file(notice.source_path, label="notice file")
-            _copy_notice_source(source, notices_dir, used_notice_names)
+            _push_notice_source(source)
+        for _play_slug, source in play_notice_sources:
+            _push_notice_source(source)
+
+        for source in notice_sources:
+            notice_slug_by_source[source] = _copy_notice_source(source, notices_dir, used_notice_names)
+
+        for play_slug, source in play_notice_sources:
+            notice_slug = notice_slug_by_source.get(source)
+            if not notice_slug:
+                raise ValueError(
+                    f"Invalid publication request: unable to derive notice slug for play '{play_slug}'."
+                )
+            mapping_pairs.append((play_slug, notice_slug))
 
     normalized_order = tuple(_normalize_identifier(item) for item in (request.play_order or tuple(play_slugs)))
     normalized_order = tuple(item for item in normalized_order if item)
