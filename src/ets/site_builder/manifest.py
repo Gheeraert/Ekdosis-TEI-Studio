@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import re
+import unicodedata
 from dataclasses import replace
 from pathlib import Path
 
@@ -29,6 +31,33 @@ def _with_download_paths(config: SiteConfig, plays: list[PlayEntry], notices: li
     return mapped_plays, mapped_notices
 
 
+def _normalize_identifier(value: str) -> str:
+    normalized = unicodedata.normalize("NFKD", value.strip())
+    ascii_only = normalized.encode("ascii", "ignore").decode("ascii").lower()
+    return re.sub(r"[^a-z0-9]+", "-", ascii_only).strip("-")
+
+
+def _notice_slug_candidates(notice_slug: str) -> tuple[str, ...]:
+    candidates: list[str] = []
+    normalized = _normalize_identifier(notice_slug)
+    if normalized:
+        candidates.append(normalized)
+
+    suffixes = ("-notice", "-metopes", "-metope")
+    prefixes = ("notice-", "metopes-", "metope-")
+    for suffix in suffixes:
+        if normalized.endswith(suffix):
+            trimmed = normalized[: -len(suffix)].strip("-")
+            if trimmed:
+                candidates.append(trimmed)
+    for prefix in prefixes:
+        if normalized.startswith(prefix):
+            trimmed = normalized[len(prefix) :].strip("-")
+            if trimmed:
+                candidates.append(trimmed)
+    return tuple(dict.fromkeys(candidates))
+
+
 def _order_plays(plays: list[PlayEntry], *, play_order: tuple[str, ...], warnings: list[str]) -> list[PlayEntry]:
     if not play_order:
         return plays
@@ -56,13 +85,21 @@ def _associate_notices_with_plays(plays: list[PlayEntry], notices: list[NoticeEn
     play_slugs = {play.slug for play in plays}
     mapped: list[NoticeEntry] = []
     for notice in notices:
-        if notice.related_play_slug:
-            mapped.append(notice)
+        related_slug = _normalize_identifier(notice.related_play_slug or "")
+        if related_slug and related_slug in play_slugs:
+            mapped.append(replace(notice, related_play_slug=related_slug))
             continue
-        if notice.slug in play_slugs:
-            mapped.append(replace(notice, related_play_slug=notice.slug))
+
+        matched_slug: str | None = None
+        for candidate in _notice_slug_candidates(notice.slug):
+            if candidate in play_slugs:
+                matched_slug = candidate
+                break
+        if matched_slug is not None:
+            mapped.append(replace(notice, related_play_slug=matched_slug))
             continue
-        mapped.append(notice)
+
+        mapped.append(replace(notice, related_play_slug=None))
     return mapped
 
 

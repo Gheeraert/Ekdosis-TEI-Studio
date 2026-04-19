@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import shutil
 from pathlib import Path
 
 from ets.site_builder.config import site_config_from_dict
@@ -133,3 +134,36 @@ def test_manifest_navigation_includes_play_notice_acts_and_scenes() -> None:
                     if node.kind == "scene" and node.label == scene.label
                 )
                 assert scene_node.href == f"plays/{play_structure.play_slug}.html#{scene.anchor_id}"
+
+
+def test_manifest_maps_prefixed_notice_slug_under_play_branch() -> None:
+    runtime_dir = ROOT / "tests" / "_runtime" / "site_builder_manifest_notice_prefix_mapping"
+    dramatic_dir = runtime_dir / "dramatic"
+    notice_dir = runtime_dir / "notices"
+    dramatic_dir.mkdir(parents=True, exist_ok=True)
+    notice_dir.mkdir(parents=True, exist_ok=True)
+
+    shutil.copy2(ROOT / "fixtures" / "site_builder" / "minimal" / "dramatic" / "andromaque.xml", dramatic_dir / "andromaque.xml")
+    shutil.copy2(
+        ROOT / "fixtures" / "site_builder" / "minimal" / "notices" / "andromaque-notice.xml",
+        notice_dir / "notice-andromaque.xml",
+    )
+
+    config = site_config_from_dict(
+        {
+            "site_title": "ETS Demo",
+            "dramatic_xml_dir": str(dramatic_dir),
+            "notice_xml_dir": str(notice_dir),
+            "output_dir": str(runtime_dir / "out"),
+            "publish_notices": True,
+        }
+    )
+
+    manifest = build_site_manifest(config)
+
+    plays_group = next(item for item in manifest.navigation if item.kind == "plays_group")
+    andromaque_branch = next(item for item in plays_group.children if item.label == "Andromaque")
+    assert andromaque_branch.children
+    assert andromaque_branch.children[0].kind == "notice"
+    assert andromaque_branch.children[0].href == "notices/andromaque-notice.html"
+    assert not any(item.kind == "notices_group" for item in manifest.navigation)
