@@ -264,8 +264,8 @@ def _layout(
     }}
     .content-shell-play .dramatic-content {{
       --ets-speaker-offset: 11rem;
-      --ets-heading-offset: 10.4rem;
-      --ets-cast-offset: 10.2rem;
+      --ets-heading-offset: 11rem;
+      --ets-cast-offset: 9rem;
       --ets-stage-offset: 9rem;
       --ets-tirade-offset: 1rem;
       --ets-verse-offset: 5rem;
