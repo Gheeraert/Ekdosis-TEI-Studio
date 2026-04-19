@@ -7,6 +7,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from ets.site_builder.extractors import SiteBuilderExtractionError, extract_notice_entry, extract_play_entry
+
 from .site_builder_models import (
     DramaticDocumentInput,
     DramaticPlayInput,
@@ -123,6 +125,23 @@ def derive_corpus_slug(author_name: str, corpus_title: str) -> str:
     parts = [item for item in (author, title_part) if item]
     return "-".join(parts)
 
+
+
+
+def _derive_play_slug_from_xml(path: Path) -> str:
+    try:
+        play = extract_play_entry(path)
+    except SiteBuilderExtractionError as exc:
+        raise ValueError(f"Impossible d'analyser la pièce XML '{path}': {exc}") from exc
+    return _normalize_identifier(play.title) or play.slug
+
+
+def _derive_notice_slug_from_xml(path: Path, *, resolve_xincludes: bool) -> str:
+    try:
+        notice = extract_notice_entry(path, resolve_xincludes=resolve_xincludes)
+    except SiteBuilderExtractionError as exc:
+        raise ValueError(f"Impossible d'analyser la notice XML '{path}': {exc}") from exc
+    return _normalize_identifier(notice.slug) or _normalize_identifier(path.stem)
 
 def _normalize_plays(value: Any, *, base_dir: Path) -> tuple[SitePublicationDialogPlayConfig, ...]:
     entries = _expect_list(value, field_name="plays")
@@ -331,13 +350,15 @@ def site_publication_request_from_dialog_config(config: SitePublicationDialogCon
 
     seen_play_slugs: set[str] = set()
     plays: list[DramaticPlayInput] = []
+    derived_play_order: list[str] = []
     for play in config.plays:
-        play_slug = play.play_slug.strip()
+        play_slug = _derive_play_slug_from_xml(play.dramatic_xml_path)
         if not play_slug:
             raise ValueError("Chaque pièce doit avoir un slug non vide.")
         if play_slug in seen_play_slugs:
             raise ValueError(f"Slug de pièce dupliqué: '{play_slug}'.")
         seen_play_slugs.add(play_slug)
+        derived_play_order.append(play_slug)
 
         plays.append(
             DramaticPlayInput(
@@ -349,9 +370,9 @@ def site_publication_request_from_dialog_config(config: SitePublicationDialogCon
 
     play_order = tuple(item for item in config.play_order if item in seen_play_slugs)
     if not play_order:
-        play_order = tuple(play.play_slug for play in config.plays)
+        play_order = tuple(derived_play_order)
     else:
-        missing = [play.play_slug for play in config.plays if play.play_slug not in play_order]
+        missing = [slug for slug in derived_play_order if slug not in play_order]
         play_order = tuple((*play_order, *missing))
 
     play_by_slug = {play.play_slug: play for play in plays}
@@ -381,7 +402,10 @@ def site_publication_request_from_dialog_config(config: SitePublicationDialogCon
 
     general_notice_slug = ""
     if config.general_intro_tei is not None:
-        general_notice_slug = _normalize_identifier(config.general_intro_tei.stem)
+        general_notice_slug = _derive_notice_slug_from_xml(
+            config.general_intro_tei,
+            resolve_xincludes=config.resolve_notice_xincludes,
+        )
 
     identity = SiteIdentityInput(
         site_title=corpus_title,

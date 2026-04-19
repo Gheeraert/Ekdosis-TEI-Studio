@@ -538,7 +538,6 @@ def extract_notice_document(xml_path: Path, *, resolve_xincludes: bool = True) -
 
 def extract_play_entry(xml_path: Path) -> PlayEntry:
     tree = _parse_tree(xml_path)
-    xml_id = _first_text(tree, ("string(/*/@xml:id)", "string(/*/@id)"))
     title = _first_text(
         tree,
         (
@@ -550,7 +549,7 @@ def extract_play_entry(xml_path: Path) -> PlayEntry:
         tree,
         ("string(//*[local-name()='teiHeader']//*[local-name()='titleStmt']/*[local-name()='author'][1])",),
     )
-    slug = _fallback_slug(xml_path, xml_id or title)
+    slug = _fallback_slug(xml_path, title)
     divisions = _collect_main_divisions(tree)
     return PlayEntry(
         source_path=xml_path.resolve(),

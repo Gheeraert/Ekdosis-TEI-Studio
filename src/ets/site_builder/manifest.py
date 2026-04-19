@@ -238,14 +238,7 @@ def _build_navigation_tree(
         )
 
     if play_nodes:
-        navigation.append(
-            NavigationItem(
-                label="Pièces",
-                href="",
-                kind="plays_group",
-                children=tuple(play_nodes),
-            )
-        )
+        navigation.extend(play_nodes)
 
     uncategorized_notices = [
         notice
@@ -253,20 +246,13 @@ def _build_navigation_tree(
         if notice.related_play_slug is None and notice.slug != (general_notice_slug or "")
     ]
     if uncategorized_notices:
-        navigation.append(
+        navigation.extend(
             NavigationItem(
-                label="Notices",
-                href="",
-                kind="notices_group",
-                children=tuple(
-                    NavigationItem(
-                        label=notice.title,
-                        href=f"notices/{notice.slug}.html",
-                        kind="notice_volume" if notice.notice_kind == "master_volume" else "notice",
-                    )
-                    for notice in uncategorized_notices
-                ),
+                label=notice.title,
+                href=f"notices/{notice.slug}.html",
+                kind="notice_volume" if notice.notice_kind == "master_volume" else "notice",
             )
+            for notice in uncategorized_notices
         )
 
     return tuple(navigation)

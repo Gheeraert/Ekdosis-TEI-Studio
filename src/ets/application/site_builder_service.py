@@ -8,6 +8,7 @@ from typing import Any
 from uuid import uuid4
 
 from ets.site_builder import BuildResult, build_static_site, load_site_config
+from ets.site_builder.extractors import SiteBuilderExtractionError, extract_notice_entry, extract_play_entry
 
 from .site_builder_models import (
     SiteBuildRequest,
@@ -122,8 +123,19 @@ def _require_existing_file(path: Path, *, label: str) -> Path:
     return resolved
 
 
-def _copy_notice_source(source: Path, destination_dir: Path, used_names: set[str]) -> str:
-    stem = _normalize_identifier(source.stem) or "notice"
+def _copy_notice_source(
+    source: Path,
+    destination_dir: Path,
+    used_names: set[str],
+    *,
+    resolve_xincludes: bool,
+) -> str:
+    try:
+        notice_entry = extract_notice_entry(source, resolve_xincludes=resolve_xincludes)
+    except SiteBuilderExtractionError as exc:
+        raise ValueError(f"Invalid publication request: notice file '{source}' could not be analyzed: {exc}") from exc
+
+    stem = _normalize_identifier(notice_entry.slug) or _normalize_identifier(source.stem) or "notice"
     candidate = f"{stem}.xml"
     counter = 2
     while candidate in used_names:
@@ -131,7 +143,7 @@ def _copy_notice_source(source: Path, destination_dir: Path, used_names: set[str
         counter += 1
     used_names.add(candidate)
     shutil.copy2(source, destination_dir / candidate)
-    return Path(candidate).stem
+    return stem
 
 
 def _normalize_publication_request(
@@ -151,7 +163,16 @@ def _normalize_publication_request(
     play_notice_sources: list[tuple[str, Path]] = []
 
     for play in request.plays:
-        play_slug = _normalize_identifier(play.play_slug)
+        dramatic_source = _require_existing_file(
+            play.document.source_path,
+            label="dramatic file",
+        )
+        try:
+            extracted_play = extract_play_entry(dramatic_source)
+        except SiteBuilderExtractionError as exc:
+            raise ValueError(f"Invalid publication request: dramatic file '{dramatic_source}' could not be analyzed: {exc}") from exc
+
+        play_slug = _normalize_identifier(extracted_play.title) or extracted_play.slug or _normalize_identifier(play.play_slug)
         if not play_slug:
             raise ValueError("Invalid publication request: each play must define a non-empty slug.")
         if play_slug in seen_play_slugs:
@@ -159,10 +180,6 @@ def _normalize_publication_request(
         seen_play_slugs.add(play_slug)
         play_slugs.append(play_slug)
 
-        dramatic_source = _require_existing_file(
-            play.document.source_path,
-            label=f"dramatic file for play '{play_slug}'",
-        )
         play_output = dramatic_dir / f"{play_slug}.xml"
         shutil.copy2(dramatic_source, play_output)
 
@@ -194,7 +211,12 @@ def _normalize_publication_request(
             _push_notice_source(source)
 
         for source in notice_sources:
-            notice_slug_by_source[source] = _copy_notice_source(source, notices_dir, used_notice_names)
+            notice_slug_by_source[source] = _copy_notice_source(
+                source,
+                notices_dir,
+                used_notice_names,
+                resolve_xincludes=request.resolve_notice_xincludes,
+            )
 
         for play_slug, source in play_notice_sources:
             notice_slug = notice_slug_by_source.get(source)
