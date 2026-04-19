@@ -35,11 +35,14 @@ class MarkdownEditorWidget(ttk.Frame):
     def _build_toolbar(self) -> None:
         self.toolbar = ttk.Frame(self)
         self.toolbar.grid(row=0, column=0, sticky="ew", pady=(0, 6))
-        for column in range(16):
-            self.toolbar.columnconfigure(column, weight=0)
-        self.toolbar.columnconfigure(15, weight=1)
+        self.toolbar.columnconfigure(0, weight=1)
 
-        buttons = [
+        row1 = ttk.Frame(self.toolbar)
+        row1.grid(row=0, column=0, sticky="w")
+        row2 = ttk.Frame(self.toolbar)
+        row2.grid(row=1, column=0, sticky="w", pady=(4, 0))
+
+        row1_buttons = [
             ("Gras", self.apply_bold),
             ("Italique", self.apply_italic),
             ("Souligné", self.apply_underline),
@@ -50,14 +53,19 @@ class MarkdownEditorWidget(ttk.Frame):
             ("T1", self.apply_heading_1),
             ("T2", self.apply_heading_2),
             ("T3", self.apply_heading_3),
+        ]
+        row2_buttons = [
             ("Citation", self.apply_quote),
             ("Note", self.insert_note),
             ("Bibliographie", self.insert_bibliography_block),
             ("Rechercher", self.open_source_search_dialog),
             ("Rech. aperçu", self.open_preview_search_dialog),
         ]
-        for index, (label, command) in enumerate(buttons):
-            ttk.Button(self.toolbar, text=label, command=command).grid(row=0, column=index, padx=2)
+
+        for index, (label, command) in enumerate(row1_buttons):
+            ttk.Button(row1, text=label, command=command, width=11).grid(row=0, column=index, padx=2)
+        for index, (label, command) in enumerate(row2_buttons):
+            ttk.Button(row2, text=label, command=command, width=13).grid(row=0, column=index, padx=2)
 
     def _build_panes(self) -> None:
         self.paned = ttk.Panedwindow(self, orient=tk.HORIZONTAL)
@@ -69,6 +77,7 @@ class MarkdownEditorWidget(ttk.Frame):
 
         self.source_text = tk.Text(self.left, undo=True, wrap="word", font=("Consolas", 11))
         self.source_text.grid(row=0, column=0, sticky="nsew")
+        self.source_text.configure(state="normal")
         source_y = ttk.Scrollbar(self.left, orient="vertical", command=self.source_text.yview)
         source_y.grid(row=0, column=1, sticky="ns")
         self.source_text.configure(yscrollcommand=source_y.set)
@@ -84,7 +93,7 @@ class MarkdownEditorWidget(ttk.Frame):
             font=("Georgia", 11),
             state="disabled",
             cursor="xterm",
-            takefocus=True,
+            takefocus=False,
         )
         self.preview_text.grid(row=0, column=0, sticky="nsew")
         preview_y = ttk.Scrollbar(self.right, orient="vertical", command=self.preview_text.yview)
@@ -94,6 +103,7 @@ class MarkdownEditorWidget(ttk.Frame):
 
         self.paned.add(self.left, weight=3)
         self.paned.add(self.right, weight=2)
+        self.after_idle(self.reset_split_view)
 
         self._source_menu = tk.Menu(self.source_text, tearoff=False)
         self._source_menu.add_command(label="Couper", command=lambda: self.source_text.event_generate("<<Cut>>"))
@@ -117,6 +127,7 @@ class MarkdownEditorWidget(ttk.Frame):
     def _install_bindings(self) -> None:
         for sequence in ("<KeyRelease>", "<<Paste>>", "<<Cut>>", "<Delete>"):
             self.source_text.bind(sequence, self._on_source_changed, add="+")
+        self.source_text.bind("<Button-1>", self._on_source_click_focus, add="+")
         self.source_text.bind("<Button-3>", self._show_source_menu, add="+")
         self.source_text.bind("<Control-b>", self._shortcut(self.apply_bold), add="+")
         self.source_text.bind("<Control-B>", self._shortcut(self.apply_bold), add="+")
@@ -134,6 +145,9 @@ class MarkdownEditorWidget(ttk.Frame):
         self._source_menu.tk_popup(event.x_root, event.y_root)
         return "break"
 
+    def _on_source_click_focus(self, _event: tk.Event[tk.Misc]) -> None:
+        self.source_text.focus_set()
+
     def _on_source_changed(self, _event: tk.Event[tk.Misc]) -> None:
         self._dirty = True
         self.schedule_preview_refresh()
@@ -147,11 +161,14 @@ class MarkdownEditorWidget(ttk.Frame):
         if self._after_id is not None:
             self.after_cancel(self._after_id)
             self._after_id = None
+        focused = self.focus_get()
         source = self.get_text()
         result = self.service.parse(source)
         self.current_parse_result = result
         self.renderer.render(self.preview_text, result.document)
         self._refresh_diagnostics(result)
+        if focused is self.source_text:
+            self.source_text.focus_set()
 
     def _refresh_diagnostics(self, parse_result: MarkdownParseResult) -> None:
         self.diagnostics_list.delete(0, "end")
@@ -172,8 +189,18 @@ class MarkdownEditorWidget(ttk.Frame):
 
     def reset_split_view(self) -> None:
         self.update_idletasks()
-        total_width = max(self.winfo_width(), 1000)
-        self.paned.sashpos(0, int(total_width * 0.58))
+        total_width = self.paned.winfo_width()
+        if total_width <= 1:
+            total_width = self.winfo_width()
+        if total_width <= 1:
+            total_width = 1000
+        target = int(total_width * 0.58)
+        if total_width > 600:
+            target = max(280, min(target, total_width - 260))
+        try:
+            self.paned.sashpos(0, target)
+        except tk.TclError:
+            return
 
     def get_text(self) -> str:
         return self.source_text.get("1.0", "end-1c")
@@ -608,3 +635,12 @@ class MarkdownEditorWidget(ttk.Frame):
 
     def open_preview_search_dialog(self) -> None:
         PreviewSearchDialog(self, on_find_next=self._find_in_preview)
+
+    def destroy(self) -> None:
+        if self._after_id is not None:
+            try:
+                self.after_cancel(self._after_id)
+            except tk.TclError:
+                pass
+            self._after_id = None
+        super().destroy()

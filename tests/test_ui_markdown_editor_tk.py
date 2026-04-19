@@ -39,6 +39,37 @@ def test_markdown_format_action_wraps_selection() -> None:
         root.destroy()
 
 
+def test_markdown_source_widget_exists_and_is_editable() -> None:
+    root = _make_root()
+    try:
+        window = MainWindow(root)
+        window.editor_tabs.select(window.markdown_editor)
+        source = window.markdown_editor.source_text
+        assert isinstance(source, tk.Text)
+        assert str(source.cget("state")) == "normal"
+        source.delete("1.0", "end")
+        source.insert("1.0", "abc")
+        assert source.get("1.0", "end-1c") == "abc"
+    finally:
+        root.destroy()
+
+
+def test_markdown_preview_widget_is_distinct_and_readonly() -> None:
+    root = _make_root()
+    try:
+        window = MainWindow(root)
+        window.editor_tabs.select(window.markdown_editor)
+        source = window.markdown_editor.source_text
+        preview = window.markdown_editor.preview_text
+        assert isinstance(preview, tk.Text)
+        assert source is not preview
+        assert str(preview.cget("state")) == "disabled"
+        panes = window.markdown_editor.paned.panes()
+        assert len(panes) == 2
+    finally:
+        root.destroy()
+
+
 def test_action_find_routes_to_markdown_source_dialog(monkeypatch: pytest.MonkeyPatch) -> None:
     root = _make_root()
     try:

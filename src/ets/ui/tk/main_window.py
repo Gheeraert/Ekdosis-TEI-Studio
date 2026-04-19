@@ -201,6 +201,9 @@ class MainWindow(ttk.Frame):
         self.markdown_editor.reset_split_view()
 
     def _on_editor_tab_changed(self, _event: tk.Event[tk.Misc]) -> None:
+        if self._is_markdown_mode():
+            self.after_idle(self.markdown_editor.focus_source)
+            self.after_idle(self.markdown_editor.reset_split_view)
         self._refresh_window_title()
 
     def _is_markdown_mode(self) -> bool:
@@ -209,7 +212,7 @@ class MainWindow(ttk.Frame):
 
     def _select_markdown_mode(self) -> None:
         self.editor_tabs.select(self.markdown_editor)
-        self.markdown_editor.focus_source()
+        self.after_idle(self.markdown_editor.focus_source)
 
     def _refresh_window_title(self) -> None:
         if self._is_markdown_mode():
