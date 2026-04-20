@@ -341,7 +341,43 @@ def _layout(
     .content-shell-play .dramatic-content .note-call a {{ color: var(--accent); }}
     .content-shell-play .dramatic-content .note-call a:hover,
     .content-shell-play .dramatic-content .note-call a:focus {{ border-bottom-color: var(--accent); }}
-    .content-shell-play .dramatic-content .variation {{ border-bottom-color: color-mix(in oklab, var(--accent) 50%, var(--ink-muted)); }}
+    
+    .content-shell-play .dramatic-content {{
+      --ets-tooltip-bg: var(--bg-panel);
+      --ets-tooltip-ink: var(--ink);
+      --ets-tooltip-border: var(--line);
+      --ets-tooltip-shadow: 0 10px 24px rgba(46, 34, 24, 0.16);
+    }}
+    
+    html[data-theme="dark"] .content-shell-play .dramatic-content {{
+      --ets-tooltip-shadow: 0 12px 28px rgba(0, 0, 0, 0.42);
+    }}
+    
+    .content-shell-play .dramatic-content .variation {{
+      position: relative;
+      border-bottom-color: color-mix(in oklab, var(--accent) 50%, var(--ink-muted));
+    }}
+    
+    
+    .content-shell-play .dramatic-content .variation::after {{
+      background: var(--ets-tooltip-bg);
+      color: var(--ets-tooltip-ink);
+      border: 1px solid var(--ets-tooltip-border);
+      box-shadow: var(--ets-tooltip-shadow);
+      border-radius: 8px;
+      padding: 0.55em 0.7em;
+      line-height: 1.35;
+      max-width: min(30rem, calc(100vw - 3rem));
+      z-index: 1000;
+      overflow-wrap: break-word;
+      white-space: pre-line;
+      pointer-events: none;
+    }}
+    
+    .content-shell-play .dramatic-content .variation:hover::after {{
+      display: block;
+    }}
+    
     .dramatic-anchor {{ display: block; height: 0; margin: 0; padding: 0; }}
     .branding {{ margin-top: 0.65rem; display: flex; gap: 0.65rem; align-items: center; flex-wrap: wrap; }}
     .branding img {{ max-height: 52px; width: auto; border: 1px solid rgba(243, 236, 224, 0.45); background: rgba(255, 255, 255, 0.92); padding: 0.2rem; }}
