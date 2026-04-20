@@ -19,11 +19,13 @@ class ReferencesPanel(ttk.Frame):
         service: ReferencesService | None = None,
         get_current_text: Callable[[], str],
         insert_citation_token: Callable[[str], bool],
+        on_references_changed: Callable[[], None] | None = None,
     ) -> None:
         super().__init__(master, padding=8)
         self.service = service or ReferencesService()
         self._get_current_text = get_current_text
         self._insert_citation_token = insert_citation_token
+        self._on_references_changed = on_references_changed
 
         self.columnconfigure(0, weight=1)
         self.rowconfigure(1, weight=1)
@@ -151,6 +153,8 @@ class ReferencesPanel(ttk.Frame):
         )
         self._refresh_references()
         self.refresh_bibliography()
+        if self._on_references_changed is not None:
+            self._on_references_changed()
 
     def action_import_references(self) -> None:
         selected = filedialog.askopenfilename(
@@ -166,6 +170,8 @@ class ReferencesPanel(ttk.Frame):
         result = self.service.import_from_file(Path(selected))
         self._refresh_references()
         self.refresh_bibliography()
+        if self._on_references_changed is not None:
+            self._on_references_changed()
 
         if result.diagnostics:
             messages = "\n".join(f"- {item.severity}: {item.message}" for item in result.diagnostics)
@@ -201,6 +207,8 @@ class ReferencesPanel(ttk.Frame):
             )
             return
         self.refresh_bibliography()
+        if self._on_references_changed is not None:
+            self._on_references_changed()
 
     def action_show_bibliography(self) -> None:
         state = self.refresh_bibliography()
@@ -213,3 +221,5 @@ class ReferencesPanel(ttk.Frame):
             return
         self.service.set_style(selected)
         self.refresh_bibliography()
+        if self._on_references_changed is not None:
+            self._on_references_changed()

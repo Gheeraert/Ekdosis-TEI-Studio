@@ -67,6 +67,14 @@ La bibliographie n'est pas stockée comme un bloc figé:
 - les références effectivement citées sont résolues,
 - la liste est régénérée selon le style actif.
 
+## Bloc `:::bibl` et tokens de citation
+
+Comportement V1 consolidé:
+
+- un token `{{CITE:...}}` dans `:::bibl` est rendu en texte lisible (pas en code brut);
+- un diagnostic de transition est émis pour signaler que cet usage est déconseillé;
+- la bibliographie de référence reste celle générée automatiquement depuis les citations du corps du texte.
+
 ## Styles de publication (V1)
 
 Styles simples prédéfinis:

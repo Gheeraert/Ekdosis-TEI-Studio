@@ -4,9 +4,12 @@ from pathlib import Path
 import re
 import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
+from typing import Callable
 
 from .dialogs import PreviewSearchDialog, SourceSearchOptions, SourceSearchReplaceDialog
-from .models import MarkdownParseResult
+from ets.references import CitationTokenData
+
+from .models import MarkdownDiagnostic, MarkdownParseResult
 from .preview import PreviewRenderer
 from .service import MarkdownEditorService
 
@@ -164,18 +167,19 @@ class MarkdownEditorWidget(ttk.Frame):
         focused = self.focus_get()
         source = self.get_text()
         result = self.service.parse(source)
-        self.current_parse_result = result
-        self.renderer.render(self.preview_text, result.document)
-        self._refresh_diagnostics(result)
+        preview_diagnostics = self.renderer.render(self.preview_text, result.document)
+        combined_diagnostics = result.diagnostics + preview_diagnostics
+        self.current_parse_result = MarkdownParseResult(document=result.document, diagnostics=combined_diagnostics)
+        self._refresh_diagnostics(combined_diagnostics)
         if focused is self.source_text:
             self.source_text.focus_set()
 
-    def _refresh_diagnostics(self, parse_result: MarkdownParseResult) -> None:
+    def _refresh_diagnostics(self, diagnostics: tuple[MarkdownDiagnostic, ...]) -> None:
         self.diagnostics_list.delete(0, "end")
-        if not parse_result.diagnostics:
+        if not diagnostics:
             self.diagnostics_list.insert("end", "Aucun diagnostic.")
             return
-        for diagnostic in parse_result.diagnostics:
+        for diagnostic in diagnostics:
             where = ""
             if diagnostic.line is not None:
                 where = f" (ligne {diagnostic.line}"
@@ -186,6 +190,10 @@ class MarkdownEditorWidget(ttk.Frame):
                 "end",
                 f"[{diagnostic.severity}] {diagnostic.code}: {diagnostic.message}{where}",
             )
+
+    def set_citation_resolver(self, resolver: Callable[[CitationTokenData], str | None] | None) -> None:
+        self.renderer.set_citation_resolver(resolver)
+        self.force_refresh_preview()
 
     def reset_split_view(self) -> None:
         self.update_idletasks()

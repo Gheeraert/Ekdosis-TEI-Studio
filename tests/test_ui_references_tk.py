@@ -175,3 +175,68 @@ def test_add_reference_dialog_exposes_editor_and_place_fields_and_validates_titl
         dialog.destroy()
     finally:
         root.destroy()
+
+
+def test_markdown_preview_renders_citation_token_as_readable_text() -> None:
+    root = _make_root()
+    try:
+        window = MainWindow(root)
+        ref = window.references_panel.service.add_manual_reference(
+            title="Berenice",
+            authors=["Forestier"],
+            date="1999",
+        )
+        window.references_panel.service.set_style("simple_author_date")
+        window.markdown_editor.set_text(f"Citation {window.references_panel.service.build_citation_token(ref.id, locator='p. 143')}.")
+        window.markdown_editor.force_refresh_preview()
+
+        preview = window.markdown_editor.preview_text.get("1.0", "end-1c")
+        assert "{{CITE:" not in preview
+        assert "Forestier" in preview
+        assert "1999" in preview
+    finally:
+        root.destroy()
+
+
+def test_markdown_preview_uses_fallback_and_warning_for_unknown_reference() -> None:
+    root = _make_root()
+    try:
+        window = MainWindow(root)
+        window.markdown_editor.set_text("Texte {{CITE:ref-inconnue|locator=p. 10}}.")
+        window.markdown_editor.force_refresh_preview()
+        preview = window.markdown_editor.preview_text.get("1.0", "end-1c")
+        assert "{{CITE:" not in preview
+        assert "[ref-inconnue, p. 10]" in preview
+        codes = {item.code for item in (window.markdown_editor.current_parse_result.diagnostics if window.markdown_editor.current_parse_result else ())}
+        assert "W_MD_CITE_ORPHAN" in codes
+    finally:
+        root.destroy()
+
+
+def test_bibliography_generation_still_uses_citations_in_markdown_text() -> None:
+    root = _make_root()
+    try:
+        window = MainWindow(root)
+        ref = window.references_panel.service.add_manual_reference(title="Berenice", authors=["Forestier"], date="1999")
+        token = window.references_panel.service.build_citation_token(ref.id, locator="p. 12")
+        window.markdown_editor.set_text(f"Corps du texte {token}.")
+        state = window.references_panel.refresh_bibliography()
+        assert state.cited_reference_ids == (ref.id,)
+    finally:
+        root.destroy()
+
+
+def test_token_inside_bibl_block_is_not_rendered_as_raw_code() -> None:
+    root = _make_root()
+    try:
+        window = MainWindow(root)
+        ref = window.references_panel.service.add_manual_reference(title="Berenice", authors=["Forestier"], date="1999")
+        token = window.references_panel.service.build_citation_token(ref.id)
+        window.markdown_editor.set_text(f":::bibl\n- Entrée {token}\n:::\n")
+        window.markdown_editor.force_refresh_preview()
+        preview = window.markdown_editor.preview_text.get("1.0", "end-1c")
+        assert "{{CITE:" not in preview
+        codes = {item.code for item in (window.markdown_editor.current_parse_result.diagnostics if window.markdown_editor.current_parse_result else ())}
+        assert "W_MD_CITE_IN_BIBL" in codes
+    finally:
+        root.destroy()

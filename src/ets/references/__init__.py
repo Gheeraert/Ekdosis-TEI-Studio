@@ -1,4 +1,4 @@
-from .bibliography import build_citation_token, extract_citations, parse_citation_token
+from .bibliography import CitationTokenData, build_citation_token, extract_citations, parse_citation_token
 from .importers import import_csl_json, import_references
 from .models import (
     BibliographyEntry,
@@ -15,6 +15,7 @@ from .ui import ReferencesPanel
 __all__ = [
     "BibliographyEntry",
     "BibliographyState",
+    "CitationTokenData",
     "CitationOccurrence",
     "ImportDiagnostic",
     "ImportResult",
@@ -32,4 +33,3 @@ __all__ = [
     "import_references",
     "parse_citation_token",
 ]
-

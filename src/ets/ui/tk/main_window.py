@@ -9,7 +9,7 @@ import webbrowser
 
 from ets.annotations import Annotation, AnnotationCollection, AnnotationValidationError
 from ets.markdown_editor import MarkdownEditorWidget
-from ets.references import ReferencesPanel
+from ets.references import CitationOccurrence, CitationTokenData, ReferencesPanel, format_inline_citation
 from ets.application import (
     AppDiagnostic,
     merge_dramatic_tei_files,
@@ -159,7 +159,9 @@ class MainWindow(ttk.Frame):
             self.editor_tabs,
             get_current_text=self._get_text_for_references,
             insert_citation_token=self._insert_citation_token_into_active_editor,
+            on_references_changed=self.markdown_editor.force_refresh_preview,
         )
+        self.markdown_editor.set_citation_resolver(self._resolve_markdown_citation_preview)
 
         self.editor_tabs.add(self.transcription_tab, text="Transcription")
         self.editor_tabs.add(self.markdown_editor, text="Éditeur Markdown")
@@ -386,6 +388,21 @@ class MainWindow(ttk.Frame):
 
     def _get_text_for_references(self) -> str:
         return self.markdown_editor.get_text()
+
+    def _resolve_markdown_citation_preview(self, token: CitationTokenData) -> str | None:
+        reference = self.references_panel.service.get_reference(token.reference_id)
+        if reference is None:
+            return None
+        occurrence = CitationOccurrence(
+            id="preview",
+            reference_id=token.reference_id,
+            locator=token.locator,
+            prefix=token.prefix,
+            suffix=token.suffix,
+            citation_mode=token.mode,
+            target_context="markdown_preview",
+        )
+        return format_inline_citation(reference, occurrence, self.references_panel.service.style_id)
 
     def _shortcut_find(self, _event: tk.Event[tk.Misc]) -> str:
         self.action_find()
