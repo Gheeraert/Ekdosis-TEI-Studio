@@ -119,7 +119,7 @@ class MainWindow(ttk.Frame):
         self.master = master
         self.state = UIState()
         self._diagnostics_visible = True
-        self._preview_server = preview_server or LocalPreviewServer()
+        self._preview_server = preview_server or LocalPreviewServer(preferred_port=8765)
         self._site_preview_server: LocalPreviewServer | None = None
         self._autosave_store = autosave_store or AutosaveStore()
         self._open_browser = open_browser or webbrowser.open_new_tab
@@ -1361,7 +1361,7 @@ class MainWindow(ttk.Frame):
         if self._site_preview_server is None or self._site_preview_server.root_dir.resolve() != resolved_output_dir:
             if self._site_preview_server is not None:
                 self._site_preview_server.stop()
-            self._site_preview_server = LocalPreviewServer(root_dir=resolved_output_dir)
+            self._site_preview_server = LocalPreviewServer(root_dir=resolved_output_dir, preferred_port=8766,)
 
         self._site_preview_server.ensure_running()
         site_url = self._site_preview_server.url_for("index.html")
