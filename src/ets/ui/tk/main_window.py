@@ -123,6 +123,7 @@ class MainWindow(ttk.Frame):
         self._autosave_store = autosave_store or AutosaveStore()
         self._open_browser = open_browser or webbrowser.open_new_tab
         self._autosave_after_id: str | None = None
+        self._menu_bar: tk.Menu | None = None
 
         self.master.title("Ekdosis TEI Studio v2")
         self.master.geometry("1200x850")
@@ -220,7 +221,9 @@ class MainWindow(ttk.Frame):
         elif self._is_transcription_mode():
             self._last_editor_mode = "transcription"
             self.after_idle(self.editor.focus_editor)
+
         self._refresh_window_title()
+        self._refresh_menu_state()
 
     def _is_markdown_mode(self) -> bool:
         selected = self.editor_tabs.select()
@@ -320,6 +323,15 @@ class MainWindow(ttk.Frame):
                 show_help=lambda: show_help_dialog(self.master),
             ),
         )
+
+        menu_name = self.master.cget("menu")
+        if menu_name:
+            try:
+                self._menu_bar = self.master.nametowidget(menu_name)
+            except KeyError:
+                self._menu_bar = None
+
+        self._refresh_menu_state()
 
     def _install_shortcuts(self) -> None:
         self.master.bind_all("<Control-f>", self._shortcut_find, add="+")
@@ -1697,3 +1709,48 @@ class MainWindow(ttk.Frame):
         if self._site_preview_server is not None:
             self._site_preview_server.stop()
         self.master.destroy()
+
+    def _is_references_mode(self) -> bool:
+        selected = self.editor_tabs.select()
+        return bool(selected) and self.editor_tabs.nametowidget(selected) is self.references_panel
+
+    def _set_top_menu_state(self, label: str, state: str) -> None:
+        if self._menu_bar is None:
+            return
+        end_index = self._menu_bar.index("end")
+        if end_index is None:
+            return
+
+        for index in range(end_index + 1):
+            try:
+                if self._menu_bar.entrycget(index, "label") == label:
+                    self._menu_bar.entryconfigure(index, state=state)
+                    return
+            except tk.TclError:
+                continue
+
+    def _refresh_menu_state(self) -> None:
+        if self._is_transcription_mode():
+            states = {
+                "Insertion": "disabled",
+                "Références": "disabled",
+                "Format": "disabled",
+                "Structure": "disabled",
+            }
+        elif self._is_references_mode():
+            states = {
+                "Insertion": "disabled",
+                "Références": "normal",
+                "Format": "disabled",
+                "Structure": "disabled",
+            }
+        else:  # mode markdown
+            states = {
+                "Insertion": "normal",
+                "Références": "normal",
+                "Format": "normal",
+                "Structure": "normal",
+            }
+
+        for label, state in states.items():
+            self._set_top_menu_state(label, state)
