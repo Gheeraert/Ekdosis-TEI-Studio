@@ -54,6 +54,7 @@ from .menus import MenuCallbacks, install_menus
 from .output_notebook import OutputNotebook
 
 
+
 @dataclass
 class UIState:
     current_file_path: Path | None = None
