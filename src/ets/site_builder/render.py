@@ -195,8 +195,21 @@ def _layout(
       gap: 0.75rem 1rem;
       flex-wrap: wrap;
     }}
-    .site-header h1 {{ margin: 0; font-weight: 600; letter-spacing: 0.01em; font-size: clamp(1.45rem, 2.4vw, 1.95rem); }}
-    .site-header p {{ margin: 0.3rem 0 0; color: var(--header-muted); max-width: 66ch; }}
+    .site-author {{
+      margin: 0 0 0.2rem;
+      color: var(--header-ink);
+      font-family: var(--font-ui);
+      font-size: 1.3rem;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+    }}
+
+    .site-header h1 {{
+      margin: 0;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+      font-size: clamp(1.8rem, 3vw, 2.35rem);
+    }}
     .theme-toggle {{
       border: 1px solid rgba(243, 236, 224, 0.32);
       background: transparent;
@@ -253,7 +266,16 @@ def _layout(
       box-shadow: none;
     }}
     .meta {{ color: var(--ink-muted); font-family: var(--font-ui); font-size: 0.94rem; }}
-    .content-shell-play > h2 {{ margin: 0.15rem 0 0.6rem; }}
+    .play-author {{
+      margin: 0.1rem 0 0.2rem;
+      font-family: var(--font-ui);
+      font-size: 1.45rem;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+      color: var(--ink);
+    }}
+
+    .content-shell-play > h2 {{ margin: 0.05rem 0 0.6rem; }}
     .content-shell-play .meta {{ margin: 0.2rem 0 0.35rem; }}
     .dramatic-content {{
       min-width: 0;
@@ -493,8 +515,8 @@ def _layout(
   <header class="site-header">
     <div class="site-header-row">
       <div>
+        <p class="site-author">{html.escape(manifest.config.site_subtitle)}</p>
         <h1>{html.escape(manifest.config.site_title)}</h1>
-        <p>{html.escape(manifest.config.site_subtitle)}</p>
       </div>
       <button class="theme-toggle" type="button" data-theme-toggle aria-label="Basculer le theme">Mode sombre</button>
     </div>
@@ -830,10 +852,14 @@ def render_home_page(manifest: SiteManifest) -> str:
 
 
 def render_play_page(manifest: SiteManifest, play: PlayEntry) -> str:
-    lines = [f"<h2>{html.escape(play.title)}</h2>"]
+    lines: list[str] = []
+
+    if play.author:
+        lines.append(f'<p class="play-author">{html.escape(play.author)}</p>')
+
+    lines.append(f"<h2>{html.escape(play.title)}</h2>")
+
     if manifest.config.include_metadata:
-        if play.author:
-            lines.append(f'<p class="meta">Auteur: {html.escape(play.author)}</p>')
         lines.append(f'<p class="meta">Type: {html.escape(play.document_type)}</p>')
     if manifest.config.show_xml_download and play.xml_download_relpath:
         lines.append(
