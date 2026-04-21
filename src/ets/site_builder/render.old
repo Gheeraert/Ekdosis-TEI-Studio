@@ -195,13 +195,6 @@ def _layout(
       gap: 0.75rem 1rem;
       flex-wrap: wrap;
     }}
-    .site-header-branding {{
-      display: flex;
-      flex-direction: column;
-      align-items: flex-end;
-      gap: 0.35rem;
-      margin-left: auto;
-    }}
     .site-author {{
       margin: 0 0 0.2rem;
       color: var(--header-ink);
@@ -216,6 +209,13 @@ def _layout(
       font-weight: 600;
       letter-spacing: 0.01em;
       font-size: clamp(1.8rem, 3vw, 2.35rem);
+    }}
+    .site-header-branding {{
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 0.5rem;
+      margin-left: auto;
     }}
     .theme-toggle {{
       position: static;
@@ -436,23 +436,8 @@ def _layout(
     }}
 
     .dramatic-anchor {{ display: block; height: 0; margin: 0; padding: 0; }}
-    .branding {{
-      margin-top: 0.35rem;
-      display: flex;
-      justify-content: flex-end;
-      gap: 0.45rem 0.6rem;
-      align-items: center;
-      flex-wrap: wrap;
-    }}
-    .branding img {{
-      display: block;
-      max-height: 30px;
-      max-width: 140px;
-      width: auto;
-      border: 1px solid rgba(243, 236, 224, 0.35);
-      background: rgba(255, 255, 255, 0.94);
-      padding: 0.12rem;
-    }}
+    .branding {{ margin-top: 0.65rem; display: flex; gap: 0.65rem; align-items: center; flex-wrap: wrap; }}
+    .branding img {{ max-height: 52px; width: auto; border: 1px solid rgba(243, 236, 224, 0.45); background: rgba(255, 255, 255, 0.92); padding: 0.2rem; }}
 
     .notice-title-block {{ margin: 0.2rem 0 1rem; padding-bottom: 0.7rem; border-bottom: 1px solid var(--line); }}
     .notice-title-block h2 {{ margin: 0 0 0.4rem; }}
@@ -502,19 +487,6 @@ def _layout(
 
     @media (max-width: 900px) {{
       main {{ grid-template-columns: 1fr; }}
-      .site-header-branding {{
-        width: 100%;
-        align-items: flex-start;
-        margin-top: 0.45rem;
-      }}
-      .branding {{
-        justify-content: flex-start;
-        gap: 0.35rem 0.5rem;
-      }}
-      .branding img {{
-        max-height: 24px;
-        max-width: 110px;
-      }}
       nav {{
         position: static;
         max-height: none;
@@ -548,9 +520,10 @@ def _layout(
       .notice-meta dl {{ grid-template-columns: 1fr; }}
       .notice-meta dt {{ margin-top: 0.25rem; }}
       .theme-toggle {{
-        align-self: flex-start;
-        font-size: 0.74rem;
-        padding: 0.32rem 0.5rem;
+       top: 0.75rem;
+       right: 0.75rem;
+       font-size: 0.78rem;
+       padding: 0.38rem 0.58rem;
       }}
       .home-overview dl {{ grid-template-columns: 1fr; }}
     }}
@@ -563,9 +536,12 @@ def _layout(
         <p class="site-author">{html.escape(manifest.config.site_subtitle)}</p>
         <h1>{html.escape(manifest.config.site_title)}</h1>
       </div>
+
       <div class="site-header-branding">
-        <button class="theme-toggle" type="button" data-theme-toggle aria-label="Basculer le theme">Mode sombre</button>
-        {_branding_html(manifest, current_href)}
+        <button class="theme-toggle" type="button" data-theme-toggle aria-label="Basculer le theme">
+          Mode sombre
+        </button>
+      {{_branding_html(manifest, current_href)}}
       </div>
     </div>
   </header>
