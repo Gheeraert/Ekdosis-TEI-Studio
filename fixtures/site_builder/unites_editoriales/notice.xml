@@ -1,0 +1,73 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0" xml:lang="fr">
+  <teiHeader>
+    <fileDesc>
+      <titleStmt>
+        <title>Alexandre le Grand — notice (extrait de fixture)</title>
+        <respStmt>
+          <resp>Conversion en TEI simplifiée pour fixture de test</resp>
+          <name>OpenAI</name>
+        </respStmt>
+      </titleStmt>
+      <publicationStmt>
+        <p>Document de test non destiné à l’édition ; conversion simplifiée à partir d’un document DOCX fourni par l’utilisateur.</p>
+      </publicationStmt>
+      <sourceDesc>
+        <p>Source : document DOCX « Alexandre Le Grand Racine notice.docx » (extrait partiel).</p>
+      </sourceDesc>
+    </fileDesc>
+    <profileDesc>
+      <langUsage>
+        <language ident="fr">français</language>
+      </langUsage>
+    </profileDesc>
+    <encodingDesc>
+      <p>Encodage volontairement minimaliste pour fixture Codex : divisions hiérarchiques, paragraphes et liste chronologique.</p>
+    </encodingDesc>
+  </teiHeader>
+  <text>
+    <body>
+      <div type="part" n="I">
+        <head>Réception et histoire de la pièce</head>
+        <div type="section" n="I.a">
+          <head>Réception synchronique</head>
+          <p>Après l’échec d’Amasie qui ne fut jamais montée et l’abandon de son projet d’une pièce sur Ovide, après la réussite toute relative de la Thébaïde, Alexandre le Grand est le premier véritable succès de Jean Racine. Pour l’assurer, il a, pendant sa rédaction, pris davantage les avis de collègues mais aussi de spectateurs potentiels, proposant des lectures de son travail à l’hôtel de Nevers par exemple.</p>
+          <p>Quand il est temps de la monter, il fait tout d’abord à nouveau confiance à la troupe du Palais-Royal, confiant son premier grand rôle à la Du Parc, celui d’Axiane. Très vite, la pièce attire l’intérêt d’un large public, mais aux frais de Molière : alors qu’il pouvait déjà se féliciter de recettes prometteuses pour le travail d’un jeune tragédien, il apprend que la troupe rivale, celle de l’hôtel de Bourgogne, a mis à l’affiche une œuvre du même titre.</p>
+          <p>Le doute n’est rapidement plus permis : il s’agit en fait de la même. Le scandale attire les spectateurs, qui se décident assez rapidement pour la troupe la plus renommée dans le répertoire tragique. Comme l’indique Georges Forestier, il est fort probable que Racine soit complice dans cette affaire ; il y a peu d’apparence en effet que l’hôtel de Bourgogne ait si vite pu mettre la main sur le texte sans que l’auteur le sache.</p>
+          <p>Cette faveur se confirme lors de la publication qui suit de près la dernière, Racine pouvant se permettre de dédicacer sa pièce au roi lui-même. Si cette affaire a eu pour conséquence de le brouiller définitivement avec Molière, elle apporte au dramaturge une première reconnaissance du public et permet par ailleurs à la Du Parc de rejoindre l’hôtel de Bourgogne, suivant ainsi Racine.</p>
+          <p>Certes, Alexandre le Grand est ainsi un triomphe, surtout pour un jeune auteur, le texte imprimé de sa pièce étant demandé même à l’étranger comme par Christine de Suède. Mais il ne s’agit pas pour autant d’un succès incontesté. Parmi les contemporains, les doctes et les gens du métier ne sont pas tous unanimes.</p>
+        </div>
+        <div type="section" n="I.b">
+          <head>Réception diachronique</head>
+          <p>La fortune d’Alexandre le Grand après ces premières représentations n’a pas toujours été égale. Quand Perrault retrace la carrière de Racine, c’est ainsi avec Andromaque qu’il fait commencer sa carrière de dramaturge, occultant La Thébaïde et Alexandre.</p>
+          <p>De fait, au XVIIIe siècle déjà, elle fait partie des pièces de Racine les moins jouées, avec Esther et La Thébaïde. Ceci peut s’expliquer par l’essoufflement de la veine galante, dont cette tragédie est considérée comme l’un des meilleurs représentants, au profit d’une esthétique de la cruauté, mais aussi parce qu’Alexandre le Grand est une pièce de circonstance, pensée pour rendre hommage à Louis XIV.</p>
+          <p>Par la suite, ce désaveu d’Alexandre se confirme : c’est la pièce de Racine la moins montée au XXe siècle, moins que la Thébaïde, autant que Les Plaideurs. Andromaque marque de fait une rupture dans l’esthétique tragique de Racine.</p>
+          <p>Pour ces raisons, depuis 2000, la pièce ne jouit pas particulièrement d’un regain d’intérêt, bien qu’elle ne soit pas tout à fait oubliée.</p>
+          <head>Mises en scène depuis la fin du XIXe siècle</head>
+          <list type="performances">
+            <item> <date when="1866">1866</date><note>Comédie-Française (actes I, II et V uniquement)</note></item>
+            <item> <date when="1946">1946</date><note>Marcelle Tassencourt, Les Célestins (Lyon)</note></item>
+            <item> <date when="1986">1986</date><note>Élisabeth Chailloux, Théâtre de la Tempête (Paris)</note></item>
+            <item> <date when="1990">1990</date><note>Yannis Iordanidis, Roseau Théâtre (Paris)</note></item>
+            <item> <date when="1999">1999</date><note>Patrice Le Cadre, Théâtre du Nord-Ouest (Paris)</note></item>
+            <item> <date when="2003">2003</date><note>France Rousselle, Les Célestins (Lyon)</note></item>
+            <item> <date when="2016">2016</date><note>Réécriture par Sotha, Alexandre ou les Dessous des conquêtes, Café de la Gare (Paris)</note></item>
+            <item> <date when="2023">2023</date><note>Blandine Masson et Clotilde Bayser, lecture radiophonique, Comédie-Française</note></item>
+          </list>
+        </div>
+      </div>
+      <div type="part" n="II">
+        <head>Les sources d’Alexandre le Grand et leur gestion</head>
+        <div type="section" n="II.a">
+          <head>Le choix des sources</head>
+          <p>Pour Alexandre le Grand, Racine s’appuie sur le savoir accumulé à Port-Royal et les habitudes de travail prises dans sa jeunesse. Dans sa préface, il rappelle ainsi qu’il n’a pas inventé son sujet, et qu’il le tire de Quinte-Curce.</p>
+          <p>Il en reprend d’ailleurs notamment un passage presque tel quel, la “tirade des Scythes” à l’acte II, scène 2. Certes, la source est très succincte, mais ceci suffit pour construire un sujet et les poétiques contemporaines l’autorisent.</p>
+          <p>On peut néanmoins constater que ce choix ne s’explique pas simplement par la grande liberté que la brièveté des sources offre au dramaturge : le parallèle entre Louis XIV et Alexandre est fréquent dans ces années, et c’est pour Racine l’occasion de faire à nouveau sa cour.</p>
+          <p>Racine fait le choix de laisser de côté des épisodes pourtant célèbres de la vie du Macédonien, notamment ceux qui ternissent son image. Il n’évoque ainsi ni son penchant pour l’alcool, ni ses grandes colères, pour se concentrer sur un portrait parfait du conquérant.</p>
+          <p>Un autre modèle affleure très vite : celui de Cinna. Cette pièce est d’autant plus importante que Pierre Corneille, dans ses Discours parus en 1660, cite régulièrement cette tragédie comme son chef-d’œuvre.</p>
+          <p>Une différence majeure toutefois, par rapport à Boyer comme à Corneille, est que la focalisation ne se fait pas sur celui qui est pardonné, mais sur celui qui pardonne. Ce déplacement peut s’expliquer par une volonté de renouvellement, mais aussi par un choix de cour : faire d’Alexandre le personnage éponyme, c’est en faire aussi le double de Louis XIV.</p>
+        </div>
+      </div>
+    </body>
+  </text>
+</TEI>

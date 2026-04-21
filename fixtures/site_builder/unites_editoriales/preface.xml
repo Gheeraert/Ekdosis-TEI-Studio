@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0" xml:lang="fr">
+  <teiHeader>
+    <fileDesc>
+      <titleStmt>
+        <title>Mithridate — Préface (fixture TEI simplifiée)</title>
+      </titleStmt>
+      <publicationStmt>
+        <p>Fichier de test généré pour fixture Codex.</p>
+      </publicationStmt>
+      <sourceDesc>
+        <p>Transcription partielle établie d’après le document fourni par l’utilisateur.</p>
+      </sourceDesc>
+    </fileDesc>
+    <encodingDesc>
+      <projectDesc>
+        <p>Encodage TEI P5 volontairement simple et partiel, destiné à des tests techniques.</p>
+      </projectDesc>
+    </encodingDesc>
+  </teiHeader>
+  <text>
+    <front>
+      <div type="preface" xml:id="preface-mithridate">
+        <head>Préface</head>
+
+        <p>Il n’y a gueres de nom plus connu que celuy de Mithridate. Sa vie &amp; sa mort font une partie considerable de l’Histoire Romaine. Et sans conter les victoires qu’il a remportées, on peut dire que ses seules défaites ont fait presque toute la gloire de trois des plus grands Capitaines de la Republique, c’est à sçavoir, de Sylla, de Lucullus, &amp; de Pompée. Ainsi je ne pense pas qu’il soit besoin de citer icy mes Auteurs.</p>
+
+        <p>Car excepté quelque évenement que j’ay un peu approché par le droit que donne la Poësie, tout le monde reconnoistra aisément que j’ay suivi l’Histoire avec beaucoup de fidelité. En effet il n’y a gueres d’actions éclatantes dans la vie de Mithridate qui n’ayent trouvé place dans ma Tragédie. J’y ay inseré tout ce qui pouvoit mettre en jour les mœurs &amp; les sentimens de ce Prince, je veux dire sa haine violente contre les Romains, son grand courage, sa finesse, sa dissimulation, &amp; enfin cette jalousie qui luy estoit si naturelle, &amp; qui a tant de fois cousté la vie à ses maîtresses.</p>
+
+        <p>La seule chose qui pourroit n’estre pas aussi connuë que le reste, c’est le dessein que je luy fay prendre de passer dans l’Italie. Comme ce dessein m’a fourni une des Scenes qui ont le plus reüssi dans ma Tragédie, je croy que le plaisir du Lecteur pourra redoubler, quand il verra que presque tous les Historiens ont dit ce que je fay dire icy à Mithridate.</p>
+
+        <p>Florus, Plutarque &amp; Dion Cassius nomment les Pays par où il devoit passer. Appien d’Alexandrie entre plus dans le détail. Et apres avoir marqué les facilitez &amp; les secours que Mithridate esperoit trouver dans sa marche, il ajoûte que ce Projet fut le prétexte dont Pharnace se servit pour faire revolter toute l’Armée, &amp; que les Soldats effrayez de l’entreprise de son Pere, la regarderent comme le desespoir d’un Prince qui ne cherchoit qu’à perir avec éclat.</p>
+
+        <p>Ainsi elle fut en partie cause de sa Mort, qui est l’action de ma Tragédie. J’ay encore lié ce dessein de plus prés à mon sujet. Je m’en suis servi pour faire connoistre à Mithridate les secrets sentimens de ses deux Fils. On ne peut prendre trop de précaution pour ne rien mettre sur le Theatre qui ne soit tres-necessaire. Et les plus belles Scenes sont en danger d’ennuyer du moment qu’on les peut separer de l’Action, &amp; qu’elles l’interrompent au lieu de la conduire vers sa fin.</p>
+
+        <p>Voicy la reflexion que fait Dion Cassius sur ce dessein de Mithridate&nbsp;:</p>
+
+        <quote>
+          <p>«&nbsp;Cet homme estoit veritablement né pour entreprendre de grandes choses. Comme il avoit souvent éprouvé la bonne &amp; la mauvaise fortune, il ne croyoit rien au-dessus de ses esperances &amp; de son audace, &amp; mesuroit ses desseins bien plus à la grandeur de son courage qu’au mauvais estat de ses affaires. Bien resolu, si son entreprise ne reüssissoit point, de faire une fin digne d’un grand Roy, &amp; de s’ensevelir luy mesme sous les ruïnes de son Empire, plustost que de vivre dans l’obscurité &amp; dans la bassesse.&nbsp;»</p>
+        </quote>
+
+        <p>J’ay choisi Monime entre les femmes que Mithridate a aimées. Il paroist que c’est celle de toutes qui a esté la plus vertueuse, &amp; qu’il a aimée le plus tendrement. Plutarque semble avoir pris plaisir à décrire le malheur &amp; les sentimens de cette Princesse. C’est luy qui m’a donné l’idée de Monime, &amp; c’est en partie sur la peinture qu’il en a faite, que j’ay fondé un caractere que je puis dire qui n’a point déplû.</p>
+
+        <p>Xiphares estoit fils de Mithridate &amp; d’une de ses femmes qui se nommoit Stratonice. Elle livra aux Romains une place de grande importance, où estoient les tresors de Mithridate, pour mettre son fils Xiphares dans les bonnes graces de Pompée. Il y a des Historiens qui prétendent que Mithridate fit mourir ce jeune Prince, pour se vanger de la perfidie de sa Mere.</p>
+
+        <p>Je ne dy rien de Pharnace. Car qui ne sçait pas que ce fut luy qui souleva contre Mithridate ce qui luy restoit de troupes, &amp; qui força ce Prince à se vouloir empoisonner, &amp; à se passer son espée au travers du corps pour ne pas tomber entre les mains de ses Ennemis&nbsp;? C’est ce mesme Pharnace qui fut vaincu depuis par Jules César, &amp; qui fut tué ensuite dans une autre bataille.</p>
+      </div>
+    </front>
+  </text>
+</TEI>

@@ -10,14 +10,29 @@ Its goal is not to replace the TEI engine, but to publish its outputs coherently
 
 ## Current milestone status
 
-The first implementation milestone now provides:
+The current implementation already provides:
 - a dedicated `ets.site_builder` package with typed dataclasses and a simple config loader;
 - defensive XML extractors for dramatic TEI and Métopes notices;
 - automatic manifest generation for plays, notices, pages, and navigation;
 - a static HTML renderer (home, play, notice page) where play pages now publish the dramatic text itself;
 - a build orchestrator that cleans the output directory before each regeneration, writes pages, copies optional assets, and returns a structured build result.
 
-This milestone keeps notice rendering on a dedicated path, now already structured for publication, while remaining intentionally limited to the documented subset.
+This milestone already proves the publication pipeline, but the editorial model for play-level front matter must now be made more explicit.
+
+## Editorial inputs
+
+The module is expected to support two complementary input families:
+
+- dramatic TEI produced by ETS;
+- notice-like TEI produced with Métopes or a compatible editorial TEI subset.
+
+A published play may therefore combine:
+- one dramatic TEI source for the edited text;
+- one separate scholarly notice source;
+- one or more separate author-preface sources;
+- optional site-level editorial pages independent from any one play.
+
+These are distinct editorial objects and must remain distinct in the internal model.
 
 ## Current Métopes notice subset (implemented)
 
@@ -40,50 +55,170 @@ Out of scope at this stage:
 - advanced tables, rich figures, full bibliography semantics, and complete publication semantics;
 - full XSLT-equivalent rendering parity with existing Métopes publication pipelines.
 
-## Editorial inputs
+## Editorial publication model
 
-The module is expected to support two complementary input families:
+For site publication purposes, a play is no longer only a dramatic text divided into acts and scenes.
+It is a **play-level editorial dossier**.
 
-- dramatic TEI produced by ETS
-- notice TEI produced with Métopes
+At minimum, a play publication may contain:
+- the dramatic text itself;
+- a scholarly notice about the play;
+- one or more author prefaces;
+- a dramatis personae block;
+- act and scene navigation inside the dramatic text.
 
-Each play may therefore combine:
-- one dramatic TEI source for the edited text
-- one separate TEI notice source for scholarly paratexts
+These elements do not all belong to the same editorial family.
+Their distinction must stay explicit.
 
-These are distinct editorial objects and must remain distinct in the internal model.
+### Distinct editorial roles
+
+#### 1. Scholarly notice
+A scholarly notice is an editorial paratext written by the modern edition team.
+It is a separate publication object attached to a play.
+
+#### 2. Author preface
+An author preface is also a play-level paratext, but it is **not** the same thing as a scholarly notice.
+It belongs to the authorial paratext of the work.
+
+For implementation purposes, it may reuse the same rendering pipeline as notices.
+However, it must keep its own editorial role in the model and in the documentation.
+
+#### 3. Dramatis personae
+The dramatis personae is not a notice-like document.
+It belongs to the dramatic text as front matter.
+
+When available, it should preferably be extracted from the dramatic TEI itself, ideally from a `front` section containing a `castList` or an equivalent structured form.
+
+#### 4. Acts and scenes
+Acts and scenes remain internal divisions of the dramatic text and must appear after play-level front matter in the reading navigation.
 
 ## Publication model
 
 For each play, the site builder should be able to publish:
-- a main play page
-- optional act or scene pages
-- a scholarly notice page
-- XML download links
-- automatically generated navigation
+- a main play page;
+- optional act or scene pages, or at least act/scene anchors on the play page;
+- a scholarly notice page;
+- one or more author-preface pages;
+- a dramatis personae anchor or block before Act I;
+- XML download links where enabled;
+- automatically generated navigation.
 
 At site level, it should also generate:
-- a home page
-- section indexes
-- static informational pages
-- a consistent menu and footer
+- a home page;
+- section indexes;
+- static informational pages;
+- a consistent menu and footer.
+
+## Canonical play navigation order
+
+The site builder must treat play-level navigation as an editorially ordered structure.
+
+For each play, the canonical order is:
+1. scholarly notice (if present);
+2. author preface(s) (if present);
+3. dramatis personae (if present);
+4. Act I;
+5. scenes of Act I;
+6. Act II;
+7. scenes of Act II;
+8. and so on.
+
+Important rules:
+- this order must not depend on file discovery order;
+- this order must not depend on alphabetical sort;
+- this order must not be reconstructed differently in different layers;
+- the same ordering rules must be applied everywhere in the generated site.
+
+## Single source of truth for navigation
+
+A major design rule now applies:
+
+**The menu must be derived from one explicit editorial navigation structure, not rebuilt independently in several places.**
+
+In practice, this means:
+- `manifest.py` must build a single structured representation of play navigation;
+- `render.py` must consume that structure rather than infer its own hierarchy from HTML fragments or partial XML cues;
+- tests must assert that play-level front matter appears before acts and scenes.
+
+The renderer may add anchors and presentation details, but it must not invent a different navigation tree.
+
+## Recommended internal model evolution
+
+The current `PlayNavigation` model should evolve so that it can represent both:
+- play-level front items;
+- dramatic structural items.
+
+A minimal direction would be to support something like:
+- `front_items` for notice / preface / dramatis personae;
+- `acts` for dramatic divisions;
+- `scenes` inside acts.
+
+One possible shape:
+
+```python
+@dataclass(frozen=True)
+class PlayFrontItemNavigation:
+    kind: str  # "piece_notice", "author_preface", "dramatis_personae"
+    label: str
+    href: str
+
+@dataclass(frozen=True)
+class PlayNavigation:
+    play_slug: str
+    play_title: str
+    front_items: tuple[PlayFrontItemNavigation, ...] = ()
+    acts: tuple[PlayActNavigation, ...] = ()
+```
+
+The exact names may differ, but the conceptual split should remain.
+
+## Configuration expectations
+
+Publication configuration should now explicitly support:
+- play -> notice association;
+- play -> preface association(s);
+- optional switches for publishing notices and prefaces;
+- stable play ordering;
+- predictable handling of missing references as warnings.
+
+Examples of expected explicit mappings:
+- `play_notice_map`: `play_slug -> notice_slug`
+- `play_preface_map`: `play_slug -> [preface_slug1, preface_slug2, ...]`
+
+No fuzzy matching should be introduced for these associations.
+
+## Dramatis personae policy
+
+The preferred policy is:
+- keep dramatis personae inside the dramatic TEI domain;
+- extract it from `front` / `castList` when present;
+- render it on the play page before Act I;
+- expose a stable anchor so the play menu can point to it.
+
+If the corpus temporarily uses a provisional encoding, that provisional rule must be documented explicitly rather than inferred silently.
 
 ## Design principles
 
-- XML-first
-- static output
-- no CMS
-- no database
-- explicit configuration
-- deterministic build
-- reusable HTML rendering services where appropriate
-- thin UI layer over application services
+- XML-first;
+- static output;
+- no CMS;
+- no database;
+- explicit configuration;
+- deterministic build;
+- reusable HTML rendering services where appropriate;
+- thin UI layer over application services;
+- one source of truth for publication navigation.
 
-## Notice rendering
+## Notice and preface rendering
 
-The rendering of scholarly notices may take inspiration from the **Impressions** project.
+The rendering of scholarly notices and author prefaces may follow the same general HTML publication path.
 
-ETS Site Builder does not need to duplicate Impressions exactly, but it should preserve the same general principles for notice publication.
+That shared path may take inspiration from the **Impressions** project.
+
+However:
+- the implementation must preserve the editorial distinction between notice and preface;
+- labels, grouping, and menu positions must reflect that distinction;
+- a preface must never be silently collapsed into a generic notice in the navigation model.
 
 ## Current package structure
 
@@ -102,55 +237,63 @@ src/ets/site_builder/
 
 ### `config.py`
 Publication configuration:
-- site title
-- subtitle
-- input directories
-- output directory
-- assets and logos
-- XML download policy
-- navigation options
+- site title;
+- subtitle;
+- input directories;
+- output directory;
+- assets and logos;
+- XML download policy;
+- navigation options;
+- explicit play-level editorial associations.
 
 ### `models.py`
 Publication dataclasses:
-- `SiteConfig`
-- `SiteManifest`
-- `PlayEntry`
-- `NoticeEntry`
-- `NoticeDocument`
-- `NoticeSection`
-- `NoticeTocEntry`
-- `NoticeNote`
-- `SitePage`
-- `NavigationItem`
-- `BuildResult`
+- `SiteConfig`;
+- `SiteManifest`;
+- `PlayEntry`;
+- `NoticeEntry` or a future generalized paratext entry type;
+- `NoticeDocument`;
+- `NoticeSection`;
+- `NoticeTocEntry`;
+- `NoticeNote`;
+- `SitePage`;
+- `NavigationItem`;
+- `BuildResult`;
+- play-level editorial navigation structures.
 
 ### `extractors.py`
 Metadata extraction from:
-- dramatic TEI
-- Métopes notice TEI
+- dramatic TEI;
+- Métopes notice-like TEI;
+- dramatic front matter such as dramatis personae when available.
 
 ### `manifest.py`
 Builds the internal site manifest from XML inputs and configuration.
 
+It must be the main place where the play-level editorial order is normalized.
+
 ### `render.py`
 Generates minimal HTML pages for the current milestone.
 
+It must render the dramatic text while respecting the editorial navigation structure already established upstream.
+
 ### `builder.py`
 Orchestrates the full static site build:
-- clean output directory
-- render pages
-- copy assets
-- copy downloadable XML files
+- clean output directory;
+- render pages;
+- copy assets;
+- copy downloadable XML files.
 
 ## Explicit non-goals
 
 The first implementation should not:
-- collapse dramatic TEI and notice TEI into a single XML source
-- depend on a database
-- require manual menu maintenance
-- reproduce the entire historical website by hand
+- collapse dramatic TEI and notice-like TEI into a single XML source;
+- depend on a database;
+- require manual menu maintenance;
+- reproduce the entire historical website by hand;
+- infer play front matter ordering from accidental file system order.
 
-## Metopes hierarchy refinement (current)
+## Notice hierarchy refinement (current)
 
 The current refinement keeps master-volume structure explicit instead of flattening included files too early.
 
@@ -165,9 +308,9 @@ Still intentionally out of scope:
 - exhaustive handling of complex tables, figures, and bibliography semantics;
 - full parity with complete XSLT publication pipelines.
 
-## Editorial rendering refinement (long notices)
+## Editorial rendering refinement (long notices and prefaces)
 
-Current notice rendering now emphasizes editorial readability for long-form pages:
+Current notice-like rendering should emphasize editorial readability for long-form pages:
 - clearer title framing (title, subtitle, byline);
 - grouped metadata block with stable labels;
 - nested TOC with visual distinction between parts (`group`), included documents, and internal sections;
@@ -176,177 +319,40 @@ Current notice rendering now emphasizes editorial readability for long-form page
 
 This remains a lightweight static HTML layer and does not aim at full visual production polish or full XSLT parity.
 
+The same rendering family may be used for author prefaces when they are provided as separate TEI documents.
+
 ## Publication configuration layer (current)
 
 ETS Site Builder now exposes a stronger publication configuration layer, loadable from Python dict or JSON file.
 
-Currently configurable:
+Currently configurable or expected to become configurable:
 - site identity: `site_title`, `site_subtitle`, `project_name`, `editor`, `credits`, optional `homepage_intro`;
 - source/output paths: `dramatic_xml_dir`, `notice_xml_dir`, `output_dir`;
 - branding/assets: `assets.logos` (or `assets.logo_files`), `assets.directories` (or `assets.asset_directories`);
-- publication switches: `show_xml_download`, `publish_notices`, `include_metadata`, `resolve_notice_xincludes`;
-- explicit play/notice pairing: `play_notice_map`.
+- publication switches: `show_xml_download`, `publish_notices`, `publish_prefaces`, `include_metadata`, `resolve_notice_xincludes`;
+- explicit play-level associations: `play_notice_map`, `play_preface_map`.
 
-`play_notice_map` is explicit and deterministic (`play_slug -> notice_slug`) and intentionally avoids fuzzy matching.
-Invalid mapping references are reported as manifest warnings.
+Invalid mapping references should be reported as manifest warnings.
 
 Still deferred:
 - UI-driven config editing;
 - advanced schema/validation system beyond typed loading and explicit runtime checks;
 - complex publication orchestration beyond current builder flow.
 
-## Dramatic TEI act merge module (current)
+## Testing expectations for the next navigation pass
 
-ETS now includes a dedicated XML-aware merge module for dramatic TEI act files.
+The next pass should include regression coverage for at least these editorial situations:
+- play with notice + preface + dramatis personae + acts/scenes;
+- play with preface but no notice;
+- play with notice but no preface;
+- play with neither preface nor dramatis personae;
+- stability of the canonical order in the generated menu;
+- stability of the anchor used for the dramatis personae block.
 
-Purpose:
-- merge multiple act-level dramatic TEI files into one play-level dramatic TEI file;
-- provide a fallback when full-play generation in one run is not yet stable;
-- support migration of existing act-level TEI corpora before site publication.
+## Success criterion for the next step
 
-Current strategy:
-- parser-based merge with `lxml` (no regex or string concatenation);
-- explicit input order is respected exactly;
-- first file `teiHeader` is kept as merge base;
-- later header differences are reported as warnings;
-- incompatible title/author metadata causes a clear merge failure.
-
-`xml:id` handling:
-- deterministic collision strategy (default: rename only on collision);
-- renamed IDs are prefixed by ordered input index (for example `a2_...`);
-- TEI reference attributes (`target`, `wit`, `ana`, `who`, etc.) are updated when internal IDs are renamed;
-- merged output prevents accidental duplicate `xml:id`.
-
-Public API:
-- core merge: `ets.site_builder.merge_dramatic_tei_acts(DramaticTeiMergeRequest)`;
-- application service wrapper: `ets.application.merge_dramatic_tei_files(...)` / `DramaticTeiMergeService`.
-
-Deliberate limits (current):
-- no GUI dialog in this milestone;
-- no automatic act order inference from filenames;
-- no advanced bibliographic reconciliation between headers;
-- no broad site builder redesign in this scope.
-
-## Site-level publication build (current)
-
-The builder now produces a coherent static publication tree from config + XML sources:
-- `index.html` home page with site identity, optional subtitle, and optional `homepage_intro`;
-- one page per dramatic TEI play under `plays/`, rendered as a readable dramatic text page;
-- one page per notice under `notices/` when notice publication is enabled.
-
-Navigation is generated from the manifest and remains deterministic.
-
-Current play-page rendering behavior:
-- dramatic play pages reuse the existing ETS dramatic HTML export engine (`ets.html.render_html_export_from_tei`) instead of a site-builder-specific renderer;
-- each play is transformed once from full dramatic TEI to HTML, and the exported editorial block (`#contenu-editorial`) is reused as the reading source of truth;
-- act/scene anchors are aligned against the full rendered play (reusing rendered IDs when available, with deterministic anchor injection fallback when needed);
-- site builder adds publication framing/navigation around that exported rendering (single main sidebar with global nav + play-level nav), without flattening the dramatic HTML layer into a minimal local approximation.
-
-Explicit play/notice association uses `play_notice_map` from configuration:
-- play pages link to their associated notice when available;
-- notice pages link back to the associated play;
-- invalid mapping entries produce warnings without stopping the build.
-
-When `show_xml_download` is enabled, XML sources are copied into:
-- `xml/dramatic/`
-- `xml/notices/`
-
-and pages expose deterministic download links.
-
-Branding assets are also copied deterministically:
-- logo files to `assets/logos/`;
-- configured asset directories to `assets/<directory-name>/`.
-
-Still intentionally deferred:
-- advanced visual design and final publication styling;
-- richer asset pipeline (fingerprinting, transformations, CDN logic);
-- UI integration and end-user publication wizard.
-- full publication polish of dramatic pages beyond this functional reading/navigation milestone.
-
-## Editorial site-structure milestone (current)
-
-ETS Site Builder now supports a richer editorial publication structure without changing the core dramatic rendering pipeline.
-
-New capabilities:
-- optional structured home-page editorial sections (`homepage_sections`) in addition to `homepage_intro`;
-- optional site-level general notice selection (`general_notice_slug`) independent from play-level notices;
-- hierarchical navigation generation with explicit site-level content, play branches, play notices, and act/scene subtree nodes.
-
-Navigation is now emitted with semantic nested structure (`details`/`summary` + nested lists) so it is technically ready for later expand/collapse visual refinement.
-This milestone focuses on editorial/site hierarchy and keeps final CSS/theme polish for a later dedicated pass.
-
-Current dramatic navigation coherence:
-- play act/scene hierarchy is extracted from one shared TEI-based play-navigation structure;
-- the same structure drives manifest navigation hrefs (`plays/<slug>.html#...`), play-local sidebar links, and anchor injection into rendered dramatic HTML;
-- act/scene links are therefore deterministic and aligned with real in-page anchor targets.
-
-## Realistic integration coverage (current)
-
-The test suite now includes realistic integration validation against `fixtures/metopes/realistic/`:
-- a real master-volume notice (`text type="book"`) with hierarchical `group` and local `xi:include`;
-- a real standalone introduction notice.
-
-Current validation covers end-to-end publication flow (config -> manifest -> extraction -> rendering -> static build),
-including explicit play/notice mapping, page generation, links between play and notice pages, and deterministic output paths.
-
-## Application service entry point (current)
-
-ETS Site Builder now also exposes an application/service entry point intended for future UI integration:
-- a thin service wrapper around existing config + builder logic;
-- structured request/result objects with explicit success/error state;
-- stable access to output directory, generated pages, copied assets, counts, and warnings.
-
-This remains fully UI-independent. UI integration itself is still deferred.
-
-The service layer now supports two complementary entry styles:
-- JSON/dict config entry points (`build_site_from_config_file`, `build_site_from_config_dict`) kept for backward compatibility;
-- a richer structured publication request (`SitePublicationRequest`) intended as the primary base for future Tkinter publication dialogs.
-
-Current structured-request normalization supports:
-- explicit play grouping with one or more dramatic XML files per play (current builder scope uses the first file per play and reports a warning when extras are provided);
-- explicit play ordering (`play_order`);
-- multiple notice XML inputs (master volume and/or standalone notice files);
-- explicit play/notice associations;
-- site identity, assets, publication options, and output directory wiring.
-
-## First Tkinter publication dialog (current)
-
-The Tkinter application now includes a first real publication dialog:
-- site identity fields (title, subtitle, intro, editor/credits);
-- dramatic XML inputs with explicit play grouping;
-- explicit play ordering controls;
-- notice XML inputs (master + optional additional files);
-- output directory and optional assets/logos;
-- optional explicit play/notice mapping lines.
-
-The dialog builds a rich in-memory `SitePublicationRequest` and calls the application service layer (`build_site_from_publication_request`).
-The previous JSON config loading path remains supported as a transitional/developer workflow, but it is no longer the primary end-user path.
-The dialog now also exposes explicit `Charger config...` / `Enregistrer config...` actions for recurring publication rebuild workflows:
-- editors can save the current publication form state to JSON;
-- reload the same configuration later;
-- continue editing and regenerate without re-entering all paths and associations.
-
-This UI remains intentionally limited and is not yet a full publication wizard.
-Recent ergonomic refinements keep the main form scrollable while preserving a fixed bottom action bar,
-so `Annuler` / `Générer le site` remain accessible on limited-height screens.
-Key labels and inline hints were also clarified for play slug grouping, notice master vs additional files,
-play ordering, assets directory purpose, and play/notice mapping syntax.
-Visual/site-structure refinement remains a separate later milestone and is not part of this persistence step.
-
-## First Tkinter dramatic merge entry point (current)
-
-The Tkinter UI now also exposes a lightweight action for dramatic TEI act merge:
-- menu entry under `Outils`: `Fusionner des XML dramatiques…`;
-- compact dedicated dialog to:
-  - select multiple dramatic XML files,
-  - reorder files explicitly (up/down),
-  - remove selected files,
-  - choose one output XML file path.
-
-The dialog remains intentionally thin and calls the application service layer (`merge_dramatic_tei_files`) rather than merge core internals.
-User feedback is explicit and structured (`success`, `warnings`, `failure`) via standard message boxes.
-
-Still intentionally out of scope:
-- advanced merge options in UI (metadata reconciliation, xml:id policy controls);
-- automatic chronology inference from filenames;
-- publication builder integration beyond this standalone merge bridge.
+ETS Site Builder will be on the right path when it can publish a play not merely as “text with acts and scenes”, but as a coherent editorial object containing:
+- play-level paratexts;
+- dramatic front matter;
+- dramatic divisions;
+- one deterministic navigation model shared by manifest and rendering.
