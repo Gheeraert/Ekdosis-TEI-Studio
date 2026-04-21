@@ -22,10 +22,12 @@ class SiteConfig:
     site_subtitle: str = ""
     dramatic_xml_dir: Path = Path(".")
     notice_xml_dir: Path | None = None
+    dramatis_xml_dir: Path | None = None
     output_dir: Path = Path("out/site")
     assets: AssetConfig = field(default_factory=AssetConfig)
     show_xml_download: bool = False
     publish_notices: bool = True
+    publish_prefaces: bool = True
     include_metadata: bool = True
     resolve_notice_xincludes: bool = True
     project_name: str = ""
@@ -35,6 +37,8 @@ class SiteConfig:
     homepage_sections: tuple[HomePageSection, ...] = ()
     general_notice_slug: str = ""
     play_notice_map: tuple[tuple[str, str], ...] = ()
+    play_preface_map: tuple[tuple[str, tuple[str, ...]], ...] = ()
+    play_dramatis_map: tuple[tuple[str, str], ...] = ()
     play_order: tuple[str, ...] = ()
 
 
@@ -66,9 +70,19 @@ class PlayActNavigation:
 
 
 @dataclass(frozen=True)
+class PlayFrontItemNavigation:
+    kind: str
+    label: str
+    href: str
+    anchor_id: str | None = None
+
+
+@dataclass(frozen=True)
 class PlayNavigation:
     play_slug: str
     play_title: str
+    front_items: tuple[PlayFrontItemNavigation, ...] = ()
+    dramatis_personae: tuple[str, ...] = ()
     acts: tuple[PlayActNavigation, ...] = ()
 
 
@@ -84,6 +98,7 @@ class NoticeEntry:
     notice_kind: str = "standalone"
     has_text_body: bool = False
     related_play_slug: str | None = None
+    editorial_role: str = "notice"
     xml_download_relpath: str | None = None
     document: "NoticeDocument | None" = None
 
@@ -136,6 +151,7 @@ class NoticeDocument:
     include_warnings: tuple[str, ...] = ()
     included_documents: tuple[Path, ...] = ()
     related_play_slug: str | None = None
+    editorial_role: str = "notice"
 
 
 @dataclass(frozen=True)

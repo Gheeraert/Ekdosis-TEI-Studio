@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import html
 import re
@@ -69,7 +69,22 @@ def _parse_tree(xml_path: Path) -> etree._ElementTree:
     try:
         parser = etree.XMLParser(recover=False, remove_blank_text=False)
         return etree.parse(str(xml_path), parser)
-    except (OSError, etree.XMLSyntaxError) as exc:
+    except etree.XMLSyntaxError as exc:
+        if "Entity 'nbsp'" in str(exc):
+            try:
+                raw_xml = xml_path.read_text(encoding="utf-8")
+            except OSError:
+                raise SiteBuilderExtractionError(f"Unable to parse XML file '{xml_path}': {exc}") from exc
+            normalized_xml = raw_xml.replace("&nbsp;", "&#160;")
+            if normalized_xml != raw_xml:
+                try:
+                    parser = etree.XMLParser(recover=False, remove_blank_text=False)
+                    root = etree.fromstring(normalized_xml.encode("utf-8"), parser)
+                    return etree.ElementTree(root)
+                except etree.XMLSyntaxError:
+                    pass
+        raise SiteBuilderExtractionError(f"Unable to parse XML file '{xml_path}': {exc}") from exc
+    except OSError as exc:
         raise SiteBuilderExtractionError(f"Unable to parse XML file '{xml_path}': {exc}") from exc
 
 
@@ -81,7 +96,7 @@ def _fallback_slug(xml_path: Path, candidate: str | None) -> str:
 
 def _derive_related_play_slug(slug: str) -> str | None:
     lowered = slug.lower()
-    suffixes = ("-notice", "_notice", "-metopes", "-metope")
+    suffixes = ("-notice", "_notice", "-metopes", "-metope", "-preface", "_preface")
     for suffix in suffixes:
         if lowered.endswith(suffix):
             candidate = slug[: -len(suffix)]
@@ -99,6 +114,29 @@ def _localname(node: etree._Element) -> str:
 
 def _normalize_ws(value: str) -> str:
     return " ".join(value.split())
+
+
+def _infer_editorial_role(
+    *,
+    tree: etree._ElementTree,
+    title: str,
+    text_type: str,
+) -> str:
+    # Prefer explicit structural evidence for author prefaces.
+    has_preface_div = bool(
+        tree.xpath(
+            "//*[local-name()='text']/*[local-name()='front']//*[local-name()='div'"
+            " and translate(@type,'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz')='preface']"
+        )
+    )
+    if has_preface_div:
+        return "author_preface"
+
+    normalized_type = _slugify(text_type)
+    normalized_title = _slugify(title)
+    if "preface" in normalized_type.split("-") or "preface" in normalized_title.split("-"):
+        return "author_preface"
+    return "notice"
 
 
 def _extract_author_list(tree: etree._ElementTree) -> tuple[str, ...]:
@@ -337,6 +375,7 @@ def _extract_notice_core(
     title, subtitle = _extract_titles(tree)
     authors = _extract_author_list(tree)
     text_type = _first_text(tree, ("string((//*[local-name()='text']/@type)[1])",)) or "notice"
+    editorial_role = _infer_editorial_role(tree=tree, title=title or "", text_type=text_type)
     xml_id = _first_text(tree, ("string(/*/@xml:id)", "string(/*/@id)"))
     slug = _fallback_slug(source_path, slug_seed or xml_id or title)
 
@@ -523,6 +562,7 @@ def _extract_notice_core(
         include_warnings=tuple(warnings),
         included_documents=tuple(included_paths),
         related_play_slug=related_slug,
+        editorial_role=editorial_role,
     )
 
 
@@ -576,5 +616,6 @@ def extract_notice_entry(xml_path: Path, *, resolve_xincludes: bool = True) -> N
         notice_kind=document.notice_kind,
         has_text_body=document.has_text_body,
         related_play_slug=document.related_play_slug,
+        editorial_role=document.editorial_role,
         document=document,
     )

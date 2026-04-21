@@ -20,7 +20,7 @@ from .site_builder_models import (
 
 
 PUBLICATION_DIALOG_CONFIG_SCHEMA = "ets.site_publication_dialog_config"
-PUBLICATION_DIALOG_CONFIG_VERSION = 2
+PUBLICATION_DIALOG_CONFIG_VERSION = 3
 
 
 @dataclass(frozen=True)
@@ -28,6 +28,8 @@ class SitePublicationDialogPlayConfig:
     play_slug: str
     dramatic_xml_path: Path
     notice_xml_path: Path | None = None
+    preface_xml_path: Path | None = None
+    dramatis_xml_path: Path | None = None
 
 
 @dataclass(frozen=True)
@@ -44,6 +46,7 @@ class SitePublicationDialogConfig:
     asset_directories: tuple[Path, ...] = ()
     show_xml_download: bool = False
     publish_notices: bool = True
+    publish_prefaces: bool = True
     include_metadata: bool = True
     resolve_notice_xincludes: bool = True
 
@@ -187,12 +190,24 @@ def _normalize_plays(value: Any, *, base_dir: Path) -> tuple[SitePublicationDial
             field_name=f"plays[{index}].notice_xml_path",
             base_dir=base_dir,
         )
+        preface_xml_path = _resolve_optional_path(
+            entry.get("preface_xml_path"),
+            field_name=f"plays[{index}].preface_xml_path",
+            base_dir=base_dir,
+        )
+        dramatis_xml_path = _resolve_optional_path(
+            entry.get("dramatis_xml_path"),
+            field_name=f"plays[{index}].dramatis_xml_path",
+            base_dir=base_dir,
+        )
 
         plays.append(
             SitePublicationDialogPlayConfig(
                 play_slug=play_slug,
                 dramatic_xml_path=dramatic_xml_path,
                 notice_xml_path=notice_xml_path,
+                preface_xml_path=preface_xml_path,
+                dramatis_xml_path=dramatis_xml_path,
             )
         )
     return tuple(plays)
@@ -218,6 +233,8 @@ def site_publication_dialog_config_to_dict(config: SitePublicationDialogConfig) 
                 "play_slug": play.play_slug,
                 "dramatic_xml_path": str(play.dramatic_xml_path.resolve()),
                 "notice_xml_path": str(play.notice_xml_path.resolve()) if play.notice_xml_path is not None else None,
+                "preface_xml_path": str(play.preface_xml_path.resolve()) if play.preface_xml_path is not None else None,
+                "dramatis_xml_path": str(play.dramatis_xml_path.resolve()) if play.dramatis_xml_path is not None else None,
             }
             for play in config.plays
         ],
@@ -232,6 +249,7 @@ def site_publication_dialog_config_to_dict(config: SitePublicationDialogConfig) 
         "options": {
             "show_xml_download": config.show_xml_download,
             "publish_notices": config.publish_notices,
+            "publish_prefaces": config.publish_prefaces,
             "include_metadata": config.include_metadata,
             "resolve_notice_xincludes": config.resolve_notice_xincludes,
         },
@@ -252,7 +270,7 @@ def site_publication_dialog_config_from_dict(
             f"Expected '{PUBLICATION_DIALOG_CONFIG_SCHEMA}'."
         )
     version = payload.get("version")
-    if version not in {1, PUBLICATION_DIALOG_CONFIG_VERSION}:
+    if version not in {1, 2, PUBLICATION_DIALOG_CONFIG_VERSION}:
         raise ValueError(
             "Invalid publication dialog config: unsupported version. "
             f"Expected {PUBLICATION_DIALOG_CONFIG_VERSION}."
@@ -326,6 +344,11 @@ def site_publication_dialog_config_from_dict(
             field_name="options.publish_notices",
             default=True,
         ),
+        publish_prefaces=_expect_bool(
+            options.get("publish_prefaces"),
+            field_name="options.publish_prefaces",
+            default=True,
+        ),
         include_metadata=_expect_bool(
             options.get("include_metadata"),
             field_name="options.include_metadata",
@@ -360,11 +383,17 @@ def site_publication_request_from_dialog_config(config: SitePublicationDialogCon
         seen_play_slugs.add(play_slug)
         derived_play_order.append(play_slug)
 
+        notice_xml_path = play.notice_xml_path.resolve() if play.notice_xml_path is not None else None
+        preface_xml_path = play.preface_xml_path.resolve() if play.preface_xml_path is not None else None
+        dramatis_xml_path = play.dramatis_xml_path.resolve() if play.dramatis_xml_path is not None else None
         plays.append(
             DramaticPlayInput(
                 play_slug=play_slug,
                 document=DramaticDocumentInput(source_path=play.dramatic_xml_path),
-                related_notice_path=play.notice_xml_path,
+                notice_xml_path=notice_xml_path,
+                preface_xml_path=preface_xml_path,
+                dramatis_xml_path=dramatis_xml_path,
+                related_notice_path=notice_xml_path,
             )
         )
 
@@ -399,6 +428,41 @@ def site_publication_request_from_dialog_config(config: SitePublicationDialogCon
     _push_notice(config.general_intro_tei)
     for play in config.plays:
         _push_notice(play.notice_xml_path)
+        _push_notice(play.preface_xml_path)
+
+    play_notice_map: list[tuple[str, str]] = []
+    play_preface_map: list[tuple[str, tuple[str, ...]]] = []
+    play_dramatis_map: list[tuple[str, str]] = []
+    for play in ordered_plays:
+        if play.notice_xml_path is not None:
+            play_notice_map.append(
+                (
+                    play.play_slug,
+                    _derive_notice_slug_from_xml(
+                        play.notice_xml_path,
+                        resolve_xincludes=config.resolve_notice_xincludes,
+                    ),
+                )
+            )
+        if play.preface_xml_path is not None:
+            play_preface_map.append(
+                (
+                    play.play_slug,
+                    (
+                        _derive_notice_slug_from_xml(
+                            play.preface_xml_path,
+                            resolve_xincludes=config.resolve_notice_xincludes,
+                        ),
+                    ),
+                )
+            )
+        if play.dramatis_xml_path is not None:
+            dramatis_slug = _normalize_identifier(play.dramatis_xml_path.stem)
+            if not dramatis_slug:
+                raise ValueError(
+                    f"Le fichier Dramatis XML associé à '{play.play_slug}' doit avoir un nom exploitable."
+                )
+            play_dramatis_map.append((play.play_slug, dramatis_slug))
 
     general_notice_slug = ""
     if config.general_intro_tei is not None:
@@ -428,8 +492,12 @@ def site_publication_request_from_dialog_config(config: SitePublicationDialogCon
         assets=assets,
         show_xml_download=config.show_xml_download,
         publish_notices=config.publish_notices,
+        publish_prefaces=config.publish_prefaces,
         include_metadata=config.include_metadata,
         resolve_notice_xincludes=config.resolve_notice_xincludes,
+        play_notice_map=tuple(play_notice_map),
+        play_preface_map=tuple(play_preface_map),
+        play_dramatis_map=tuple(play_dramatis_map),
         general_notice_slug=general_notice_slug,
     )
 
@@ -451,3 +519,4 @@ def load_site_publication_dialog_config(config_path: str | Path) -> SitePublicat
     if not isinstance(payload, dict):
         raise ValueError("Invalid publication dialog config: root JSON value must be an object.")
     return site_publication_dialog_config_from_dict(payload, base_dir=path.parent)
+

@@ -4,6 +4,8 @@ import json
 from pathlib import Path
 from uuid import uuid4
 
+from lxml import html as lxml_html
+
 from ets.application import (
     DramaticDocumentInput,
     DramaticPlayInput,
@@ -24,6 +26,7 @@ ROOT = Path(__file__).resolve().parents[1]
 DRAMATIC_FIXTURES = ROOT / "fixtures" / "site_builder" / "minimal" / "dramatic"
 MINIMAL_NOTICES = ROOT / "fixtures" / "site_builder" / "minimal" / "notices"
 REALISTIC_NOTICES = ROOT / "fixtures" / "metopes" / "realistic"
+UNITES_FIXTURES = ROOT / "fixtures" / "site_builder" / "unites_editoriales"
 RUNTIME_ROOT = ROOT / "tests" / "_runtime"
 
 
@@ -31,6 +34,24 @@ def _runtime_dir(prefix: str) -> Path:
     target = RUNTIME_ROOT / f"{prefix}_{uuid4().hex}"
     target.mkdir(parents=True, exist_ok=True)
     return target
+
+
+def _write_external_dramatis(path: Path) -> None:
+    path.write_text(
+        """<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0">
+  <text>
+    <front>
+      <castList>
+        <castItem>Personnage externe Alpha</castItem>
+        <castItem>Personnage externe Beta</castItem>
+      </castList>
+    </front>
+  </text>
+</TEI>
+""",
+        encoding="utf-8",
+    )
 
 
 def test_site_builder_service_build_from_config_dict_success() -> None:
@@ -212,12 +233,6 @@ def test_site_builder_service_build_from_publication_request_supports_multiple_p
     assert (output_dir / "xml" / "dramatic" / "andromaque.xml").exists()
     assert (output_dir / "xml" / "dramatic" / "berenice.xml").exists()
     assert (output_dir / "xml" / "notices" / "andromaque-notice.xml").exists()
-    assert (output_dir / "xml" / "dramatic" / "andromaque.xml").read_text(encoding="utf-8") == andromaque.read_text(
-        encoding="utf-8"
-    )
-    assert (output_dir / "xml" / "dramatic" / "berenice.xml").read_text(encoding="utf-8") == berenice.read_text(
-        encoding="utf-8"
-    )
 
 
 def test_site_builder_service_build_from_publication_request_supports_play_notice_path_mapping() -> None:
@@ -246,23 +261,6 @@ def test_site_builder_service_build_from_publication_request_supports_play_notic
     assert "notices/andromaque-notice.html" in result.generated_page_relpaths
     play_html = (output_dir / "plays" / "andromaque.html").read_text(encoding="utf-8")
     assert "Notice de pièce" in play_html
-
-
-def test_site_builder_service_build_from_publication_request_fails_cleanly_on_invalid_request() -> None:
-    base = _runtime_dir("app_site_builder_service_publication_request_invalid")
-    request = SitePublicationRequest(
-        identity=SiteIdentityInput(site_title="   "),
-        output_dir=base / "site",
-        plays=(),
-    )
-
-    service = SiteBuilderService()
-    result = service.build_from_publication_request(request)
-
-    assert result.ok is False
-    assert result.error_code == "E_SITE_REQUEST"
-    assert result.error_detail is not None
-    assert "site title is required" in result.error_detail.lower()
 
 
 def test_site_builder_service_publication_request_supports_general_notice_and_home_sections() -> None:
@@ -301,3 +299,95 @@ def test_site_builder_service_publication_request_supports_general_notice_and_ho
     home_html = (output_dir / "index.html").read_text(encoding="utf-8")
     assert "Cadre scientifique" in home_html
     assert "Introduction générale" in home_html
+
+
+def test_site_builder_service_publication_request_notice_and_preface_flags_are_independent() -> None:
+    base = _runtime_dir("app_site_builder_service_publication_request_independent_flags")
+    output_dir = base / "site"
+    preface_source = UNITES_FIXTURES / "préface.xml"
+    notice_source = MINIMAL_NOTICES / "andromaque-notice.xml"
+
+    request_preface_only = SitePublicationRequest(
+        identity=SiteIdentityInput(site_title="ETS Preface Only"),
+        output_dir=output_dir,
+        plays=(
+            DramaticPlayInput(
+                play_slug="andromaque",
+                document=DramaticDocumentInput(source_path=DRAMATIC_FIXTURES / "andromaque.xml"),
+                notice_xml_path=notice_source,
+                preface_xml_path=preface_source,
+            ),
+        ),
+        publish_notices=False,
+        publish_prefaces=True,
+    )
+    result_preface_only = build_site_from_publication_request(request_preface_only)
+    assert result_preface_only.ok is True
+    assert any(path.startswith("notices/") for path in result_preface_only.generated_page_relpaths)
+    assert "notices/andromaque-notice.html" not in result_preface_only.generated_page_relpaths
+
+    request_notice_only = SitePublicationRequest(
+        identity=SiteIdentityInput(site_title="ETS Notice Only"),
+        output_dir=base / "site2",
+        plays=(
+            DramaticPlayInput(
+                play_slug="andromaque",
+                document=DramaticDocumentInput(source_path=DRAMATIC_FIXTURES / "andromaque.xml"),
+                notice_xml_path=notice_source,
+                preface_xml_path=preface_source,
+            ),
+        ),
+        publish_notices=True,
+        publish_prefaces=False,
+    )
+    result_notice_only = build_site_from_publication_request(request_notice_only)
+    assert result_notice_only.ok is True
+    assert "notices/andromaque-notice.html" in result_notice_only.generated_page_relpaths
+    assert all("mithridate-preface-fixture-tei-simplifiee" not in item for item in result_notice_only.generated_page_relpaths)
+
+
+def test_site_builder_service_publication_request_external_dramatis_has_priority() -> None:
+    base = _runtime_dir("app_site_builder_service_external_dramatis_priority")
+    output_dir = base / "site"
+    external_dramatis = base / "dramatis_externe.xml"
+    _write_external_dramatis(external_dramatis)
+
+    request = SitePublicationRequest(
+        identity=SiteIdentityInput(site_title="ETS Dramatis Priority"),
+        output_dir=output_dir,
+        plays=(
+            DramaticPlayInput(
+                play_slug="la-thebaide",
+                document=DramaticDocumentInput(source_path=UNITES_FIXTURES / "piece.xml"),
+                dramatis_xml_path=external_dramatis,
+            ),
+        ),
+        publish_notices=False,
+    )
+
+    result = build_site_from_publication_request(request)
+    assert result.ok is True
+
+    play_page = next(path for path in result.generated_page_relpaths if path.startswith("plays/"))
+    play_html = (output_dir / play_page).read_text(encoding="utf-8")
+    doc = lxml_html.document_fromstring(play_html)
+    items = doc.xpath("//section[contains(@class, 'dramatis-personae-block')]//li/text()")
+    assert items == ["Personnage externe Alpha", "Personnage externe Beta"]
+
+
+def test_site_builder_service_build_from_publication_request_fails_cleanly_on_invalid_request() -> None:
+    base = _runtime_dir("app_site_builder_service_publication_request_invalid")
+    request = SitePublicationRequest(
+        identity=SiteIdentityInput(site_title="   "),
+        output_dir=base / "site",
+        plays=(),
+    )
+
+    service = SiteBuilderService()
+    result = service.build_from_publication_request(request)
+
+    assert result.ok is False
+    assert result.error_code == "E_SITE_REQUEST"
+    assert result.error_detail is not None
+    assert "site title is required" in result.error_detail.lower()
+

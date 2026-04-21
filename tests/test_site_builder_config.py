@@ -21,7 +21,6 @@ def _runtime_dir(prefix: str) -> Path:
 
 
 def test_site_config_from_dict_normalizes_paths_and_defaults() -> None:
-    base = _runtime_dir("site_builder_config")
     config = site_config_from_dict(
         {
             "site_title": "ETS Config Demo",
@@ -35,10 +34,14 @@ def test_site_config_from_dict_normalizes_paths_and_defaults() -> None:
     assert config.site_subtitle == ""
     assert config.dramatic_xml_dir == (ROOT / "fixtures" / "site_builder" / "minimal" / "dramatic").resolve()
     assert config.notice_xml_dir is None
+    assert config.dramatis_xml_dir is None
     assert config.output_dir == (ROOT / "out" / "site").resolve()
     assert config.assets.logo_files == ()
     assert config.assets.asset_directories == ()
     assert config.play_notice_map == ()
+    assert config.play_preface_map == ()
+    assert config.play_dramatis_map == ()
+    assert config.publish_prefaces is True
     assert config.homepage_intro == ""
     assert config.homepage_sections == ()
     assert config.general_notice_slug == ""
@@ -52,6 +55,7 @@ def test_site_config_loads_from_json_and_resolves_relative_paths() -> None:
         "site_subtitle": "Edition test",
         "dramatic_xml_dir": "../../../fixtures/site_builder/minimal/dramatic",
         "notice_xml_dir": "../../../fixtures/metopes/minimal",
+        "dramatis_xml_dir": "../../../fixtures/site_builder/unites_editoriales",
         "output_dir": "site_output",
         "assets": {
             "logos": ["../../../fixtures/site_builder/minimal/dramatic/andromaque.xml"],
@@ -65,6 +69,7 @@ def test_site_config_loads_from_json_and_resolves_relative_paths() -> None:
 
     assert config.site_title == "ETS Config JSON"
     assert config.notice_xml_dir == (ROOT / "fixtures" / "metopes" / "minimal").resolve()
+    assert config.dramatis_xml_dir == (ROOT / "fixtures" / "site_builder" / "unites_editoriales").resolve()
     assert config.output_dir == (base / "site_output").resolve()
     assert config.assets.logo_files
     assert config.assets.logo_files[0].name == "andromaque.xml"
@@ -88,6 +93,39 @@ def test_site_config_supports_explicit_play_notice_mapping() -> None:
     assert config.play_notice_map == (("andromaque", "andromaque-notice"),)
     assert manifest.notices
     assert manifest.notices[0].related_play_slug == "andromaque"
+
+
+def test_site_config_supports_explicit_play_preface_mapping() -> None:
+    config = site_config_from_dict(
+        {
+            "site_title": "ETS Config Preface Mapping",
+            "dramatic_xml_dir": str(ROOT / "fixtures" / "site_builder" / "minimal" / "dramatic"),
+            "notice_xml_dir": str(ROOT / "fixtures" / "site_builder" / "minimal" / "notices"),
+            "output_dir": str(ROOT / "tests" / "_runtime" / "site_builder_config_preface_mapping"),
+            "play_preface_map": {
+                "Andromaque": ["andromaque-notice", "andromaque-notice"],
+            },
+        }
+    )
+
+    assert config.play_preface_map == (("andromaque", ("andromaque-notice",)),)
+
+
+def test_site_config_supports_explicit_play_dramatis_mapping() -> None:
+    config = site_config_from_dict(
+        {
+            "site_title": "ETS Config Dramatis Mapping",
+            "dramatic_xml_dir": str(ROOT / "fixtures" / "site_builder" / "minimal" / "dramatic"),
+            "notice_xml_dir": str(ROOT / "fixtures" / "site_builder" / "minimal" / "notices"),
+            "dramatis_xml_dir": str(ROOT / "fixtures" / "site_builder" / "unites_editoriales"),
+            "output_dir": str(ROOT / "tests" / "_runtime" / "site_builder_config_dramatis_mapping"),
+            "play_dramatis_map": {
+                "Andromaque": "piece",
+            },
+        }
+    )
+
+    assert config.play_dramatis_map == (("andromaque", "piece"),)
 
 
 def test_site_config_supports_general_notice_and_homepage_sections() -> None:
@@ -161,3 +199,4 @@ def test_site_config_invalid_homepage_sections_fail_cleanly() -> None:
                 "homepage_sections": {"title": "not-a-list"},
             }
         )
+

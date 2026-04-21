@@ -14,10 +14,11 @@ from .models import (
     NoticeEntry,
     NoticeSection,
     PlayEntry,
+    PlayFrontItemNavigation,
     PlayNavigation,
     SiteManifest,
 )
-from .play_navigation import extract_play_navigation, index_play_navigation
+from .play_navigation import index_play_navigation
 
 
 NOTE_REF_PATTERN = re.compile(r'<sup class="note-ref"><a href="#note-([^"]+)">\[([^\]]+)\]</a></sup>')
@@ -377,7 +378,29 @@ def _layout(
     .content-shell-play .dramatic-content .variation:hover::after {{
       display: block;
     }}
-    
+
+    .dramatis-personae-block {{
+      margin: 0.15rem 0 1rem;
+      padding: 0.75rem 0.9rem 0.8rem;
+      border: 1px solid var(--line);
+      background: var(--bg-soft);
+    }}
+    .dramatis-personae-block h3 {{
+      margin: 0 0 0.45rem;
+      font-family: var(--font-ui);
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+      font-size: 0.92rem;
+      color: var(--ink-muted);
+    }}
+    .dramatis-personae-block ul {{
+      margin: 0;
+      padding-left: 1.2rem;
+    }}
+    .dramatis-personae-block li {{
+      margin: 0.2rem 0;
+    }}
+
     .dramatic-anchor {{ display: block; height: 0; margin: 0; padding: 0; }}
     .branding {{ margin-top: 0.65rem; display: flex; gap: 0.65rem; align-items: center; flex-wrap: wrap; }}
     .branding img {{ max-height: 52px; width: auto; border: 1px solid rgba(243, 236, 224, 0.45); background: rgba(255, 255, 255, 0.92); padding: 0.2rem; }}
@@ -546,10 +569,29 @@ def _play_navigation_for(manifest: SiteManifest, play: PlayEntry) -> PlayNavigat
     existing = by_slug.get(play.slug)
     if existing is not None:
         return existing
-    try:
-        return extract_play_navigation(play)
-    except ValueError:
-        return PlayNavigation(play_slug=play.slug, play_title=play.title, acts=())
+    return PlayNavigation(play_slug=play.slug, play_title=play.title)
+
+
+def _front_item_by_kind(play_navigation: PlayNavigation, kind: str) -> PlayFrontItemNavigation | None:
+    for item in play_navigation.front_items:
+        if item.kind == kind:
+            return item
+    return None
+
+
+def _render_dramatis_personae(play_navigation: PlayNavigation) -> str:
+    if not play_navigation.dramatis_personae:
+        return ""
+    front_item = _front_item_by_kind(play_navigation, "dramatis_personae")
+    if front_item is None or not front_item.anchor_id:
+        return ""
+    entries = "".join(f"<li>{html.escape(item)}</li>" for item in play_navigation.dramatis_personae)
+    return (
+        f'<section class="dramatis-personae-block" id="{html.escape(front_item.anchor_id, quote=True)}">'
+        f"<h3>Personnages</h3>"
+        f"<ul>{entries}</ul>"
+        f"</section>"
+    )
 
 
 def _ensure_anchor_id(body: etree._Element, target: etree._Element | None, desired_id: str) -> None:
@@ -801,6 +843,7 @@ def render_play_page(manifest: SiteManifest, play: PlayEntry) -> str:
         lines.append(f'<p class="meta">{html.escape(manifest.config.credits)}</p>')
 
     play_navigation = _play_navigation_for(manifest, play)
+    lines.append(_render_dramatis_personae(play_navigation))
     dramatic_html, dramatic_assets = _play_reading_html(play, play_navigation)
     lines.append(dramatic_html)
     head_extras = f"{dramatic_assets}{_play_nav_hash_sync_script()}"
@@ -1003,3 +1046,4 @@ def render_notice_page(manifest: SiteManifest, notice: NoticeEntry) -> str:
         current_href=f"notices/{notice.slug}.html",
         content_html=content,
     )
+

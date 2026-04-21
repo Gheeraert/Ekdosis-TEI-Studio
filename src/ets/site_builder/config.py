@@ -66,6 +66,62 @@ def _coerce_play_notice_map(raw_mapping: Any) -> tuple[tuple[str, str], ...]:
     return tuple(sorted(pairs, key=lambda item: item[0]))
 
 
+def _coerce_play_preface_map(raw_mapping: Any) -> tuple[tuple[str, tuple[str, ...]], ...]:
+    if raw_mapping is None:
+        return ()
+    if not isinstance(raw_mapping, dict):
+        raise ValueError("Invalid site configuration: 'play_preface_map' must be an object.")
+
+    pairs: list[tuple[str, tuple[str, ...]]] = []
+    for raw_play, raw_prefaces in raw_mapping.items():
+        play = _normalize_identifier(str(raw_play))
+        if not play:
+            raise ValueError("Invalid site configuration: play_preface_map keys must be non-empty identifiers.")
+
+        if isinstance(raw_prefaces, str):
+            raw_values: list[Any] = [raw_prefaces]
+        elif isinstance(raw_prefaces, (list, tuple)):
+            raw_values = list(raw_prefaces)
+        else:
+            raise ValueError(
+                "Invalid site configuration: play_preface_map values must be a string or a list of strings."
+            )
+
+        normalized_values: list[str] = []
+        seen: set[str] = set()
+        for raw_value in raw_values:
+            slug = _normalize_identifier(str(raw_value))
+            if not slug or slug in seen:
+                continue
+            seen.add(slug)
+            normalized_values.append(slug)
+        if not normalized_values:
+            raise ValueError(
+                "Invalid site configuration: play_preface_map values must contain at least one non-empty identifier."
+            )
+        pairs.append((play, tuple(normalized_values)))
+
+    return tuple(sorted(pairs, key=lambda item: item[0]))
+
+
+def _coerce_play_dramatis_map(raw_mapping: Any) -> tuple[tuple[str, str], ...]:
+    if raw_mapping is None:
+        return ()
+    if not isinstance(raw_mapping, dict):
+        raise ValueError("Invalid site configuration: 'play_dramatis_map' must be an object.")
+
+    pairs: list[tuple[str, str]] = []
+    for raw_play, raw_dramatis in raw_mapping.items():
+        play = _normalize_identifier(str(raw_play))
+        dramatis = _normalize_identifier(str(raw_dramatis))
+        if not play or not dramatis:
+            raise ValueError(
+                "Invalid site configuration: play_dramatis_map keys and values must be non-empty identifiers."
+            )
+        pairs.append((play, dramatis))
+    return tuple(sorted(pairs, key=lambda item: item[0]))
+
+
 def _coerce_play_order(raw_order: Any) -> tuple[str, ...]:
     if raw_order is None:
         return ()
@@ -135,6 +191,9 @@ def site_config_from_dict(payload: dict[str, Any], *, base_dir: Path | None = No
         notice_xml_dir=(
             _resolve_path(payload["notice_xml_dir"], base_dir=base_dir) if payload.get("notice_xml_dir") else None
         ),
+        dramatis_xml_dir=(
+            _resolve_path(payload["dramatis_xml_dir"], base_dir=base_dir) if payload.get("dramatis_xml_dir") else None
+        ),
         output_dir=_resolve_path(output_text, base_dir=base_dir),
         assets=AssetConfig(
             logo_files=_coerce_path_list(
@@ -148,6 +207,7 @@ def site_config_from_dict(payload: dict[str, Any], *, base_dir: Path | None = No
         ),
         show_xml_download=bool(payload.get("show_xml_download", False)),
         publish_notices=bool(payload.get("publish_notices", True)),
+        publish_prefaces=bool(payload.get("publish_prefaces", True)),
         include_metadata=bool(payload.get("include_metadata", True)),
         resolve_notice_xincludes=bool(payload.get("resolve_notice_xincludes", True)),
         project_name=_normalize_text(payload.get("project_name", ""), field_name="project_name"),
@@ -159,6 +219,8 @@ def site_config_from_dict(payload: dict[str, Any], *, base_dir: Path | None = No
             _normalize_text(payload.get("general_notice_slug", ""), field_name="general_notice_slug")
         ),
         play_notice_map=_coerce_play_notice_map(payload.get("play_notice_map")),
+        play_preface_map=_coerce_play_preface_map(payload.get("play_preface_map")),
+        play_dramatis_map=_coerce_play_dramatis_map(payload.get("play_dramatis_map")),
         play_order=_coerce_play_order(payload.get("play_order")),
     )
     return config

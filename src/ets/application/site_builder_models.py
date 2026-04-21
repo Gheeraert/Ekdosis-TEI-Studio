@@ -41,8 +41,12 @@ class DramaticDocumentInput:
 class DramaticPlayInput:
     play_slug: str
     document: DramaticDocumentInput
+    notice_xml_path: Path | None = None
+    preface_xml_path: Path | None = None
+    dramatis_xml_path: Path | None = None
     related_notice_slug: str | None = None
     related_notice_path: Path | None = None
+    related_preface_slug: str | None = None
 
 
 @dataclass(frozen=True)
@@ -60,9 +64,12 @@ class SitePublicationRequest:
     assets: SiteAssetsInput = field(default_factory=SiteAssetsInput)
     show_xml_download: bool = False
     publish_notices: bool = True
+    publish_prefaces: bool = True
     include_metadata: bool = True
     resolve_notice_xincludes: bool = True
     play_notice_map: tuple[tuple[str, str], ...] = ()
+    play_preface_map: tuple[tuple[str, tuple[str, ...]], ...] = ()
+    play_dramatis_map: tuple[tuple[str, str], ...] = ()
     general_notice_slug: str = ""
 
 

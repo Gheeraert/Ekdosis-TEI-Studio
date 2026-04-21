@@ -29,6 +29,7 @@ class _PublicationVars:
     output_dir: tk.StringVar
     show_xml_download: tk.BooleanVar
     publish_notices: tk.BooleanVar
+    publish_prefaces: tk.BooleanVar
     include_metadata: tk.BooleanVar
     resolve_notice_xincludes: tk.BooleanVar
 
@@ -38,6 +39,8 @@ class _PlayEntry:
     play_slug: str
     dramatic_xml_path: Path
     notice_xml_path: Path | None = None
+    preface_xml_path: Path | None = None
+    dramatis_xml_path: Path | None = None
 
 
 class PublicationDialog(tk.Toplevel):
@@ -62,6 +65,7 @@ class PublicationDialog(tk.Toplevel):
             output_dir=tk.StringVar(value=""),
             show_xml_download=tk.BooleanVar(value=False),
             publish_notices=tk.BooleanVar(value=True),
+            publish_prefaces=tk.BooleanVar(value=True),
             include_metadata=tk.BooleanVar(value=True),
             resolve_notice_xincludes=tk.BooleanVar(value=True),
         )
@@ -169,8 +173,11 @@ class PublicationDialog(tk.Toplevel):
         options = ttk.LabelFrame(box, text="Options")
         options.grid(row=8, column=0, columnspan=3, sticky="ew", pady=(6, 0))
         ttk.Checkbutton(options, text="Publier les notices", variable=self.vars.publish_notices).grid(row=0, column=0, sticky="w")
-        ttk.Checkbutton(options, text="Activer les telechargements XML", variable=self.vars.show_xml_download).grid(
+        ttk.Checkbutton(options, text="Publier les prefaces", variable=self.vars.publish_prefaces).grid(
             row=0, column=1, sticky="w", padx=(12, 0)
+        )
+        ttk.Checkbutton(options, text="Activer les telechargements XML", variable=self.vars.show_xml_download).grid(
+            row=0, column=2, sticky="w", padx=(12, 0)
         )
         ttk.Checkbutton(options, text="Inclure les metadonnees", variable=self.vars.include_metadata).grid(
             row=1, column=0, sticky="w"
@@ -203,7 +210,19 @@ class PublicationDialog(tk.Toplevel):
             row=0, column=2, padx=(0, 6)
         )
         ttk.Button(controls, text="Retirer notice", command=self._clear_notice_for_selected_play).grid(row=0, column=3, padx=(0, 6))
-        ttk.Button(controls, text="Supprimer piece", command=self._remove_dramatic_selected).grid(row=0, column=4)
+        ttk.Button(controls, text="Associer preface XML...", command=self._attach_preface_to_selected_play).grid(
+            row=0, column=4, padx=(0, 6)
+        )
+        ttk.Button(controls, text="Retirer preface", command=self._clear_preface_for_selected_play).grid(
+            row=0, column=5, padx=(0, 6)
+        )
+        ttk.Button(controls, text="Associer Dramatis XML...", command=self._attach_dramatis_to_selected_play).grid(
+            row=0, column=6, padx=(0, 6)
+        )
+        ttk.Button(controls, text="Retirer Dramatis", command=self._clear_dramatis_for_selected_play).grid(
+            row=0, column=7, padx=(0, 6)
+        )
+        ttk.Button(controls, text="Supprimer piece", command=self._remove_dramatic_selected).grid(row=0, column=8)
 
         ttk.Label(
             box,
@@ -266,7 +285,12 @@ class PublicationDialog(tk.Toplevel):
         self.dramatic_list.delete(0, tk.END)
         for entry in self._play_entries:
             notice_text = entry.notice_xml_path.name if entry.notice_xml_path is not None else "-"
-            row = f"{entry.play_slug} | piece: {entry.dramatic_xml_path.name} | notice: {notice_text}"
+            preface_text = entry.preface_xml_path.name if entry.preface_xml_path is not None else "-"
+            dramatis_text = entry.dramatis_xml_path.name if entry.dramatis_xml_path is not None else "-"
+            row = (
+                f"{entry.play_slug} | piece: {entry.dramatic_xml_path.name} | notice: {notice_text}"
+                f" | preface: {preface_text} | dramatis: {dramatis_text}"
+            )
             self.dramatic_list.insert(tk.END, row)
 
     def _play_order_items(self) -> list[str]:
@@ -330,6 +354,8 @@ class PublicationDialog(tk.Toplevel):
             play_slug=selected.play_slug,
             dramatic_xml_path=Path(chosen).resolve(),
             notice_xml_path=selected.notice_xml_path,
+            preface_xml_path=selected.preface_xml_path,
+            dramatis_xml_path=selected.dramatis_xml_path,
         )
         self._refresh_dramatic_list()
         self.dramatic_list.selection_set(selected_index)
@@ -351,6 +377,8 @@ class PublicationDialog(tk.Toplevel):
             play_slug=selected.play_slug,
             dramatic_xml_path=selected.dramatic_xml_path,
             notice_xml_path=Path(chosen).resolve(),
+            preface_xml_path=selected.preface_xml_path,
+            dramatis_xml_path=selected.dramatis_xml_path,
         )
         self._refresh_dramatic_list()
         self.dramatic_list.selection_set(selected_index)
@@ -364,6 +392,84 @@ class PublicationDialog(tk.Toplevel):
             play_slug=selected.play_slug,
             dramatic_xml_path=selected.dramatic_xml_path,
             notice_xml_path=None,
+            preface_xml_path=selected.preface_xml_path,
+            dramatis_xml_path=selected.dramatis_xml_path,
+        )
+        self._refresh_dramatic_list()
+        self.dramatic_list.selection_set(selected_index)
+
+    def _attach_preface_to_selected_play(self) -> None:
+        selected_index = self._selected_play_index()
+        if selected_index is None:
+            messagebox.showerror("Publication", "Selectionnez une piece avant d'associer une preface.", parent=self)
+            return
+        chosen = filedialog.askopenfilename(
+            parent=self,
+            title="Associer une preface XML a la piece selectionnee",
+            filetypes=[("XML files", "*.xml"), ("All files", "*.*")],
+        )
+        if not chosen:
+            return
+        selected = self._play_entries[selected_index]
+        self._play_entries[selected_index] = _PlayEntry(
+            play_slug=selected.play_slug,
+            dramatic_xml_path=selected.dramatic_xml_path,
+            notice_xml_path=selected.notice_xml_path,
+            preface_xml_path=Path(chosen).resolve(),
+            dramatis_xml_path=selected.dramatis_xml_path,
+        )
+        self._refresh_dramatic_list()
+        self.dramatic_list.selection_set(selected_index)
+
+    def _clear_preface_for_selected_play(self) -> None:
+        selected_index = self._selected_play_index()
+        if selected_index is None:
+            return
+        selected = self._play_entries[selected_index]
+        self._play_entries[selected_index] = _PlayEntry(
+            play_slug=selected.play_slug,
+            dramatic_xml_path=selected.dramatic_xml_path,
+            notice_xml_path=selected.notice_xml_path,
+            preface_xml_path=None,
+            dramatis_xml_path=selected.dramatis_xml_path,
+        )
+        self._refresh_dramatic_list()
+        self.dramatic_list.selection_set(selected_index)
+
+    def _attach_dramatis_to_selected_play(self) -> None:
+        selected_index = self._selected_play_index()
+        if selected_index is None:
+            messagebox.showerror("Publication", "Selectionnez une piece avant d'associer un Dramatis XML.", parent=self)
+            return
+        chosen = filedialog.askopenfilename(
+            parent=self,
+            title="Associer un Dramatis XML externe a la piece selectionnee",
+            filetypes=[("XML files", "*.xml"), ("All files", "*.*")],
+        )
+        if not chosen:
+            return
+        selected = self._play_entries[selected_index]
+        self._play_entries[selected_index] = _PlayEntry(
+            play_slug=selected.play_slug,
+            dramatic_xml_path=selected.dramatic_xml_path,
+            notice_xml_path=selected.notice_xml_path,
+            preface_xml_path=selected.preface_xml_path,
+            dramatis_xml_path=Path(chosen).resolve(),
+        )
+        self._refresh_dramatic_list()
+        self.dramatic_list.selection_set(selected_index)
+
+    def _clear_dramatis_for_selected_play(self) -> None:
+        selected_index = self._selected_play_index()
+        if selected_index is None:
+            return
+        selected = self._play_entries[selected_index]
+        self._play_entries[selected_index] = _PlayEntry(
+            play_slug=selected.play_slug,
+            dramatic_xml_path=selected.dramatic_xml_path,
+            notice_xml_path=selected.notice_xml_path,
+            preface_xml_path=selected.preface_xml_path,
+            dramatis_xml_path=None,
         )
         self._refresh_dramatic_list()
         self.dramatic_list.selection_set(selected_index)
@@ -467,6 +573,8 @@ class PublicationDialog(tk.Toplevel):
                     play_slug=entry.play_slug,
                     dramatic_xml_path=entry.dramatic_xml_path,
                     notice_xml_path=entry.notice_xml_path,
+                    preface_xml_path=entry.preface_xml_path,
+                    dramatis_xml_path=entry.dramatis_xml_path,
                 )
                 for entry in self._play_entries
             ),
@@ -475,6 +583,7 @@ class PublicationDialog(tk.Toplevel):
             asset_directories=(Path(asset_directory).resolve(),) if asset_directory else (),
             show_xml_download=bool(self.vars.show_xml_download.get()),
             publish_notices=bool(self.vars.publish_notices.get()),
+            publish_prefaces=bool(self.vars.publish_prefaces.get()),
             include_metadata=bool(self.vars.include_metadata.get()),
             resolve_notice_xincludes=bool(self.vars.resolve_notice_xincludes.get()),
         )
@@ -492,6 +601,8 @@ class PublicationDialog(tk.Toplevel):
                 play_slug=play.play_slug,
                 dramatic_xml_path=play.dramatic_xml_path,
                 notice_xml_path=play.notice_xml_path,
+                preface_xml_path=play.preface_xml_path,
+                dramatis_xml_path=play.dramatis_xml_path,
             )
             for play in config.plays
         ]
@@ -515,6 +626,7 @@ class PublicationDialog(tk.Toplevel):
         self.vars.asset_directory.set(str(asset_directory) if asset_directory is not None else "")
         self.vars.show_xml_download.set(config.show_xml_download)
         self.vars.publish_notices.set(config.publish_notices)
+        self.vars.publish_prefaces.set(config.publish_prefaces)
         self.vars.include_metadata.set(config.include_metadata)
         self.vars.resolve_notice_xincludes.set(config.resolve_notice_xincludes)
         self._refresh_corpus_slug()

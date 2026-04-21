@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import json
 import tkinter as tk
@@ -798,12 +798,14 @@ def test_publication_dialog_builds_rich_request_object(monkeypatch: pytest.Monke
         dramatic_a1 = runtime / "andromaque.xml"
         dramatic_b1 = runtime / "berenice.xml"
         notice_play = runtime / "andromaque_notice.xml"
+        preface_play = runtime / "andromaque_preface.xml"
+        dramatis_play = runtime / "andromaque_dramatis.xml"
         home_page_tei = runtime / "home_page.xml"
         general_intro = runtime / "introduction_generale.xml"
         logo = runtime / "logo.png"
         asset_dir = runtime / "assets"
         output_dir = runtime / "site_out"
-        for path in (dramatic_a1, dramatic_b1, notice_play, home_page_tei, general_intro, logo):
+        for path in (dramatic_a1, dramatic_b1, notice_play, preface_play, dramatis_play, home_page_tei, general_intro, logo):
             path.write_text("<xml/>", encoding="utf-8")
         asset_dir.mkdir(parents=True, exist_ok=True)
 
@@ -821,6 +823,8 @@ def test_publication_dialog_builds_rich_request_object(monkeypatch: pytest.Monke
         dialog._append_play_from_path(dramatic_a1)
         dialog._append_play_from_path(dramatic_b1)
         dialog._play_entries[0].notice_xml_path = notice_play.resolve()
+        dialog._play_entries[0].preface_xml_path = preface_play.resolve()
+        dialog._play_entries[0].dramatis_xml_path = dramatis_play.resolve()
         dialog._refresh_dramatic_list()
         dialog._sync_play_order_from_entries()
         dialog.play_order_list.delete(0, tk.END)
@@ -828,6 +832,7 @@ def test_publication_dialog_builds_rich_request_object(monkeypatch: pytest.Monke
         dialog.play_order_list.insert(tk.END, "andromaque")
         dialog.vars.show_xml_download.set(True)
         dialog.vars.publish_notices.set(True)
+        dialog.vars.publish_prefaces.set(True)
 
         dialog._on_validate()
 
@@ -844,10 +849,16 @@ def test_publication_dialog_builds_rich_request_object(monkeypatch: pytest.Monke
         assert request.plays[1].play_slug == "andromaque"
         assert request.plays[1].document.source_path == dramatic_a1
         assert request.plays[1].related_notice_path == notice_play.resolve()
-        assert len(request.notices) == 3
+        assert request.plays[1].preface_xml_path == preface_play.resolve()
+        assert request.plays[1].dramatis_xml_path == dramatis_play.resolve()
+        assert len(request.notices) == 4
         assert request.assets.logo_files == (logo,)
         assert request.assets.asset_directories == (asset_dir.resolve(),)
-        assert request.play_notice_map == ()
+        assert request.play_notice_map
+        assert request.play_preface_map
+        assert request.play_dramatis_map
+        assert request.publish_notices is True
+        assert request.publish_prefaces is True
     finally:
         root.destroy()
 
@@ -925,6 +936,45 @@ def test_publication_dialog_each_play_keeps_single_dramatic_xml_source(monkeypat
         root.destroy()
 
 
+def test_publication_dialog_attach_and_clear_preface_and_dramatis(monkeypatch: pytest.MonkeyPatch) -> None:
+    root = _make_root()
+    try:
+        runtime = RUNTIME_DIR / f"publication_dialog_preface_dramatis_{uuid4().hex}"
+        runtime.mkdir(parents=True, exist_ok=True)
+        andromaque = runtime / "andromaque.xml"
+        preface = runtime / "preface.xml"
+        dramatis = runtime / "dramatis.xml"
+        andromaque.write_text("<xml/>", encoding="utf-8")
+        preface.write_text("<xml/>", encoding="utf-8")
+        dramatis.write_text("<xml/>", encoding="utf-8")
+
+        dialog = PublicationDialog(root)
+        monkeypatch.setattr("tkinter.messagebox.showerror", lambda *args, **kwargs: None)
+        dialog._append_play_from_path(andromaque)
+        dialog._refresh_dramatic_list()
+        dialog.dramatic_list.selection_set(0)
+
+        monkeypatch.setattr("tkinter.filedialog.askopenfilename", lambda **kwargs: str(preface))
+        dialog._attach_preface_to_selected_play()
+        assert dialog._play_entries[0].preface_xml_path == preface.resolve()
+        assert "preface: preface.xml" in dialog.dramatic_list.get(0)
+
+        monkeypatch.setattr("tkinter.filedialog.askopenfilename", lambda **kwargs: str(dramatis))
+        dialog._attach_dramatis_to_selected_play()
+        assert dialog._play_entries[0].dramatis_xml_path == dramatis.resolve()
+        assert "dramatis: dramatis.xml" in dialog.dramatic_list.get(0)
+
+        dialog._clear_preface_for_selected_play()
+        dialog._clear_dramatis_for_selected_play()
+        assert dialog._play_entries[0].preface_xml_path is None
+        assert dialog._play_entries[0].dramatis_xml_path is None
+        assert "preface: -" in dialog.dramatic_list.get(0)
+        assert "dramatis: -" in dialog.dramatic_list.get(0)
+        dialog.destroy()
+    finally:
+        root.destroy()
+
+
 def test_publication_dialog_save_and_load_config_round_trip(monkeypatch: pytest.MonkeyPatch) -> None:
     root = _make_root()
     try:
@@ -935,12 +985,23 @@ def test_publication_dialog_save_and_load_config_round_trip(monkeypatch: pytest.
         dramatic_a1 = runtime / "andromaque.xml"
         dramatic_b1 = runtime / "berenice.xml"
         notice_play = runtime / "notice_andromaque.xml"
+        preface_play = runtime / "preface_andromaque.xml"
+        dramatis_play = runtime / "dramatis_andromaque.xml"
         home_page_tei = runtime / "home_page.xml"
         general_intro = runtime / "general_intro.xml"
         logo = runtime / "logo.png"
         asset_dir = runtime / "assets"
         output_dir = runtime / "site_out"
-        for path in (dramatic_a1, dramatic_b1, notice_play, home_page_tei, general_intro, logo):
+        for path in (
+            dramatic_a1,
+            dramatic_b1,
+            notice_play,
+            preface_play,
+            dramatis_play,
+            home_page_tei,
+            general_intro,
+            logo,
+        ):
             path.write_text("<xml/>", encoding="utf-8")
         asset_dir.mkdir(parents=True, exist_ok=True)
 
@@ -964,18 +1025,21 @@ def test_publication_dialog_save_and_load_config_round_trip(monkeypatch: pytest.
         dialog._append_play_from_path(dramatic_a1)
         dialog._append_play_from_path(dramatic_b1)
         dialog._play_entries[0].notice_xml_path = notice_play.resolve()
+        dialog._play_entries[0].preface_xml_path = preface_play.resolve()
+        dialog._play_entries[0].dramatis_xml_path = dramatis_play.resolve()
         dialog._refresh_dramatic_list()
         dialog._sync_play_order_from_entries()
         dialog.play_order_list.delete(0, tk.END)
         dialog.play_order_list.insert(tk.END, "berenice")
         dialog.play_order_list.insert(tk.END, "andromaque")
         dialog.vars.show_xml_download.set(True)
+        dialog.vars.publish_prefaces.set(True)
 
         dialog._on_save_config()
         assert config_path.exists()
         saved_payload = json.loads(config_path.read_text(encoding="utf-8"))
         assert saved_payload["schema"] == "ets.site_publication_dialog_config"
-        assert saved_payload["version"] == 2
+        assert saved_payload["version"] == 3
 
         dialog.vars.corpus_title.set("Autre")
         dialog.vars.author_name.set("")
@@ -1003,6 +1067,8 @@ def test_publication_dialog_save_and_load_config_round_trip(monkeypatch: pytest.
         assert dialog._play_order_items() == ["berenice", "andromaque"]
         assert len(dialog._play_entries) == 2
         assert dialog._play_entries[0].notice_xml_path == notice_play.resolve()
+        assert dialog._play_entries[0].preface_xml_path == preface_play.resolve()
+        assert dialog._play_entries[0].dramatis_xml_path == dramatis_play.resolve()
         assert infos
         dialog.destroy()
     finally:
@@ -1137,6 +1203,9 @@ def test_publication_dialog_contains_clarified_labels_and_hints() -> None:
         assert "Corpus de pieces" in all_text
         assert "Ajouter piece XML" in all_text
         assert "Associer notice XML" in all_text
+        assert "Associer preface XML" in all_text
+        assert "Associer Dramatis XML" in all_text
+        assert "Publier les prefaces" in all_text
         assert "Regle: 1 XML dramatique = 1 piece complete" in all_text
         assert "Ordre de navigation des pieces" in all_text
         assert "Dossier d'assets" in all_text
@@ -1573,3 +1642,4 @@ def test_selecting_line_range_annotation_focuses_first_line_and_range(monkeypatc
         assert focus_line == 19
     finally:
         root.destroy()
+

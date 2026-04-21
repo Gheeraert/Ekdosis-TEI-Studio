@@ -99,7 +99,7 @@ def test_builder_generates_cross_links_and_home_intro_from_explicit_mapping() ->
     assert doc.xpath("//main/nav//details[contains(@class, 'nav-details')]")
     assert doc.xpath("//main/nav//ul[contains(@class, 'site-nav') and contains(@class, 'nested')]")
     assert doc.xpath("//main/nav//a[contains(normalize-space(.), 'Acte 1')]")
-    assert doc.xpath("//main/nav//a[contains(normalize-space(.), 'Scène 1')]")
+    assert doc.xpath("//main/nav//a[contains(@href, '#ets-nav-andromaque-scene-1')]")
     assert len(doc.xpath("//main/nav//li[contains(@class, 'nav-kind-plays_group')]/details[@open]")) == 1
     assert len(doc.xpath("//main/nav//li[contains(@class, 'nav-kind-play_group')]/details[@open]")) == 1
     assert not doc.xpath("//main/nav//li[contains(@class, 'nav-kind-act')]/details[@open]")
@@ -305,13 +305,13 @@ def test_builder_supports_general_notice_home_editorial_sections_and_hierarchica
 
     doc = lxml_html.document_fromstring(play_html)
     assert doc.xpath("//main/nav//a[@href='../notices/bibliographie.html']")
-    assert doc.xpath("//main/nav//span[contains(@class, 'nav-label') and contains(., 'Pièces')]")
+    assert doc.xpath("//main/nav//li[contains(@class, 'nav-kind-plays_group')]")
     assert not doc.xpath("//main/nav//*[normalize-space(.)='Lecture']")
     assert not doc.xpath("//main/nav//*[normalize-space(.)='Lire']")
     assert not doc.xpath("//main/nav//*[contains(normalize-space(.), 'Dans la piece')]")
-    assert doc.xpath("//main/nav//a[contains(., 'Notice de pièce')]")
+    assert doc.xpath("//main/nav//a[@href='../notices/introduction.html']")
     assert doc.xpath("//main/nav//a[contains(., 'Acte 1')]")
-    assert doc.xpath("//main/nav//a[contains(., 'Scène 1')]")
+    assert doc.xpath("//main/nav//a[contains(@href, '#ets-nav-andromaque-scene-1')]")
     andromaque_anchors = doc.xpath("//main/nav//a[starts-with(@href, '../plays/andromaque.html#')]/@href")
     assert andromaque_anchors
     for href in andromaque_anchors:
@@ -520,3 +520,131 @@ def test_nav_item_contains_current_keeps_play_group_open_without_auto_opening_al
     assert _nav_item_contains_current(play_group, "plays/andromaque.html")
     assert not _nav_item_contains_current(act_one, "plays/andromaque.html")
     assert not _nav_item_contains_current(act_two, "plays/andromaque.html")
+
+
+def test_builder_unites_editoriales_orders_notice_preface_dramatis_before_acts() -> None:
+    base_dir = _runtime_dir("site_builder_unites_editoriales")
+    dramatic_dir = base_dir / "dramatic"
+    notice_dir = base_dir / "notices"
+    output_dir = base_dir / "site"
+    dramatic_dir.mkdir(parents=True, exist_ok=True)
+    notice_dir.mkdir(parents=True, exist_ok=True)
+
+    fixtures_dir = ROOT / "fixtures" / "site_builder" / "unites_editoriales"
+    shutil.copy2(fixtures_dir / "piece.xml", dramatic_dir / "piece.xml")
+    shutil.copy2(fixtures_dir / "notice.xml", notice_dir / "notice.xml")
+    preface_source = next(fixtures_dir.glob("pr*face.xml"))
+    shutil.copy2(preface_source, notice_dir / "preface.xml")
+
+    play_slug = "la-thebaide-ou-les-freres-ennemis"
+    notice_slug = "alexandre-le-grand-notice-extrait-de-fixture"
+    preface_slug = "mithridate-preface-fixture-tei-simplifiee"
+
+    config = site_config_from_dict(
+        {
+            "site_title": "ETS Demo",
+            "dramatic_xml_dir": str(dramatic_dir),
+            "notice_xml_dir": str(notice_dir),
+            "output_dir": str(output_dir),
+            "publish_notices": True,
+            "play_notice_map": {play_slug: notice_slug},
+            "play_preface_map": {play_slug: [preface_slug]},
+        }
+    )
+
+    manifest = build_site_manifest(config)
+    result = build_static_site(config)
+    assert result.play_count == 1
+    assert result.notice_count == 2
+    assert any(page.kind == "preface" and page.source_slug == preface_slug for page in manifest.pages)
+    assert (output_dir / "notices" / f"{preface_slug}.html").exists()
+
+    plays_group = next(item for item in manifest.navigation if item.kind == "plays_group")
+    play_branch = next(item for item in plays_group.children if item.children)
+    expected_top_level_hrefs = [f"../{child.href}" for child in play_branch.children]
+    assert [child.kind for child in play_branch.children[:3]] == [
+        "piece_notice",
+        "author_preface",
+        "dramatis_personae",
+    ]
+
+    play_html = (output_dir / "plays" / f"{play_slug}.html").read_text(encoding="utf-8")
+    doc = lxml_html.document_fromstring(play_html)
+    top_level_nodes = doc.xpath(
+        "(//li[contains(@class, 'nav-kind-play_group')]//ul[contains(@class, 'site-nav') and contains(@class, 'nested')])[1]/li"
+    )
+    top_level_hrefs: list[str] = []
+    for node in top_level_nodes:
+        direct_link = node.xpath("./a/@href")
+        if direct_link:
+            top_level_hrefs.append(direct_link[0])
+            continue
+        summary_link = node.xpath("./details/summary//a/@href")
+        if summary_link:
+            top_level_hrefs.append(summary_link[0])
+
+    assert top_level_hrefs[:3] == expected_top_level_hrefs[:3]
+    assert top_level_hrefs[0] == f"../notices/{notice_slug}.html"
+    assert top_level_hrefs[1] == f"../notices/{preface_slug}.html"
+
+    dramatis_anchor_id = play_branch.children[2].href.split("#", maxsplit=1)[1]
+    first_act_anchor_id = next(child.href for child in play_branch.children if child.kind == "act").split("#", maxsplit=1)[1]
+    assert doc.xpath(f"//*[@id='{dramatis_anchor_id}']")
+    assert doc.xpath(f"//*[@id='{first_act_anchor_id}']")
+    assert play_html.index(f'id="{dramatis_anchor_id}"') < play_html.index(f'id="{first_act_anchor_id}"')
+
+
+def test_builder_uses_external_dramatis_when_configured() -> None:
+    base_dir = _runtime_dir("site_builder_external_dramatis")
+    dramatic_dir = base_dir / "dramatic"
+    notice_dir = base_dir / "notices"
+    dramatis_dir = base_dir / "dramatis"
+    output_dir = base_dir / "site"
+    dramatic_dir.mkdir(parents=True, exist_ok=True)
+    notice_dir.mkdir(parents=True, exist_ok=True)
+    dramatis_dir.mkdir(parents=True, exist_ok=True)
+
+    fixtures_dir = ROOT / "fixtures" / "site_builder" / "unites_editoriales"
+    shutil.copy2(fixtures_dir / "piece.xml", dramatic_dir / "piece.xml")
+    shutil.copy2(fixtures_dir / "notice.xml", notice_dir / "notice.xml")
+    preface_source = next(fixtures_dir.glob("pr*face.xml"))
+    shutil.copy2(preface_source, notice_dir / "preface.xml")
+
+    (dramatis_dir / "dramatis-externe.xml").write_text(
+        """<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0">
+  <text>
+    <front>
+      <castList>
+        <castItem>Personnage externe Alpha</castItem>
+        <castItem>Personnage externe Beta</castItem>
+      </castList>
+    </front>
+  </text>
+</TEI>
+""",
+        encoding="utf-8",
+    )
+
+    play_slug = "la-thebaide-ou-les-freres-ennemis"
+    config = site_config_from_dict(
+        {
+            "site_title": "ETS Demo",
+            "dramatic_xml_dir": str(dramatic_dir),
+            "notice_xml_dir": str(notice_dir),
+            "dramatis_xml_dir": str(dramatis_dir),
+            "output_dir": str(output_dir),
+            "publish_notices": True,
+            "publish_prefaces": True,
+            "play_notice_map": {play_slug: "alexandre-le-grand-notice-extrait-de-fixture"},
+            "play_preface_map": {play_slug: ["mithridate-preface-fixture-tei-simplifiee"]},
+            "play_dramatis_map": {play_slug: "dramatis-externe"},
+        }
+    )
+
+    build_static_site(config)
+    play_html = (output_dir / "plays" / f"{play_slug}.html").read_text(encoding="utf-8")
+    doc = lxml_html.document_fromstring(play_html)
+    assert doc.xpath("//section[contains(@class, 'dramatis-personae-block')]//li[text()='Personnage externe Alpha']")
+    assert doc.xpath("//section[contains(@class, 'dramatis-personae-block')]//li[text()='Personnage externe Beta']")
+

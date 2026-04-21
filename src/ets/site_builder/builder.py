@@ -113,7 +113,7 @@ def build_static_site(config: SiteConfig) -> BuildResult:
                 warnings.append(f"Missing play entry for slug '{page.source_slug}'.")
                 continue
             html_content = render_play_page(manifest, play)
-        elif page.kind in {"notice", "notice_volume", "notice_general"}:
+        elif page.kind in {"notice", "notice_volume", "notice_general", "preface"}:
             notice = notice_by_slug.get(page.source_slug or "")
             if notice is None:
                 warnings.append(f"Missing notice entry for slug '{page.source_slug}'.")
