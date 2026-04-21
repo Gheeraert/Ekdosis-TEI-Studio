@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import json
 import xml.etree.ElementTree as ET
@@ -19,9 +19,9 @@ def test_shared_verse_three_segments_same_scene_from_fixture() -> None:
     doc = ET.fromstring(xml_text)
 
     numbers = [el.get("n", "") for el in doc.findall(".//tei:l", NS)]
-    assert "441.1" in numbers
-    assert "441.2" in numbers
-    assert "441.3" in numbers
+    assert "2.1" in numbers
+    assert "2.2" in numbers
+    assert "2.3" in numbers
 
     # Shared-verse continuity must survive speaker changes in the same scene.
     line_to_speaker: dict[str, str] = {}
@@ -29,9 +29,9 @@ def test_shared_verse_three_segments_same_scene_from_fixture() -> None:
         speaker = "".join(sp.find("tei:speaker", NS).itertext()).strip()  # type: ignore[union-attr]
         for line in sp.findall("tei:l", NS):
             line_to_speaker[line.get("n", "")] = speaker
-    assert line_to_speaker["441.1"].startswith("ANTIGONE")
-    assert line_to_speaker["441.2"].startswith("OLYMPE")
-    assert line_to_speaker["441.3"].startswith("ANTIGONE")
+    assert line_to_speaker["2.1"].startswith("ANTIGONE")
+    assert line_to_speaker["2.2"].startswith("OLYMPE")
+    assert line_to_speaker["2.3"].startswith("ANTIGONE")
 
 
 def test_shared_verse_two_segments_can_cross_successive_scenes() -> None:
@@ -42,14 +42,11 @@ def test_shared_verse_two_segments_can_cross_successive_scenes() -> None:
     config_path = runtime_dir / "shared_cross_scene_config.json"
     input_path = runtime_dir / "shared_cross_scene_input.txt"
     config_payload = {
-        "PrÃ©nom de l'auteur": "Jean",
+        "PrÃƒÂ©nom de l'auteur": "Jean",
         "Nom de l'auteur": "Racine",
-        "Titre de la piÃ¨ce": "Test",
-        "NumÃ©ro de l'acte": "1",
-        "NumÃ©ro de la scÃ¨ne": "1",
-        "NumÃ©ro du vers de dÃ©part": 1,
-        "Nom de l'Ã©diteur (vous)": "Editeur",
-        "PrÃ©nom de l'Ã©diteur": "Test",
+        "Titre de la piÃƒÂ¨ce": "Test",
+        "Nom de l'ÃƒÂ©diteur (vous)": "Editeur",
+        "PrÃƒÂ©nom de l'ÃƒÂ©diteur": "Test",
         "Temoins": [
             {"abbr": "A", "year": "1667", "desc": "A"},
             {"abbr": "B", "year": "1671", "desc": "B"},

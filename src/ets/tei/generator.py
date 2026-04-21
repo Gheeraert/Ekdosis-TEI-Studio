@@ -107,13 +107,13 @@ def generate_tei_xml(collated: CollatedPlay, config: EditionConfig) -> str:
     implicit_counter = 0
 
     for act_index, act in enumerate(collated.acts, start=1):
-        act_n = config.act_number if len(collated.acts) == 1 else str(act_index)
+        act_n = str(act_index)
         act_div = ET.SubElement(body, _tei("div"), {"type": "act", "n": act_n})
         head = ET.SubElement(act_div, _tei("head"))
         _append_collated_text(head, act.head)
 
         for scene_index, scene in enumerate(act.scenes, start=1):
-            scene_n = config.scene_number if len(act.scenes) == 1 else str(scene_index)
+            scene_n = str(scene_index)
             scene_div = ET.SubElement(act_div, _tei("div"), {"type": "scene", "n": scene_n})
             stage_index = 0
 

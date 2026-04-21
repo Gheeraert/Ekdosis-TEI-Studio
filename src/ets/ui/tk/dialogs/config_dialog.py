@@ -40,9 +40,6 @@ class _ConfigVars:
     title: tk.StringVar
     editor_first: tk.StringVar
     editor_last: tk.StringVar
-    start_line: tk.StringVar
-    act_number: tk.StringVar
-    scene_number: tk.StringVar
 
 
 class ConfigDialog(tk.Toplevel):
@@ -62,9 +59,6 @@ class ConfigDialog(tk.Toplevel):
             title=tk.StringVar(value=initial.title if initial else ""),
             editor_first=tk.StringVar(value=editor_first),
             editor_last=tk.StringVar(value=editor_last),
-            start_line=tk.StringVar(value=str(initial.start_line_number if initial else 1)),
-            act_number=tk.StringVar(value=initial.act_number if initial else "1"),
-            scene_number=tk.StringVar(value=initial.scene_number if initial else "1"),
         )
         self._reference_witness = initial.reference_witness if initial else 0
 
@@ -73,24 +67,21 @@ class ConfigDialog(tk.Toplevel):
         self.columnconfigure(0, weight=1)
         self.rowconfigure(0, weight=1)
         body.columnconfigure(1, weight=1)
-        body.rowconfigure(8, weight=1)
+        body.rowconfigure(5, weight=1)
 
         self._add_entry(body, 0, "Prénom de l'auteur", self.vars.author_first)
         self._add_entry(body, 1, "Nom de l'auteur", self.vars.author_last)
         self._add_entry(body, 2, "Titre de la pièce", self.vars.title)
         self._add_entry(body, 3, "Prénom de l'éditeur", self.vars.editor_first)
         self._add_entry(body, 4, "Nom de l'éditeur (vous)", self.vars.editor_last)
-        self._add_entry(body, 5, "Numéro du vers de départ", self.vars.start_line)
-        self._add_entry(body, 6, "Numéro de l'acte", self.vars.act_number)
-        self._add_entry(body, 7, "Numéro de la scène", self.vars.scene_number)
 
-        ttk.Label(body, text="Témoins (abbr|year|desc, un par ligne)").grid(row=8, column=0, sticky="nw", padx=(0, 8))
+        ttk.Label(body, text="Témoins (abbr|year|desc, un par ligne)").grid(row=5, column=0, sticky="nw", padx=(0, 8))
         self.witnesses = tk.Text(body, height=8, width=60, font=("Consolas", 10))
-        self.witnesses.grid(row=8, column=1, sticky="nsew")
+        self.witnesses.grid(row=5, column=1, sticky="nsew")
         self.witnesses.insert("1.0", _witnesses_to_lines(initial.witnesses if initial else []))
 
         buttons = ttk.Frame(body)
-        buttons.grid(row=9, column=0, columnspan=2, sticky="e", pady=(10, 0))
+        buttons.grid(row=6, column=0, columnspan=2, sticky="e", pady=(10, 0))
         ttk.Button(buttons, text="Annuler", command=self.destroy).grid(row=0, column=0, padx=4)
         ttk.Button(buttons, text="Valider", command=self._on_validate).grid(row=0, column=1, padx=4)
 
@@ -102,9 +93,6 @@ class ConfigDialog(tk.Toplevel):
     def _on_validate(self) -> None:
         try:
             witnesses = _parse_witnesses(self.witnesses.get("1.0", "end-1c"))
-            start_line = int(self.vars.start_line.get().strip() or "1")
-            if start_line < 1:
-                raise ValueError("Le numéro du vers de départ doit être >= 1.")
             reference = min(self._reference_witness, len(witnesses) - 1)
             self.result = EditionConfig(
                 title=self.vars.title.get().strip(),
@@ -112,9 +100,6 @@ class ConfigDialog(tk.Toplevel):
                 editor=f"{self.vars.editor_first.get().strip()} {self.vars.editor_last.get().strip()}".strip(),
                 witnesses=witnesses,
                 reference_witness=reference,
-                start_line_number=start_line,
-                act_number=self.vars.act_number.get().strip() or "1",
-                scene_number=self.vars.scene_number.get().strip() or "1",
             )
         except ValueError as exc:
             messagebox.showerror("Configuration invalide", str(exc), parent=self)

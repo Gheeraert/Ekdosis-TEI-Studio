@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import json
 from pathlib import Path
@@ -15,14 +15,11 @@ def _write(path: Path, text: str) -> None:
 
 def _config(path: Path) -> None:
     payload = {
-        "PrÃ©nom de l'auteur": "Jean",
+        "PrÃƒÂ©nom de l'auteur": "Jean",
         "Nom de l'auteur": "Racine",
-        "Titre de la piÃ¨ce": "Test",
-        "NumÃ©ro de l'acte": "1",
-        "NumÃ©ro de la scÃ¨ne": "1",
-        "NumÃ©ro du vers de dÃ©part": 1,
-        "Nom de l'Ã©diteur (vous)": "Editeur",
-        "PrÃ©nom de l'Ã©diteur": "Test",
+        "Titre de la piÃƒÂ¨ce": "Test",
+        "Nom de l'ÃƒÂ©diteur (vous)": "Editeur",
+        "PrÃƒÂ©nom de l'ÃƒÂ©diteur": "Test",
         "Temoins": [
             {"abbr": "A", "year": "1667", "desc": "A"},
             {"abbr": "B", "year": "1671", "desc": "B"},
@@ -63,8 +60,8 @@ def test_scene_change_does_not_reuse_previous_speaker() -> None:
                 "##BETA##",
                 "##BETA##",
                 "",
-                "Ceci doit Ã©chouer sans locuteur.",
-                "Ceci doit Ã©chouer sans locuteur.",
+                "Ceci doit ÃƒÂ©chouer sans locuteur.",
+                "Ceci doit ÃƒÂ©chouer sans locuteur.",
             ]
         )
         + "\n",

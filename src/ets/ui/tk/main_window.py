@@ -537,9 +537,9 @@ class MainWindow(ttk.Frame):
         stage_index: dict[tuple[str, str, int], int] = {}
 
         for act_pos, act in enumerate(play.acts, start=1):
-            act_label = self.state.config.act_number if len(play.acts) == 1 else str(act_pos)
+            act_label = str(act_pos)
             for scene_pos, scene in enumerate(act.scenes, start=1):
-                scene_label = self.state.config.scene_number if len(act.scenes) == 1 else str(scene_pos)
+                scene_label = str(scene_pos)
                 stage_counter = 0
                 for stage in scene.stage_directions:
                     stage_counter += 1

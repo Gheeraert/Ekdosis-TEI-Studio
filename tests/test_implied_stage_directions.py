@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import json
 import re
@@ -40,14 +40,11 @@ def _write_runtime_file(path: Path, content: str) -> None:
 
 def _write_runtime_config(path: Path) -> None:
     payload = {
-        "PrÃ©nom de l'auteur": "Racine",
+        "PrÃƒÂ©nom de l'auteur": "Racine",
         "Nom de l'auteur": "Racine",
-        "Titre de la piÃ¨ce": "BÃ©rÃ©nice",
-        "NumÃ©ro de l'acte": "I",
-        "NumÃ©ro de la scÃ¨ne": "1",
-        "NumÃ©ro du vers de dÃ©part": 1,
-        "Nom de l'Ã©diteur (vous)": "Gheeraert",
-        "PrÃ©nom de l'Ã©diteur": "Tony",
+        "Titre de la piÃƒÂ¨ce": "BÃƒÂ©rÃƒÂ©nice",
+        "Nom de l'ÃƒÂ©diteur (vous)": "Gheeraert",
+        "PrÃƒÂ©nom de l'ÃƒÂ©diteur": "Tony",
         "Temoins": [
             {"abbr": "A", "year": "1671", "desc": "A"},
             {"abbr": "B", "year": "1676", "desc": "B"},

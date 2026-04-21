@@ -77,9 +77,6 @@ def _canonical_config_payload(config: EditionConfig) -> dict[str, Any]:
         "Titre de la pièce": config.title,
         "Prénom de l'éditeur": editor_first,
         "Nom de l'éditeur (vous)": editor_last,
-        "Numéro du vers de départ": int(config.start_line_number),
-        "Numéro de l'acte": str(config.act_number),
-        "Numéro de la scène": str(config.scene_number),
         "Temoins": [
             {"abbr": witness.siglum, "year": witness.year, "desc": witness.description}
             for witness in config.witnesses
@@ -96,11 +93,6 @@ def load_config(path: str | Path, reference_override: int | None = None) -> Edit
     title = _pick(raw, ["Titre de la pièce", "Titre de la piÃ¨ce", "Titre de la piÃƒÂ¨ce"])
     editor_first = _pick(raw, ["Prénom de l'éditeur", "PrÃ©nom de l'Ã©diteur", "PrÃƒÂ©nom de l'ÃƒÂ©diteur"])
     editor_last = _pick(raw, ["Nom de l'éditeur (vous)", "Nom de l'Ã©diteur (vous)", "Nom de l'ÃƒÂ©diteur (vous)"])
-    start_line = int(
-        _pick(raw, ["Numéro du vers de départ", "NumÃ©ro du vers de dÃ©part", "NumÃƒÂ©ro du vers de dÃƒÂ©part"], 1)
-    )
-    act_number = str(_pick(raw, ["Numéro de l'acte", "NumÃ©ro de l'acte", "NumÃƒÂ©ro de l'acte"], "1"))
-    scene_number = str(_pick(raw, ["Numéro de la scène", "NumÃ©ro de la scÃ¨ne", "NumÃƒÂ©ro de la scÃƒÂ¨ne"], "1"))
 
     witnesses_raw = _pick(raw, ["Temoins"], [])
     witnesses = [
@@ -127,9 +119,6 @@ def load_config(path: str | Path, reference_override: int | None = None) -> Edit
         editor=editor,
         witnesses=witnesses,
         reference_witness=reference_witness,
-        start_line_number=start_line,
-        act_number=act_number,
-        scene_number=scene_number,
     )
 
 

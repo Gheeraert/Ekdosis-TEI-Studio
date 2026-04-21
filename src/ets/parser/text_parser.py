@@ -102,7 +102,7 @@ def parse_play(text: str, config: EditionConfig) -> Play:
     current_speech: Speech | None = None
     current_implicit_span: ImplicitStageSpan | None = None
 
-    line_number = config.start_line_number
+    line_number = 1
     shared_base: int | None = None
     shared_part = 0
     shared_carried_across_scene = False
@@ -126,7 +126,7 @@ def parse_play(text: str, config: EditionConfig) -> Play:
             if current_implicit_span is not None:
                 raise ValueError("Unclosed implicit stage span before scene boundary.")
             if current_act is None:
-                implicit_head = [f"ACTE {config.act_number}" for _ in config.witnesses]
+                implicit_head = ["ACTE 1" for _ in config.witnesses]
                 current_act = Act(head_readings=implicit_head, head_block_index=-1)
                 play.acts.append(current_act)
             current_scene = Scene(head_readings=_extract_wrapped(block, _SCENE_RE), head_block_index=block_index, cast_readings=[])

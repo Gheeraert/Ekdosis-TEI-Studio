@@ -151,7 +151,7 @@ def test_service_enrich_tei_preserves_decimal_range_diagnostics() -> None:
             Annotation(
                 id="range_shared",
                 type="dramaturgique",
-                anchor=AnnotationAnchor(kind="line_range", act="2", scene="2", start_line="441", end_line="441"),
+                anchor=AnnotationAnchor(kind="line_range", act="1", scene="1", start_line="2", end_line="2"),
                 content="shared range",
                 status="draft",
                 keywords=[],

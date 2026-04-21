@@ -17,9 +17,6 @@ class EditionConfig:
     editor: str
     witnesses: list[Witness]
     reference_witness: int
-    start_line_number: int
-    act_number: str
-    scene_number: str
 
 
 @dataclass

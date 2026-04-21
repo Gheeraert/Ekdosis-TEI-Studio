@@ -20,9 +20,6 @@ def test_explicit_stage_direction_is_rendered_in_speech_flow() -> None:
             Witness(siglum="B", year="1671", description="B"),
         ],
         reference_witness=0,
-        start_line_number=1,
-        act_number="1",
-        scene_number="1",
     )
     text = "\n".join(
         [

@@ -91,9 +91,6 @@ def test_line_anchor_resolves_when_tei_uses_roman_act_scene_numbers() -> None:
         editor="Editeur",
         witnesses=[Witness(siglum="A", year="1671", description="A"), Witness(siglum="B", year="1676", description="B")],
         reference_witness=0,
-        start_line_number=1,
-        act_number="I",
-        scene_number="I",
     )
     text = "\n".join(
         [
@@ -132,7 +129,7 @@ def test_line_anchor_resolves_when_tei_uses_roman_act_scene_numbers() -> None:
     root = ET.fromstring(enriched)
     note = root.find(".//tei:note[@xml:id='n_roman']", {"tei": NS["tei"], "xml": XML_NS})
     assert note is not None
-    assert note.get("target") == "#AISIL1"
+    assert note.get("target") == "#A1S1L1"
 
 
 def test_line_range_over_shared_verse_returns_explicit_decimal_diagnostic() -> None:
@@ -145,7 +142,7 @@ def test_line_range_over_shared_verse_returns_explicit_decimal_diagnostic() -> N
             Annotation(
                 id="n_range_shared",
                 type="dramaturgique",
-                anchor=AnnotationAnchor(kind="line_range", act="2", scene="2", start_line="441", end_line="441"),
+                anchor=AnnotationAnchor(kind="line_range", act="1", scene="1", start_line="2", end_line="2"),
                 content="range on shared line",
                 status="draft",
                 keywords=[],
