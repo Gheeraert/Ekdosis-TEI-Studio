@@ -18,7 +18,7 @@ def _runtime_dir(prefix: str) -> Path:
     return target
 
 
-def test_merge_text_transcriptions_preserves_order_and_writes_output() -> None:
+def test_merge_text_transcriptions_preserves_order_with_blank_line_and_final_newline() -> None:
     base = _runtime_dir("tools_text_merge_order")
     first = base / "a.txt"
     second = base / "b.txt"
@@ -35,8 +35,9 @@ def test_merge_text_transcriptions_preserves_order_and_writes_output() -> None:
 
     assert result.merged_file_count == 2
     assert result.output_path == output.resolve()
-    assert result.merged_text == "SECONDFIRST"
-    assert output.read_text(encoding="utf-8") == "SECONDFIRST"
+    # blank line between merged transcription files; final trailing newline is intentional
+    assert result.merged_text == "SECOND\n\nFIRST\n"
+    assert output.read_text(encoding="utf-8") == "SECOND\n\nFIRST\n"
 
 
 def test_merge_text_transcriptions_supports_separator() -> None:
@@ -55,8 +56,8 @@ def test_merge_text_transcriptions_supports_separator() -> None:
         )
     )
 
-    assert result.merged_text == "A\n\nB"
-    assert output.read_text(encoding="utf-8") == "A\n\nB"
+    assert result.merged_text == "A\n\nB\n"
+    assert output.read_text(encoding="utf-8") == "A\n\nB\n"
 
 
 def test_merge_text_transcriptions_requires_at_least_two_inputs() -> None:

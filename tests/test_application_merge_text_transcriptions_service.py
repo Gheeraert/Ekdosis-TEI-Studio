@@ -20,7 +20,7 @@ def _runtime_dir(prefix: str) -> Path:
     return target
 
 
-def test_text_transcription_merge_service_merges_and_reports_counts() -> None:
+def test_text_transcription_merge_service_merges_with_blank_line_and_final_newline() -> None:
     base = _runtime_dir("app_text_merge_ok")
     first = base / "a.txt"
     second = base / "b.txt"
@@ -33,14 +33,14 @@ def test_text_transcription_merge_service_merges_and_reports_counts() -> None:
         TextTranscriptionMergeRequest(
             input_paths=(first, second),
             output_path=output,
-            separator="\n",
         )
     )
 
     assert result.ok is True
     assert result.merged_file_count == 2
     assert result.output_path == output.resolve()
-    assert output.read_text(encoding="utf-8") == "A\nB"
+    # blank line between merged transcription files; final trailing newline is intentional
+    assert output.read_text(encoding="utf-8") == "A\n\nB\n"
 
 
 def test_text_transcription_merge_service_fails_cleanly_on_invalid_request() -> None:
