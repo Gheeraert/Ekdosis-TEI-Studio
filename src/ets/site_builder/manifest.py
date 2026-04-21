@@ -279,7 +279,13 @@ def _compose_play_navigation(
 
     notices_by_play: dict[str, list[NoticeEntry]] = {}
     prefaces_by_play: dict[str, list[NoticeEntry]] = {}
+    notices_by_slug: dict[str, NoticeEntry] = {}
+    prefaces_by_slug: dict[str, NoticeEntry] = {}
     for notice in notices:
+        if notice.editorial_role == "author_preface":
+            prefaces_by_slug[notice.slug] = notice
+        else:
+            notices_by_slug[notice.slug] = notice
         if not notice.related_play_slug:
             continue
         if notice.editorial_role == "author_preface":
@@ -299,7 +305,7 @@ def _compose_play_navigation(
         selected_notice: NoticeEntry | None = None
         explicit_notice_slug = explicit_notice_by_play.get(play.slug)
         if explicit_notice_slug:
-            selected_notice = next((notice for notice in notice_candidates if notice.slug == explicit_notice_slug), None)
+            selected_notice = notices_by_slug.get(explicit_notice_slug)
         if selected_notice is None and notice_candidates:
             selected_notice = notice_candidates[0]
         if selected_notice is not None:
@@ -311,8 +317,20 @@ def _compose_play_navigation(
                 )
             )
 
+        explicit_prefaces = [
+            prefaces_by_slug.get(slug) or notices_by_slug.get(slug)
+            for slug in explicit_prefaces_by_play.get(play.slug, ())
+        ]
+        associated_prefaces = prefaces_by_play.get(play.slug, [])
+        merged_prefaces: list[NoticeEntry] = []
+        seen_prefaces: set[str] = set()
+        for preface in [item for item in (*explicit_prefaces, *associated_prefaces) if item is not None]:
+            if preface.slug in seen_prefaces:
+                continue
+            seen_prefaces.add(preface.slug)
+            merged_prefaces.append(preface)
         preface_candidates = _order_prefaces_for_play(
-            prefaces_by_play.get(play.slug, []),
+            merged_prefaces,
             explicit_order=explicit_prefaces_by_play.get(play.slug, ()),
         )
         for index, preface in enumerate(preface_candidates, start=1):
@@ -361,6 +379,7 @@ def _build_navigation_tree(
     general_notice_slug: str | None,
 ) -> tuple[NavigationItem, ...]:
     navigation: list[NavigationItem] = [NavigationItem(label="Accueil", href="index.html", kind="index")]
+    attached_notice_slugs: set[str] = set()
 
     if general_notice_slug:
         navigation.append(
@@ -378,6 +397,10 @@ def _build_navigation_tree(
         children: list[NavigationItem] = []
 
         for front_item in structure.front_items:
+            if front_item.href.startswith("notices/") and front_item.href.endswith(".html"):
+                slug = front_item.href.removeprefix("notices/").removesuffix(".html")
+                if slug:
+                    attached_notice_slugs.add(slug)
             children.append(
                 NavigationItem(
                     label=front_item.label,
@@ -419,7 +442,10 @@ def _build_navigation_tree(
     uncategorized_notices = [
         notice
         for notice in notices
-        if notice.related_play_slug is None and notice.slug != (general_notice_slug or "")
+        if notice.related_play_slug is None
+        and notice.slug != (general_notice_slug or "")
+        and notice.slug not in attached_notice_slugs
+        and notice.editorial_role != "author_preface"
     ]
     if uncategorized_notices:
         navigation.extend(
@@ -570,4 +596,3 @@ def build_site_manifest(config: SiteConfig) -> SiteManifest:
         general_notice_slug=general_notice_slug,
         warnings=tuple(warnings),
     )
-

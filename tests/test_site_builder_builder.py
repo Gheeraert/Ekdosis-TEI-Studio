@@ -586,6 +586,9 @@ def test_builder_unites_editoriales_orders_notice_preface_dramatis_before_acts()
     assert top_level_hrefs[:3] == expected_top_level_hrefs[:3]
     assert top_level_hrefs[0] == f"../notices/{notice_slug}.html"
     assert top_level_hrefs[1] == f"../notices/{preface_slug}.html"
+    assert not doc.xpath(
+        f"//main/nav/ul[contains(@class, 'site-nav')]/li[contains(@class, 'nav-kind-preface') and .//a[@href='../notices/{preface_slug}.html']]"
+    )
 
     dramatis_anchor_id = play_branch.children[2].href.split("#", maxsplit=1)[1]
     first_act_anchor_id = next(child.href for child in play_branch.children if child.kind == "act").split("#", maxsplit=1)[1]

@@ -239,6 +239,15 @@ def test_manifest_play_navigation_respects_editorial_front_matter_order_for_unit
     assert play_branch.children[3].children
     assert play_branch.children[3].children[0].kind == "scene"
 
+    flat_nav = _flatten_navigation(manifest.navigation)
+    preface_nodes = [
+        item
+        for item in flat_nav
+        if item.href == f"notices/{preface_slug}.html"
+    ]
+    assert len(preface_nodes) == 1
+    assert preface_nodes[0].kind == "author_preface"
+
 
 def test_manifest_can_publish_preface_without_piece_notice() -> None:
     runtime = _runtime_dir("site_builder_manifest_preface_only")
