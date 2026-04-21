@@ -211,17 +211,24 @@ def _layout(
       font-size: clamp(1.8rem, 3vw, 2.35rem);
     }}
     .theme-toggle {{
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      z-index: 2000;
       border: 1px solid rgba(243, 236, 224, 0.32);
-      background: transparent;
+      background: var(--header-bg);
       color: var(--header-ink);
       font-family: var(--font-ui);
       font-size: 0.85rem;
       letter-spacing: 0.04em;
       text-transform: uppercase;
-      padding: 0.4rem 0.65rem;
+      padding: 0.45rem 0.7rem;
       cursor: pointer;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.18);
     }}
-    .theme-toggle:hover {{ border-color: rgba(243, 236, 224, 0.6); }}
+    .theme-toggle:hover {{
+      border-color: rgba(243, 236, 224, 0.6);
+    }}
     main {{ display: grid; grid-template-columns: 250px minmax(0, 1fr); gap: 0.75rem; min-height: calc(100vh - 4.8rem); padding: 0.85rem 1rem 1.4rem; max-width: 1320px; margin: 0 auto; }}
     nav {{ border: 1px solid var(--line); background: var(--bg-soft); padding: 0.9rem 0.95rem; box-shadow: var(--shadow-soft); }}
     nav ul {{ margin: 0; padding-left: 1.1rem; }}
@@ -507,6 +514,12 @@ def _layout(
       }}
       .notice-meta dl {{ grid-template-columns: 1fr; }}
       .notice-meta dt {{ margin-top: 0.25rem; }}
+      .theme-toggle {{
+       top: 0.75rem;
+       right: 0.75rem;
+       font-size: 0.78rem;
+       padding: 0.38rem 0.58rem;
+      }}
       .home-overview dl {{ grid-template-columns: 1fr; }}
     }}
   </style>
