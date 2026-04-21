@@ -96,18 +96,56 @@ def _nav_html(manifest: SiteManifest, current_href: str) -> str:
 
 
 def _branding_html(manifest: SiteManifest, current_href: str) -> str:
-    logos = manifest.config.assets.logo_files
-    if not logos:
-        return ""
-    prefix = _asset_prefix(current_href)
-    images = "".join(
-        (
-            f'<img src="{html.escape(prefix + "assets/logos/" + logo.name, quote=True)}" '
-            f'alt="{html.escape(manifest.config.site_title)}" loading="lazy">'
+    configured_logos: list[tuple[str, str, str]] = []
+    if manifest.config.branding_logo_primary:
+        configured_logos.append(
+            (
+                manifest.config.branding_logo_primary,
+                manifest.config.branding_logo_primary_alt,
+                manifest.config.branding_logo_primary_href,
+            )
         )
-        for logo in logos
-    )
-    return f'<div class="branding" aria-label="Identite visuelle">{images}</div>'
+    if manifest.config.branding_logo_secondary:
+        configured_logos.append(
+            (
+                manifest.config.branding_logo_secondary,
+                manifest.config.branding_logo_secondary_alt,
+                manifest.config.branding_logo_secondary_href,
+            )
+        )
+
+    if not configured_logos:
+        # Backward-compatible fallback: keep the first two legacy logos if present.
+        configured_logos = [
+            (f"assets/logos/{logo.name}", manifest.config.site_title, "")
+            for logo in manifest.config.assets.logo_files[:2]
+        ]
+
+    if not configured_logos:
+        return ""
+
+    prefix = _asset_prefix(current_href)
+    logo_nodes: list[str] = []
+    for src, alt, href in configured_logos:
+        resolved_src = src
+        if resolved_src and not resolved_src.startswith(("#", "/", "http://", "https://")):
+            resolved_src = f"{prefix}{resolved_src}"
+        image_html = (
+            f'<img src="{html.escape(resolved_src, quote=True)}" '
+            f'alt="{html.escape(alt)}" loading="lazy">'
+        )
+
+        if href:
+            resolved_href = href
+            if not resolved_href.startswith(("#", "/", "http://", "https://")):
+                resolved_href = f"{prefix}{resolved_href}"
+            logo_nodes.append(
+                f'<a class="ets-branding-link" href="{html.escape(resolved_href, quote=True)}">{image_html}</a>'
+            )
+        else:
+            logo_nodes.append(image_html)
+
+    return f'<div class="ets-branding-banner" aria-label="Identite institutionnelle">{"".join(logo_nodes)}</div>'
 
 
 def _layout(
@@ -431,8 +469,27 @@ def _layout(
     }}
 
     .dramatic-anchor {{ display: block; height: 0; margin: 0; padding: 0; }}
-    .branding {{ margin-top: 0.65rem; display: flex; gap: 0.65rem; align-items: center; flex-wrap: wrap; }}
-    .branding img {{ max-height: 52px; width: auto; border: 1px solid rgba(243, 236, 224, 0.45); background: rgba(255, 255, 255, 0.92); padding: 0.2rem; }}
+    .ets-branding-banner {{
+      max-width: 1320px;
+      margin: 0.75rem auto 0;
+      padding: 0 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.85rem 1rem;
+      flex-wrap: wrap;
+    }}
+    .ets-branding-link {{
+      display: inline-flex;
+      align-items: center;
+    }}
+    .ets-branding-banner img {{
+      display: block;
+      max-height: 52px;
+      width: auto;
+      max-width: min(100%, 280px);
+      object-fit: contain;
+      background: transparent;
+    }}
 
     .notice-title-block {{ margin: 0.2rem 0 1rem; padding-bottom: 0.7rem; border-bottom: 1px solid var(--line); }}
     .notice-title-block h2 {{ margin: 0 0 0.4rem; }}
@@ -482,6 +539,8 @@ def _layout(
 
     @media (max-width: 900px) {{
       main {{ grid-template-columns: 1fr; }}
+      .ets-branding-banner {{ gap: 0.65rem 0.75rem; }}
+      .ets-branding-banner img {{ max-height: 44px; max-width: min(100%, 220px); }}
       nav {{
         position: static;
         max-height: none;
@@ -533,8 +592,8 @@ def _layout(
       </div>
       <button class="theme-toggle" type="button" data-theme-toggle aria-label="Basculer le theme">Mode sombre</button>
     </div>
-    {_branding_html(manifest, current_href)}
   </header>
+  {_branding_html(manifest, current_href)}
   <main>
     <nav aria-label=\"Navigation principale\">{_nav_html(manifest, current_href=current_href)}</nav>
     <section class="{html.escape(section_class, quote=True)}">{content_html}</section>

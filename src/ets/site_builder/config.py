@@ -177,12 +177,49 @@ def site_config_from_dict(payload: dict[str, Any], *, base_dir: Path | None = No
     assets_raw = payload.get("assets", {})
     if not isinstance(assets_raw, dict):
         assets_raw = {}
+    branding_raw = payload.get("branding", {})
+    if not isinstance(branding_raw, dict):
+        branding_raw = {}
 
     site_title = _normalize_text(payload.get("site_title"), field_name="site_title", required=True)
     dramatic_value = payload.get("dramatic_xml_dir", ".")
     dramatic_text = _normalize_text(dramatic_value, field_name="dramatic_xml_dir", required=True)
     output_value = payload.get("output_dir", "out/site")
     output_text = _normalize_text(output_value, field_name="output_dir", required=True)
+
+    branding_logo_primary = _normalize_text(
+        payload.get("branding_logo_primary", branding_raw.get("logo_primary", "")),
+        field_name="branding_logo_primary",
+    )
+    branding_logo_primary_alt = _normalize_text(
+        payload.get("branding_logo_primary_alt", branding_raw.get("logo_primary_alt", "")),
+        field_name="branding_logo_primary_alt",
+    )
+    branding_logo_primary_href = _normalize_text(
+        payload.get("branding_logo_primary_href", branding_raw.get("logo_primary_href", "")),
+        field_name="branding_logo_primary_href",
+    )
+    branding_logo_secondary = _normalize_text(
+        payload.get("branding_logo_secondary", branding_raw.get("logo_secondary", "")),
+        field_name="branding_logo_secondary",
+    )
+    branding_logo_secondary_alt = _normalize_text(
+        payload.get("branding_logo_secondary_alt", branding_raw.get("logo_secondary_alt", "")),
+        field_name="branding_logo_secondary_alt",
+    )
+    branding_logo_secondary_href = _normalize_text(
+        payload.get("branding_logo_secondary_href", branding_raw.get("logo_secondary_href", "")),
+        field_name="branding_logo_secondary_href",
+    )
+
+    if branding_logo_primary and not branding_logo_primary_alt:
+        raise ValueError(
+            "Invalid site configuration: 'branding_logo_primary_alt' is required when branding_logo_primary is set."
+        )
+    if branding_logo_secondary and not branding_logo_secondary_alt:
+        raise ValueError(
+            "Invalid site configuration: 'branding_logo_secondary_alt' is required when branding_logo_secondary is set."
+        )
 
     config = SiteConfig(
         site_title=site_title,
@@ -222,6 +259,12 @@ def site_config_from_dict(payload: dict[str, Any], *, base_dir: Path | None = No
         play_preface_map=_coerce_play_preface_map(payload.get("play_preface_map")),
         play_dramatis_map=_coerce_play_dramatis_map(payload.get("play_dramatis_map")),
         play_order=_coerce_play_order(payload.get("play_order")),
+        branding_logo_primary=branding_logo_primary,
+        branding_logo_primary_alt=branding_logo_primary_alt,
+        branding_logo_primary_href=branding_logo_primary_href,
+        branding_logo_secondary=branding_logo_secondary,
+        branding_logo_secondary_alt=branding_logo_secondary_alt,
+        branding_logo_secondary_href=branding_logo_secondary_href,
     )
     return config
 

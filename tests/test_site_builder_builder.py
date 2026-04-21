@@ -144,6 +144,8 @@ def test_builder_copies_branding_assets_and_references_logos() -> None:
             "notice_xml_dir": str(FIXTURE_ROOT / "notices"),
             "output_dir": str(output_dir),
             "publish_notices": True,
+            "branding_logo_primary": "assets/logos/logo-ets.txt",
+            "branding_logo_primary_alt": "Logo ETS",
             "assets": {
                 "logos": [str(logo_file)],
                 "directories": [str(asset_dir)],
@@ -159,8 +161,67 @@ def test_builder_copies_branding_assets_and_references_logos() -> None:
 
     home_html = (output_dir / "index.html").read_text(encoding="utf-8")
     play_html = (output_dir / "plays" / "andromaque.html").read_text(encoding="utf-8")
+    assert 'class="ets-branding-banner"' in home_html
     assert 'src="assets/logos/logo-ets.txt"' in home_html
+    assert 'alt="Logo ETS"' in home_html
     assert 'src="../assets/logos/logo-ets.txt"' in play_html
+
+
+def test_builder_branding_banner_is_hidden_without_logos() -> None:
+    base_dir = _runtime_dir("site_builder_branding_none")
+    output_dir = base_dir / "site_no_branding"
+    config = site_config_from_dict(
+        {
+            "site_title": "ETS Demo",
+            "dramatic_xml_dir": str(FIXTURE_ROOT / "dramatic"),
+            "notice_xml_dir": str(FIXTURE_ROOT / "notices"),
+            "output_dir": str(output_dir),
+            "publish_notices": True,
+        }
+    )
+
+    build_static_site(config)
+    home_html = (output_dir / "index.html").read_text(encoding="utf-8")
+    assert 'class="ets-branding-banner"' not in home_html
+
+
+def test_builder_branding_banner_supports_two_logos_without_empty_slots() -> None:
+    base_dir = _runtime_dir("site_builder_branding_two")
+    output_dir = base_dir / "site_branding_two"
+    primary_logo = base_dir / "logo-primary.txt"
+    secondary_logo = base_dir / "logo-secondary.txt"
+    primary_logo.write_text("PRIMARY", encoding="utf-8")
+    secondary_logo.write_text("SECONDARY", encoding="utf-8")
+
+    config = site_config_from_dict(
+        {
+            "site_title": "ETS Demo",
+            "dramatic_xml_dir": str(FIXTURE_ROOT / "dramatic"),
+            "notice_xml_dir": str(FIXTURE_ROOT / "notices"),
+            "output_dir": str(output_dir),
+            "publish_notices": True,
+            "branding_logo_primary": "assets/logos/logo-primary.txt",
+            "branding_logo_primary_alt": "Institution principale",
+            "branding_logo_primary_href": "https://example.org/primary",
+            "branding_logo_secondary": "assets/logos/logo-secondary.txt",
+            "branding_logo_secondary_alt": "Institution secondaire",
+            "branding_logo_secondary_href": "https://example.org/secondary",
+            "assets": {
+                "logos": [str(primary_logo), str(secondary_logo)],
+            },
+        }
+    )
+
+    build_static_site(config)
+    play_html = (output_dir / "plays" / "andromaque.html").read_text(encoding="utf-8")
+    doc = lxml_html.document_fromstring(play_html)
+
+    banners = doc.xpath("//div[contains(@class, 'ets-branding-banner')]")
+    assert len(banners) == 1
+    assert len(doc.xpath("//div[contains(@class, 'ets-branding-banner')]//img")) == 2
+    assert len(doc.xpath("//div[contains(@class, 'ets-branding-banner')]//a[contains(@class, 'ets-branding-link')]")) == 2
+    assert doc.xpath("//img[@src='../assets/logos/logo-primary.txt' and @alt='Institution principale']")
+    assert doc.xpath("//img[@src='../assets/logos/logo-secondary.txt' and @alt='Institution secondaire']")
 
 
 def test_builder_warns_on_invalid_mapping_without_failing() -> None:

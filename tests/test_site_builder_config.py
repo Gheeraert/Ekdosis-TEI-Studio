@@ -45,6 +45,12 @@ def test_site_config_from_dict_normalizes_paths_and_defaults() -> None:
     assert config.homepage_intro == ""
     assert config.homepage_sections == ()
     assert config.general_notice_slug == ""
+    assert config.branding_logo_primary == ""
+    assert config.branding_logo_primary_alt == ""
+    assert config.branding_logo_primary_href == ""
+    assert config.branding_logo_secondary == ""
+    assert config.branding_logo_secondary_alt == ""
+    assert config.branding_logo_secondary_href == ""
 
 
 def test_site_config_loads_from_json_and_resolves_relative_paths() -> None:
@@ -197,6 +203,28 @@ def test_site_config_invalid_homepage_sections_fail_cleanly() -> None:
                 "dramatic_xml_dir": ".",
                 "output_dir": "out/site",
                 "homepage_sections": {"title": "not-a-list"},
+            }
+        )
+
+
+def test_site_config_requires_alt_for_configured_branding_logo() -> None:
+    with pytest.raises(ValueError, match="branding_logo_primary_alt"):
+        site_config_from_dict(
+            {
+                "site_title": "ETS",
+                "dramatic_xml_dir": ".",
+                "output_dir": "out/site",
+                "branding_logo_primary": "assets/brand/logo-primary.svg",
+            }
+        )
+
+    with pytest.raises(ValueError, match="branding_logo_secondary_alt"):
+        site_config_from_dict(
+            {
+                "site_title": "ETS",
+                "dramatic_xml_dir": ".",
+                "output_dir": "out/site",
+                "branding_logo_secondary": "assets/brand/logo-secondary.svg",
             }
         )
 

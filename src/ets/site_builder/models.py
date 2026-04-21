@@ -40,6 +40,12 @@ class SiteConfig:
     play_preface_map: tuple[tuple[str, tuple[str, ...]], ...] = ()
     play_dramatis_map: tuple[tuple[str, str], ...] = ()
     play_order: tuple[str, ...] = ()
+    branding_logo_primary: str = ""
+    branding_logo_primary_alt: str = ""
+    branding_logo_primary_href: str = ""
+    branding_logo_secondary: str = ""
+    branding_logo_secondary_alt: str = ""
+    branding_logo_secondary_href: str = ""
 
 
 @dataclass(frozen=True)
