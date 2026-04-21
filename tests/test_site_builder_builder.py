@@ -131,8 +131,16 @@ def test_builder_generates_cross_links_and_home_intro_from_explicit_mapping() ->
 def test_builder_copies_branding_assets_and_references_logos() -> None:
     base_dir = _runtime_dir("site_builder_assets")
     output_dir = base_dir / "site_assets"
-    logo_file = base_dir / "logo-ets.txt"
-    logo_file.write_text("LOGO", encoding="utf-8")
+    dramatic_dir = base_dir / "dramatic"
+    shutil.copytree(FIXTURE_ROOT / "dramatic", dramatic_dir)
+
+    logos_dir = base_dir / "assets" / "logos"
+    logos_dir.mkdir(parents=True, exist_ok=True)
+    (logos_dir / "b-logo.png").write_text("PNG", encoding="utf-8")
+    (logos_dir / "a-logo.svg").write_text("SVG", encoding="utf-8")
+    (logos_dir / "c-logo.webp").write_text("WEBP", encoding="utf-8")
+    (logos_dir / "ignored.txt").write_text("IGNORE", encoding="utf-8")
+
     asset_dir = base_dir / "brand"
     asset_dir.mkdir(parents=True, exist_ok=True)
     (asset_dir / "palette.txt").write_text("bleu", encoding="utf-8")
@@ -140,12 +148,11 @@ def test_builder_copies_branding_assets_and_references_logos() -> None:
     config = site_config_from_dict(
         {
             "site_title": "ETS Demo",
-            "dramatic_xml_dir": str(FIXTURE_ROOT / "dramatic"),
+            "dramatic_xml_dir": str(dramatic_dir),
             "notice_xml_dir": str(FIXTURE_ROOT / "notices"),
             "output_dir": str(output_dir),
             "publish_notices": True,
             "assets": {
-                "logos": [str(logo_file)],
                 "directories": [str(asset_dir)],
             },
         }
@@ -153,14 +160,67 @@ def test_builder_copies_branding_assets_and_references_logos() -> None:
 
     result = build_static_site(config)
 
-    assert (output_dir / "assets" / "logos" / "logo-ets.txt").exists()
+    assert (output_dir / "assets" / "logos" / "a-logo.svg").exists()
+    assert (output_dir / "assets" / "logos" / "b-logo.png").exists()
+    assert (output_dir / "assets" / "logos" / "c-logo.webp").exists()
+    assert not (output_dir / "assets" / "logos" / "ignored.txt").exists()
     assert (output_dir / "assets" / "brand" / "palette.txt").exists()
-    assert any(path.name == "logo-ets.txt" for path in result.copied_assets)
+    assert any(path.name == "a-logo.svg" for path in result.copied_assets)
+    assert any(path.name == "b-logo.png" for path in result.copied_assets)
+    assert any(path.name == "c-logo.webp" for path in result.copied_assets)
 
     home_html = (output_dir / "index.html").read_text(encoding="utf-8")
     play_html = (output_dir / "plays" / "andromaque.html").read_text(encoding="utf-8")
-    assert 'src="assets/logos/logo-ets.txt"' in home_html
-    assert 'src="../assets/logos/logo-ets.txt"' in play_html
+    assert 'src="assets/logos/a-logo.svg"' in home_html
+    assert 'src="assets/logos/b-logo.png"' in home_html
+    assert 'src="assets/logos/c-logo.webp"' in home_html
+    assert home_html.index("a-logo.svg") < home_html.index("b-logo.png") < home_html.index("c-logo.webp")
+    assert 'src="../assets/logos/a-logo.svg"' in play_html
+    assert 'src="../assets/logos/b-logo.png"' in play_html
+    assert 'src="../assets/logos/c-logo.webp"' in play_html
+
+
+def test_builder_does_not_render_branding_when_assets_logos_folder_is_missing() -> None:
+    base_dir = _runtime_dir("site_builder_assets_missing")
+    output_dir = base_dir / "site_assets_missing"
+    dramatic_dir = base_dir / "dramatic"
+    shutil.copytree(FIXTURE_ROOT / "dramatic", dramatic_dir)
+
+    config = site_config_from_dict(
+        {
+            "site_title": "ETS Demo",
+            "dramatic_xml_dir": str(dramatic_dir),
+            "notice_xml_dir": str(FIXTURE_ROOT / "notices"),
+            "output_dir": str(output_dir),
+            "publish_notices": True,
+        }
+    )
+
+    build_static_site(config)
+    home_html = (output_dir / "index.html").read_text(encoding="utf-8")
+    assert 'class="branding"' not in home_html
+
+
+def test_builder_does_not_render_branding_when_assets_logos_folder_is_empty() -> None:
+    base_dir = _runtime_dir("site_builder_assets_empty")
+    output_dir = base_dir / "site_assets_empty"
+    dramatic_dir = base_dir / "dramatic"
+    shutil.copytree(FIXTURE_ROOT / "dramatic", dramatic_dir)
+    (base_dir / "assets" / "logos").mkdir(parents=True, exist_ok=True)
+
+    config = site_config_from_dict(
+        {
+            "site_title": "ETS Demo",
+            "dramatic_xml_dir": str(dramatic_dir),
+            "notice_xml_dir": str(FIXTURE_ROOT / "notices"),
+            "output_dir": str(output_dir),
+            "publish_notices": True,
+        }
+    )
+
+    build_static_site(config)
+    home_html = (output_dir / "index.html").read_text(encoding="utf-8")
+    assert 'class="branding"' not in home_html
 
 
 def test_builder_warns_on_invalid_mapping_without_failing() -> None:

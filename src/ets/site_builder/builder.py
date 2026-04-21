@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import replace
 import shutil
 import time
 from pathlib import Path
@@ -8,6 +9,8 @@ from .config import load_site_config
 from .manifest import build_site_manifest
 from .models import BuildResult, NoticeEntry, PlayEntry, SiteConfig
 from .render import render_home_page, render_notice_page, render_play_page
+
+_SUPPORTED_AUTO_LOGO_EXTENSIONS = {".png", ".jpg", ".jpeg", ".svg", ".webp"}
 
 
 def _write_page(output_root: Path, relpath: str, html_content: str) -> Path:
@@ -71,6 +74,37 @@ def _copy_assets(config: SiteConfig, output_root: Path, warnings: list[str]) -> 
     return copied
 
 
+def _auto_detect_logo_files(config: SiteConfig) -> tuple[Path, ...]:
+    start = config.dramatic_xml_dir.resolve()
+
+    candidates = []
+    if start.is_dir():
+        candidates.append(start)
+    candidates.extend(start.parents)
+
+    for base in candidates:
+        logos_dir = base / "assets" / "logos"
+        if not logos_dir.exists() or not logos_dir.is_dir():
+            continue
+
+        detected = [
+            candidate.resolve()
+            for candidate in logos_dir.iterdir()
+            if candidate.is_file() and candidate.suffix.lower() in _SUPPORTED_AUTO_LOGO_EXTENSIONS
+        ]
+        detected.sort(key=lambda path: path.name.casefold())
+        return tuple(detected)
+
+    return ()
+
+
+def _resolve_logo_files(config: SiteConfig) -> tuple[Path, ...]:
+    detected = _auto_detect_logo_files(config)
+    if detected:
+        return detected
+    return config.assets.logo_files
+
+
 def _copy_xml_sources(
     *,
     output_root: Path,
@@ -94,6 +128,13 @@ def _copy_xml_sources(
 
 def build_static_site(config: SiteConfig) -> BuildResult:
     normalized_config = load_site_config(config)
+    resolved_logos = _resolve_logo_files(normalized_config)
+    if resolved_logos != normalized_config.assets.logo_files:
+        normalized_config = replace(
+            normalized_config,
+            assets=replace(normalized_config.assets, logo_files=resolved_logos),
+        )
+
     manifest = build_site_manifest(normalized_config)
     output_root = normalized_config.output_dir.resolve()
     _prepare_output_dir(output_root)
