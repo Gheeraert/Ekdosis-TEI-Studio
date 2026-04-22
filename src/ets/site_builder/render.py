@@ -210,6 +210,7 @@ def _layout(
       --header-muted: #d6c8b3;
       --focus: #a8783a;
       --shadow-soft: 0 1px 0 rgba(46, 34, 24, 0.04);
+      --site-header-offset: 96px;
     }}
     html[data-theme="dark"] {{
       color-scheme: dark;
@@ -311,7 +312,7 @@ def _layout(
       box-shadow: none;
     }}
     main {{ display: grid; grid-template-columns: 250px minmax(0, 1fr); gap: 0.75rem; min-height: calc(100vh - 4.8rem); padding: 0.85rem 1rem 1.4rem; max-width: 1320px; margin: 0 auto; }}
-    nav {{ border: 1px solid var(--line); background: var(--bg-soft); padding: 0.9rem 0.95rem; box-shadow: var(--shadow-soft); }}
+    nav {{ border: 1px solid var(--line); background: var(--bg-soft); padding: 0.9rem 0.95rem; box-shadow: var(--shadow-soft); box-sizing: border-box; width: 100%; min-width: 0; align-self: start; }}
     nav ul {{ margin: 0; padding-left: 1.1rem; }}
     nav li {{ margin: 0.35rem 0; }}
     .site-nav {{ margin-bottom: 1rem; }}
@@ -581,7 +582,7 @@ def _layout(
 
 
     .site-project-meta {{
-      margin-top: 1.15rem;
+      margin-top: 10rem;
       padding-top: 1rem;
       border-top: 1px solid var(--line);
     }}
@@ -652,9 +653,9 @@ def _layout(
     @media (min-width: 901px) {{
       nav {{
         position: sticky;
-        top: 0.75rem;
+        top: calc(var(--site-header-offset) + 0.75rem);
         align-self: start;
-        max-height: calc(100vh - 1.5rem);
+        max-height: calc(100vh - var(--site-header-offset) - 1.5rem);
         overflow: auto;
       }}
       .notice-layout {{
@@ -786,6 +787,7 @@ def _layout(
       const defaultFontScale = 100;
       const stepFontScale = 5;
       const root = document.documentElement;
+      const header = document.querySelector(".site-header");
       const themeButton = document.querySelector("[data-theme-toggle]");
       const decreaseButton = document.querySelector("[data-font-decrease]");
       const increaseButton = document.querySelector("[data-font-increase]");
@@ -793,6 +795,12 @@ def _layout(
 
       function clampFontScale(value) {{
         return Math.min(maxFontScale, Math.max(minFontScale, value));
+      }}
+
+      function syncHeaderOffset() {{
+        if (!header) return;
+        const headerHeight = Math.ceil(header.getBoundingClientRect().height);
+        root.style.setProperty("--site-header-offset", `${{headerHeight}}px`);
       }}
 
       function currentFontScale() {{
@@ -804,6 +812,7 @@ def _layout(
         const nextValue = clampFontScale(value);
         root.style.fontSize = `${{nextValue}}%`;
         window.localStorage.setItem(fontStorageKey, String(nextValue));
+        syncHeaderOffset();
         refreshLabels(nextValue);
       }}
 
@@ -819,10 +828,15 @@ def _layout(
         }}
       }}
 
+      syncHeaderOffset();
+      window.addEventListener("resize", syncHeaderOffset);
+      window.addEventListener("load", syncHeaderOffset);
+
       if (themeButton) {{
         themeButton.addEventListener("click", () => {{
           root.dataset.theme = root.dataset.theme === "dark" ? "light" : "dark";
           window.localStorage.setItem(themeStorageKey, root.dataset.theme);
+          syncHeaderOffset();
           refreshLabels(currentFontScale());
         }});
       }}
