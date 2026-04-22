@@ -337,3 +337,25 @@ def test_manifest_uses_external_dramatis_source_in_priority() -> None:
     play_structure = next(item for item in manifest.play_navigation if item.play_slug == play_slug)
     assert play_structure.dramatis_personae == ("Personnage externe Alpha", "Personnage externe Beta")
 
+
+def test_manifest_keeps_home_notice_for_inline_render_but_excludes_it_from_pages_and_nav() -> None:
+    config = site_config_from_dict(
+        {
+            "site_title": "ETS Demo",
+            "dramatic_xml_dir": str(ROOT / "fixtures" / "site_builder" / "minimal" / "dramatic"),
+            "notice_xml_dir": str(ROOT / "fixtures" / "metopes" / "minimal"),
+            "output_dir": str(ROOT / "tests" / "_runtime" / "site_builder_manifest_home_notice_inline"),
+            "publish_notices": True,
+            "general_notice_slug": "bibliographie",
+            "home_page_notice_slug": "introduction",
+        }
+    )
+
+    manifest = build_site_manifest(config)
+    flat_nav = _flatten_navigation(manifest.navigation)
+
+    assert any(notice.slug == "introduction" for notice in manifest.notices)
+    assert not any(page.source_slug == "introduction" for page in manifest.pages)
+    assert not any(item.href == "notices/introduction.html" for item in flat_nav)
+    assert any(page.source_slug == "bibliographie" for page in manifest.pages)
+

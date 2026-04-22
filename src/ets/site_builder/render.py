@@ -282,6 +282,20 @@ def _layout(
     .home-play-links {{ color: var(--ink-muted); font-size: 0.95rem; }}
     .home-general-notice {{ margin: 1rem 0 1.25rem; padding: 0.85rem 1rem; border: 1px solid var(--line); background: var(--bg-soft); }}
     .home-page-notice {{ margin: 1.15rem 0 1.6rem; }}
+    .home-notice-layout {{ display: block; }}
+    .notice-toc.notice-toc-home {{
+      margin: 0 0 1.1rem;
+      padding: 0.65rem 0.8rem;
+      background: color-mix(in oklab, var(--bg-soft) 72%, var(--bg-panel));
+      border-color: color-mix(in oklab, var(--line) 82%, var(--accent) 18%);
+    }}
+    .notice-toc.notice-toc-home h3 {{
+      margin: 0 0 0.4rem;
+      font-size: 0.95rem;
+      letter-spacing: 0.01em;
+      color: var(--ink-muted);
+    }}
+    .home-notice-content {{ min-width: 0; }}
     .content-shell {{ padding: 1rem 1.2rem 2.5rem; max-width: 960px; background: var(--bg-panel); border: 1px solid var(--line); box-shadow: var(--shadow-soft); min-width: 0; }}
     .content-shell-play {{
       padding: 0.55rem 0.1rem 2.5rem;
@@ -512,6 +526,22 @@ def _layout(
         align-self: start;
         max-height: calc(100vh - 1.5rem);
         overflow: auto;
+      }}
+      .home-notice-layout {{
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(220px, 280px);
+        gap: 1rem;
+        align-items: start;
+      }}
+      .home-notice-layout .notice-toc.notice-toc-home {{
+        order: 2;
+        position: sticky;
+        top: 0.8rem;
+        max-height: calc(100vh - 2.2rem);
+        overflow: auto;
+      }}
+      .home-notice-layout .home-notice-content {{
+        order: 1;
       }}
     }}
 
@@ -941,19 +971,23 @@ def _render_home_page_notice(manifest: SiteManifest) -> str:
             include_title_block=False,
             include_metadata_block=False,
             show_toc_labels=False,
+            home_inline_toc_aside=True,
         )
         + "</section>"
     )
 
 
 def render_home_page(manifest: SiteManifest) -> str:
-    blocks: list[str] = [
-        _render_home_overview(manifest),
-        _render_home_editorial_sections(manifest),
-        _render_home_page_notice(manifest),
-        _render_home_general_notice(manifest),
-        _render_home_play_list(manifest),
-    ]
+    if manifest.config.home_page_notice_slug:
+        blocks = [_render_home_page_notice(manifest)]
+    else:
+        blocks = [
+            _render_home_overview(manifest),
+            _render_home_editorial_sections(manifest),
+            _render_home_page_notice(manifest),
+            _render_home_general_notice(manifest),
+            _render_home_play_list(manifest),
+        ]
     content = "".join(blocks)
     return _layout(manifest, page_title=manifest.config.site_title, current_href="index.html", content_html=content)
 
@@ -1138,6 +1172,7 @@ def _render_notice_document(
     include_title_block: bool = True,
     include_metadata_block: bool = True,
     show_toc_labels: bool = True,
+    home_inline_toc_aside: bool = False,
 ) -> str:
     ref_counts: dict[str, int] = {}
     first_refs: dict[str, str] = {}
@@ -1152,12 +1187,21 @@ def _render_notice_document(
         lines.extend(f"<p>{html.escape(item)}</p>" for item in document.front_title_page)
         lines.append("</div>")
 
-    if document.sections:
+    if document.sections and home_inline_toc_aside:
+        lines.append('<div class="home-notice-layout">')
+        lines.append('<nav class="notice-toc notice-toc-home" aria-label="Sommaire de la page d accueil"><h3>Sommaire</h3>')
+        lines.append(_render_toc_from_sections(document.sections, show_labels=show_toc_labels))
+        lines.append("</nav>")
+        lines.append('<div class="home-notice-content">')
+        lines.extend(
+            _render_notice_section(section, ref_counts=ref_counts, first_refs=first_refs)
+            for section in document.sections
+        )
+        lines.append("</div></div>")
+    elif document.sections:
         lines.append('<nav class="notice-toc" aria-label="Sommaire de la notice"><h3>Sommaire</h3>')
         lines.append(_render_toc_from_sections(document.sections, show_labels=show_toc_labels))
         lines.append("</nav>")
-
-    if document.sections:
         lines.extend(
             _render_notice_section(section, ref_counts=ref_counts, first_refs=first_refs)
             for section in document.sections

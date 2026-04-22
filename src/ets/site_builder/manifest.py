@@ -377,6 +377,7 @@ def _build_navigation_tree(
     play_navigation: tuple[PlayNavigation, ...],
     notices: list[NoticeEntry],
     general_notice_slug: str | None,
+    home_page_notice_slug: str | None,
 ) -> tuple[NavigationItem, ...]:
     navigation: list[NavigationItem] = [NavigationItem(label="Accueil", href="index.html", kind="index")]
     attached_notice_slugs: set[str] = set()
@@ -444,6 +445,7 @@ def _build_navigation_tree(
         for notice in notices
         if notice.related_play_slug is None
         and notice.slug != (general_notice_slug or "")
+        and notice.slug != (home_page_notice_slug or "")
         and notice.slug not in attached_notice_slugs
         and notice.editorial_role != "author_preface"
     ]
@@ -570,6 +572,8 @@ def build_site_manifest(config: SiteConfig) -> SiteManifest:
             )
         )
     for notice in notices:
+        if notice.slug == (config.home_page_notice_slug or ""):
+            continue
         pages.append(
             SitePage(
                 kind=_entry_page_kind(notice, general_notice_slug=general_notice_slug),
@@ -584,6 +588,7 @@ def build_site_manifest(config: SiteConfig) -> SiteManifest:
         play_navigation=play_navigation,
         notices=notices,
         general_notice_slug=general_notice_slug,
+        home_page_notice_slug=config.home_page_notice_slug or None,
     )
 
     return SiteManifest(

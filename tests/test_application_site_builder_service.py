@@ -325,15 +325,25 @@ def test_site_builder_service_publication_request_inlines_home_page_tei_notice_o
     result = build_site_from_publication_request(request)
 
     assert result.ok is True
+    assert "notices/introduction.html" not in result.generated_page_relpaths
     home_html = (output_dir / "index.html").read_text(encoding="utf-8")
     assert 'class="home-page-notice"' in home_html
+    assert 'class="home-overview"' not in home_html
+    assert 'class="home-general-notice"' not in home_html
+    assert 'class="home-plays"' not in home_html
+    assert 'class="home-notice-layout"' in home_html
+    assert 'class="notice-toc notice-toc-home"' in home_html
     assert "Yvan Loskoutoff" in home_html
     assert "Ce deuxième volume" in home_html
-    assert "Introduction générale" in home_html
     assert 'class="notice-title-block"' not in home_html
     assert 'class="notice-meta"' not in home_html
     assert 'class="toc-label"' not in home_html
     assert ">SEC<" not in home_html
+    assert not (output_dir / "notices" / "introduction.html").exists()
+
+    play_html = (output_dir / "plays" / "andromaque.html").read_text(encoding="utf-8")
+    play_doc = lxml_html.document_fromstring(play_html)
+    assert not play_doc.xpath("//main/nav//a[@href='../notices/introduction.html']")
 
 
 def test_site_builder_service_publication_request_notice_and_preface_flags_are_independent() -> None:
