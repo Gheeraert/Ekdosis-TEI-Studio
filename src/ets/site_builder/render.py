@@ -414,7 +414,7 @@ def _layout(
       border-radius: 8px;
       padding: 0.55em 0.7em;
       line-height: 1.35;
-      max-width: min(30rem, calc(100vw - 3rem));
+      max-width: min(50rem, calc(100vw - 4rem));
       z-index: 1000;
       overflow-wrap: break-word;
       white-space: pre-line;
