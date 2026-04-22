@@ -5,6 +5,45 @@
   exclude-result-prefixes="tei">
 
   <xsl:output method="html" encoding="UTF-8" indent="yes"/>
+  <xsl:key name="witness-by-id" match="tei:witness" use="@xml:id"/>
+
+  <xsl:template name="format-witness-short">
+   <xsl:param name="id"/>
+   <xsl:variable name="witness-text" select="normalize-space(string(key('witness-by-id', $id)[1]))"/>
+   <xsl:choose>
+     <xsl:when test="$witness-text != '' and contains($witness-text, ')')">
+      <xsl:value-of select="concat(substring-before($witness-text, ')'), ')')"/>
+     </xsl:when>
+     <xsl:when test="$witness-text != ''">
+       <xsl:value-of select="$witness-text"/>
+     </xsl:when>
+     <xsl:otherwise>
+      <xsl:value-of select="concat('#', $id)"/>
+     </xsl:otherwise>
+   </xsl:choose>
+  </xsl:template>
+
+<xsl:template name="format-wit-list">
+  <xsl:param name="wit"/>
+  <xsl:variable name="trim" select="normalize-space($wit)"/>
+  <xsl:if test="$trim != ''">
+    <xsl:variable name="first" select="substring-before(concat($trim, ' '), ' ')"/>
+    <xsl:variable name="rest" select="normalize-space(substring-after($trim, ' '))"/>
+    <xsl:variable name="id" select="substring-after($first, '#')"/>
+
+    <xsl:call-template name="format-witness-short">
+      <xsl:with-param name="id" select="$id"/>
+    </xsl:call-template>
+
+    <xsl:if test="$rest != ''">
+      <xsl:text>, </xsl:text>
+      <xsl:call-template name="format-wit-list">
+        <xsl:with-param name="wit" select="$rest"/>
+      </xsl:call-template>
+    </xsl:if>
+   </xsl:if>
+  </xsl:template>
+
 
   <xsl:template match="/tei:TEI">
     <html lang="fr">
@@ -323,13 +362,15 @@
 
   <xsl:template match="tei:stage[@type='characters' or @type='personnages']/tei:app">
     <span class="variation" style="font-variant: small-caps;">
-      <xsl:attribute name="data-tooltip">
-        <xsl:for-each select="tei:rdg">
-          <xsl:value-of select="@wit"/>
-          <xsl:text>: </xsl:text>
-          <xsl:value-of select="normalize-space(.)"/>
-          <xsl:text>&#10;&#10;</xsl:text>
-        </xsl:for-each>
+      <xsl:attribute name="data-tooltip">  
+      <xsl:for-each select="tei:rdg">
+        <xsl:call-template name="format-wit-list">
+        <xsl:with-param name="wit" select="@wit"/>
+        </xsl:call-template>
+        <xsl:text>: </xsl:text>
+        <xsl:value-of select="normalize-space(.)"/>
+        <xsl:text>&#10;&#10;</xsl:text>
+      </xsl:for-each>
       </xsl:attribute>
       <xsl:apply-templates select="tei:lem"/>
     </span>
@@ -361,11 +402,13 @@
     <span class="variation" style="font-variant: small-caps;">
       <xsl:attribute name="data-tooltip">
         <xsl:for-each select="tei:rdg">
-          <xsl:value-of select="@wit"/>
-          <xsl:text>: </xsl:text>
-          <xsl:value-of select="normalize-space(.)"/>
-          <xsl:text>&#10;&#10;</xsl:text>
-        </xsl:for-each>
+        <xsl:call-template name="format-wit-list">
+        <xsl:with-param name="wit" select="@wit"/>
+        </xsl:call-template>
+        <xsl:text>: </xsl:text>
+        <xsl:value-of select="normalize-space(.)"/>
+        <xsl:text>&#10;&#10;</xsl:text>
+      </xsl:for-each>
       </xsl:attribute>
       <xsl:apply-templates select="tei:lem"/>
     </span>
@@ -397,12 +440,14 @@
   <xsl:template match="tei:app">
     <span class="variation">
       <xsl:attribute name="data-tooltip">
-        <xsl:for-each select="tei:rdg">
-          <xsl:value-of select="@wit"/>
-          <xsl:text>: </xsl:text>
-          <xsl:value-of select="normalize-space(.)"/>
-          <xsl:text>&#10;&#10;</xsl:text>
-        </xsl:for-each>
+      <xsl:for-each select="tei:rdg">
+        <xsl:call-template name="format-wit-list">
+        <xsl:with-param name="wit" select="@wit"/>
+        </xsl:call-template>
+        <xsl:text>: </xsl:text>
+        <xsl:value-of select="normalize-space(.)"/>
+        <xsl:text>&#10;&#10;</xsl:text>
+      </xsl:for-each>
       </xsl:attribute>
       <xsl:apply-templates select="tei:lem"/>
     </span>
