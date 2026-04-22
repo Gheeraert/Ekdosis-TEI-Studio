@@ -140,8 +140,9 @@ def _site_sidebar_html(current_href: str) -> str:
         f'<a href="{html.escape(SITE_GITHUB_URL, quote=True)}" target="_blank" rel="noopener noreferrer">'
         f'{html.escape(SITE_GITHUB_LABEL)}</a>'
         '</p>'
+        f'<a class="site-project-banner-link" href="{html.escape(SITE_CHAIR_URL, quote=True)}" target="_blank" rel="noopener noreferrer">'
         f'<img class="site-project-banner" src="{html.escape(_affiliation_banner_src(current_href), quote=True)}" '
-        f'alt="{html.escape(AFFILIATION_BANNER_ALT)}" loading="lazy">'
+        f'alt="{html.escape(AFFILIATION_BANNER_ALT)}" loading="lazy"></a>'
         "</section>"
     )
 
@@ -150,8 +151,9 @@ def _site_footer_html(current_href: str) -> str:
     return (
         '<footer class="site-footer">'
         '<div class="site-footer-inner">'
+        f'<a class="site-footer-logo-link" href="{html.escape(SITE_CHAIR_URL, quote=True)}" target="_blank" rel="noopener noreferrer">'
         f'<img class="site-footer-logo" src="{html.escape(_affiliation_banner_src(current_href), quote=True)}" '
-        f'alt="{html.escape(AFFILIATION_BANNER_ALT)}" loading="lazy">'
+        f'alt="{html.escape(AFFILIATION_BANNER_ALT)}" loading="lazy"></a>'
         '<div class="site-footer-text">'
         f'<p>{html.escape(SITE_CREDITS_TEXT)}</p>'
         '<p class="site-footer-links">'
@@ -677,6 +679,11 @@ def _layout(
     .site-footer-links a {{
       font-family: var(--font-ui);
     }}
+    .site-project-banner-link:focus-visible,
+    .site-footer-logo-link:focus-visible {{
+      outline: 2px solid var(--focus);
+      outline-offset: 3px;
+}}
 
     @media (prefers-reduced-motion: reduce) {{
       html {{ scroll-behavior: auto; }}
