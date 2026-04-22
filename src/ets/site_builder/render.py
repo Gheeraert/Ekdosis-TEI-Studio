@@ -183,24 +183,35 @@ def _layout(
       outline-offset: 2px;
     }}
     .site-header {{
+      position: sticky;
+      top: 0;
+      z-index: 1500;
       background: var(--header-bg);
       color: var(--header-ink);
       border-bottom: 1px solid #000;
-      padding: 1rem 1.4rem;
     }}
-    .site-header-row {{
-      display: flex;
-      justify-content: space-between;
+    .site-header-inner {{
+      max-width: 1320px;
+      margin: 0 auto;
+      padding: 1rem 1rem 0.85rem;
+      display: grid;
+      grid-template-columns: 250px 960px;
+      justify-content: start;
+      gap: 0.45rem 0.75rem;
       align-items: start;
-      gap: 0.75rem 1rem;
-      flex-wrap: wrap;
+    }}
+    .site-header-title {{
+      grid-column: 1;
+      min-width: max-content;
     }}
     .site-header-branding {{
+      grid-column: 2;
+      justify-self: end;
       display: flex;
       flex-direction: column;
       align-items: flex-end;
       gap: 0.35rem;
-      margin-left: auto;
+      min-width: 0;
     }}
     .site-author {{
       margin: 0 0 0.2rem;
@@ -216,6 +227,7 @@ def _layout(
       font-weight: 600;
       letter-spacing: 0.01em;
       font-size: clamp(1.8rem, 3vw, 2.35rem);
+      white-space: nowrap;
     }}
     .theme-toggle {{
       position: static;
@@ -224,10 +236,10 @@ def _layout(
       background: var(--header-bg);
       color: var(--header-ink);
       font-family: var(--font-ui);
-      font-size: 0.78rem;
+      font-size: 0.76rem;
       letter-spacing: 0.04em;
       text-transform: uppercase;
-      padding: 0.35rem 0.55rem;
+      padding: 0.3rem 0.52rem;
       cursor: pointer;
       box-shadow: 0 2px 10px rgba(0, 0, 0, 0.18);
     }}
@@ -437,21 +449,23 @@ def _layout(
 
     .dramatic-anchor {{ display: block; height: 0; margin: 0; padding: 0; }}
     .branding {{
-      margin-top: 0.35rem;
+      margin-top: 0.15rem;
       display: flex;
       justify-content: flex-end;
-      gap: 0.45rem 0.6rem;
+      gap: 0.35rem 0.5rem;
       align-items: center;
       flex-wrap: wrap;
+      max-width: 100%;
     }}
     .branding img {{
       display: block;
-      max-height: 30px;
-      max-width: 140px;
+      max-height: 28px;
+      max-width: 120px;
       width: auto;
       border: 1px solid rgba(243, 236, 224, 0.35);
       background: rgba(255, 255, 255, 0.94);
-      padding: 0.12rem;
+      padding: 0.1rem;
+      box-sizing: border-box;
     }}
 
     .notice-title-block {{ margin: 0.2rem 0 1rem; padding-bottom: 0.7rem; border-bottom: 1px solid var(--line); }}
@@ -501,20 +515,33 @@ def _layout(
     }}
 
     @media (max-width: 900px) {{
-      main {{ grid-template-columns: 1fr; }}
+      .site-header-inner {{
+        grid-template-columns: 1fr;
+        padding: 0.85rem 1rem 0.75rem;
+      }}
+      .site-header-title {{
+        grid-column: 1;
+        min-width: 0;
+      }}
       .site-header-branding {{
+        grid-column: 1;
         width: 100%;
+        justify-self: stretch;
         align-items: flex-start;
-        margin-top: 0.45rem;
+        margin-top: 0.15rem;
       }}
       .branding {{
         justify-content: flex-start;
-        gap: 0.35rem 0.5rem;
+        gap: 0.3rem 0.45rem;
       }}
       .branding img {{
-        max-height: 24px;
-        max-width: 110px;
+        max-height: 22px;
+        max-width: 100px;
       }}
+      .site-header h1 {{
+        white-space: normal;
+      }}
+      main {{ grid-template-columns: 1fr; }}
       nav {{
         position: static;
         max-height: none;
@@ -549,8 +576,8 @@ def _layout(
       .notice-meta dt {{ margin-top: 0.25rem; }}
       .theme-toggle {{
         align-self: flex-start;
-        font-size: 0.74rem;
-        padding: 0.32rem 0.5rem;
+        font-size: 0.72rem;
+        padding: 0.28rem 0.46rem;
       }}
       .home-overview dl {{ grid-template-columns: 1fr; }}
     }}
@@ -558,8 +585,8 @@ def _layout(
 </head>
 <body>
   <header class="site-header">
-    <div class="site-header-row">
-      <div>
+    <div class="site-header-inner">
+      <div class="site-header-title">
         <p class="site-author">{html.escape(manifest.config.site_subtitle)}</p>
         <h1>{html.escape(manifest.config.site_title)}</h1>
       </div>
