@@ -128,15 +128,27 @@ def _layout(
   {head_extra_html}
   <script>
     (() => {{
-      const storageKey = "ets-theme";
+      const themeStorageKey = "ets-theme";
+      const fontStorageKey = "ets-font-scale";
       const root = document.documentElement;
-      const savedTheme = window.localStorage.getItem(storageKey);
+      const defaultFontScale = 100;
+      const minFontScale = 90;
+      const maxFontScale = 130;
+
+      const savedTheme = window.localStorage.getItem(themeStorageKey);
       if (savedTheme === "light" || savedTheme === "dark") {{
         root.dataset.theme = savedTheme;
-        return;
+      }} else {{
+        const prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+        root.dataset.theme = prefersDark ? "dark" : "light";
       }}
-      const prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
-      root.dataset.theme = prefersDark ? "dark" : "light";
+
+      const parsedFontScale = Number.parseInt(window.localStorage.getItem(fontStorageKey) || "", 10);
+      const initialFontScale = Number.isFinite(parsedFontScale)
+        ? Math.min(maxFontScale, Math.max(minFontScale, parsedFontScale))
+        : defaultFontScale;
+      root.dataset.fontScale = String(initialFontScale);
+      root.style.fontSize = `${{initialFontScale}}%`;
     }})();
   </script>
   <style>
@@ -174,7 +186,10 @@ def _layout(
       --focus: #c99a59;
       --shadow-soft: 0 1px 0 rgba(0, 0, 0, 0.25);
     }}
-    html {{ scroll-behavior: smooth; }}
+    html {{
+      scroll-behavior: smooth;
+      font-size: 100%;
+    }}
     body {{ margin: 0; background: var(--bg); color: var(--ink); line-height: 1.6; font-family: var(--font-body); }}
     a {{ color: var(--accent); text-underline-offset: 0.14em; }}
     a:hover {{ color: var(--accent-soft); }}
@@ -229,9 +244,17 @@ def _layout(
       font-size: clamp(1.8rem, 3vw, 2.35rem);
       white-space: nowrap;
     }}
+    .header-controls {{
+      display: flex;
+      gap: 0.45rem;
+      align-items: center;
+      justify-content: flex-end;
+      flex-wrap: wrap;
+    }}
     .theme-toggle {{
       position: static;
       align-self: flex-end;
+      min-width: 4.35rem;
       border: 1px solid rgba(243, 236, 224, 0.32);
       background: var(--header-bg);
       color: var(--header-ink);
@@ -245,6 +268,12 @@ def _layout(
     }}
     .theme-toggle:hover {{
       border-color: rgba(243, 236, 224, 0.6);
+    }}
+    .theme-toggle:disabled {{
+      opacity: 0.45;
+      cursor: default;
+      border-color: rgba(243, 236, 224, 0.2);
+      box-shadow: none;
     }}
     main {{ display: grid; grid-template-columns: 250px minmax(0, 1fr); gap: 0.75rem; min-height: calc(100vh - 4.8rem); padding: 0.85rem 1rem 1.4rem; max-width: 1320px; margin: 0 auto; }}
     nav {{ border: 1px solid var(--line); background: var(--bg-soft); padding: 0.9rem 0.95rem; box-shadow: var(--shadow-soft); }}
@@ -281,21 +310,6 @@ def _layout(
     .home-play-list li {{ margin: 0.45rem 0; }}
     .home-play-links {{ color: var(--ink-muted); font-size: 0.95rem; }}
     .home-general-notice {{ margin: 1rem 0 1.25rem; padding: 0.85rem 1rem; border: 1px solid var(--line); background: var(--bg-soft); }}
-    .home-page-notice {{ margin: 1.15rem 0 1.6rem; }}
-    .notice-layout {{ display: block; }}
-    .notice-toc.notice-toc-aside {{
-      margin: 0 0 1.1rem;
-      padding: 0.65rem 0.8rem;
-      background: color-mix(in oklab, var(--bg-soft) 72%, var(--bg-panel));
-      border-color: color-mix(in oklab, var(--line) 82%, var(--accent) 18%);
-    }}
-    .notice-toc.notice-toc-aside h3 {{
-      margin: 0 0 0.4rem;
-      font-size: 0.95rem;
-      letter-spacing: 0.01em;
-      color: var(--ink-muted);
-    }}
-    .notice-content {{ min-width: 0; }}
     .content-shell {{ padding: 1rem 1.2rem 2.5rem; max-width: 960px; background: var(--bg-panel); border: 1px solid var(--line); box-shadow: var(--shadow-soft); min-width: 0; }}
     .content-shell-play {{
       padding: 0.55rem 0.1rem 2.5rem;
@@ -527,22 +541,6 @@ def _layout(
         max-height: calc(100vh - 1.5rem);
         overflow: auto;
       }}
-      .notice-layout {{
-        display: grid;
-        grid-template-columns: minmax(0, 1fr) minmax(220px, 280px);
-        gap: 1rem;
-        align-items: start;
-      }}
-      .notice-layout .notice-toc.notice-toc-aside {{
-        order: 2;
-        position: sticky;
-        top: 0.8rem;
-        max-height: calc(100vh - 2.2rem);
-        overflow: auto;
-      }}
-      .notice-layout .notice-content {{
-        order: 1;
-      }}
     }}
 
     @media (max-width: 900px) {{
@@ -605,8 +603,12 @@ def _layout(
       }}
       .notice-meta dl {{ grid-template-columns: 1fr; }}
       .notice-meta dt {{ margin-top: 0.25rem; }}
+      .header-controls {{
+        justify-content: flex-start;
+      }}
       .theme-toggle {{
         align-self: flex-start;
+        min-width: 3.8rem;
         font-size: 0.72rem;
         padding: 0.28rem 0.46rem;
       }}
@@ -622,7 +624,11 @@ def _layout(
         <h1>{html.escape(manifest.config.site_title)}</h1>
       </div>
       <div class="site-header-branding">
-        <button class="theme-toggle" type="button" data-theme-toggle aria-label="Basculer le theme">Mode sombre</button>
+        <div class="header-controls">
+          <button class="theme-toggle" type="button" data-font-decrease aria-label="Retrecir le texte">A−</button>
+          <button class="theme-toggle" type="button" data-font-increase aria-label="Agrandir le texte">A+</button>
+          <button class="theme-toggle" type="button" data-theme-toggle aria-label="Basculer le theme">Mode sombre</button>
+        </div>
         {_branding_html(manifest, current_href)}
       </div>
     </div>
@@ -633,22 +639,69 @@ def _layout(
   </main>
   <script>
     (() => {{
-      const storageKey = "ets-theme";
+      const themeStorageKey = "ets-theme";
+      const fontStorageKey = "ets-font-scale";
       const root = document.documentElement;
-      const button = document.querySelector("[data-theme-toggle]");
-      if (!button) return;
+      const defaultFontScale = 100;
+      const minFontScale = 90;
+      const maxFontScale = 130;
+      const stepFontScale = 10;
+      const themeButton = document.querySelector("[data-theme-toggle]");
+      const decreaseButton = document.querySelector("[data-font-decrease]");
+      const increaseButton = document.querySelector("[data-font-increase]");
+      if (!themeButton && !decreaseButton && !increaseButton) return;
 
-      function refreshLabel() {{
-        button.textContent = root.dataset.theme === "dark" ? "Mode clair" : "Mode sombre";
+      function clampFontScale(value) {{
+        return Math.min(maxFontScale, Math.max(minFontScale, value));
       }}
 
-      button.addEventListener("click", () => {{
-        root.dataset.theme = root.dataset.theme === "dark" ? "light" : "dark";
-        window.localStorage.setItem(storageKey, root.dataset.theme);
-        refreshLabel();
-      }});
+      function currentFontScale() {{
+        const parsed = Number.parseInt(root.dataset.fontScale || "", 10);
+        return Number.isFinite(parsed) ? clampFontScale(parsed) : defaultFontScale;
+      }}
 
-      refreshLabel();
+      function applyFontScale(value) {{
+        const nextValue = clampFontScale(value);
+        root.dataset.fontScale = String(nextValue);
+        root.style.fontSize = `${{nextValue}}%`;
+        window.localStorage.setItem(fontStorageKey, String(nextValue));
+        refreshLabels();
+      }}
+
+      function refreshLabels() {{
+        if (themeButton) {{
+          themeButton.textContent = root.dataset.theme === "dark" ? "Mode clair" : "Mode sombre";
+        }}
+        const fontScale = currentFontScale();
+        if (decreaseButton) {{
+          decreaseButton.disabled = fontScale <= minFontScale;
+        }}
+        if (increaseButton) {{
+          increaseButton.disabled = fontScale >= maxFontScale;
+        }}
+      }}
+
+      if (themeButton) {{
+        themeButton.addEventListener("click", () => {{
+          root.dataset.theme = root.dataset.theme === "dark" ? "light" : "dark";
+          window.localStorage.setItem(themeStorageKey, root.dataset.theme);
+          refreshLabels();
+        }});
+      }}
+
+      if (decreaseButton) {{
+        decreaseButton.addEventListener("click", () => {{
+          applyFontScale(currentFontScale() - stepFontScale);
+        }});
+      }}
+
+      if (increaseButton) {{
+        increaseButton.addEventListener("click", () => {{
+          applyFontScale(currentFontScale() + stepFontScale);
+        }});
+      }}
+
+      refreshLabels();
     }})();
   </script>
 </body>
@@ -945,47 +998,13 @@ def _render_home_general_notice(manifest: SiteManifest) -> str:
     return ""
 
 
-def _notice_by_slug(manifest: SiteManifest, slug: str) -> NoticeEntry | None:
-    for notice in manifest.notices:
-        if notice.slug == slug:
-            return notice
-    return None
-
-
-def _render_home_page_notice(manifest: SiteManifest) -> str:
-    slug = (manifest.config.home_page_notice_slug or "").strip()
-    if not slug:
-        return ""
-
-    notice = _notice_by_slug(manifest, slug)
-    if notice is None or notice.document is None:
-        return ""
-
-    return (
-        '<section class="home-page-notice" id="home-notice">'
-        + _render_notice_document(
-            manifest,
-            notice,
-            notice.document,
-            display_mode="editorial_light",
-            download_href_prefix="",
-            show_toc_labels=False,
-        )
-        + "</section>"
-    )
-
-
 def render_home_page(manifest: SiteManifest) -> str:
-    if manifest.config.home_page_notice_slug:
-        blocks = [_render_home_page_notice(manifest)]
-    else:
-        blocks = [
-            _render_home_overview(manifest),
-            _render_home_editorial_sections(manifest),
-            _render_home_page_notice(manifest),
-            _render_home_general_notice(manifest),
-            _render_home_play_list(manifest),
-        ]
+    blocks: list[str] = [
+        _render_home_overview(manifest),
+        _render_home_editorial_sections(manifest),
+        _render_home_general_notice(manifest),
+        _render_home_play_list(manifest),
+    ]
     content = "".join(blocks)
     return _layout(manifest, page_title=manifest.config.site_title, current_href="index.html", content_html=content)
 
@@ -1031,17 +1050,16 @@ def _toc_label(section: NoticeSection) -> str:
     return "Sec"
 
 
-def _render_toc_from_sections(sections: tuple[NoticeSection, ...], *, show_labels: bool = True) -> str:
+def _render_toc_from_sections(sections: tuple[NoticeSection, ...]) -> str:
     if not sections:
         return ""
     chunks: list[str] = ["<ul>"]
     for section in sections:
-        label_html = f'<span class="toc-label">{_toc_label(section)}</span>' if show_labels else ""
         chunks.append(
             f'<li class="toc-item toc-kind-{html.escape(section.node_kind, quote=True)}">'
-            f"{label_html}"
+            f'<span class="toc-label">{_toc_label(section)}</span>'
             f'<a href="#{html.escape(section.section_id, quote=True)}">{html.escape(section.title)}</a>'
-            f'{_render_toc_from_sections(section.children, show_labels=show_labels)}</li>'
+            f'{_render_toc_from_sections(section.children)}</li>'
         )
     chunks.append("</ul>")
     return "".join(chunks)
@@ -1127,12 +1145,7 @@ def _render_title_block(notice: NoticeEntry, document: NoticeDocument) -> str:
     return "".join(lines)
 
 
-def _render_metadata_block(
-    notice: NoticeEntry,
-    document: NoticeDocument,
-    *,
-    download_href_prefix: str = "../",
-) -> str:
+def _render_metadata_block(notice: NoticeEntry, document: NoticeDocument) -> str:
     rows: list[tuple[str, str]] = []
     if notice.authors:
         rows.append(("Auteur(s)", html.escape(", ".join(notice.authors))))
@@ -1146,8 +1159,7 @@ def _render_metadata_block(
         rows.append(
             (
                 "XML source",
-                f'<a href="{html.escape(download_href_prefix + notice.xml_download_relpath, quote=True)}" download>'
-                f"Telecharger le XML</a>",
+                f'<a href="../{html.escape(notice.xml_download_relpath, quote=True)}" download>Telecharger le XML</a>',
             )
         )
 
@@ -1161,45 +1173,22 @@ def _render_metadata_block(
     return "".join(chunks)
 
 
-def _render_notice_document(
-    manifest: SiteManifest,
-    notice: NoticeEntry,
-    document: NoticeDocument,
-    *,
-    display_mode: str = "full",
-    download_href_prefix: str = "../",
-    show_toc_labels: bool = True,
-) -> str:
+def _render_notice_document(manifest: SiteManifest, notice: NoticeEntry, document: NoticeDocument) -> str:
     ref_counts: dict[str, int] = {}
     first_refs: dict[str, str] = {}
-    is_editorial_light = display_mode == "editorial_light"
 
-    lines: list[str] = []
-    if not is_editorial_light:
-        lines.append(_render_title_block(notice, document))
-    if not is_editorial_light:
-        lines.append(_render_metadata_block(notice, document, download_href_prefix=download_href_prefix))
+    lines: list[str] = [_render_title_block(notice, document), _render_metadata_block(notice, document)]
     if document.front_title_page:
-        front_class = "notice-front" if not is_editorial_light else "notice-front notice-front-light"
-        lines.append(f'<div class="{front_class}">')
+        lines.append("<div class=\"notice-front\">")
         lines.extend(f"<p>{html.escape(item)}</p>" for item in document.front_title_page)
         lines.append("</div>")
 
-    if document.sections and is_editorial_light:
-        lines.append('<div class="notice-layout">')
-        lines.append('<nav class="notice-toc notice-toc-aside" aria-label="Sommaire de lecture"><h3>Sommaire</h3>')
-        lines.append(_render_toc_from_sections(document.sections, show_labels=show_toc_labels))
-        lines.append("</nav>")
-        lines.append('<div class="notice-content">')
-        lines.extend(
-            _render_notice_section(section, ref_counts=ref_counts, first_refs=first_refs)
-            for section in document.sections
-        )
-        lines.append("</div></div>")
-    elif document.sections:
+    if document.sections:
         lines.append('<nav class="notice-toc" aria-label="Sommaire de la notice"><h3>Sommaire</h3>')
-        lines.append(_render_toc_from_sections(document.sections, show_labels=show_toc_labels))
+        lines.append(_render_toc_from_sections(document.sections))
         lines.append("</nav>")
+
+    if document.sections:
         lines.extend(
             _render_notice_section(section, ref_counts=ref_counts, first_refs=first_refs)
             for section in document.sections
@@ -1219,7 +1208,7 @@ def _render_notice_document(
             )
         lines.append("</ol></section>")
 
-    if document.include_warnings and not is_editorial_light:
+    if document.include_warnings:
         lines.append('<section class="notice-warnings"><h3>xi:include</h3><ul>')
         lines.extend(f"<li>{html.escape(item)}</li>" for item in document.include_warnings)
         lines.append("</ul></section>")
@@ -1229,16 +1218,7 @@ def _render_notice_document(
 
 def render_notice_page(manifest: SiteManifest, notice: NoticeEntry) -> str:
     if notice.document is not None:
-        content = (
-            f'<h2 class="editorial-reading-title">{html.escape(notice.title)}</h2>'
-            + _render_notice_document(
-                manifest,
-                notice,
-                notice.document,
-                display_mode="editorial_light",
-                show_toc_labels=False,
-            )
-        )
+        content = _render_notice_document(manifest, notice, notice.document)
     else:
         content = (
             f'<h2>{html.escape(notice.title)}</h2>'
