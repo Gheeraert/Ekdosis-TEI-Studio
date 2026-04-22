@@ -331,8 +331,8 @@ def test_site_builder_service_publication_request_inlines_home_page_tei_notice_o
     assert 'class="home-overview"' not in home_html
     assert 'class="home-general-notice"' not in home_html
     assert 'class="home-plays"' not in home_html
-    assert 'class="home-notice-layout"' in home_html
-    assert 'class="notice-toc notice-toc-home"' in home_html
+    assert 'class="notice-layout"' in home_html
+    assert 'class="notice-toc notice-toc-aside"' in home_html
     assert "Yvan Loskoutoff" in home_html
     assert "Ce deuxième volume" in home_html
     assert 'class="notice-title-block"' not in home_html
@@ -370,6 +370,12 @@ def test_site_builder_service_publication_request_notice_and_preface_flags_are_i
     assert result_preface_only.ok is True
     assert any(path.startswith("notices/") for path in result_preface_only.generated_page_relpaths)
     assert "notices/andromaque-notice.html" not in result_preface_only.generated_page_relpaths
+    preface_page = next(path for path in result_preface_only.generated_page_relpaths if path.startswith("notices/"))
+    preface_html = (output_dir / preface_page).read_text(encoding="utf-8")
+    assert 'class="notice-title-block"' not in preface_html
+    assert 'class="notice-meta"' not in preface_html
+    if "Sommaire" in preface_html:
+        assert 'class="notice-toc notice-toc-aside"' in preface_html
 
     request_notice_only = SitePublicationRequest(
         identity=SiteIdentityInput(site_title="ETS Notice Only"),
@@ -389,6 +395,10 @@ def test_site_builder_service_publication_request_notice_and_preface_flags_are_i
     assert result_notice_only.ok is True
     assert "notices/andromaque-notice.html" in result_notice_only.generated_page_relpaths
     assert all("mithridate-preface-fixture-tei-simplifiee" not in item for item in result_notice_only.generated_page_relpaths)
+    notice_html = (base / "site2" / "notices" / "andromaque-notice.html").read_text(encoding="utf-8")
+    assert 'class="notice-title-block"' not in notice_html
+    assert 'class="notice-meta"' not in notice_html
+    assert 'class="notice-toc notice-toc-aside"' in notice_html
 
 
 def test_site_builder_service_publication_request_external_dramatis_has_priority() -> None:

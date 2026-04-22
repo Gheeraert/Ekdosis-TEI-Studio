@@ -36,16 +36,15 @@ def test_render_notice_page_outputs_structured_metopes_html() -> None:
 
     html_page = render_notice_page(manifest, notice)
 
-    assert 'class="notice-title-block"' in html_page
-    assert "<h2>Introduction</h2>" in html_page
-    assert 'class="notice-meta"' in html_page
-    assert "Type de texte" in html_page
+    assert 'class="notice-title-block"' not in html_page
+    assert "editorial-reading-title" in html_page
+    assert "Introduction</h2>" in html_page
+    assert 'class="notice-meta"' not in html_page
     assert "Sommaire" in html_page
-    assert '<nav class="notice-toc"' in html_page
+    assert 'class="notice-toc notice-toc-aside"' in html_page
     assert "<em>mise en forme italique</em>" in html_page
     assert "Notes" in html_page
     assert "Note de bas de page" in html_page
-    assert "Telecharger le XML" in html_page
     assert 'href="#doc-body"' in html_page
     assert 'id="doc-body"' in html_page
     assert 'id="note-ref-ftn1-1"' in html_page

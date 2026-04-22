@@ -282,20 +282,20 @@ def _layout(
     .home-play-links {{ color: var(--ink-muted); font-size: 0.95rem; }}
     .home-general-notice {{ margin: 1rem 0 1.25rem; padding: 0.85rem 1rem; border: 1px solid var(--line); background: var(--bg-soft); }}
     .home-page-notice {{ margin: 1.15rem 0 1.6rem; }}
-    .home-notice-layout {{ display: block; }}
-    .notice-toc.notice-toc-home {{
+    .notice-layout {{ display: block; }}
+    .notice-toc.notice-toc-aside {{
       margin: 0 0 1.1rem;
       padding: 0.65rem 0.8rem;
       background: color-mix(in oklab, var(--bg-soft) 72%, var(--bg-panel));
       border-color: color-mix(in oklab, var(--line) 82%, var(--accent) 18%);
     }}
-    .notice-toc.notice-toc-home h3 {{
+    .notice-toc.notice-toc-aside h3 {{
       margin: 0 0 0.4rem;
       font-size: 0.95rem;
       letter-spacing: 0.01em;
       color: var(--ink-muted);
     }}
-    .home-notice-content {{ min-width: 0; }}
+    .notice-content {{ min-width: 0; }}
     .content-shell {{ padding: 1rem 1.2rem 2.5rem; max-width: 960px; background: var(--bg-panel); border: 1px solid var(--line); box-shadow: var(--shadow-soft); min-width: 0; }}
     .content-shell-play {{
       padding: 0.55rem 0.1rem 2.5rem;
@@ -527,20 +527,20 @@ def _layout(
         max-height: calc(100vh - 1.5rem);
         overflow: auto;
       }}
-      .home-notice-layout {{
+      .notice-layout {{
         display: grid;
         grid-template-columns: minmax(0, 1fr) minmax(220px, 280px);
         gap: 1rem;
         align-items: start;
       }}
-      .home-notice-layout .notice-toc.notice-toc-home {{
+      .notice-layout .notice-toc.notice-toc-aside {{
         order: 2;
         position: sticky;
         top: 0.8rem;
         max-height: calc(100vh - 2.2rem);
         overflow: auto;
       }}
-      .home-notice-layout .home-notice-content {{
+      .notice-layout .notice-content {{
         order: 1;
       }}
     }}
@@ -967,11 +967,9 @@ def _render_home_page_notice(manifest: SiteManifest) -> str:
             manifest,
             notice,
             notice.document,
+            display_mode="editorial_light",
             download_href_prefix="",
-            include_title_block=False,
-            include_metadata_block=False,
             show_toc_labels=False,
-            home_inline_toc_aside=True,
         )
         + "</section>"
     )
@@ -1168,31 +1166,31 @@ def _render_notice_document(
     notice: NoticeEntry,
     document: NoticeDocument,
     *,
+    display_mode: str = "full",
     download_href_prefix: str = "../",
-    include_title_block: bool = True,
-    include_metadata_block: bool = True,
     show_toc_labels: bool = True,
-    home_inline_toc_aside: bool = False,
 ) -> str:
     ref_counts: dict[str, int] = {}
     first_refs: dict[str, str] = {}
+    is_editorial_light = display_mode == "editorial_light"
 
     lines: list[str] = []
-    if include_title_block:
+    if not is_editorial_light:
         lines.append(_render_title_block(notice, document))
-    if include_metadata_block:
+    if not is_editorial_light:
         lines.append(_render_metadata_block(notice, document, download_href_prefix=download_href_prefix))
     if document.front_title_page:
-        lines.append("<div class=\"notice-front\">")
+        front_class = "notice-front" if not is_editorial_light else "notice-front notice-front-light"
+        lines.append(f'<div class="{front_class}">')
         lines.extend(f"<p>{html.escape(item)}</p>" for item in document.front_title_page)
         lines.append("</div>")
 
-    if document.sections and home_inline_toc_aside:
-        lines.append('<div class="home-notice-layout">')
-        lines.append('<nav class="notice-toc notice-toc-home" aria-label="Sommaire de la page d accueil"><h3>Sommaire</h3>')
+    if document.sections and is_editorial_light:
+        lines.append('<div class="notice-layout">')
+        lines.append('<nav class="notice-toc notice-toc-aside" aria-label="Sommaire de lecture"><h3>Sommaire</h3>')
         lines.append(_render_toc_from_sections(document.sections, show_labels=show_toc_labels))
         lines.append("</nav>")
-        lines.append('<div class="home-notice-content">')
+        lines.append('<div class="notice-content">')
         lines.extend(
             _render_notice_section(section, ref_counts=ref_counts, first_refs=first_refs)
             for section in document.sections
@@ -1221,7 +1219,7 @@ def _render_notice_document(
             )
         lines.append("</ol></section>")
 
-    if document.include_warnings:
+    if document.include_warnings and not is_editorial_light:
         lines.append('<section class="notice-warnings"><h3>xi:include</h3><ul>')
         lines.extend(f"<li>{html.escape(item)}</li>" for item in document.include_warnings)
         lines.append("</ul></section>")
@@ -1231,7 +1229,16 @@ def _render_notice_document(
 
 def render_notice_page(manifest: SiteManifest, notice: NoticeEntry) -> str:
     if notice.document is not None:
-        content = _render_notice_document(manifest, notice, notice.document)
+        content = (
+            f'<h2 class="editorial-reading-title">{html.escape(notice.title)}</h2>'
+            + _render_notice_document(
+                manifest,
+                notice,
+                notice.document,
+                display_mode="editorial_light",
+                show_toc_labels=False,
+            )
+        )
     else:
         content = (
             f'<h2>{html.escape(notice.title)}</h2>'

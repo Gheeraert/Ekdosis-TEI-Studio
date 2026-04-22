@@ -101,8 +101,10 @@ def test_realistic_standalone_notice_extraction_and_rendering() -> None:
     assert notice.document is not None
     assert notice.document.front_title_page
     assert notice.document.notes
-    assert 'class="notice-title-block"' in html_page
-    assert 'class="notice-front"' in html_page
+    assert 'class="notice-title-block"' not in html_page
+    assert 'class="notice-meta"' not in html_page
+    assert 'class="notice-toc notice-toc-aside"' in html_page
+    assert "notice-front" in html_page
     assert "<em>" in html_page
     assert 'class="note-ref"' in html_page
     assert 'class="notice-notes"' in html_page
@@ -156,14 +158,18 @@ def test_realistic_publication_build_links_output_tree_and_downloads() -> None:
     assert "IM Fell DW Pica" in play_html
     assert "../plays/andromaque.html" in intro_notice_html
     assert "Sommaire" in master_notice_html
-    assert "notice-toc" in master_notice_html
-    assert 'src="assets/logos/logo-realistic.txt"' in home_html
+    assert 'class="notice-toc notice-toc-aside"' in master_notice_html
+    assert 'class="notice-title-block"' not in intro_notice_html
+    assert 'class="notice-meta"' not in intro_notice_html
+    assert 'class="notice-title-block"' not in master_notice_html
+    assert 'class="notice-meta"' not in master_notice_html
+    assert 'class="branding"' in home_html
 
     assert (output_dir / "xml" / "dramatic" / "andromaque.xml").exists()
     assert (output_dir / "xml" / "dramatic" / "berenice.xml").exists()
     assert (output_dir / "xml" / "notices" / "introduction.xml").exists()
     assert (output_dir / "xml" / "notices" / "heraldique-et-papaute.xml").exists()
-    assert (output_dir / "assets" / "logos" / "logo-realistic.txt").exists()
+    assert (output_dir / "assets" / "logos").exists()
     assert (output_dir / "assets" / "brand" / "palette.txt").exists()
 
     play_doc = lxml_html.document_fromstring(play_html)

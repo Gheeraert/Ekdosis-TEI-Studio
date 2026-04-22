@@ -356,12 +356,21 @@ def test_builder_supports_general_notice_home_editorial_sections_and_hierarchica
     assert (output_dir / "notices" / "introduction.html").exists()
     home_html = (output_dir / "index.html").read_text(encoding="utf-8")
     play_html = (output_dir / "plays" / "andromaque.html").read_text(encoding="utf-8")
+    intro_html = (output_dir / "notices" / "introduction.html").read_text(encoding="utf-8")
+    general_html = (output_dir / "notices" / "bibliographie.html").read_text(encoding="utf-8")
 
     assert "Presentation du projet" in home_html
     assert "Cadre institutionnel" in home_html
     assert "Introduction générale" in home_html
     assert 'href="notices/bibliographie.html"' in home_html
     assert result.notice_count >= 2
+    assert 'class="notice-title-block"' not in intro_html
+    assert 'class="notice-meta"' not in intro_html
+    assert 'class="notice-toc notice-toc-aside"' in intro_html
+    assert 'class="notice-title-block"' not in general_html
+    assert 'class="notice-meta"' not in general_html
+    if "Sommaire" in general_html:
+        assert 'class="notice-toc notice-toc-aside"' in general_html
 
     doc = lxml_html.document_fromstring(play_html)
     assert doc.xpath("//main/nav//a[@href='../notices/bibliographie.html']")
