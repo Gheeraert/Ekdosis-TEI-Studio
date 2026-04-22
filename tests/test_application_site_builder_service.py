@@ -15,10 +15,13 @@ from ets.application import (
     SiteBuilderService,
     SiteHomepageSectionInput,
     SiteIdentityInput,
+    SitePublicationDialogConfig,
+    SitePublicationDialogPlayConfig,
     SitePublicationRequest,
     build_site_from_config_dict,
     build_site_from_config_file,
     build_site_from_publication_request,
+    site_publication_request_from_dialog_config,
 )
 
 
@@ -298,6 +301,34 @@ def test_site_builder_service_publication_request_supports_general_notice_and_ho
     assert "notices/heraldique-et-papaute.html" in result.generated_page_relpaths
     home_html = (output_dir / "index.html").read_text(encoding="utf-8")
     assert "Cadre scientifique" in home_html
+    assert "Introduction générale" in home_html
+
+
+def test_site_builder_service_publication_request_inlines_home_page_tei_notice_on_index() -> None:
+    base = _runtime_dir("app_site_builder_service_publication_request_home_page_tei")
+    output_dir = base / "site"
+    dialog_config = SitePublicationDialogConfig(
+        author_name="Jean Racine",
+        corpus_title="Théâtre complet",
+        output_dir=output_dir,
+        home_page_tei=REALISTIC_NOTICES / "Ch01_Introduction.xml",
+        general_intro_tei=REALISTIC_NOTICES / "Heraldique_et_Papaute_volII.xml",
+        plays=(
+            SitePublicationDialogPlayConfig(
+                play_slug="andromaque",
+                dramatic_xml_path=DRAMATIC_FIXTURES / "andromaque.xml",
+            ),
+        ),
+    )
+
+    request = site_publication_request_from_dialog_config(dialog_config)
+    result = build_site_from_publication_request(request)
+
+    assert result.ok is True
+    home_html = (output_dir / "index.html").read_text(encoding="utf-8")
+    assert 'class="home-page-notice"' in home_html
+    assert "Yvan Loskoutoff" in home_html
+    assert "Ce deuxième volume" in home_html
     assert "Introduction générale" in home_html
 
 

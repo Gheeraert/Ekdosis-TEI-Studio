@@ -36,6 +36,7 @@ class SiteConfig:
     homepage_intro: str = ""
     homepage_sections: tuple[HomePageSection, ...] = ()
     general_notice_slug: str = ""
+    home_page_notice_slug: str = ""
     play_notice_map: tuple[tuple[str, str], ...] = ()
     play_preface_map: tuple[tuple[str, tuple[str, ...]], ...] = ()
     play_dramatis_map: tuple[tuple[str, str], ...] = ()

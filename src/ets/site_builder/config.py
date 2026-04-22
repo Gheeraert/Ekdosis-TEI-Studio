@@ -218,6 +218,9 @@ def site_config_from_dict(payload: dict[str, Any], *, base_dir: Path | None = No
         general_notice_slug=_normalize_identifier(
             _normalize_text(payload.get("general_notice_slug", ""), field_name="general_notice_slug")
         ),
+        home_page_notice_slug=_normalize_identifier(
+            _normalize_text(payload.get("home_page_notice_slug", ""), field_name="home_page_notice_slug")
+        ),
         play_notice_map=_coerce_play_notice_map(payload.get("play_notice_map")),
         play_preface_map=_coerce_play_preface_map(payload.get("play_preface_map")),
         play_dramatis_map=_coerce_play_dramatis_map(payload.get("play_dramatis_map")),

@@ -45,6 +45,7 @@ def test_site_config_from_dict_normalizes_paths_and_defaults() -> None:
     assert config.homepage_intro == ""
     assert config.homepage_sections == ()
     assert config.general_notice_slug == ""
+    assert config.home_page_notice_slug == ""
 
 
 def test_site_config_loads_from_json_and_resolves_relative_paths() -> None:
@@ -136,6 +137,7 @@ def test_site_config_supports_general_notice_and_homepage_sections() -> None:
             "notice_xml_dir": str(ROOT / "fixtures" / "metopes" / "minimal"),
             "output_dir": str(ROOT / "tests" / "_runtime" / "site_builder_config_editorial"),
             "general_notice_slug": "Bibliographie",
+            "home_page_notice_slug": "Introduction",
             "homepage_sections": [
                 {
                     "title": "Cadre scientifique",
@@ -149,6 +151,7 @@ def test_site_config_supports_general_notice_and_homepage_sections() -> None:
     )
 
     assert config.general_notice_slug == "bibliographie"
+    assert config.home_page_notice_slug == "introduction"
     assert len(config.homepage_sections) == 1
     assert config.homepage_sections[0].title == "Cadre scientifique"
     assert config.homepage_sections[0].paragraphs == (

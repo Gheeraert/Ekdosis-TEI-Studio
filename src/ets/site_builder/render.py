@@ -281,6 +281,7 @@ def _layout(
     .home-play-list li {{ margin: 0.45rem 0; }}
     .home-play-links {{ color: var(--ink-muted); font-size: 0.95rem; }}
     .home-general-notice {{ margin: 1rem 0 1.25rem; padding: 0.85rem 1rem; border: 1px solid var(--line); background: var(--bg-soft); }}
+    .home-page-notice {{ margin: 1.15rem 0 1.6rem; }}
     .content-shell {{ padding: 1rem 1.2rem 2.5rem; max-width: 960px; background: var(--bg-panel); border: 1px solid var(--line); box-shadow: var(--shadow-soft); min-width: 0; }}
     .content-shell-play {{
       padding: 0.55rem 0.1rem 2.5rem;
@@ -914,10 +915,34 @@ def _render_home_general_notice(manifest: SiteManifest) -> str:
     return ""
 
 
+def _notice_by_slug(manifest: SiteManifest, slug: str) -> NoticeEntry | None:
+    for notice in manifest.notices:
+        if notice.slug == slug:
+            return notice
+    return None
+
+
+def _render_home_page_notice(manifest: SiteManifest) -> str:
+    slug = (manifest.config.home_page_notice_slug or "").strip()
+    if not slug:
+        return ""
+
+    notice = _notice_by_slug(manifest, slug)
+    if notice is None or notice.document is None:
+        return ""
+
+    return (
+        '<section class="home-page-notice" id="home-notice">'
+        + _render_notice_document(manifest, notice, notice.document, download_href_prefix="")
+        + "</section>"
+    )
+
+
 def render_home_page(manifest: SiteManifest) -> str:
     blocks: list[str] = [
         _render_home_overview(manifest),
         _render_home_editorial_sections(manifest),
+        _render_home_page_notice(manifest),
         _render_home_general_notice(manifest),
         _render_home_play_list(manifest),
     ]
@@ -1061,7 +1086,12 @@ def _render_title_block(notice: NoticeEntry, document: NoticeDocument) -> str:
     return "".join(lines)
 
 
-def _render_metadata_block(notice: NoticeEntry, document: NoticeDocument) -> str:
+def _render_metadata_block(
+    notice: NoticeEntry,
+    document: NoticeDocument,
+    *,
+    download_href_prefix: str = "../",
+) -> str:
     rows: list[tuple[str, str]] = []
     if notice.authors:
         rows.append(("Auteur(s)", html.escape(", ".join(notice.authors))))
@@ -1075,7 +1105,8 @@ def _render_metadata_block(notice: NoticeEntry, document: NoticeDocument) -> str
         rows.append(
             (
                 "XML source",
-                f'<a href="../{html.escape(notice.xml_download_relpath, quote=True)}" download>Telecharger le XML</a>',
+                f'<a href="{html.escape(download_href_prefix + notice.xml_download_relpath, quote=True)}" download>'
+                f"Telecharger le XML</a>",
             )
         )
 
@@ -1089,11 +1120,20 @@ def _render_metadata_block(notice: NoticeEntry, document: NoticeDocument) -> str
     return "".join(chunks)
 
 
-def _render_notice_document(manifest: SiteManifest, notice: NoticeEntry, document: NoticeDocument) -> str:
+def _render_notice_document(
+    manifest: SiteManifest,
+    notice: NoticeEntry,
+    document: NoticeDocument,
+    *,
+    download_href_prefix: str = "../",
+) -> str:
     ref_counts: dict[str, int] = {}
     first_refs: dict[str, str] = {}
 
-    lines: list[str] = [_render_title_block(notice, document), _render_metadata_block(notice, document)]
+    lines: list[str] = [
+        _render_title_block(notice, document),
+        _render_metadata_block(notice, document, download_href_prefix=download_href_prefix),
+    ]
     if document.front_title_page:
         lines.append("<div class=\"notice-front\">")
         lines.extend(f"<p>{html.escape(item)}</p>" for item in document.front_title_page)

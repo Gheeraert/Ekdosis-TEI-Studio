@@ -372,6 +372,7 @@ def _normalize_publication_request(
         "play_preface_map": preface_mapping_dict,
         "play_dramatis_map": dramatis_mapping_dict,
         "general_notice_slug": _normalize_identifier(request.general_notice_slug),
+        "home_page_notice_slug": _normalize_identifier(request.home_page_notice_slug),
         "play_order": list(normalized_order),
         "assets": {
             "logos": [str(path) for path in request.assets.logo_files],

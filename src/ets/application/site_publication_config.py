@@ -470,6 +470,12 @@ def site_publication_request_from_dialog_config(config: SitePublicationDialogCon
             config.general_intro_tei,
             resolve_xincludes=config.resolve_notice_xincludes,
         )
+    home_page_notice_slug = ""
+    if config.home_page_tei is not None:
+        home_page_notice_slug = _derive_notice_slug_from_xml(
+            config.home_page_tei,
+            resolve_xincludes=config.resolve_notice_xincludes,
+        )
 
     identity = SiteIdentityInput(
         site_title=corpus_title,
@@ -499,6 +505,7 @@ def site_publication_request_from_dialog_config(config: SitePublicationDialogCon
         play_preface_map=tuple(play_preface_map),
         play_dramatis_map=tuple(play_dramatis_map),
         general_notice_slug=general_notice_slug,
+        home_page_notice_slug=home_page_notice_slug,
     )
 
 
