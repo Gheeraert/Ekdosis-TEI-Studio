@@ -933,7 +933,15 @@ def _render_home_page_notice(manifest: SiteManifest) -> str:
 
     return (
         '<section class="home-page-notice" id="home-notice">'
-        + _render_notice_document(manifest, notice, notice.document, download_href_prefix="")
+        + _render_notice_document(
+            manifest,
+            notice,
+            notice.document,
+            download_href_prefix="",
+            include_title_block=False,
+            include_metadata_block=False,
+            show_toc_labels=False,
+        )
         + "</section>"
     )
 
@@ -991,16 +999,17 @@ def _toc_label(section: NoticeSection) -> str:
     return "Sec"
 
 
-def _render_toc_from_sections(sections: tuple[NoticeSection, ...]) -> str:
+def _render_toc_from_sections(sections: tuple[NoticeSection, ...], *, show_labels: bool = True) -> str:
     if not sections:
         return ""
     chunks: list[str] = ["<ul>"]
     for section in sections:
+        label_html = f'<span class="toc-label">{_toc_label(section)}</span>' if show_labels else ""
         chunks.append(
             f'<li class="toc-item toc-kind-{html.escape(section.node_kind, quote=True)}">'
-            f'<span class="toc-label">{_toc_label(section)}</span>'
+            f"{label_html}"
             f'<a href="#{html.escape(section.section_id, quote=True)}">{html.escape(section.title)}</a>'
-            f'{_render_toc_from_sections(section.children)}</li>'
+            f'{_render_toc_from_sections(section.children, show_labels=show_labels)}</li>'
         )
     chunks.append("</ul>")
     return "".join(chunks)
@@ -1126,14 +1135,18 @@ def _render_notice_document(
     document: NoticeDocument,
     *,
     download_href_prefix: str = "../",
+    include_title_block: bool = True,
+    include_metadata_block: bool = True,
+    show_toc_labels: bool = True,
 ) -> str:
     ref_counts: dict[str, int] = {}
     first_refs: dict[str, str] = {}
 
-    lines: list[str] = [
-        _render_title_block(notice, document),
-        _render_metadata_block(notice, document, download_href_prefix=download_href_prefix),
-    ]
+    lines: list[str] = []
+    if include_title_block:
+        lines.append(_render_title_block(notice, document))
+    if include_metadata_block:
+        lines.append(_render_metadata_block(notice, document, download_href_prefix=download_href_prefix))
     if document.front_title_page:
         lines.append("<div class=\"notice-front\">")
         lines.extend(f"<p>{html.escape(item)}</p>" for item in document.front_title_page)
@@ -1141,7 +1154,7 @@ def _render_notice_document(
 
     if document.sections:
         lines.append('<nav class="notice-toc" aria-label="Sommaire de la notice"><h3>Sommaire</h3>')
-        lines.append(_render_toc_from_sections(document.sections))
+        lines.append(_render_toc_from_sections(document.sections, show_labels=show_toc_labels))
         lines.append("</nav>")
 
     if document.sections:

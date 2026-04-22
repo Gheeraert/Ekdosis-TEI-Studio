@@ -330,6 +330,10 @@ def test_site_builder_service_publication_request_inlines_home_page_tei_notice_o
     assert "Yvan Loskoutoff" in home_html
     assert "Ce deuxième volume" in home_html
     assert "Introduction générale" in home_html
+    assert 'class="notice-title-block"' not in home_html
+    assert 'class="notice-meta"' not in home_html
+    assert 'class="toc-label"' not in home_html
+    assert ">SEC<" not in home_html
 
 
 def test_site_builder_service_publication_request_notice_and_preface_flags_are_independent() -> None:
