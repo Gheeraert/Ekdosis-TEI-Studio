@@ -128,9 +128,20 @@ def _layout(
   {head_extra_html}
   <script>
     (() => {{
-      const storageKey = "ets-theme";
+      const themeStorageKey = "ets-theme";
+      const fontStorageKey = "ets-font-scale";
+      const minFontScale = 90;
+      const maxFontScale = 200;
+      const defaultFontScale = 100;
       const root = document.documentElement;
-      const savedTheme = window.localStorage.getItem(storageKey);
+      const savedTheme = window.localStorage.getItem(themeStorageKey);
+      const parsedFontScale = Number.parseInt(window.localStorage.getItem(fontStorageKey) || "", 10);
+      const initialFontScale = Number.isFinite(parsedFontScale)
+        ? Math.min(maxFontScale, Math.max(minFontScale, parsedFontScale))
+        : defaultFontScale;
+
+      root.style.fontSize = `${{initialFontScale}}%`;
+
       if (savedTheme === "light" || savedTheme === "dark") {{
         root.dataset.theme = savedTheme;
         return;
@@ -174,7 +185,7 @@ def _layout(
       --focus: #c99a59;
       --shadow-soft: 0 1px 0 rgba(0, 0, 0, 0.25);
     }}
-    html {{ scroll-behavior: smooth; }}
+    html {{ font-size: 100%; scroll-behavior: smooth; }}
     body {{ margin: 0; background: var(--bg); color: var(--ink); line-height: 1.6; font-family: var(--font-body); }}
     a {{ color: var(--accent); text-underline-offset: 0.14em; }}
     a:hover {{ color: var(--accent-soft); }}
@@ -229,6 +240,12 @@ def _layout(
       font-size: clamp(1.8rem, 3vw, 2.35rem);
       white-space: nowrap;
     }}
+    .header-controls {{
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.35rem;
+      flex-wrap: wrap;
+    }}
     .theme-toggle {{
       position: static;
       align-self: flex-end;
@@ -245,6 +262,11 @@ def _layout(
     }}
     .theme-toggle:hover {{
       border-color: rgba(243, 236, 224, 0.6);
+    }}
+    .theme-toggle:disabled {{
+      opacity: 0.45;
+      cursor: default;
+      box-shadow: none;
     }}
     main {{ display: grid; grid-template-columns: 250px minmax(0, 1fr); gap: 0.75rem; min-height: calc(100vh - 4.8rem); padding: 0.85rem 1rem 1.4rem; max-width: 1320px; margin: 0 auto; }}
     nav {{ border: 1px solid var(--line); background: var(--bg-soft); padding: 0.9rem 0.95rem; box-shadow: var(--shadow-soft); }}
@@ -605,6 +627,9 @@ def _layout(
       }}
       .notice-meta dl {{ grid-template-columns: 1fr; }}
       .notice-meta dt {{ margin-top: 0.25rem; }}
+      .header-controls {{
+        justify-content: flex-start;
+      }}
       .theme-toggle {{
         align-self: flex-start;
         font-size: 0.72rem;
@@ -622,7 +647,11 @@ def _layout(
         <h1>{html.escape(manifest.config.site_title)}</h1>
       </div>
       <div class="site-header-branding">
-        <button class="theme-toggle" type="button" data-theme-toggle aria-label="Basculer le theme">Mode sombre</button>
+        <div class="header-controls">
+          <button class="theme-toggle" type="button" data-font-decrease aria-label="Retrecir le texte">A−</button>
+          <button class="theme-toggle" type="button" data-font-increase aria-label="Agrandir le texte">A+</button>
+          <button class="theme-toggle" type="button" data-theme-toggle aria-label="Basculer le theme">Mode sombre</button>
+        </div>
         {_branding_html(manifest, current_href)}
       </div>
     </div>
@@ -633,22 +662,67 @@ def _layout(
   </main>
   <script>
     (() => {{
-      const storageKey = "ets-theme";
+      const themeStorageKey = "ets-theme";
+      const fontStorageKey = "ets-font-scale";
+      const minFontScale = 90;
+      const maxFontScale = 200;
+      const defaultFontScale = 100;
+      const stepFontScale = 5;
       const root = document.documentElement;
-      const button = document.querySelector("[data-theme-toggle]");
-      if (!button) return;
+      const themeButton = document.querySelector("[data-theme-toggle]");
+      const decreaseButton = document.querySelector("[data-font-decrease]");
+      const increaseButton = document.querySelector("[data-font-increase]");
+      if (!themeButton && !decreaseButton && !increaseButton) return;
 
-      function refreshLabel() {{
-        button.textContent = root.dataset.theme === "dark" ? "Mode clair" : "Mode sombre";
+      function clampFontScale(value) {{
+        return Math.min(maxFontScale, Math.max(minFontScale, value));
       }}
 
-      button.addEventListener("click", () => {{
-        root.dataset.theme = root.dataset.theme === "dark" ? "light" : "dark";
-        window.localStorage.setItem(storageKey, root.dataset.theme);
-        refreshLabel();
-      }});
+      function currentFontScale() {{
+        const parsed = Number.parseInt(window.localStorage.getItem(fontStorageKey) || root.style.fontSize || "", 10);
+        return Number.isFinite(parsed) ? clampFontScale(parsed) : defaultFontScale;
+      }}
 
-      refreshLabel();
+      function applyFontScale(value) {{
+        const nextValue = clampFontScale(value);
+        root.style.fontSize = `${{nextValue}}%`;
+        window.localStorage.setItem(fontStorageKey, String(nextValue));
+        refreshLabels(nextValue);
+      }}
+
+      function refreshLabels(fontScale) {{
+        if (themeButton) {{
+          themeButton.textContent = root.dataset.theme === "dark" ? "Mode clair" : "Mode sombre";
+        }}
+        if (decreaseButton) {{
+          decreaseButton.disabled = fontScale <= minFontScale;
+        }}
+        if (increaseButton) {{
+          increaseButton.disabled = fontScale >= maxFontScale;
+        }}
+      }}
+
+      if (themeButton) {{
+        themeButton.addEventListener("click", () => {{
+          root.dataset.theme = root.dataset.theme === "dark" ? "light" : "dark";
+          window.localStorage.setItem(themeStorageKey, root.dataset.theme);
+          refreshLabels(currentFontScale());
+        }});
+      }}
+
+      if (decreaseButton) {{
+        decreaseButton.addEventListener("click", () => {{
+          applyFontScale(currentFontScale() - stepFontScale);
+        }});
+      }}
+
+      if (increaseButton) {{
+        increaseButton.addEventListener("click", () => {{
+          applyFontScale(currentFontScale() + stepFontScale);
+        }});
+      }}
+
+      refreshLabels(currentFontScale());
     }})();
   </script>
 </body>
