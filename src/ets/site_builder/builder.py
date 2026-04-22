@@ -11,6 +11,27 @@ from .models import BuildResult, NoticeEntry, PlayEntry, SiteConfig
 from .render import render_home_page, render_notice_page, render_play_page
 
 _SUPPORTED_AUTO_LOGO_EXTENSIONS = {".png", ".jpg", ".jpeg", ".svg", ".webp"}
+_AFFILIATION_BANNER_FILENAME = "banniere_affiliation.png"
+
+def _banner_search_roots(config: SiteConfig) -> tuple[Path, ...]:
+    roots: list[Path] = []
+
+    start = config.dramatic_xml_dir.resolve()
+    if start.is_dir():
+        roots.append(start)
+    roots.extend(start.parents)
+
+    module_root = Path(__file__).resolve()
+    roots.extend(module_root.parents)
+
+    unique: list[Path] = []
+    seen: set[Path] = set()
+    for root in roots:
+        if root not in seen:
+            unique.append(root)
+            seen.add(root)
+    return tuple(unique)
+
 
 
 def _write_page(output_root: Path, relpath: str, html_content: str) -> Path:
@@ -63,6 +84,17 @@ def _copy_assets(config: SiteConfig, output_root: Path, warnings: list[str]) -> 
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(logo, target)
         copied.append(target.resolve())
+    banner_target = output_root / "assets" / "logos" / _AFFILIATION_BANNER_FILENAME
+    if not banner_target.exists():
+        for base in _banner_search_roots(config):
+            banner_source = base / "assets" / "logos" / _AFFILIATION_BANNER_FILENAME
+            if banner_source.exists() and banner_source.is_file():
+                banner_target.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(banner_source, banner_target)
+                copied.append(banner_target.resolve())
+                break
+        else:
+            warnings.append(f"Affiliation banner not found: {_AFFILIATION_BANNER_FILENAME}")
 
     for directory in config.assets.asset_directories:
         if not directory.exists() or not directory.is_dir():

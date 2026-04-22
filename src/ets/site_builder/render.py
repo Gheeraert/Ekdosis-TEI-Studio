@@ -24,6 +24,13 @@ from .play_navigation import index_play_navigation
 NOTE_REF_PATTERN = re.compile(r'<sup class="note-ref"><a href="#note-([^"]+)">\[([^\]]+)\]</a></sup>')
 
 
+SITE_CREDITS_TEXT = "Site réalisé avec TEI Studio dans le cadre de la Chaire d'Excellence en Edition numérique. 2026"
+SITE_GITHUB_URL = "https://github.com/Gheeraert/Ekdosis-TEI-Studio"
+SITE_GITHUB_LABEL = "GitHub du projet"
+AFFILIATION_BANNER_ALT = "Bannière d'affiliation de la Chaire d'Excellence en Edition numérique, de la Région Normandie, de l'Université de Rouen Normandie et des PURH"
+AFFILIATION_BANNER_FILENAME = "banniere_affiliation.png"
+
+
 def _asset_prefix(current_href: str) -> str:
     path = current_href.strip("/")
     if not path or "/" not in path:
@@ -108,6 +115,41 @@ def _branding_html(manifest: SiteManifest, current_href: str) -> str:
         for logo in logos
     )
     return f'<div class="branding" aria-label="Identite visuelle">{images}</div>'
+
+
+
+def _affiliation_banner_src(current_href: str) -> str:
+    return f"{_asset_prefix(current_href)}assets/logos/{AFFILIATION_BANNER_FILENAME}"
+
+
+
+def _site_sidebar_html(current_href: str) -> str:
+    return (
+        '<section class="site-project-meta" aria-label="A propos du site">'
+        '<h2>À propos du site</h2>'
+        f'<p>{html.escape(SITE_CREDITS_TEXT)}</p>'
+        f'<p><a href="{html.escape(SITE_GITHUB_URL, quote=True)}" target="_blank" rel="noopener noreferrer">'
+        f'{html.escape(SITE_GITHUB_LABEL)}</a></p>'
+        f'<img class="site-project-banner" src="{html.escape(_affiliation_banner_src(current_href), quote=True)}" '
+        f'alt="{html.escape(AFFILIATION_BANNER_ALT)}" loading="lazy">'
+        "</section>"
+    )
+
+
+def _site_footer_html(current_href: str) -> str:
+    return (
+        '<footer class="site-footer">'
+        '<div class="site-footer-inner">'
+        f'<img class="site-footer-logo" src="{html.escape(_affiliation_banner_src(current_href), quote=True)}" '
+        f'alt="{html.escape(AFFILIATION_BANNER_ALT)}" loading="lazy">'
+        '<p class="site-footer-text">'
+        f'{html.escape(SITE_CREDITS_TEXT)} '
+        f'<a href="{html.escape(SITE_GITHUB_URL, quote=True)}" target="_blank" rel="noopener noreferrer">'
+        f'{html.escape(SITE_GITHUB_LABEL)}</a>'
+        '</p>'
+        '</div>'
+        '</footer>'
+    )
 
 
 def _layout(
@@ -537,6 +579,72 @@ def _layout(
     .notice-notes li {{ margin: 0.4rem 0; }}
     .note-backlink {{ margin-left: 0.45rem; text-decoration: none; }}
 
+
+    .site-project-meta {{
+      margin-top: 1.15rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--line);
+    }}
+    .site-project-meta h2 {{
+      margin: 0 0 0.45rem;
+      font-family: var(--font-ui);
+      font-size: 0.95rem;
+      letter-spacing: 0.01em;
+      color: var(--ink-muted);
+    }}
+    .site-project-meta p {{
+      margin: 0.45rem 0;
+      font-size: 0.94rem;
+      color: var(--ink);
+    }}
+    .site-project-meta a {{
+      font-family: var(--font-ui);
+      font-size: 0.92rem;
+    }}
+    .site-project-banner {{
+      display: block;
+      width: 100%;
+      max-width: 100%;
+      height: auto;
+      margin-top: 0.7rem;
+      border: 1px solid var(--line);
+      background: transparent;
+      box-sizing: border-box;
+      border: none;
+    }}
+
+    .site-footer {{
+      max-width: 1320px;
+      margin: 0 auto 1.2rem;
+      padding: 0 1rem;
+    }}
+    .site-footer-inner {{
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 0.85rem 1rem;
+      border: 1px solid var(--line);
+      background: var(--bg-soft);
+      box-shadow: var(--shadow-soft);
+    }}
+    .site-footer-logo {{
+      display: block;
+      width: min(280px, 38vw);
+      max-width: 100%;
+      height: auto;
+      flex: 0 0 auto;
+      border: 1px solid var(--line);
+      background: transparent;
+      box-sizing: border-box;
+      border: none;
+    }}
+    .site-footer-text {{
+      margin: 0;
+      color: var(--ink);
+      font-size: 0.95rem;
+    }}
+
     @media (prefers-reduced-motion: reduce) {{
       html {{ scroll-behavior: auto; }}
     }}
@@ -635,6 +743,14 @@ def _layout(
         font-size: 0.72rem;
         padding: 0.28rem 0.46rem;
       }}
+
+      .site-footer-inner {{
+        flex-direction: column;
+        align-items: flex-start;
+      }}
+      .site-footer-logo {{
+        width: min(100%, 340px);
+      }}
       .home-overview dl {{ grid-template-columns: 1fr; }}
     }}
   </style>
@@ -657,9 +773,10 @@ def _layout(
     </div>
   </header>
   <main>
-    <nav aria-label=\"Navigation principale\">{_nav_html(manifest, current_href=current_href)}</nav>
+    <nav aria-label=\"Navigation principale\">{_nav_html(manifest, current_href=current_href)}{_site_sidebar_html(current_href)}</nav>
     <section class="{html.escape(section_class, quote=True)}">{content_html}</section>
   </main>
+  {_site_footer_html(current_href)}
   <script>
     (() => {{
       const themeStorageKey = "ets-theme";
