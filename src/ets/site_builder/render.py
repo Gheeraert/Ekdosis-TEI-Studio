@@ -27,6 +27,10 @@ NOTE_REF_PATTERN = re.compile(r'<sup class="note-ref"><a href="#note-([^"]+)">\[
 SITE_CREDITS_TEXT = "Site réalisé avec TEI Studio dans le cadre de la Chaire d'Excellence en Edition numérique. 2026"
 SITE_GITHUB_URL = "https://github.com/Gheeraert/Ekdosis-TEI-Studio"
 SITE_GITHUB_LABEL = "GitHub du projet"
+SITE_PURH_URL = "https://purh.univ-rouen.fr"
+SITE_PURH_LABEL = "PURH"
+SITE_CHAIR_URL = "https://ceen.hypotheses.org"
+SITE_CHAIR_LABEL = "Site de la chaire"
 AFFILIATION_BANNER_ALT = "Bannière d'affiliation de la Chaire d'Excellence en Edition numérique, de la Région Normandie, de l'Université de Rouen Normandie et des PURH"
 AFFILIATION_BANNER_FILENAME = "banniere_affiliation.png"
 
@@ -128,8 +132,14 @@ def _site_sidebar_html(current_href: str) -> str:
         '<section class="site-project-meta" aria-label="A propos du site">'
         '<h2>À propos du site</h2>'
         f'<p>{html.escape(SITE_CREDITS_TEXT)}</p>'
-        f'<p><a href="{html.escape(SITE_GITHUB_URL, quote=True)}" target="_blank" rel="noopener noreferrer">'
-        f'{html.escape(SITE_GITHUB_LABEL)}</a></p>'
+        '<p class="site-project-links">'
+        f'<a href="{html.escape(SITE_PURH_URL, quote=True)}" target="_blank" rel="noopener noreferrer">'
+        f'{html.escape(SITE_PURH_LABEL)}</a><br>'
+        f'<a href="{html.escape(SITE_CHAIR_URL, quote=True)}" target="_blank" rel="noopener noreferrer">'
+        f'{html.escape(SITE_CHAIR_LABEL)}</a><br>'
+        f'<a href="{html.escape(SITE_GITHUB_URL, quote=True)}" target="_blank" rel="noopener noreferrer">'
+        f'{html.escape(SITE_GITHUB_LABEL)}</a>'
+        '</p>'
         f'<img class="site-project-banner" src="{html.escape(_affiliation_banner_src(current_href), quote=True)}" '
         f'alt="{html.escape(AFFILIATION_BANNER_ALT)}" loading="lazy">'
         "</section>"
@@ -142,11 +152,17 @@ def _site_footer_html(current_href: str) -> str:
         '<div class="site-footer-inner">'
         f'<img class="site-footer-logo" src="{html.escape(_affiliation_banner_src(current_href), quote=True)}" '
         f'alt="{html.escape(AFFILIATION_BANNER_ALT)}" loading="lazy">'
-        '<p class="site-footer-text">'
-        f'{html.escape(SITE_CREDITS_TEXT)} '
+        '<div class="site-footer-text">'
+        f'<p>{html.escape(SITE_CREDITS_TEXT)}</p>'
+        '<p class="site-footer-links">'
+        f'<a href="{html.escape(SITE_PURH_URL, quote=True)}" target="_blank" rel="noopener noreferrer">'
+        f'{html.escape(SITE_PURH_LABEL)}</a> · '
+        f'<a href="{html.escape(SITE_CHAIR_URL, quote=True)}" target="_blank" rel="noopener noreferrer">'
+        f'{html.escape(SITE_CHAIR_LABEL)}</a> · '
         f'<a href="{html.escape(SITE_GITHUB_URL, quote=True)}" target="_blank" rel="noopener noreferrer">'
         f'{html.escape(SITE_GITHUB_LABEL)}</a>'
         '</p>'
+        '</div>'
         '</div>'
         '</footer>'
     )
@@ -609,6 +625,9 @@ def _layout(
       font-family: var(--font-ui);
       font-size: 0.92rem;
     }}
+    .site-project-links {{
+      line-height: 1.75;
+    }}
     .site-project-banner {{
       display: block;
       width: 100%;
@@ -651,6 +670,12 @@ def _layout(
       margin: 0;
       color: var(--ink);
       font-size: 0.95rem;
+    }}
+    .site-footer-text p {{
+      margin: 0.2rem 0;
+    }}
+    .site-footer-links a {{
+      font-family: var(--font-ui);
     }}
 
     @media (prefers-reduced-motion: reduce) {{
