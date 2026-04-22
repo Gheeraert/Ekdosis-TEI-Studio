@@ -23,26 +23,32 @@
    </xsl:choose>
   </xsl:template>
 
-<xsl:template name="format-wit-list">
+<xsl:template name="format-wit-lines">
   <xsl:param name="wit"/>
+  <xsl:param name="reading"/>
+
   <xsl:variable name="trim" select="normalize-space($wit)"/>
+  
   <xsl:if test="$trim != ''">
     <xsl:variable name="first" select="substring-before(concat($trim, ' '), ' ')"/>
     <xsl:variable name="rest" select="normalize-space(substring-after($trim, ' '))"/>
     <xsl:variable name="id" select="substring-after($first, '#')"/>
-
+  
     <xsl:call-template name="format-witness-short">
       <xsl:with-param name="id" select="$id"/>
     </xsl:call-template>
-
+    <xsl:text>: </xsl:text>
+    <xsl:value-of select="$reading"/>
+    
     <xsl:if test="$rest != ''">
-      <xsl:text>, </xsl:text>
-      <xsl:call-template name="format-wit-list">
+      <xsl:text>&#10;</xsl:text>
+      <xsl:call-template name="format-wit-lines">
         <xsl:with-param name="wit" select="$rest"/>
+        <xsl:with-param name="reading" select="$reading"/>
       </xsl:call-template>
     </xsl:if>
-   </xsl:if>
-  </xsl:template>
+  </xsl:if>
+</xsl:template>
 
 
   <xsl:template match="/tei:TEI">
@@ -363,14 +369,15 @@
   <xsl:template match="tei:stage[@type='characters' or @type='personnages']/tei:app">
     <span class="variation" style="font-variant: small-caps;">
       <xsl:attribute name="data-tooltip">  
+      
       <xsl:for-each select="tei:rdg">
-        <xsl:call-template name="format-wit-list">
+       <xsl:call-template name="format-wit-lines">
         <xsl:with-param name="wit" select="@wit"/>
-        </xsl:call-template>
-        <xsl:text>: </xsl:text>
-        <xsl:value-of select="normalize-space(.)"/>
-        <xsl:text>&#10;&#10;</xsl:text>
+        <xsl:with-param name="reading" select="normalize-space(.)"/>
+       </xsl:call-template>
+       <xsl:text>&#10;&#10;</xsl:text>
       </xsl:for-each>
+      
       </xsl:attribute>
       <xsl:apply-templates select="tei:lem"/>
     </span>
@@ -401,14 +408,15 @@
   <xsl:template match="tei:speaker/tei:app">
     <span class="variation" style="font-variant: small-caps;">
       <xsl:attribute name="data-tooltip">
-        <xsl:for-each select="tei:rdg">
-        <xsl:call-template name="format-wit-list">
+        
+      <xsl:for-each select="tei:rdg">
+       <xsl:call-template name="format-wit-lines">
         <xsl:with-param name="wit" select="@wit"/>
-        </xsl:call-template>
-        <xsl:text>: </xsl:text>
-        <xsl:value-of select="normalize-space(.)"/>
-        <xsl:text>&#10;&#10;</xsl:text>
+        <xsl:with-param name="reading" select="normalize-space(.)"/>
+       </xsl:call-template>
+       <xsl:text>&#10;&#10;</xsl:text>
       </xsl:for-each>
+      
       </xsl:attribute>
       <xsl:apply-templates select="tei:lem"/>
     </span>
@@ -440,14 +448,15 @@
   <xsl:template match="tei:app">
     <span class="variation">
       <xsl:attribute name="data-tooltip">
+      
       <xsl:for-each select="tei:rdg">
-        <xsl:call-template name="format-wit-list">
+       <xsl:call-template name="format-wit-lines">
         <xsl:with-param name="wit" select="@wit"/>
-        </xsl:call-template>
-        <xsl:text>: </xsl:text>
-        <xsl:value-of select="normalize-space(.)"/>
-        <xsl:text>&#10;&#10;</xsl:text>
+        <xsl:with-param name="reading" select="normalize-space(.)"/>
+       </xsl:call-template>
+       <xsl:text>&#10;&#10;</xsl:text>
       </xsl:for-each>
+      
       </xsl:attribute>
       <xsl:apply-templates select="tei:lem"/>
     </span>
