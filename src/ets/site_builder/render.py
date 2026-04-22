@@ -468,16 +468,23 @@ def _layout(
     .content-shell-play .dramatic-content .note-call a {{ color: var(--accent); }}
     .content-shell-play .dramatic-content .note-call a:hover,
     .content-shell-play .dramatic-content .note-call a:focus {{ border-bottom-color: var(--accent); }}
-    
+    .content-shell-play .dramatic-content .didascalie,
+    .content-shell-play .dramatic-content .didascalie em,
+    .content-shell-play .dramatic-content .didas-implicites-label,
+    .content-shell-play .dramatic-content .stage-implicite::after {{
+     color: var(--ets-stage-ink);
+}}
     .content-shell-play .dramatic-content {{
       --ets-tooltip-bg: var(--bg-panel);
       --ets-tooltip-ink: var(--ink);
       --ets-tooltip-border: var(--line);
       --ets-tooltip-shadow: 0 10px 24px rgba(46, 34, 24, 0.16);
+      --ets-stage-ink: #6d6258;
     }}
     
     html[data-theme="dark"] .content-shell-play .dramatic-content {{
       --ets-tooltip-shadow: 0 12px 28px rgba(0, 0, 0, 0.42);
+      --ets-stage-ink: #d8c8bb;
     }}
     
     .content-shell-play .dramatic-content .variation {{
