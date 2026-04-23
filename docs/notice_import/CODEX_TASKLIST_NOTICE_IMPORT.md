@@ -11,7 +11,7 @@ Il complète :
 - `NOTICES_VALIDATION_RULES.md`
 - `NOTICES_TEI_TARGET.md`
 
-Il ne traite **que** des notices, pas des pièces de théâtre.
+Il ne traite **que** des notices, préfaces, texte d'accueil et introduction générale, JAMAIS des pièces de théâtre.
 
 ---
 
@@ -338,7 +338,7 @@ Raccorder le service à l’interface existante.
 
 ### Objectif
 
-Quand l’utilisateur charge un `.docx` de notice :
+Quand l’utilisateur charge un `.docx` de notice individuelle de pièce, préface de pièce, accueil du site ou introduction générale :
 
 1. ETS appelle le service ;
 2. ETS affiche immédiatement le rapport ;
@@ -442,4 +442,4 @@ L’implémentation ne doit pas :
 
 ## 10. Consigne finale à Codex
 
-Implémenter un module d’import de notices **sobre, robuste, modulaire et test-driven**, conforme aux spécifications documentées, avec validation immédiate au chargement, refus des imports invalides, et production d’une TEI stable pour les documents conformes.
+Implémenter un module d’import de notices (et préfaces, introduction générale et accueil) **sobre, robuste, modulaire et test-driven**, conforme aux spécifications documentées, avec validation immédiate au chargement, refus des imports invalides, et production d’une TEI stable pour les documents conformes.

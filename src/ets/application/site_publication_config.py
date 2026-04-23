@@ -375,7 +375,8 @@ def site_publication_request_from_dialog_config(config: SitePublicationDialogCon
     plays: list[DramaticPlayInput] = []
     derived_play_order: list[str] = []
     for play in config.plays:
-        play_slug = _derive_play_slug_from_xml(play.dramatic_xml_path)
+        configured_slug = _normalize_identifier(play.play_slug)
+        play_slug = configured_slug or _derive_play_slug_from_xml(play.dramatic_xml_path)
         if not play_slug:
             raise ValueError("Chaque pièce doit avoir un slug non vide.")
         if play_slug in seen_play_slugs:

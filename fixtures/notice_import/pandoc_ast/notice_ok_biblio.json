@@ -1,0 +1,92 @@
+{
+  "pandoc-api-version": [
+    1,
+    23,
+    1
+  ],
+  "meta": {},
+  "blocks": [
+    {
+      "t": "Div",
+      "c": [
+        [
+          "",
+          [],
+          [
+            [
+              "custom-style",
+              "Titre"
+            ]
+          ]
+        ],
+        [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "Notice"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "bibliographie"
+              }
+            ]
+          }
+        ]
+      ]
+    },
+    {
+      "t": "Header",
+      "c": [
+        1,
+        [
+          "",
+          [],
+          []
+        ],
+        [
+          {
+            "t": "Str",
+            "c": "Bibliographie"
+          }
+        ]
+      ]
+    },
+    {
+      "t": "Para",
+      "c": [
+        {
+          "t": "Str",
+          "c": "Forestier,"
+        },
+        {
+          "t": "Space"
+        },
+        {
+          "t": "Str",
+          "c": "Georges."
+        }
+      ]
+    },
+    {
+      "t": "Para",
+      "c": [
+        {
+          "t": "Str",
+          "c": "Guibert,"
+        },
+        {
+          "t": "Space"
+        },
+        {
+          "t": "Str",
+          "c": "Albert-Jean."
+        }
+      ]
+    }
+  ]
+}

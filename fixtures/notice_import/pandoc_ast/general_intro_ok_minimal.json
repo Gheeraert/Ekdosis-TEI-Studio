@@ -1,0 +1,59 @@
+{
+  "pandoc-api-version": [
+    1,
+    23,
+    1
+  ],
+  "meta": {},
+  "blocks": [
+    {
+      "t": "Div",
+      "c": [
+        [
+          "",
+          [],
+          [
+            [
+              "custom-style",
+              "Titre"
+            ]
+          ]
+        ],
+        [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "Introduction"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "generale"
+              }
+            ]
+          }
+        ]
+      ]
+    },
+    {
+      "t": "Para",
+      "c": [
+        {
+          "t": "Str",
+          "c": "Texte"
+        },
+        {
+          "t": "Space"
+        },
+        {
+          "t": "Str",
+          "c": "introductif."
+        }
+      ]
+    }
+  ]
+}

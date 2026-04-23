@@ -22,6 +22,12 @@ from ets.application import (
     load_annotations,
     load_config,
 )
+from ets.application.editorial_notice_import.models import (
+    EditorialImportResult,
+    ValidationMessage,
+    ValidationReport,
+    ValidationSeverity,
+)
 from ets.application.site_builder_models import SiteBuildServiceResult
 from ets.infrastructure import AutosavePayload, AutosaveStore
 from ets.ui.tk.helpers import diagnostic_line_numbers, format_config_status
@@ -975,6 +981,157 @@ def test_publication_dialog_attach_and_clear_preface_and_dramatis(monkeypatch: p
         root.destroy()
 
 
+def test_publication_dialog_attach_notice_xml_non_regression(monkeypatch: pytest.MonkeyPatch) -> None:
+    root = _make_root()
+    try:
+        runtime = RUNTIME_DIR / f"publication_dialog_notice_xml_non_reg_{uuid4().hex}"
+        runtime.mkdir(parents=True, exist_ok=True)
+        andromaque = runtime / "andromaque.xml"
+        notice = runtime / "notice.xml"
+        andromaque.write_text("<xml/>", encoding="utf-8")
+        notice.write_text("<xml/>", encoding="utf-8")
+
+        dialog = PublicationDialog(root)
+        monkeypatch.setattr("tkinter.messagebox.showerror", lambda *args, **kwargs: None)
+        dialog._append_play_from_path(andromaque)
+        dialog._refresh_dramatic_list()
+        dialog.dramatic_list.selection_set(0)
+        monkeypatch.setattr("tkinter.filedialog.askopenfilename", lambda **kwargs: str(notice))
+
+        dialog._attach_notice_to_selected_play()
+
+        assert dialog._play_entries[0].notice_xml_path == notice.resolve()
+        assert "notice: notice.xml" in dialog.dramatic_list.get(0)
+        dialog.destroy()
+    finally:
+        root.destroy()
+
+
+def test_publication_dialog_attach_notice_docx_with_warning(monkeypatch: pytest.MonkeyPatch) -> None:
+    root = _make_root()
+    try:
+        runtime = RUNTIME_DIR / f"publication_dialog_notice_docx_warn_{uuid4().hex}"
+        runtime.mkdir(parents=True, exist_ok=True)
+        andromaque = runtime / "andromaque.xml"
+        notice_docx = runtime / "notice.docx"
+        andromaque.write_text("<xml/>", encoding="utf-8")
+        notice_docx.write_text("placeholder", encoding="utf-8")
+
+        dialog = PublicationDialog(root)
+        dialog._append_play_from_path(andromaque)
+        dialog._refresh_dramatic_list()
+        dialog.dramatic_list.selection_set(0)
+
+        warning_report = ValidationReport.from_messages(
+            [
+                ValidationMessage(
+                    severity=ValidationSeverity.WARNING,
+                    code="MISSING_BIBLIO_SECTION",
+                    message="Rubrique Bibliographie absente.",
+                )
+            ]
+        )
+        monkeypatch.setattr(
+            dialog._editorial_import_service,
+            "inspect_source_for_ui",
+            lambda path, source_kind: EditorialImportResult(
+                source_path=path,
+                source_kind=source_kind,
+                report=warning_report,
+                tei_xml="<TEI/>",
+            ),
+        )
+        warnings: list[str] = []
+        monkeypatch.setattr("tkinter.filedialog.askopenfilename", lambda **kwargs: str(notice_docx))
+        monkeypatch.setattr("tkinter.messagebox.showwarning", lambda _title, message, **kwargs: warnings.append(message))
+        monkeypatch.setattr("tkinter.messagebox.showerror", lambda *args, **kwargs: None)
+
+        dialog._attach_notice_to_selected_play()
+
+        assert dialog._play_entries[0].notice_xml_path == notice_docx.resolve()
+        assert warnings
+        dialog.destroy()
+    finally:
+        root.destroy()
+
+
+def test_publication_dialog_attach_notice_docx_blocking_error_is_refused(monkeypatch: pytest.MonkeyPatch) -> None:
+    root = _make_root()
+    try:
+        runtime = RUNTIME_DIR / f"publication_dialog_notice_docx_error_{uuid4().hex}"
+        runtime.mkdir(parents=True, exist_ok=True)
+        andromaque = runtime / "andromaque.xml"
+        notice_docx = runtime / "notice.docx"
+        andromaque.write_text("<xml/>", encoding="utf-8")
+        notice_docx.write_text("placeholder", encoding="utf-8")
+
+        dialog = PublicationDialog(root)
+        dialog._append_play_from_path(andromaque)
+        dialog._refresh_dramatic_list()
+        dialog.dramatic_list.selection_set(0)
+
+        error_report = ValidationReport.from_messages(
+            [
+                ValidationMessage(
+                    severity=ValidationSeverity.ERROR,
+                    code="UNKNOWN_PARAGRAPH_STYLE",
+                    message="Style de paragraphe non autorise.",
+                )
+            ]
+        )
+        monkeypatch.setattr(
+            dialog._editorial_import_service,
+            "inspect_source_for_ui",
+            lambda path, source_kind: EditorialImportResult(
+                source_path=path,
+                source_kind=source_kind,
+                report=error_report,
+                tei_xml=None,
+            ),
+        )
+        errors: list[str] = []
+        monkeypatch.setattr("tkinter.filedialog.askopenfilename", lambda **kwargs: str(notice_docx))
+        monkeypatch.setattr("tkinter.messagebox.showerror", lambda _title, message, **kwargs: errors.append(message))
+
+        dialog._attach_notice_to_selected_play()
+
+        assert dialog._play_entries[0].notice_xml_path is None
+        assert errors
+        dialog.destroy()
+    finally:
+        root.destroy()
+
+
+def test_publication_dialog_choose_home_page_docx_validates_before_setting(monkeypatch: pytest.MonkeyPatch) -> None:
+    root = _make_root()
+    try:
+        runtime = RUNTIME_DIR / f"publication_dialog_home_docx_{uuid4().hex}"
+        runtime.mkdir(parents=True, exist_ok=True)
+        home_docx = runtime / "home.docx"
+        home_docx.write_text("placeholder", encoding="utf-8")
+
+        dialog = PublicationDialog(root)
+        valid_report = ValidationReport.from_messages([])
+        monkeypatch.setattr("tkinter.filedialog.askopenfilename", lambda **kwargs: str(home_docx))
+        monkeypatch.setattr(
+            dialog._editorial_import_service,
+            "inspect_source_for_ui",
+            lambda path, source_kind: EditorialImportResult(
+                source_path=path,
+                source_kind=source_kind,
+                report=valid_report,
+                tei_xml="<TEI/>",
+            ),
+        )
+
+        dialog._choose_home_page_tei()
+
+        assert dialog.vars.home_page_tei.get() == str(home_docx.resolve())
+        dialog.destroy()
+    finally:
+        root.destroy()
+
+
 def test_publication_dialog_save_and_load_config_round_trip(monkeypatch: pytest.MonkeyPatch) -> None:
     root = _make_root()
     try:
@@ -1197,13 +1354,13 @@ def test_publication_dialog_contains_clarified_labels_and_hints() -> None:
         assert "Auteur" in all_text
         assert "Titre de l'oeuvre/corpus" in all_text
         assert "Responsable scientifique" in all_text
-        assert "XML-TEI page d'accueil" in all_text
+        assert "Source accueil (XML-TEI ou DOCX)" in all_text
         assert "Introduction generale" in all_text
-        assert "XML-TEI introduction generale" in all_text
+        assert "Source introduction generale (XML-TEI ou DOCX)" in all_text
         assert "Corpus de pieces" in all_text
         assert "Ajouter piece XML" in all_text
-        assert "Associer notice XML" in all_text
-        assert "Associer preface XML" in all_text
+        assert "Associer notice (XML ou DOCX)" in all_text
+        assert "Associer preface (XML ou DOCX)" in all_text
         assert "Associer Dramatis XML" in all_text
         assert "Publier les prefaces" in all_text
         assert "Regle: 1 XML dramatique = 1 piece complete" in all_text

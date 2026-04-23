@@ -1,0 +1,528 @@
+{
+  "pandoc-api-version": [
+    1,
+    23,
+    1
+  ],
+  "meta": {},
+  "blocks": [
+    {
+      "t": "Div",
+      "c": [
+        [
+          "",
+          [],
+          [
+            [
+              "custom-style",
+              "Titre"
+            ]
+          ]
+        ],
+        [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "Notice"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "riche"
+              }
+            ]
+          }
+        ]
+      ]
+    },
+    {
+      "t": "Div",
+      "c": [
+        [
+          "",
+          [],
+          [
+            [
+              "custom-style",
+              "Sous-titre"
+            ]
+          ]
+        ],
+        [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "Sous"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "titre"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "riche"
+              }
+            ]
+          }
+        ]
+      ]
+    },
+    {
+      "t": "Header",
+      "c": [
+        1,
+        [
+          "",
+          [],
+          []
+        ],
+        [
+          {
+            "t": "Str",
+            "c": "Section"
+          }
+        ]
+      ]
+    },
+    {
+      "t": "Para",
+      "c": [
+        {
+          "t": "Str",
+          "c": "Texte"
+        },
+        {
+          "t": "Space"
+        },
+        {
+          "t": "Strong",
+          "c": [
+            {
+              "t": "Str",
+              "c": "gras"
+            }
+          ]
+        },
+        {
+          "t": "Space"
+        },
+        {
+          "t": "Emph",
+          "c": [
+            {
+              "t": "Str",
+              "c": "italique"
+            }
+          ]
+        },
+        {
+          "t": "Space"
+        },
+        {
+          "t": "Superscript",
+          "c": [
+            {
+              "t": "Str",
+              "c": "sup"
+            }
+          ]
+        },
+        {
+          "t": "Space"
+        },
+        {
+          "t": "Subscript",
+          "c": [
+            {
+              "t": "Str",
+              "c": "sub"
+            }
+          ]
+        },
+        {
+          "t": "Space"
+        },
+        {
+          "t": "Underline",
+          "c": [
+            {
+              "t": "Str",
+              "c": "souligne"
+            }
+          ]
+        },
+        {
+          "t": "Space"
+        },
+        {
+          "t": "Strikeout",
+          "c": [
+            {
+              "t": "Str",
+              "c": "barre"
+            }
+          ]
+        },
+        {
+          "t": "Space"
+        },
+        {
+          "t": "Note",
+          "c": [
+            {
+              "t": "Para",
+              "c": [
+                {
+                  "t": "Str",
+                  "c": "Note"
+                },
+                {
+                  "t": "Space"
+                },
+                {
+                  "t": "Str",
+                  "c": "de"
+                },
+                {
+                  "t": "Space"
+                },
+                {
+                  "t": "Str",
+                  "c": "bas"
+                },
+                {
+                  "t": "Space"
+                },
+                {
+                  "t": "Str",
+                  "c": "de"
+                },
+                {
+                  "t": "Space"
+                },
+                {
+                  "t": "Str",
+                  "c": "page"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "t": "BulletList",
+      "c": [
+        [
+          [
+            {
+              "t": "Plain",
+              "c": [
+                {
+                  "t": "Str",
+                  "c": "Point"
+                },
+                {
+                  "t": "Space"
+                },
+                {
+                  "t": "Str",
+                  "c": "A"
+                }
+              ]
+            }
+          ],
+          [
+            {
+              "t": "Plain",
+              "c": [
+                {
+                  "t": "Str",
+                  "c": "Point"
+                },
+                {
+                  "t": "Space"
+                },
+                {
+                  "t": "Str",
+                  "c": "B"
+                }
+              ]
+            }
+          ]
+        ]
+      ]
+    },
+    {
+      "t": "OrderedList",
+      "c": [
+        [
+          1,
+          {
+            "t": "DefaultStyle"
+          },
+          {
+            "t": "DefaultDelim"
+          }
+        ],
+        [
+          [
+            {
+              "t": "Plain",
+              "c": [
+                {
+                  "t": "Str",
+                  "c": "Etape"
+                },
+                {
+                  "t": "Space"
+                },
+                {
+                  "t": "Str",
+                  "c": "1"
+                }
+              ]
+            }
+          ],
+          [
+            {
+              "t": "Plain",
+              "c": [
+                {
+                  "t": "Str",
+                  "c": "Etape"
+                },
+                {
+                  "t": "Space"
+                },
+                {
+                  "t": "Str",
+                  "c": "2"
+                }
+              ]
+            }
+          ]
+        ]
+      ]
+    },
+    {
+      "t": "BlockQuote",
+      "c": [
+        {
+          "t": "Para",
+          "c": [
+            {
+              "t": "Str",
+              "c": "Citation"
+            },
+            {
+              "t": "Space"
+            },
+            {
+              "t": "Str",
+              "c": "detachee."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "t": "Table",
+      "c": [
+        [
+          "",
+          [],
+          []
+        ],
+        {
+          "t": "Caption",
+          "c": [
+            null,
+            []
+          ]
+        },
+        [],
+        [
+          [
+            "",
+            [],
+            []
+          ],
+          [
+            [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  {
+                    "t": "AlignDefault"
+                  },
+                  1,
+                  1,
+                  [
+                    {
+                      "t": "Plain",
+                      "c": [
+                        {
+                          "t": "Str",
+                          "c": "Colonne"
+                        },
+                        {
+                          "t": "Space"
+                        },
+                        {
+                          "t": "Str",
+                          "c": "A"
+                        }
+                      ]
+                    }
+                  ]
+                ],
+                [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  {
+                    "t": "AlignDefault"
+                  },
+                  1,
+                  1,
+                  [
+                    {
+                      "t": "Plain",
+                      "c": [
+                        {
+                          "t": "Str",
+                          "c": "Colonne"
+                        },
+                        {
+                          "t": "Space"
+                        },
+                        {
+                          "t": "Str",
+                          "c": "B"
+                        }
+                      ]
+                    }
+                  ]
+                ]
+              ]
+            ]
+          ]
+        ],
+        [
+          [
+            [
+              "",
+              [],
+              []
+            ],
+            0,
+            [],
+            [
+              [
+                [
+                  "",
+                  [],
+                  []
+                ],
+                [
+                  [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    {
+                      "t": "AlignDefault"
+                    },
+                    1,
+                    1,
+                    [
+                      {
+                        "t": "Plain",
+                        "c": [
+                          {
+                            "t": "Str",
+                            "c": "Valeur"
+                          },
+                          {
+                            "t": "Space"
+                          },
+                          {
+                            "t": "Str",
+                            "c": "1"
+                          }
+                        ]
+                      }
+                    ]
+                  ],
+                  [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    {
+                      "t": "AlignDefault"
+                    },
+                    1,
+                    1,
+                    [
+                      {
+                        "t": "Plain",
+                        "c": [
+                          {
+                            "t": "Str",
+                            "c": "Valeur"
+                          },
+                          {
+                            "t": "Space"
+                          },
+                          {
+                            "t": "Str",
+                            "c": "2"
+                          }
+                        ]
+                      }
+                    ]
+                  ]
+                ]
+              ]
+            ]
+          ]
+        ],
+        [
+          [
+            "",
+            [],
+            []
+          ],
+          []
+        ]
+      ]
+    }
+  ]
+}

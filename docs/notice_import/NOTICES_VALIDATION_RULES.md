@@ -14,7 +14,7 @@ Il définit les **règles de validation** applicables à l’import des **notice
 - le format attendu des diagnostics ;
 - les critères minimaux de test.
 
-Il s’applique uniquement à la chaîne d’import des **notices**, pas aux pièces de théâtre.
+Il s’applique uniquement à la chaîne d’import des **notices** (et préfaces, introduction générale, accueil), pas aux pièces de théâtre.
 
 ---
 
@@ -486,4 +486,4 @@ Le validateur de notices doit :
 - signaler tout avertissement sans empêcher l’import ;
 - produire un rapport stable, structuré et testable ;
 - distinguer clairement styles autorisés, styles tolérés, styles interdits et objets interdits ;
-- garantir que seule une notice conforme au profil Word défini entre dans la chaîne TEI comme document valide.
+- garantir que seule une notice (ou préface, ou introduction générale, ou texte d'accueil) conforme au profil Word défini entre dans la chaîne TEI comme document valide.

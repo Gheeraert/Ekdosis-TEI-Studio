@@ -12,7 +12,7 @@ Il fixe la **forme TEI cible** produite par la chaîne d’import des **notices 
 
 Son but est de fournir à l’implémentation une cible XML **stable, lisible, minimaliste et testable**, afin d’éviter toute improvisation structurelle lors de la conversion.
 
-Il s’applique uniquement à la chaîne des **notices**, pas à celle des pièces de théâtre.
+Il s’applique uniquement à la chaîne des **notices** (et textes des préfaces, et introcution générale, et texte d'accueil du site), pas à celle des pièces de théâtre.
 
 ---
 

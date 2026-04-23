@@ -6,10 +6,13 @@ import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
 
 from ets.application import (
+    EditorialNoticeImportService,
+    EditorialSourceKind,
     SitePublicationDialogConfig,
     SitePublicationDialogPlayConfig,
     SitePublicationRequest,
     derive_corpus_slug,
+    format_validation_report,
     load_site_publication_dialog_config,
     normalize_publication_identifier,
     save_site_publication_dialog_config,
@@ -73,6 +76,8 @@ class PublicationDialog(tk.Toplevel):
         self._play_entries: list[_PlayEntry] = []
         self._logo_paths: list[Path] = []
         self._config_path: Path | None = None
+        self._editorial_import_service = EditorialNoticeImportService()
+        self._last_prepare_warnings: tuple[str, ...] = ()
 
         self.vars.author_name.trace_add("write", self._on_corpus_identity_changed)
         self.vars.corpus_title.trace_add("write", self._on_corpus_identity_changed)
@@ -148,7 +153,7 @@ class PublicationDialog(tk.Toplevel):
         slug_entry = ttk.Entry(box, textvariable=self.vars.corpus_slug, state="readonly")
         slug_entry.grid(row=3, column=1, sticky="ew", pady=2)
 
-        ttk.Label(box, text="XML-TEI page d'accueil").grid(row=4, column=0, sticky="w", padx=(0, 6), pady=2)
+        ttk.Label(box, text="Source accueil (XML-TEI ou DOCX)").grid(row=4, column=0, sticky="w", padx=(0, 6), pady=2)
         ttk.Entry(box, textvariable=self.vars.home_page_tei).grid(row=4, column=1, sticky="ew", pady=2)
         ttk.Button(box, text="Choisir...", command=self._choose_home_page_tei).grid(row=4, column=2, padx=(6, 0), pady=2)
 
@@ -190,7 +195,7 @@ class PublicationDialog(tk.Toplevel):
         box = ttk.LabelFrame(parent, text="Introduction generale")
         box.grid(row=row, column=0, sticky="ew", pady=(0, 8))
         box.columnconfigure(1, weight=1)
-        ttk.Label(box, text="XML-TEI introduction generale").grid(row=0, column=0, sticky="w", padx=(0, 6), pady=2)
+        ttk.Label(box, text="Source introduction generale (XML-TEI ou DOCX)").grid(row=0, column=0, sticky="w", padx=(0, 6), pady=2)
         ttk.Entry(box, textvariable=self.vars.general_intro_tei).grid(row=0, column=1, sticky="ew", pady=2)
         ttk.Button(box, text="Choisir...", command=self._choose_general_intro_tei).grid(row=0, column=2, padx=(6, 0), pady=2)
 
@@ -206,11 +211,11 @@ class PublicationDialog(tk.Toplevel):
         ttk.Button(controls, text="Remplacer piece XML...", command=self._replace_dramatic_for_selected_play).grid(
             row=0, column=1, padx=(0, 6)
         )
-        ttk.Button(controls, text="Associer notice XML...", command=self._attach_notice_to_selected_play).grid(
+        ttk.Button(controls, text="Associer notice (XML ou DOCX)...", command=self._attach_notice_to_selected_play).grid(
             row=0, column=2, padx=(0, 6)
         )
         ttk.Button(controls, text="Retirer notice", command=self._clear_notice_for_selected_play).grid(row=0, column=3, padx=(0, 6))
-        ttk.Button(controls, text="Associer preface XML...", command=self._attach_preface_to_selected_play).grid(
+        ttk.Button(controls, text="Associer preface (XML ou DOCX)...", command=self._attach_preface_to_selected_play).grid(
             row=0, column=4, padx=(0, 6)
         )
         ttk.Button(controls, text="Retirer preface", command=self._clear_preface_for_selected_play).grid(
@@ -367,16 +372,19 @@ class PublicationDialog(tk.Toplevel):
             return
         chosen = filedialog.askopenfilename(
             parent=self,
-            title="Associer une notice XML a la piece selectionnee",
-            filetypes=[("XML files", "*.xml"), ("All files", "*.*")],
+            title="Associer une notice (XML-TEI ou DOCX) a la piece selectionnee",
+            filetypes=self._editorial_filetypes(),
         )
         if not chosen:
+            return
+        source_path = Path(chosen).resolve()
+        if not self._validate_editorial_source(source_path, source_kind=EditorialSourceKind.PLAY_NOTICE):
             return
         selected = self._play_entries[selected_index]
         self._play_entries[selected_index] = _PlayEntry(
             play_slug=selected.play_slug,
             dramatic_xml_path=selected.dramatic_xml_path,
-            notice_xml_path=Path(chosen).resolve(),
+            notice_xml_path=source_path,
             preface_xml_path=selected.preface_xml_path,
             dramatis_xml_path=selected.dramatis_xml_path,
         )
@@ -405,17 +413,20 @@ class PublicationDialog(tk.Toplevel):
             return
         chosen = filedialog.askopenfilename(
             parent=self,
-            title="Associer une preface XML a la piece selectionnee",
-            filetypes=[("XML files", "*.xml"), ("All files", "*.*")],
+            title="Associer une preface (XML-TEI ou DOCX) a la piece selectionnee",
+            filetypes=self._editorial_filetypes(),
         )
         if not chosen:
+            return
+        source_path = Path(chosen).resolve()
+        if not self._validate_editorial_source(source_path, source_kind=EditorialSourceKind.PLAY_PREFACE):
             return
         selected = self._play_entries[selected_index]
         self._play_entries[selected_index] = _PlayEntry(
             play_slug=selected.play_slug,
             dramatic_xml_path=selected.dramatic_xml_path,
             notice_xml_path=selected.notice_xml_path,
-            preface_xml_path=Path(chosen).resolve(),
+            preface_xml_path=source_path,
             dramatis_xml_path=selected.dramatis_xml_path,
         )
         self._refresh_dramatic_list()
@@ -510,20 +521,51 @@ class PublicationDialog(tk.Toplevel):
     def _choose_home_page_tei(self) -> None:
         chosen = filedialog.askopenfilename(
             parent=self,
-            title="Choisir le XML-TEI de la page d'accueil",
-            filetypes=[("XML files", "*.xml"), ("All files", "*.*")],
+            title="Choisir la source de la page d'accueil (XML-TEI ou DOCX)",
+            filetypes=self._editorial_filetypes(),
         )
         if chosen:
-            self.vars.home_page_tei.set(chosen)
+            source_path = Path(chosen).resolve()
+            if self._validate_editorial_source(source_path, source_kind=EditorialSourceKind.HOME_PAGE):
+                self.vars.home_page_tei.set(str(source_path))
 
     def _choose_general_intro_tei(self) -> None:
         chosen = filedialog.askopenfilename(
             parent=self,
-            title="Choisir le XML-TEI de l'introduction generale",
-            filetypes=[("XML files", "*.xml"), ("All files", "*.*")],
+            title="Choisir la source de l'introduction generale (XML-TEI ou DOCX)",
+            filetypes=self._editorial_filetypes(),
         )
         if chosen:
-            self.vars.general_intro_tei.set(chosen)
+            source_path = Path(chosen).resolve()
+            if self._validate_editorial_source(source_path, source_kind=EditorialSourceKind.GENERAL_INTRO):
+                self.vars.general_intro_tei.set(str(source_path))
+
+    @staticmethod
+    def _editorial_filetypes() -> list[tuple[str, str]]:
+        return [
+            ("Editorial files", "*.xml *.docx"),
+            ("XML files", "*.xml"),
+            ("Word files", "*.docx"),
+            ("All files", "*.*"),
+        ]
+
+    def _validate_editorial_source(self, source_path: Path, *, source_kind: EditorialSourceKind) -> bool:
+        result = self._editorial_import_service.inspect_source_for_ui(source_path, source_kind=source_kind)
+        report = result.report
+        if report.blocking_error_count > 0:
+            messagebox.showerror(
+                "Publication",
+                format_validation_report(report, title=f"Validation {source_path.name}"),
+                parent=self,
+            )
+            return False
+        if report.warning_count > 0:
+            messagebox.showwarning(
+                "Publication",
+                format_validation_report(report, title=f"Validation {source_path.name}"),
+                parent=self,
+            )
+        return True
 
     def _choose_asset_directory(self) -> None:
         chosen = filedialog.askdirectory(parent=self, title="Choisir un dossier assets")
@@ -678,7 +720,9 @@ class PublicationDialog(tk.Toplevel):
 
     def _build_request(self) -> SitePublicationRequest:
         config = self._collect_dialog_config()
-        return site_publication_request_from_dialog_config(config)
+        prepared = self._editorial_import_service.prepare_dialog_config_for_publication(config)
+        self._last_prepare_warnings = prepared.warnings
+        return site_publication_request_from_dialog_config(prepared.config)
 
     def _on_validate(self) -> None:
         try:
@@ -686,6 +730,12 @@ class PublicationDialog(tk.Toplevel):
         except ValueError as exc:
             messagebox.showerror("Publication", str(exc), parent=self)
             return
+        if self._last_prepare_warnings:
+            messagebox.showwarning(
+                "Publication",
+                "\n\n".join(self._last_prepare_warnings),
+                parent=self,
+            )
         self.destroy()
 
     def _on_cancel(self) -> None:

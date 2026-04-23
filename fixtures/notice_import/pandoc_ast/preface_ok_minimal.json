@@ -1,0 +1,66 @@
+{
+  "pandoc-api-version": [
+    1,
+    23,
+    1
+  ],
+  "meta": {},
+  "blocks": [
+    {
+      "t": "Div",
+      "c": [
+        [
+          "",
+          [],
+          [
+            [
+              "custom-style",
+              "Titre"
+            ]
+          ]
+        ],
+        [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "Preface"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "auteur"
+              }
+            ]
+          }
+        ]
+      ]
+    },
+    {
+      "t": "Para",
+      "c": [
+        {
+          "t": "Str",
+          "c": "Texte"
+        },
+        {
+          "t": "Space"
+        },
+        {
+          "t": "Str",
+          "c": "de"
+        },
+        {
+          "t": "Space"
+        },
+        {
+          "t": "Str",
+          "c": "preface."
+        }
+      ]
+    }
+  ]
+}

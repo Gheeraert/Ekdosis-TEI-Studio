@@ -37,6 +37,11 @@ from .site_builder_service import (
     build_site_from_config_file,
     build_site_from_publication_request,
 )
+from .editorial_notice_import import (
+    EditorialNoticeImportService,
+    EditorialSourceKind,
+    format_validation_report,
+)
 from .services import (
     create_annotation,
     delete_annotation,
@@ -109,4 +114,7 @@ __all__ = [
     "build_site_from_config_dict",
     "build_site_from_config_file",
     "build_site_from_publication_request",
+    "EditorialNoticeImportService",
+    "EditorialSourceKind",
+    "format_validation_report",
 ]

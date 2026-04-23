@@ -4,7 +4,7 @@
 
 Spécification fonctionnelle et technique de la chaîne d’import des **notices rédigées en Word** pour Ekdosis–TEI Studio (ETS).
 
-Cette chaîne est **distincte** de celle des pièces de théâtre. Elle concerne uniquement les **notices**, introductions, bibliographies, commentaires liminaires et autres paratextes assimilés.
+Cette chaîne est **distincte** de celle des pièces de théâtre. Elle concerne uniquement les **notices**, préfaces, introductions, page d'accueil bibliographies, commentaires liminaires et autres paratextes assimilés.
 
 L’objectif est de proposer une mini-chaîne de type « Métopes légère » :
 
