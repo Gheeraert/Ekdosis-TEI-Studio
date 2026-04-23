@@ -6,6 +6,7 @@ import xml.etree.ElementTree as ET
 
 from .models import (
     BlockKind,
+    EditorialSourceKind,
     InlineKind,
     InlineNode,
     ParagraphCategory,
@@ -38,10 +39,16 @@ class NoticeTeiBuilder:
     def __init__(self, style_registry: WordStyleRegistry | None = None) -> None:
         self._styles = style_registry or WordStyleRegistry()
 
-    def build_document_xml(self, document: ParsedDocument) -> str:
+    def build_document_xml(
+        self,
+        document: ParsedDocument,
+        *,
+        source_kind: EditorialSourceKind = EditorialSourceKind.PLAY_NOTICE,
+    ) -> str:
         title = self._extract_main_title(document)
         subtitle = self._extract_sub_title(document)
         slug = _slugify(title or document.source_path.stem)
+        root_div_type, root_id_suffix = _root_div_spec(source_kind)
 
         tei = ET.Element(_tei("TEI"))
         header = ET.SubElement(tei, _tei("teiHeader"))
@@ -58,7 +65,7 @@ class NoticeTeiBuilder:
         notice = ET.SubElement(
             body,
             _tei("div"),
-            {"type": "notice", f"{{{XML_NS}}}id": f"{slug}-notice"},
+            {"type": root_div_type, f"{{{XML_NS}}}id": f"{slug}-{root_id_suffix}"},
         )
         ET.SubElement(notice, _tei("head"), {"type": "main"}).text = title or document.source_path.stem
         if subtitle:
@@ -235,3 +242,13 @@ def _slugify(value: str) -> str:
     ascii_only = normalized.encode("ascii", "ignore").decode("ascii").lower()
     slug = re.sub(r"[^a-z0-9]+", "-", ascii_only).strip("-")
     return slug or "notice"
+
+
+def _root_div_spec(source_kind: EditorialSourceKind) -> tuple[str, str]:
+    if source_kind is EditorialSourceKind.HOME_PAGE:
+        return "accueil", "accueil"
+    if source_kind is EditorialSourceKind.GENERAL_INTRO:
+        return "introduction-generale", "introduction-generale"
+    if source_kind is EditorialSourceKind.PLAY_PREFACE:
+        return "preface", "preface"
+    return "notice", "notice"

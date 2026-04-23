@@ -26,6 +26,7 @@ def parse_pandoc_document(source_path: Path, payload: dict[str, Any]) -> ParsedD
     if not isinstance(raw_blocks, list):
         raise ValueError("Invalid Pandoc payload: missing 'blocks' list.")
     parser = _PandocParser()
+    parser.inject_meta_title_blocks(payload.get("meta"))
     for raw_block in raw_blocks:
         parser.parse_block(raw_block, inherited_style=None)
     return ParsedDocument(source_path=source_path.resolve(), blocks=tuple(parser.blocks))
@@ -42,6 +43,32 @@ class _PandocParser:
     def _next_index(self) -> int:
         self._index += 1
         return self._index
+
+    def inject_meta_title_blocks(self, meta: Any) -> None:
+        if not isinstance(meta, dict):
+            return
+        title_inlines = _extract_meta_inlines(meta.get("title"))
+        if title_inlines:
+            self.blocks.append(
+                ParsedBlock(
+                    kind=BlockKind.PARAGRAPH,
+                    index=self._next_index(),
+                    style_name="Title",
+                    inlines=title_inlines,
+                    raw_type="MetaTitle",
+                )
+            )
+        subtitle_inlines = _extract_meta_inlines(meta.get("subtitle"))
+        if subtitle_inlines:
+            self.blocks.append(
+                ParsedBlock(
+                    kind=BlockKind.PARAGRAPH,
+                    index=self._next_index(),
+                    style_name="Subtitle",
+                    inlines=subtitle_inlines,
+                    raw_type="MetaSubtitle",
+                )
+            )
 
     def parse_block(self, raw_block: Any, *, inherited_style: str | None) -> None:
         if not isinstance(raw_block, dict):
@@ -191,6 +218,45 @@ def _extract_header_parts(content: Any) -> tuple[int, Any, list[Any]]:
     attr = content[1]
     inlines = content[2] if isinstance(content[2], list) else []
     return level, attr, inlines
+
+
+def _extract_meta_inlines(meta_value: Any) -> tuple[InlineNode, ...]:
+    if not isinstance(meta_value, dict):
+        return ()
+    meta_type = str(meta_value.get("t") or "")
+    content = meta_value.get("c")
+    if meta_type == "MetaInlines":
+        return _parse_inlines(content if isinstance(content, list) else [])
+    if meta_type == "MetaString":
+        text = str(content).strip() if content is not None else ""
+        return (InlineNode(kind=InlineKind.TEXT, text=text),) if text else ()
+    if meta_type == "MetaBlocks":
+        return _extract_inline_text_from_meta_blocks(content if isinstance(content, list) else [])
+    return ()
+
+
+def _extract_inline_text_from_meta_blocks(blocks: list[Any]) -> tuple[InlineNode, ...]:
+    chunks: list[InlineNode] = []
+    for block in blocks:
+        if not isinstance(block, dict):
+            continue
+        block_type = str(block.get("t") or "")
+        block_content = block.get("c")
+        if block_type in {"Para", "Plain"}:
+            runs = _parse_inlines(block_content if isinstance(block_content, list) else [])
+            if runs:
+                chunks.extend(runs)
+                chunks.append(InlineNode(kind=InlineKind.TEXT, text=" "))
+            continue
+        if block_type == "Header":
+            _level, _attr, header_inlines = _extract_header_parts(block_content)
+            runs = _parse_inlines(header_inlines)
+            if runs:
+                chunks.extend(runs)
+                chunks.append(InlineNode(kind=InlineKind.TEXT, text=" "))
+    while chunks and chunks[-1].kind is InlineKind.TEXT and not chunks[-1].text.strip():
+        chunks.pop()
+    return tuple(chunks)
 
 
 def _parse_inlines(raw_inlines: list[Any]) -> tuple[InlineNode, ...]:

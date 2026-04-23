@@ -76,7 +76,7 @@ class EditorialNoticeImportService:
             report = self._validator.validate(parsed_document)
             if report.blocking_error_count > 0:
                 return EditorialImportResult(source_path=source_path.resolve(), source_kind=source_kind, report=report)
-            tei_xml = self._builder.build_document_xml(parsed_document)
+            tei_xml = self._builder.build_document_xml(parsed_document, source_kind=source_kind)
             return EditorialImportResult(
                 source_path=source_path.resolve(),
                 source_kind=source_kind,
