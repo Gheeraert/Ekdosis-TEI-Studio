@@ -21,12 +21,14 @@ BUTTON_BACKGROUND = "#f1e7bd"
 LINK_FOREGROUND = "#6f4e00"
 
 LOGO_FILENAME = "logo_CEEN_nagscreen.png"
-LOGO_MAX_WIDTH = 220
-LOGO_MAX_HEIGHT = 90
+LOGO_MAX_WIDTH = 300
+LOGO_MAX_HEIGHT = 120
 
 PURH_URL = "https://purh.univ-rouen.fr"
 CEEN_URL = "https://ceen.hypotheses.org"
 CEREDI_URL = "https://ceredi.hypotheses.org"
+CEEN_EMAIL = "ceen_team@listes.univ-rouen.fr"
+CEEN_MAILTO_URL = f"mailto:{CEEN_EMAIL}"
 
 
 def _find_project_root(start: Path) -> Path:
@@ -146,7 +148,7 @@ class WelcomeDialog(tk.Toplevel):
 
         author = tk.Label(
             credits,
-            text="par T. Gheeraert",
+            text="conçue et développée par T. Gheeraert",
             font=("Georgia", 11),
             foreground="black",
             background=BACKGROUND,
@@ -170,15 +172,21 @@ class WelcomeDialog(tk.Toplevel):
             CEREDI_URL,
         )
 
-        contact_and_ai = tk.Label(
+        self._add_credit_link(
             credits,
-            text="ceen_team@univ-rouen.fr\n\nCo-écrit avec Codex AI",
+            CEEN_EMAIL,
+            CEEN_MAILTO_URL,
+        )
+
+        codex_credit = tk.Label(
+            credits,
+            text="\nCo-écrit avec Codex AI",
             font=("Georgia", 11),
             foreground="black",
             background=BACKGROUND,
             justify="center",
         )
-        contact_and_ai.pack()
+        codex_credit.pack()
 
         button = tk.Button(
             container,
