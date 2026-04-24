@@ -7,6 +7,7 @@ from tkinter import filedialog, messagebox, ttk
 from typing import Callable
 import webbrowser
 
+from ets.ui.tk.welcome_dialog import show_welcome_dialog
 from ets.annotations import Annotation, AnnotationCollection, AnnotationValidationError
 from ets.markdown_editor import MarkdownEditorWidget
 from ets.references import CitationOccurrence, CitationTokenData, ReferencesPanel, format_inline_citation
@@ -212,6 +213,8 @@ class MainWindow(ttk.Frame):
         self._install_menus()
         self._install_shortcuts()
         self.markdown_editor.reset_split_view()
+
+        self.after_idle(lambda: show_welcome_dialog(self.winfo_toplevel()))
 
     def _on_editor_tab_changed(self, _event: tk.Event[tk.Misc]) -> None:
         if self._is_markdown_mode():
