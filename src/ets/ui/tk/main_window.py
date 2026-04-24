@@ -1357,43 +1357,51 @@ class MainWindow(ttk.Frame):
             if ftp_config is None:
                 messagebox.showerror(
                     "Publication FTP",
-                    "FTP publication requested but no FTP configuration was provided.",
+                    "Requête de FTP - mais pas de fichier de configuration fourni.",
                     parent=self.master,
                 )
                 return
             if result.output_dir is None:
                 messagebox.showerror(
                     "Publication FTP",
-                    "Site generation completed but output directory is unknown; FTP upload cannot start.",
+                    "Site generation terminé, mais répertoire de sortie non précisé. L'upload FTP ne peut pas démarrer.",
                     parent=self.master,
                 )
                 return
 
-            ftp_result = publish_directory_via_ftp(local_dir=result.output_dir, config=ftp_config)
+            try:
+                ftp_result = publish_directory_via_ftp(local_dir=result.output_dir, config=ftp_config)
+            except Exception as exc:  # pragma: no cover - defensive UI boundary
+                messagebox.showerror(
+                    "Publication FTP",
+                    f"Échec inattendu pendant la publication FTP.\n\n{exc}",
+                    parent=self.master,
+                )
+                return
             if not ftp_result.ok:
-                detail = ftp_result.error_detail or "Unknown FTP error."
+                detail = ftp_result.error_detail or "Erreur FTP inconnue."
                 messagebox.showerror(
                     "Publication FTP",
                     (
-                        "Site generation succeeded but FTP publication failed.\n\n"
+                        "Site generationOK, mais échec de la publication FTP.\n\n"
                         f"{detail}\n\n"
-                        f"Files transferred: {ftp_result.files_transferred}\n"
-                        f"Directories created: {ftp_result.directories_created}"
+                        f"Fichiers transférés: {ftp_result.files_transferred}\n"
+                        f"Répertoires créés: {ftp_result.directories_created}"
                     ),
                     parent=self.master,
                 )
                 return
 
             base_message = (
-                "Site generated and published on FTP.\n\n"
+                "Site généré et publié via FTP : OK.\n\n"
                 f"Local output: {result.output_dir}\n"
-                f"Files transferred: {ftp_result.files_transferred}\n"
-                f"Directories created: {ftp_result.directories_created}"
+                f"Fichiers transférés: {ftp_result.files_transferred}\n"
+                f"Répertoires créés: {ftp_result.directories_created}"
             )
             if ftp_result.warnings:
                 warning_lines = "\n".join(f"- {item}" for item in ftp_result.warnings[:20])
                 messagebox.showwarning(
-                    "Publication FTP (with warnings)",
+                    "Publication FTP (avec avertissements)",
                     f"{base_message}\n\nWarnings:\n{warning_lines}",
                     parent=self.master,
                 )

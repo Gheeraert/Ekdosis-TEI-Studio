@@ -95,14 +95,14 @@ class FTPPublishService:
                     files_transferred += 1
 
             if files_transferred == 0:
-                warnings.append("No files found in local directory; nothing was uploaded.")
+                warnings.append("Aucun fichier trouvé dans le dossier local ; aucun envoi effectué.")
 
             return FTPPublishResult(
                 ok=True,
                 files_transferred=files_transferred,
                 directories_created=directories_created,
                 warnings=tuple(warnings),
-                message="FTP publication completed successfully.",
+                message="Publication FTP terminée avec succès.",
             )
         except ftplib.all_errors as exc:
             return FTPPublishResult(
@@ -110,7 +110,7 @@ class FTPPublishService:
                 files_transferred=files_transferred,
                 directories_created=directories_created,
                 warnings=tuple(warnings),
-                message="FTP publication failed.",
+                message="Échec de la publication FTP.",
                 error_detail=_sanitize_ftp_message(str(exc), password=config.password),
             )
         finally:
@@ -184,7 +184,7 @@ def _ensure_remote_directory_tree(
 
 
 def _sanitize_ftp_message(message: str, *, password: str) -> str:
-    text = message.strip() or "Unknown FTP error."
+    text = message.strip() or "Erreur FTP inconnue."
     if password:
         return text.replace(password, "***")
     return text

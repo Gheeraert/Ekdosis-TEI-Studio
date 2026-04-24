@@ -56,22 +56,19 @@ class FTPPublicationDialog(tk.Toplevel):
         body.columnconfigure(1, weight=1)
         body.rowconfigure(8, weight=1)
 
-        self._add_entry(body, 0, "Host", self.vars.host)
+        self._add_entry(body, 0, "Hôte", self.vars.host)
         self._add_entry(body, 1, "Port", self.vars.port)
-        self._add_entry(body, 2, "Username", self.vars.username)
-        self._add_entry(body, 3, "Password", self.vars.password, show="*")
-        self._add_entry(body, 4, "Remote dir", self.vars.remote_dir)
-        self._add_entry(body, 5, "Timeout (s)", self.vars.timeout)
+        self._add_entry(body, 2, "Identifiant", self.vars.username)
+        self._add_entry(body, 3, "Mot de passe", self.vars.password, show="*")
+        self._add_entry(body, 4, "Répertoire distant", self.vars.remote_dir)
+        self._add_entry(body, 5, "Délai d’attente (s)", self.vars.timeout)
 
         options = ttk.Frame(body)
         options.grid(row=6, column=0, columnspan=2, sticky="w", pady=(6, 2))
-        ttk.Checkbutton(options, text="Use TLS (FTP_TLS)", variable=self.vars.use_tls).grid(row=0, column=0, sticky="w")
-        ttk.Checkbutton(options, text="Passive mode", variable=self.vars.passive).grid(row=0, column=1, sticky="w", padx=(12, 0))
+        ttk.Checkbutton(options, text="Utiliser TLS / FTPS", variable=self.vars.use_tls).grid(row=0, column=0, sticky="w")
+        ttk.Checkbutton(options, text="Mode passif", variable=self.vars.passive).grid(row=0, column=1, sticky="w", padx=(12, 0))
 
-        warning = (
-            "Warning: the FTP password is stored in clear text in JSON. "
-            "Do not share or version this file."
-        )
+        warning = "Attention : le mot de passe FTP est enregistré en clair dans le fichier JSON. Ne partagez pas ce fichier et ne le versionnez pas dans Git."
         ttk.Label(body, text=warning, foreground="#8a2d2d", wraplength=680, justify="left").grid(
             row=7,
             column=0,
@@ -99,11 +96,11 @@ class FTPPublicationDialog(tk.Toplevel):
         try:
             port = int(self.vars.port.get().strip())
         except ValueError as exc:
-            raise ValueError("FTP port must be an integer.") from exc
+            raise ValueError("Le port FTP doit être un entier.") from exc
         try:
             timeout = int(self.vars.timeout.get().strip())
         except ValueError as exc:
-            raise ValueError("FTP timeout must be an integer.") from exc
+            raise ValueError("Le délai d’attente FTP doit être un entier.") from exc
 
         config = FTPPublicationConfig(
             host=self.vars.host.get().strip(),
@@ -143,7 +140,7 @@ class FTPPublicationDialog(tk.Toplevel):
             return
         self._apply_config(config)
         self._config_path = Path(chosen).resolve()
-        messagebox.showinfo("Publication FTP", f"Configuration FTP chargee:\n{self._config_path}", parent=self)
+        messagebox.showinfo("Publication FTP", f"Configuration FTP chargée :\n{self._config_path}", parent=self)
 
     def _on_save_config(self) -> None:
         try:
@@ -167,7 +164,7 @@ class FTPPublicationDialog(tk.Toplevel):
             messagebox.showerror("Publication FTP", str(exc), parent=self)
             return
         self._config_path = path
-        messagebox.showinfo("Publication FTP", f"Configuration FTP enregistree:\n{path}", parent=self)
+        messagebox.showinfo("Publication FTP", f"Configuration FTP enregistrée :\n{path}", parent=self)
 
     def _on_publish(self) -> None:
         try:
@@ -190,4 +187,3 @@ def open_ftp_publication_dialog(
     dialog = FTPPublicationDialog(parent, initial_config=initial_config)
     parent.wait_window(dialog)
     return dialog.result
-

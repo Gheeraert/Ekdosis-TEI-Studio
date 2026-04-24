@@ -108,7 +108,7 @@ class PublicationDialog(tk.Toplevel):
         buttons = ttk.Frame(self.action_bar)
         buttons.grid(row=0, column=1, sticky="e")
         ttk.Button(buttons, text="Charger config...", command=self._on_load_config).grid(row=0, column=0, padx=(0, 6))
-        ttk.Button(buttons, text="Generer le site", command=self._on_validate).grid(row=0, column=1)
+        ttk.Button(buttons, text="Générer le site", command=self._on_validate).grid(row=0, column=1)
         ttk.Button(buttons, text="Publier sur FTP...", command=self._on_publish_ftp).grid(row=0, column=2, padx=(12, 6))
         ttk.Button(buttons, text="Enregistrer config...", command=self._on_save_config).grid(row=0, column=3, padx=(0, 6))
         ttk.Button(buttons, text="Annuler", command=self._on_cancel).grid(row=0, column=4, padx=(0, 6))
