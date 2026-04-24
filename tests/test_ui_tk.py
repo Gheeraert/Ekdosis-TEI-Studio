@@ -22,6 +22,7 @@ from ets.application import (
     load_annotations,
     load_config,
 )
+from ets.ftp_publish import FTPPublicationConfig
 from ets.application.editorial_notice_import.models import (
     EditorialImportResult,
     ValidationMessage,
@@ -32,7 +33,7 @@ from ets.application.site_builder_models import SiteBuildServiceResult
 from ets.infrastructure import AutosavePayload, AutosaveStore
 from ets.ui.tk.helpers import diagnostic_line_numbers, format_config_status
 from ets.ui.tk.main_window import MainWindow, suggest_next_annotation_id
-from ets.ui.tk.dialogs.publication_dialog import PublicationDialog
+from ets.ui.tk.dialogs.publication_dialog import PublicationDialog, PublicationDialogResult
 
 
 RUNTIME_DIR = Path(__file__).resolve().parents[1] / "tests" / "_runtime"
@@ -796,6 +797,77 @@ def test_action_build_publication_site_cancelled_dialog_does_nothing(monkeypatch
         root.destroy()
 
 
+def test_action_build_publication_site_publish_ftp_generates_then_uploads(monkeypatch: pytest.MonkeyPatch) -> None:
+    root = _make_root()
+    try:
+        window = MainWindow(root)
+        request = SitePublicationRequest(
+            identity=SiteIdentityInput(site_title="ETS"),
+            output_dir=RUNTIME_DIR,
+            plays=(
+                DramaticPlayInput(
+                    play_slug="andromaque",
+                    document=DramaticDocumentInput(source_path=RUNTIME_DIR / "andromaque.xml"),
+                ),
+            ),
+        )
+        ftp_config = FTPPublicationConfig(
+            host="ftp.example.org",
+            username="login",
+            password="secret",
+            remote_dir="/www/site",
+        )
+        dialog_result = PublicationDialogResult(
+            action="publish_ftp",
+            site_request=request,
+            ftp_config=ftp_config,
+        )
+
+        called: list[str] = []
+        monkeypatch.setattr("ets.ui.tk.main_window.open_publication_dialog", lambda _parent: dialog_result)
+        monkeypatch.setattr(
+            "ets.ui.tk.main_window.build_site_from_publication_request",
+            lambda _request: SiteBuildServiceResult(
+                ok=True,
+                output_dir=RUNTIME_DIR.resolve(),
+                generated_pages=(RUNTIME_DIR / "index.html",),
+                copied_assets=(),
+                warnings=(),
+                play_count=1,
+                notice_count=0,
+                generated_page_relpaths=("index.html",),
+            ),
+        )
+        monkeypatch.setattr(
+            "ets.ui.tk.main_window.publish_directory_via_ftp",
+            lambda **kwargs: called.append("ftp")
+            or type(
+                "Result",
+                (),
+                {
+                    "ok": True,
+                    "files_transferred": 5,
+                    "directories_created": 2,
+                    "warnings": (),
+                    "error_detail": None,
+                },
+            )(),
+        )
+        infos: list[str] = []
+        monkeypatch.setattr("tkinter.messagebox.showerror", lambda *args, **kwargs: None)
+        monkeypatch.setattr("tkinter.messagebox.showwarning", lambda *args, **kwargs: None)
+        monkeypatch.setattr("tkinter.messagebox.showinfo", lambda _title, message, **kwargs: infos.append(message))
+
+        window.action_build_publication_site()
+
+        assert called == ["ftp"]
+        assert infos
+        assert "published on FTP" in infos[-1]
+        assert "Files transferred: 5" in infos[-1]
+    finally:
+        root.destroy()
+
+
 def test_publication_dialog_builds_rich_request_object(monkeypatch: pytest.MonkeyPatch) -> None:
     root = _make_root()
     try:
@@ -842,8 +914,10 @@ def test_publication_dialog_builds_rich_request_object(monkeypatch: pytest.Monke
 
         dialog._on_validate()
 
-        request = dialog.result
-        assert request is not None
+        dialog_result = dialog.result
+        assert dialog_result is not None
+        assert dialog_result.action == "build"
+        request = dialog_result.site_request
         assert request.identity.site_title == "Théâtre complet"
         assert request.identity.site_subtitle == "Jean Racine"
         assert request.identity.editor == "Caroline Labrune"
@@ -865,6 +939,47 @@ def test_publication_dialog_builds_rich_request_object(monkeypatch: pytest.Monke
         assert request.play_dramatis_map
         assert request.publish_notices is True
         assert request.publish_prefaces is True
+    finally:
+        root.destroy()
+
+
+def test_publication_dialog_publish_ftp_returns_structured_result(monkeypatch: pytest.MonkeyPatch) -> None:
+    root = _make_root()
+    try:
+        runtime = RUNTIME_DIR / f"publication_dialog_ftp_{uuid4().hex}"
+        runtime.mkdir(parents=True, exist_ok=True)
+        dramatic = runtime / "andromaque.xml"
+        dramatic.write_text("<xml/>", encoding="utf-8")
+        output_dir = runtime / "site_out"
+
+        dialog = PublicationDialog(root)
+        dialog.vars.author_name.set("Jean Racine")
+        dialog.vars.corpus_title.set("Theatre complet")
+        dialog.vars.scientific_editor.set("Editor")
+        dialog.vars.output_dir.set(str(output_dir))
+        dialog._append_play_from_path(dramatic)
+        dialog._refresh_dramatic_list()
+        dialog._sync_play_order_from_entries()
+
+        ftp_config = FTPPublicationConfig(
+            host="ftp.example.org",
+            username="login",
+            password="secret",
+            remote_dir="/www/site",
+        )
+        monkeypatch.setattr(
+            "ets.ui.tk.dialogs.publication_dialog.open_ftp_publication_dialog",
+            lambda _parent, initial_config=None: ftp_config,
+        )
+        monkeypatch.setattr("tkinter.messagebox.showerror", lambda *args, **kwargs: None)
+        monkeypatch.setattr("tkinter.messagebox.showwarning", lambda *args, **kwargs: None)
+
+        dialog._on_publish_ftp()
+
+        assert dialog.result is not None
+        assert dialog.result.action == "publish_ftp"
+        assert dialog.result.ftp_config == ftp_config
+        assert dialog.result.site_request.identity.site_title == "Theatre complet"
     finally:
         root.destroy()
 
@@ -1367,6 +1482,7 @@ def test_publication_dialog_contains_clarified_labels_and_hints() -> None:
         assert "Ordre de navigation des pieces" in all_text
         assert "Dossier d'assets" in all_text
         assert "Charger config..." in all_text
+        assert "Publier sur FTP..." in all_text
         assert "Enregistrer config..." in all_text
         assert "Slug de piece" not in all_text
         assert "Projet" not in all_text

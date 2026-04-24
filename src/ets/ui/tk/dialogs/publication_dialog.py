@@ -18,6 +18,9 @@ from ets.application import (
     save_site_publication_dialog_config,
     site_publication_request_from_dialog_config,
 )
+from ets.ftp_publish import FTPPublicationConfig
+
+from .ftp_publication_dialog import open_ftp_publication_dialog
 
 
 @dataclass
@@ -46,6 +49,13 @@ class _PlayEntry:
     dramatis_xml_path: Path | None = None
 
 
+@dataclass(frozen=True)
+class PublicationDialogResult:
+    action: str
+    site_request: SitePublicationRequest
+    ftp_config: FTPPublicationConfig | None = None
+
+
 class PublicationDialog(tk.Toplevel):
     def __init__(self, parent: tk.Misc) -> None:
         super().__init__(parent)
@@ -55,7 +65,7 @@ class PublicationDialog(tk.Toplevel):
         self.resizable(True, True)
         self.geometry("1020x760")
         self.minsize(900, 620)
-        self.result: SitePublicationRequest | None = None
+        self.result: PublicationDialogResult | None = None
 
         self.vars = _PublicationVars(
             author_name=tk.StringVar(value=""),
@@ -78,6 +88,7 @@ class PublicationDialog(tk.Toplevel):
         self._config_path: Path | None = None
         self._editorial_import_service = EditorialNoticeImportService()
         self._last_prepare_warnings: tuple[str, ...] = ()
+        self._ftp_config: FTPPublicationConfig | None = None
 
         self.vars.author_name.trace_add("write", self._on_corpus_identity_changed)
         self.vars.corpus_title.trace_add("write", self._on_corpus_identity_changed)
@@ -98,8 +109,9 @@ class PublicationDialog(tk.Toplevel):
         buttons.grid(row=0, column=1, sticky="e")
         ttk.Button(buttons, text="Charger config...", command=self._on_load_config).grid(row=0, column=0, padx=(0, 6))
         ttk.Button(buttons, text="Generer le site", command=self._on_validate).grid(row=0, column=1)
-        ttk.Button(buttons, text="Enregistrer config...", command=self._on_save_config).grid(row=0, column=2, padx=(12, 6))
-        ttk.Button(buttons, text="Annuler", command=self._on_cancel).grid(row=0, column=3, padx=(0, 6))
+        ttk.Button(buttons, text="Publier sur FTP...", command=self._on_publish_ftp).grid(row=0, column=2, padx=(12, 6))
+        ttk.Button(buttons, text="Enregistrer config...", command=self._on_save_config).grid(row=0, column=3, padx=(0, 6))
+        ttk.Button(buttons, text="Annuler", command=self._on_cancel).grid(row=0, column=4, padx=(0, 6))
 
         self._refresh_corpus_slug()
 
@@ -726,7 +738,7 @@ class PublicationDialog(tk.Toplevel):
 
     def _on_validate(self) -> None:
         try:
-            self.result = self._build_request()
+            request = self._build_request()
         except ValueError as exc:
             messagebox.showerror("Publication", str(exc), parent=self)
             return
@@ -736,6 +748,29 @@ class PublicationDialog(tk.Toplevel):
                 "\n\n".join(self._last_prepare_warnings),
                 parent=self,
             )
+        self.result = PublicationDialogResult(action="build", site_request=request)
+        self.destroy()
+
+    def _on_publish_ftp(self) -> None:
+        try:
+            request = self._build_request()
+        except ValueError as exc:
+            messagebox.showerror("Publication", str(exc), parent=self)
+            return
+
+        if self._last_prepare_warnings:
+            messagebox.showwarning(
+                "Publication",
+                "\n\n".join(self._last_prepare_warnings),
+                parent=self,
+            )
+
+        ftp_config = open_ftp_publication_dialog(self, initial_config=self._ftp_config)
+        if ftp_config is None:
+            return
+
+        self._ftp_config = ftp_config
+        self.result = PublicationDialogResult(action="publish_ftp", site_request=request, ftp_config=ftp_config)
         self.destroy()
 
     def _on_cancel(self) -> None:
@@ -743,7 +778,7 @@ class PublicationDialog(tk.Toplevel):
         self.destroy()
 
 
-def open_publication_dialog(parent: tk.Misc) -> SitePublicationRequest | None:
+def open_publication_dialog(parent: tk.Misc) -> PublicationDialogResult | None:
     dialog = PublicationDialog(parent)
     parent.wait_window(dialog)
     return dialog.result

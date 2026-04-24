@@ -36,6 +36,7 @@ from ets.domain import EditionConfig
 from ets.infrastructure import AutosavePayload, AutosaveStore, LocalPreviewServer
 from ets.parser import parse_play
 from ets.validation import validate_tei_xml
+from ets.ftp_publish import publish_directory_via_ftp
 
 from .control_bar import ControlBar
 from .diagnostics_panel import DiagnosticsPanel
@@ -49,6 +50,7 @@ from .dialogs import (
     show_about_dialog,
     show_help_dialog,
 )
+from .dialogs.publication_dialog import PublicationDialogResult
 from .editor import TextEditor
 from .helpers import diagnostic_line_numbers, format_config_status
 from .menus import MenuCallbacks, install_menus
@@ -1320,9 +1322,18 @@ class MainWindow(ttk.Frame):
         )
 
     def action_build_publication_site(self) -> None:
-        request = open_publication_dialog(self.master)
-        if request is None:
+        dialog_result = open_publication_dialog(self.master)
+        if dialog_result is None:
             return
+
+        if isinstance(dialog_result, PublicationDialogResult):
+            action = dialog_result.action
+            request = dialog_result.site_request
+            ftp_config = dialog_result.ftp_config
+        else:
+            action = "build"
+            request = dialog_result
+            ftp_config = None
 
         try:
             result = build_site_from_publication_request(request)
@@ -1340,6 +1351,54 @@ class MainWindow(ttk.Frame):
                 f"{result.message or 'Échec de génération du site.'}\n\n{detail}",
                 parent=self.master,
             )
+            return
+
+        if action == "publish_ftp":
+            if ftp_config is None:
+                messagebox.showerror(
+                    "Publication FTP",
+                    "FTP publication requested but no FTP configuration was provided.",
+                    parent=self.master,
+                )
+                return
+            if result.output_dir is None:
+                messagebox.showerror(
+                    "Publication FTP",
+                    "Site generation completed but output directory is unknown; FTP upload cannot start.",
+                    parent=self.master,
+                )
+                return
+
+            ftp_result = publish_directory_via_ftp(local_dir=result.output_dir, config=ftp_config)
+            if not ftp_result.ok:
+                detail = ftp_result.error_detail or "Unknown FTP error."
+                messagebox.showerror(
+                    "Publication FTP",
+                    (
+                        "Site generation succeeded but FTP publication failed.\n\n"
+                        f"{detail}\n\n"
+                        f"Files transferred: {ftp_result.files_transferred}\n"
+                        f"Directories created: {ftp_result.directories_created}"
+                    ),
+                    parent=self.master,
+                )
+                return
+
+            base_message = (
+                "Site generated and published on FTP.\n\n"
+                f"Local output: {result.output_dir}\n"
+                f"Files transferred: {ftp_result.files_transferred}\n"
+                f"Directories created: {ftp_result.directories_created}"
+            )
+            if ftp_result.warnings:
+                warning_lines = "\n".join(f"- {item}" for item in ftp_result.warnings[:20])
+                messagebox.showwarning(
+                    "Publication FTP (with warnings)",
+                    f"{base_message}\n\nWarnings:\n{warning_lines}",
+                    parent=self.master,
+                )
+            else:
+                messagebox.showinfo("Publication FTP", base_message, parent=self.master)
             return
 
         output_dir_text = str(result.output_dir) if result.output_dir is not None else "(inconnu)"

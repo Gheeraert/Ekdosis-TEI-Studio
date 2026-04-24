@@ -8,3 +8,6 @@ dist/
 build/
 out/
 tests/_runtime/
+ftp_config*.json
+*.ftp.json
+*.ftp.local.json
