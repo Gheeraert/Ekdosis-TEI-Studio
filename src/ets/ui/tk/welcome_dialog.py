@@ -21,8 +21,8 @@ BUTTON_BACKGROUND = "#f1e7bd"
 LINK_FOREGROUND = "#6f4e00"
 
 LOGO_FILENAME = "logo_CEEN_nagscreen.png"
-LOGO_MAX_WIDTH = 300
-LOGO_MAX_HEIGHT = 120
+LOGO_MAX_WIDTH = 350
+LOGO_MAX_HEIGHT = 160
 
 PURH_URL = "https://purh.univ-rouen.fr"
 CEEN_URL = "https://ceen.hypotheses.org"
