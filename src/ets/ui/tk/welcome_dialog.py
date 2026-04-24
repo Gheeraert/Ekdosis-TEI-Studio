@@ -11,7 +11,6 @@ from __future__ import annotations
 
 from pathlib import Path
 import tkinter as tk
-from tkinter import ttk
 import webbrowser
 
 
@@ -19,13 +18,15 @@ BACKGROUND = "#f6eed9"
 TITLE_BACKGROUND = "#efe6b8"
 INK = "#3d2a0c"
 BUTTON_BACKGROUND = "#f1e7bd"
+LINK_FOREGROUND = "#6f4e00"
+
 LOGO_FILENAME = "logo_CEEN_nagscreen.png"
+LOGO_MAX_WIDTH = 220
+LOGO_MAX_HEIGHT = 90
+
 PURH_URL = "https://purh.univ-rouen.fr"
 CEEN_URL = "https://ceen.hypotheses.org"
 CEREDI_URL = "https://ceredi.hypotheses.org"
-LINK_FOREGROUND = "#6f4e00"
-LOGO_MAX_WIDTH = 220
-LOGO_MAX_HEIGHT = 90
 
 
 def _find_project_root(start: Path) -> Path:
@@ -41,26 +42,26 @@ def _resolve_logo_path() -> Path:
     project_root = _find_project_root(Path(__file__).resolve())
     return project_root / "assets" / "logos" / LOGO_FILENAME
 
-    def _add_credit_link(self, parent: tk.Misc, text: str, url: str) -> None:
-        """Ajoute un lien cliquable dans le bloc de crédits."""
-        link = tk.Label(
-            parent,
-            text=text,
-            font=("Georgia", 11, "underline"),
-            foreground=LINK_FOREGROUND,
-            background=BACKGROUND,
-            cursor="hand2",
-        )
-        link.pack()
-        link.bind("<Button-1>", lambda _event: webbrowser.open_new_tab(url))
+
+class WelcomeDialog(tk.Toplevel):
+    """Nagscreen d'ouverture de TEI Studio."""
+
+    def __init__(self, master: tk.Misc) -> None:
+        super().__init__(master)
+
+        self.title("Bienvenue dans TEI Studio")
+        self.configure(background=BACKGROUND)
+        self.resizable(False, False)
+
+        self._logo_image: tk.PhotoImage | None = None
+
+        self._build_widgets()
+        self._bind_shortcuts()
+        self._make_modal()
+        self._center_on_parent(master)
 
     def _load_logo_image(self, path: Path) -> tk.PhotoImage:
-        """Charge le logo et le réduit si sa taille native est excessive.
-
-        Tkinter ne redimensionne pas librement les images sans Pillow.
-        On utilise donc subsample(), qui réduit par facteur entier.
-        C'est suffisant ici pour éviter un logo disproportionné.
-        """
+        """Charge le logo et le réduit si sa taille native est excessive."""
         image = tk.PhotoImage(file=str(path))
 
         width = image.width()
@@ -77,22 +78,18 @@ def _resolve_logo_path() -> Path:
 
         return image
 
-class WelcomeDialog(tk.Toplevel):
-    """Nagscreen d'ouverture de TEI Studio."""
-
-    def __init__(self, master: tk.Misc) -> None:
-        super().__init__(master)
-
-        self.title("Bienvenue dans TEI Studio")
-        self.configure(background=BACKGROUND)
-        self.resizable(False, False)
-
-        self._logo_image = self._load_logo_image(logo_path)
-
-        self._build_widgets()
-        self._bind_shortcuts()
-        self._make_modal()
-        self._center_on_parent(master)
+    def _add_credit_link(self, parent: tk.Misc, text: str, url: str) -> None:
+        """Ajoute un lien cliquable dans le bloc de crédits."""
+        link = tk.Label(
+            parent,
+            text=text,
+            font=("Georgia", 11, "underline"),
+            foreground=LINK_FOREGROUND,
+            background=BACKGROUND,
+            cursor="hand2",
+        )
+        link.pack()
+        link.bind("<Button-1>", lambda _event: webbrowser.open_new_tab(url))
 
     def _build_widgets(self) -> None:
         container = tk.Frame(self, background=BACKGROUND, padx=46, pady=38)
@@ -121,7 +118,7 @@ class WelcomeDialog(tk.Toplevel):
         logo_path = _resolve_logo_path()
         if logo_path.exists():
             try:
-                self._logo_image = tk.PhotoImage(file=str(logo_path))
+                self._logo_image = self._load_logo_image(logo_path)
                 logo_label = tk.Label(
                     container,
                     image=self._logo_image,
@@ -130,7 +127,6 @@ class WelcomeDialog(tk.Toplevel):
                 )
                 logo_label.pack(pady=(22, 14))
             except tk.TclError:
-                # Ne jamais bloquer le démarrage de l'application pour un logo invalide.
                 self._logo_image = None
         else:
             spacer = tk.Frame(container, background=BACKGROUND, height=18)
