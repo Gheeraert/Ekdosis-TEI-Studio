@@ -398,10 +398,18 @@ def _build_navigation_tree(
         children: list[NavigationItem] = []
 
         for front_item in structure.front_items:
+            if front_item.kind == "dramatis_personae":
+                # TODO: réactiver l'entrée "Personnages" dans le menu quand
+                # l'extraction/rendu des personnages sera stabilisée.
+                # On conserve pour l'instant les données dans PlayNavigation,
+                # mais on les masque volontairement dans la navigation latérale.
+                continue
+
             if front_item.href.startswith("notices/") and front_item.href.endswith(".html"):
                 slug = front_item.href.removeprefix("notices/").removesuffix(".html")
                 if slug:
                     attached_notice_slugs.add(slug)
+
             children.append(
                 NavigationItem(
                     label=front_item.label,

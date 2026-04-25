@@ -246,7 +246,11 @@ def _layout(
       --focus: #c99a59;
       --shadow-soft: 0 1px 0 rgba(0, 0, 0, 0.25);
     }}
-    html {{ font-size: 100%; scroll-behavior: smooth; }}
+    html {{
+     font-size: 100%;
+     scroll-behavior: smooth;
+     scroll-padding-top: calc(var(--site-header-offset) + 1rem);
+    }}
     body {{ margin: 0; background: var(--bg); color: var(--ink); line-height: 1.6; font-family: var(--font-body); }}
     a {{ color: var(--accent); text-underline-offset: 0.14em; }}
     a:hover {{ color: var(--accent-soft); }}
@@ -380,6 +384,10 @@ def _layout(
     }}
     .notice-content {{ min-width: 0; }}
     .content-shell {{ padding: 1rem 1.2rem 2.5rem; max-width: 960px; background: var(--bg-panel); border: 1px solid var(--line); box-shadow: var(--shadow-soft); min-width: 0; }}
+    .content-shell [id] {{
+      /* décalage de l'arrivée des ancres sinon masquées par bandeau */
+      scroll-margin-top: calc(var(--site-header-offset) + 0.2rem);
+    }}
     .content-shell-play {{
       padding: 0.55rem 0.1rem 2.5rem;
       max-width: 980px;
