@@ -589,7 +589,7 @@ def extract_play_entry(xml_path: Path) -> PlayEntry:
         tree,
         ("string(//*[local-name()='teiHeader']//*[local-name()='titleStmt']/*[local-name()='author'][1])",),
     )
-    slug = _fallback_slug(xml_path, title)
+    slug = _slugify(xml_path.stem)
     divisions = _collect_main_divisions(tree)
     return PlayEntry(
         source_path=xml_path.resolve(),

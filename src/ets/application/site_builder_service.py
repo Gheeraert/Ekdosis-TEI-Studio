@@ -195,7 +195,12 @@ def _normalize_publication_request(
         except SiteBuilderExtractionError as exc:
             raise ValueError(f"Invalid publication request: dramatic file '{dramatic_source}' could not be analyzed: {exc}") from exc
 
-        play_slug = _normalize_identifier(extracted_play.title) or extracted_play.slug or _normalize_identifier(play.play_slug)
+        configured_slug = _normalize_identifier(play.play_slug)
+        extracted_slug = _normalize_identifier(extracted_play.slug)
+        title_slug = _normalize_identifier(extracted_play.title)
+
+        play_slug = configured_slug or extracted_slug or title_slug
+
         if not play_slug:
             raise ValueError("Invalid publication request: each play must define a non-empty slug.")
         if play_slug in seen_play_slugs:
