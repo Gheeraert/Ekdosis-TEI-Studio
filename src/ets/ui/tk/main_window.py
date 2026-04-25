@@ -343,7 +343,7 @@ class MainWindow(ttk.Frame):
         self.master.bind_all("<Control-F>", self._shortcut_find, add="+")
         self.master.bind_all("<Control-a>", self._shortcut_select_all, add="+")
         self.master.bind_all("<Control-A>", self._shortcut_select_all, add="+")
-        # Déjà bindés par tk, donc inutile de rebinder ici...
+        # Déjà bindés par tk, donc inutile de rebinder ici
         # self.master.bind_all("<Control-x>", self._shortcut_cut, add="+")
         # self.master.bind_all("<Control-X>", self._shortcut_cut, add="+")
         # self.master.bind_all("<Control-c>", self._shortcut_copy, add="+")
