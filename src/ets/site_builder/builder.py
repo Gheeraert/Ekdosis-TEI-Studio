@@ -122,7 +122,12 @@ def _auto_detect_logo_files(config: SiteConfig) -> tuple[Path, ...]:
         detected = [
             candidate.resolve()
             for candidate in logos_dir.iterdir()
-            if candidate.is_file() and candidate.suffix.lower() in _SUPPORTED_AUTO_LOGO_EXTENSIONS
+            if (
+                    candidate.is_file()
+                    and candidate.suffix.lower() in _SUPPORTED_AUTO_LOGO_EXTENSIONS
+                    and candidate.name.lower().startswith("logo_")
+                    and "nagscreen" not in candidate.name.lower()
+            )
         ]
         detected.sort(key=lambda path: path.name.casefold())
         return tuple(detected)
@@ -131,10 +136,13 @@ def _auto_detect_logo_files(config: SiteConfig) -> tuple[Path, ...]:
 
 
 def _resolve_logo_files(config: SiteConfig) -> tuple[Path, ...]:
-    detected = _auto_detect_logo_files(config)
-    if detected:
-        return detected
-    return config.assets.logo_files
+    # Priorité absolue à la configuration explicite.
+    # Si l'utilisateur déclare assets.logos / assets.logo_files,
+    # on ne tente aucune auto-détection.
+    if config.assets.logo_files:
+        return config.assets.logo_files
+
+    return _auto_detect_logo_files(config)
 
 
 def _copy_xml_sources(
