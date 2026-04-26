@@ -3,6 +3,8 @@
 **Dernière mise à jour proposée : 25 avril 2026**  
 **Projet :** Ekdosis TEI Studio  
 **Dépôt :** <https://github.com/Gheeraert/Ekdosis-TEI-Studio>
+**Site public :** <https://purh.univ-rouen.fr/logiciels/ekdosis-tei-studio/>
+**Vidéo de présentation :** <https://webtv.univ-rouen.fr/videos/2026-04-25-tei-studio_84924/>
 
 ---
 
