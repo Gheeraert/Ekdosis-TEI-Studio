@@ -4,6 +4,8 @@ import json
 import subprocess
 from pathlib import Path
 from typing import Any
+import shutil
+import sys
 
 
 class PandocBridgeError(RuntimeError):
@@ -20,7 +22,30 @@ class PandocExecutionError(PandocBridgeError):
 
 class PandocBridge:
     def __init__(self, executable: str = "pandoc") -> None:
-        self._executable = executable
+        self._executable = self._resolve_executable(executable)
+
+    @staticmethod
+    def _resolve_executable(executable: str) -> str:
+        if executable != "pandoc":
+            return executable
+
+        # Cas application compilée Nuitka : pandoc.exe placé à côté de l'exe.
+        exe_dir = Path(sys.executable).resolve().parent
+        local_pandoc = exe_dir / "pandoc.exe"
+        if local_pandoc.exists():
+            return str(local_pandoc)
+
+        # Cas lancement depuis les sources : pandoc.exe placé à la racine du projet.
+        cwd_pandoc = Path.cwd() / "pandoc.exe"
+        if cwd_pandoc.exists():
+            return str(cwd_pandoc)
+
+        # Cas installation système classique.
+        found = shutil.which("pandoc")
+        if found:
+            return found
+
+        return "pandoc"
 
     def load_docx_ast(self, source_path: Path) -> dict[str, Any]:
         command = [
