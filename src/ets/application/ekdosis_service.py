@@ -43,6 +43,7 @@ template_ekdosis_preamble = r"""
 \newenvironment{speech}{\par}{\par}
 \newcommand{\speaker}[1]{\vspace{1em}\large\centering\textsc{#1}\par}
 \newcommand{\didas}[1]{\par\vspace{0.5em}\begin{center}\textit{#1}\end{center}\vspace{0.5em}}
+\newcommand{\stage}[1]{\par\vspace{1em}\begin{center}\Large\textsc{#1}\end{center}\vspace{1em}}
 \newcommand{\vnum}[2]{\linelabel{v#1}#2\par}
 
 \SetLineation{vmodulo=5}
@@ -305,11 +306,15 @@ def _render_body(collated_play: CollatedPlay, *, line_offset: int, warnings: lis
 
     for act_index, act in enumerate(collated_play.acts, start=1):
         act_head = _render_collated_text(act.head).strip()
-        lines.append(rf"\ekddiv{{head={{{act_head}}}, type=act, n={act_index}, depth=2}}")
+        lines.append(rf"\ekddiv{{type=act, n={act_index}, depth=2}}")
+        if act_head:
+            lines.append(rf"\stage{{{act_head}}}")
 
         for scene_index, scene in enumerate(act.scenes, start=1):
             scene_head = _render_collated_text(scene.head).strip()
-            lines.append(rf"\ekddiv{{head={{{scene_head}}}, type=scene, n={scene_index}, depth=3}}")
+            lines.append(rf"\ekddiv{{type=scene, n={scene_index}, depth=3}}")
+            if scene_head:
+                lines.append(rf"\stage{{{scene_head}}}")
             if scene.cast is not None:
                 lines.append(rf"\stage{{{_render_collated_text(scene.cast).strip()}}}")
             for stage in scene.stage_directions:
