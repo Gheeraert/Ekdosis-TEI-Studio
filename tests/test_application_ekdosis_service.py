@@ -26,7 +26,8 @@ def test_ekdosis_body_is_generated_for_simple_scene() -> None:
         reference_witness="A",
     )
     assert result.body.strip()
-    assert r"\ekddiv{head={ACTE I." in result.body
+    assert r"\ekddiv{type=act, n=1, depth=2}" in result.body
+    assert r"\stage{ACTE I.}" in result.body
     assert r"\speaker{IOCASTE}" in result.body
     assert r"\vnum{1}{" in result.body
 
@@ -81,8 +82,9 @@ def test_ekdosis_act_scene_and_cast_are_rendered() -> None:
         witnesses=_witnesses_ab(),
         reference_witness="A",
     )
-    assert r"\ekddiv{head={ACTE I." in result.body
-    assert r"\ekddiv{head={SCENE DEUXIEME." in result.body
+    assert r"\ekddiv{type=act, n=1, depth=2}" in result.body
+    assert r"\ekddiv{type=scene, n=1, depth=3}" in result.body
+    assert r"\stage{SCENE DEUXIEME.}" in result.body
     assert r"\stage{" in result.body
 
 
@@ -124,6 +126,30 @@ def test_ekdosis_italics_are_rendered_without_alignment_break() -> None:
         reference_witness="A",
     )
     assert r"\textit{mot}" in result.body
+    assert r"\_mot\_" not in result.body
+
+
+def test_ekdosis_multitoken_italics_are_rendered_as_textit() -> None:
+    text = """####ACTE I.####
+####ACTE I.####
+
+###SCENE PREMIERE.###
+###SCENE PREMIERE.###
+
+#IOCASTE#
+#IOCASTE#
+
+_la violence_ me gagne.
+_la violence_ me gagne.
+"""
+    result = generate_ekdosis_from_text(
+        text=text,
+        witnesses=_witnesses_ab(),
+        reference_witness="A",
+    )
+    assert r"\textit{la violence}" in result.body
+    assert r"\_la" not in result.body
+    assert r"violence\_" not in result.body
 
 
 def test_ekdosis_full_document_contains_wrappers_and_witnesses() -> None:

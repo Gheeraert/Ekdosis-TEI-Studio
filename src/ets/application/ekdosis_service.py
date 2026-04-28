@@ -63,6 +63,7 @@ template_ekdosis_fin_doc = r"""
 _ITALIC_RE = re.compile(r"_([^_\n]+)_")
 _TILDE_RUN_RE = re.compile(r"[~\u00A0]+")
 _TILDE_PLACEHOLDER_RE = re.compile(r"\[\[ETSTILDE(\d+)]]")
+_ITALIC_MARKER = "\uE000"
 _DICT_SIGLUM_KEYS = ("siglum", "abbr", "id", "witness")
 _DICT_YEAR_KEYS = ("year", "date")
 _DICT_DESC_KEYS = ("description", "desc", "label", "note")
@@ -230,35 +231,60 @@ def _escape_plain_text(text: str) -> str:
     return _TILDE_RUN_RE.sub(_replace_tildes, escaped)
 
 
+def _escape_ekdosis_text_with_state(text: str, italic_open: bool) -> tuple[str, bool]:
+    parts = text.split(_ITALIC_MARKER)
+    rendered: list[str] = []
+    for index, part in enumerate(parts):
+        rendered.append(_escape_plain_text(part))
+        if index == len(parts) - 1:
+            continue
+        if italic_open:
+            rendered.append("}")
+        else:
+            rendered.append(r"\textit{")
+        italic_open = not italic_open
+    return "".join(rendered), italic_open
+
+
 def escape_ekdosis_text(text: str) -> str:
     chunks: list[str] = []
     cursor = 0
     for match in _ITALIC_RE.finditer(text):
-        chunks.append(_escape_plain_text(text[cursor:match.start()]))
-        chunks.append(rf"\textit{{{_escape_plain_text(match.group(1))}}}")
+        chunks.append(text[cursor:match.start()])
+        chunks.append(f"{_ITALIC_MARKER}{match.group(1)}{_ITALIC_MARKER}")
         cursor = match.end()
-    chunks.append(_escape_plain_text(text[cursor:]))
-    return "".join(chunks)
+    chunks.append(text[cursor:])
+    rendered, italic_open = _escape_ekdosis_text_with_state("".join(chunks), italic_open=False)
+    if italic_open:
+        rendered += "}"
+    return rendered
 
 
-def _render_collated_reading_macro(tag: str, reading: CollatedReading) -> str:
+def _render_collated_reading_macro(tag: str, reading: CollatedReading, italic_open: bool) -> tuple[str, bool]:
     sigla = ", ".join(reading.witness_sigla)
-    content = escape_ekdosis_text(reading.text)
-    return rf"  \{tag}[wit={{{sigla}}}]{{{content}}}"
+    content, italic_open = _escape_ekdosis_text_with_state(reading.text, italic_open=italic_open)
+    return rf"  \{tag}[wit={{{sigla}}}]{{{content}}}", italic_open
 
 
 def _render_collated_text(text: CollatedText) -> str:
     rendered: list[str] = []
+    italic_open = False
     for segment in text.segments:
         if isinstance(segment, LiteralTokenSegment):
-            rendered.append(escape_ekdosis_text(segment.text))
+            content, italic_open = _escape_ekdosis_text_with_state(segment.text, italic_open=italic_open)
+            rendered.append(content)
             continue
         if isinstance(segment, ApparatusTokenSegment):
-            lines = [r"\app{", _render_collated_reading_macro("lem", segment.lemma)]
+            lines = [r"\app{"]
+            lemma, italic_open = _render_collated_reading_macro("lem", segment.lemma, italic_open=italic_open)
+            lines.append(lemma)
             for reading in segment.readings:
-                lines.append(_render_collated_reading_macro("rdg", reading))
+                rdg, italic_open = _render_collated_reading_macro("rdg", reading, italic_open=italic_open)
+                lines.append(rdg)
             lines.append("}")
             rendered.append("\n".join(lines))
+    if italic_open:
+        rendered.append("}")
     return "".join(rendered)
 
 
@@ -405,6 +431,10 @@ def _encode_tilde_runs_for_pipeline(text: str) -> str:
     return re.sub(r"~+", lambda match: f"[[ETSTILDE{len(match.group(0))}]]", text)
 
 
+def _encode_italics_for_pipeline(text: str) -> str:
+    return _ITALIC_RE.sub(lambda match: f"{_ITALIC_MARKER}{match.group(1)}{_ITALIC_MARKER}", text)
+
+
 def generate_ekdosis_from_text(
     text: str,
     witnesses: list[WitnessLike],
@@ -418,7 +448,7 @@ def generate_ekdosis_from_text(
     normalized_witnesses, witness_warnings = _normalize_witnesses(witnesses)
     reference_index = _resolve_reference_index(reference_witness, normalized_witnesses)
     normalized_metadata = _normalize_metadata(metadata)
-    pipeline_text = _encode_tilde_runs_for_pipeline(text)
+    pipeline_text = _encode_tilde_runs_for_pipeline(_encode_italics_for_pipeline(text))
 
     report = validate_input_text(
         pipeline_text,
