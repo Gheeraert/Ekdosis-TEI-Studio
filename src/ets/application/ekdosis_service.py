@@ -37,14 +37,63 @@ template_ekdosis_preamble = r"""
 \usepackage{hyperref}
 \usepackage{zref-user,zref-abspage}
 
+\usepackage{fancyhdr}
+\usepackage{needspace}
+\newcommand{\ekdosisauthor}{}
+\newcommand{\ekdosistitle}{}
+
 \singlespacing
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\ekdosisauthor}
+\fancyhead[R]{\textit{\ekdosistitle}}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0pt}
+\setlength{\headheight}{14.5pt}
+
+% Limitation des veuves et orphelines
+\clubpenalty=10000
+\widowpenalty=10000
+\displaywidowpenalty=10000
+\brokenpenalty=10000
+\raggedbottom
+
 \DeclareApparatus{default}
 
 \newenvironment{speech}{\par}{\par}
-\newcommand{\speaker}[1]{\vspace{1em}\large\centering\textsc{#1}\par}
-\newcommand{\didas}[1]{\par\vspace{0.5em}\begin{center}\textit{#1}\end{center}\vspace{0.5em}}
-\newcommand{\stage}[1]{\par\vspace{1em}\begin{center}\Large\textsc{#1}\end{center}\vspace{1em}}
+
+\newcommand{\speaker}[1]{%
+  \par
+  \Needspace{4\baselineskip}%
+  \vspace{1em}%
+  {\large\centering\textsc{#1}\par}%
+}
+
+\newcommand{\didas}[1]{%
+  \par
+  \Needspace{3\baselineskip}%
+  \vspace{0.5em}%
+  \begin{center}%
+    \textit{#1}%
+  \end{center}%
+  \vspace{0.5em}%
+}
+
+\newcommand{\stage}[1]{%
+  \par
+  \Needspace{6\baselineskip}%
+  \vspace{1em}%
+  \begin{center}%
+    \Large\textsc{#1}%
+  \end{center}%
+  \vspace{1em}%
+}
+
 \newcommand{\vnum}[2]{\linelabel{v#1}#2\par}
+\newcommand{\sharedverseparttwo}{\hspace*{3cm}}
+\newcommand{\sharedversepartthree}{\hspace*{5cm}}
 
 \SetLineation{vmodulo=5}
 \SetLineation{lineation=none}
@@ -64,6 +113,7 @@ _ITALIC_RE = re.compile(r"_([^_\n]+)_")
 _TILDE_RUN_RE = re.compile(r"[~\u00A0]+")
 _TILDE_PLACEHOLDER_RE = re.compile(r"\[\[ETSTILDE(\d+)]]")
 _ITALIC_MARKER = "\uE000"
+_EXPLICIT_STAGE_RE = re.compile(r"^\*\*(.+)\*\*$")
 _DICT_SIGLUM_KEYS = ("siglum", "abbr", "id", "witness")
 _DICT_YEAR_KEYS = ("year", "date")
 _DICT_DESC_KEYS = ("description", "desc", "label", "note")
@@ -288,15 +338,112 @@ def _render_collated_text(text: CollatedText) -> str:
     return "".join(rendered)
 
 
+def _looks_like_explicit_stage_reading(text: str) -> bool:
+    stripped = text.strip()
+    if stripped.lower() == "(lacune)":
+        return True
+    return _EXPLICIT_STAGE_RE.match(stripped) is not None
+
+
+def _strip_explicit_stage_markers(text: str) -> str:
+    stripped = text.strip()
+    match = _EXPLICIT_STAGE_RE.match(stripped)
+    if match is not None:
+        return match.group(1).strip()
+    return stripped
+
+
+def _extract_stage_candidate_readings(line: CollatedLine) -> list[str] | None:
+    if isinstance(line, LiteralLine):
+        return [line.text]
+    if isinstance(line, ApparatusLine):
+        return [line.lemma.text] + [reading.text for reading in line.readings]
+    if isinstance(line, TokenCollatedLine):
+        segments = line.text.segments
+        if len(segments) != 1:
+            return None
+        only = segments[0]
+        if isinstance(only, LiteralTokenSegment):
+            return [only.text]
+        if isinstance(only, ApparatusTokenSegment):
+            return [only.lemma.text] + [reading.text for reading in only.readings]
+    return None
+
+
+def _is_explicit_stage_mixed_line(line: CollatedLine) -> bool:
+    readings = _extract_stage_candidate_readings(line)
+    if not readings:
+        return False
+    has_explicit_stage = any(_EXPLICIT_STAGE_RE.match(reading.strip()) is not None for reading in readings)
+    if not has_explicit_stage:
+        return False
+    return all(_looks_like_explicit_stage_reading(reading) for reading in readings)
+
+
+def _render_stage_line_text(line: CollatedLine) -> str:
+    if isinstance(line, LiteralLine):
+        return escape_ekdosis_text(_strip_explicit_stage_markers(line.text))
+    if isinstance(line, ApparatusLine):
+        cleaned_lemma = CollatedReading(
+            text=_strip_explicit_stage_markers(line.lemma.text),
+            witness_sigla=list(line.lemma.witness_sigla),
+        )
+        cleaned_readings = [
+            CollatedReading(
+                text=_strip_explicit_stage_markers(reading.text),
+                witness_sigla=list(reading.witness_sigla),
+            )
+            for reading in line.readings
+        ]
+        parts = [r"\app{"]
+        lemma, italic_open = _render_collated_reading_macro("lem", cleaned_lemma, italic_open=False)
+        parts.append(lemma)
+        for reading in cleaned_readings:
+            rdg, italic_open = _render_collated_reading_macro("rdg", reading, italic_open=italic_open)
+            parts.append(rdg)
+        if italic_open:
+            parts.append("}")
+        parts.append("}")
+        return "\n".join(parts)
+    if isinstance(line, TokenCollatedLine):
+        cleaned_segments: list[LiteralTokenSegment | ApparatusTokenSegment] = []
+        for segment in line.text.segments:
+            if isinstance(segment, LiteralTokenSegment):
+                cleaned_segments.append(LiteralTokenSegment(text=_strip_explicit_stage_markers(segment.text)))
+                continue
+            cleaned_segments.append(
+                ApparatusTokenSegment(
+                    lemma=CollatedReading(
+                        text=_strip_explicit_stage_markers(segment.lemma.text),
+                        witness_sigla=list(segment.lemma.witness_sigla),
+                    ),
+                    readings=[
+                        CollatedReading(
+                            text=_strip_explicit_stage_markers(reading.text),
+                            witness_sigla=list(reading.witness_sigla),
+                        )
+                        for reading in segment.readings
+                    ],
+                )
+            )
+        return _render_collated_text(CollatedText(segments=cleaned_segments))
+    raise TypeError(f"Unsupported collated line type for stage rendering: {type(line)!r}")
+
+
 def _render_line_text(line: CollatedLine) -> str:
     if isinstance(line, TokenCollatedLine):
         return _render_collated_text(line.text)
     if isinstance(line, LiteralLine):
         return escape_ekdosis_text(line.text)
     if isinstance(line, ApparatusLine):
-        parts = [r"\app{", _render_collated_reading_macro("lem", line.lemma)]
+        parts = [r"\app{"]
+        lemma, italic_open = _render_collated_reading_macro("lem", line.lemma, italic_open=False)
+        parts.append(lemma)
         for reading in line.readings:
-            parts.append(_render_collated_reading_macro("rdg", reading))
+            rdg, italic_open = _render_collated_reading_macro("rdg", reading, italic_open=italic_open)
+            parts.append(rdg)
+        if italic_open:
+            parts.append("}")
         parts.append("}")
         return "\n".join(parts)
     raise TypeError(f"Unsupported collated line type: {type(line)!r}")
@@ -314,9 +461,20 @@ def _offset_line_number(number: str, offset: int) -> str:
     return updated
 
 
+def _shared_verse_indent_prefix(number: str) -> str:
+    if number.endswith(".2"):
+        return r"\sharedverseparttwo{}"
+    if number.endswith(".3"):
+        return r"\sharedversepartthree{}"
+    return ""
+
+
 def _render_verse_line(line: CollatedLine, *, line_offset: int) -> str:
     rendered_text = _render_line_text(line)
     updated_number = _offset_line_number(line.number, line_offset)
+    indent_prefix = _shared_verse_indent_prefix(updated_number)
+    if indent_prefix:
+        rendered_text = f"{indent_prefix}{rendered_text}"
     return "\n".join(
         [
             rf"\vnum{{{updated_number}}}{{",
@@ -366,6 +524,9 @@ def _render_body(collated_play: CollatedPlay, *, line_offset: int, warnings: lis
                         for implicit_line in element.lines:
                             lines.append(_render_verse_line(implicit_line, line_offset=line_offset))
                         continue
+                    if _is_explicit_stage_mixed_line(element):
+                        lines.append(rf"\didas{{{_render_stage_line_text(element).strip()}}}")
+                        continue
                     lines.append(_render_verse_line(element, line_offset=line_offset))
 
                 lines.append(r"\end{ekdverse}")
@@ -387,6 +548,7 @@ def _render_titlepage(metadata: EkdosisMetadata) -> str:
     return "\n".join(
         [
             r"\begin{titlepage}",
+            r"\thispagestyle{empty}",
             r"\centering",
             rf"{{\Huge \textbf{{\MakeUppercase{{{title}}}}} \par}}",
             r"\vspace{1.5cm}",
@@ -404,10 +566,19 @@ def _render_titlepage(metadata: EkdosisMetadata) -> str:
 def _build_full_document(*, body: str, witnesses: list[EkdosisWitness], metadata: EkdosisMetadata) -> str:
     witness_declarations = _render_witness_declarations(witnesses)
     titlepage = _render_titlepage(metadata)
+
+    running_head_setup = "\n".join(
+        [
+            rf"\renewcommand{{\ekdosisauthor}}{{{escape_ekdosis_text(metadata.author)}}}",
+            rf"\renewcommand{{\ekdosistitle}}{{{escape_ekdosis_text(metadata.title)}}}",
+        ]
+    )
+
     return "\n".join(
         [
             template_ekdosis_preamble.strip(),
             witness_declarations,
+            running_head_setup,
             template_ekdosis_debut_doc.strip(),
             titlepage,
             body.rstrip(),

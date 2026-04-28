@@ -204,3 +204,153 @@ def test_export_ekdosis_writes_tex_file() -> None:
     written = export_ekdosis(r"\documentclass{book}", target)
     assert written == target.resolve()
     assert target.read_text(encoding="utf-8") == r"\documentclass{book}"
+
+
+def test_explicit_stage_simple_block_is_rendered_as_didas_without_vnum() -> None:
+    text = """####ACTE I.####
+####ACTE I.####
+
+###SCENE PREMIERE.###
+###SCENE PREMIERE.###
+
+#IOCASTE#
+#IOCASTE#
+
+**Fin du premier Acte.**
+**Fin du premier Acte.**
+"""
+    result = generate_ekdosis_from_text(text=text, witnesses=_witnesses_ab(), reference_witness="A")
+    assert r"\didas{Fin du premier Acte.}" in result.body
+    assert "**" not in result.body
+    assert r"\vnum{" not in result.body
+
+
+def test_explicit_stage_mixed_lacune_and_stage_uses_didas_with_apparatus() -> None:
+    text = """####ACTE I.####
+####ACTE I.####
+
+###SCENE PREMIERE.###
+###SCENE PREMIERE.###
+
+#IOCASTE#
+#IOCASTE#
+
+#####(lacune)
+#####**Fin du premier Acte.**
+"""
+    result = generate_ekdosis_from_text(text=text, witnesses=_witnesses_ab(), reference_witness="A")
+    assert r"\didas{" in result.body
+    assert r"\app{" in result.body
+    assert "(lacune)" in result.body
+    assert "Fin du premier Acte." in result.body
+    assert "**" not in result.body
+    assert r"\vnum{" not in result.body
+
+
+def test_explicit_stage_mixed_starred_lacune_and_stage_uses_didas() -> None:
+    text = """####ACTE I.####
+####ACTE I.####
+
+###SCENE PREMIERE.###
+###SCENE PREMIERE.###
+
+#IOCASTE#
+#IOCASTE#
+
+#####**(lacune)**
+#####**Fin du premier Acte.**
+"""
+    result = generate_ekdosis_from_text(text=text, witnesses=_witnesses_ab(), reference_witness="A")
+    assert r"\didas{" in result.body
+    assert r"\app{" in result.body
+    assert "(lacune)" in result.body
+    assert "Fin du premier Acte." in result.body
+    assert "**" not in result.body
+
+
+def test_non_regression_regular_variant_verse_keeps_vnum() -> None:
+    text = """####ACTE I.####
+####ACTE I.####
+
+###SCENE PREMIERE.###
+###SCENE PREMIERE.###
+
+#IOCASTE#
+#IOCASTE#
+
+Je parle ici.
+Je demeure ici.
+"""
+    result = generate_ekdosis_from_text(text=text, witnesses=_witnesses_ab(), reference_witness="A")
+    assert r"\vnum{1}{" in result.body
+    assert r"\app{" in result.body
+
+
+def test_shared_verse_part_two_has_fixed_indent_macro() -> None:
+    result = generate_ekdosis_from_text(
+        text=_fixture_text("04_shared_verse.txt"),
+        witnesses=_witnesses_ab(),
+        reference_witness="A",
+    )
+    assert r"\vnum{1.2}{" in result.body
+    assert r"\sharedverseparttwo{}" in result.body
+
+
+def test_shared_verse_part_three_has_fixed_indent_macro() -> None:
+    text = """####ACTE I.####
+####ACTE I.####
+
+###SCENE PREMIERE.###
+###SCENE PREMIERE.###
+
+#IOCASTE#
+#IOCASTE#
+
+Debut***
+Debut***
+
+#OLYMPE#
+#OLYMPE#
+
+***Suite***
+***Suite***
+
+#IOCASTE#
+#IOCASTE#
+
+***Fin
+***Fin
+"""
+    result = generate_ekdosis_from_text(text=text, witnesses=_witnesses_ab(), reference_witness="A")
+    assert r"\vnum{1.3}{" in result.body
+    assert r"\sharedversepartthree{}" in result.body
+
+
+def test_regular_verse_has_no_shared_indent_macro() -> None:
+    result = generate_ekdosis_from_text(
+        text=_fixture_text("01_simple_scene.txt"),
+        witnesses=_witnesses_ab(),
+        reference_witness="A",
+    )
+    assert r"\vnum{1}{" in result.body
+    assert r"\sharedverseparttwo{}" not in result.body
+    assert r"\sharedversepartthree{}" not in result.body
+
+
+def test_full_document_declares_shared_verse_indent_macros() -> None:
+    result = generate_ekdosis_from_text(
+        text=_fixture_text("01_simple_scene.txt"),
+        witnesses=_witnesses_ab(),
+        reference_witness="A",
+    )
+    assert r"\newcommand{\sharedverseparttwo}{\hspace*{3cm}}" in result.full_document
+    assert r"\newcommand{\sharedversepartthree}{\hspace*{5cm}}" in result.full_document
+
+
+def test_speech_open_close_are_balanced_with_shared_verse_output() -> None:
+    result = generate_ekdosis_from_text(
+        text=_fixture_text("04_shared_verse.txt"),
+        witnesses=_witnesses_ab(),
+        reference_witness="A",
+    )
+    assert result.body.count(r"\begin{speech}") == result.body.count(r"\end{speech}")
