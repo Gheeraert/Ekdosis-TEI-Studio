@@ -14,6 +14,7 @@ from ets.application import (
     DramaticTeiMergeServiceResult,
     DramaticDocumentInput,
     DramaticPlayInput,
+    EkdosisResult,
     GenerationResult,
     SiteIdentityInput,
     SitePublicationRequest,
@@ -240,6 +241,16 @@ def test_output_tabs_include_annotations_tab() -> None:
         root.destroy()
 
 
+def test_output_tabs_include_ekdosis_tab() -> None:
+    root = _make_root()
+    try:
+        window = MainWindow(root)
+        labels = [window.outputs.notebook.tab(tab_id, "text") for tab_id in window.outputs.notebook.tabs()]
+        assert "Ekdosis" in labels
+    finally:
+        root.destroy()
+
+
 def test_manual_tei_edit_sets_dirty_flag() -> None:
     root = _make_root()
     try:
@@ -292,6 +303,47 @@ def test_export_tei_uses_visible_edited_tei(monkeypatch: pytest.MonkeyPatch) -> 
         window.action_export_tei()
 
         assert captured == ["<TEI>edited</TEI>"]
+    finally:
+        root.destroy()
+
+
+def test_export_ekdosis_uses_service_and_updates_output_tab(monkeypatch: pytest.MonkeyPatch) -> None:
+    root = _make_root()
+    try:
+        window = MainWindow(root)
+        fixture_root = Path(__file__).resolve().parents[1] / "fixtures" / "stable"
+        window.state.config = load_config(fixture_root / "config.json")
+        window.editor.set_text((fixture_root / "input.txt").read_text(encoding="utf-8"))
+
+        out_path = RUNTIME_DIR / f"export_ekdosis_{uuid4().hex}.tex"
+        monkeypatch.setattr("tkinter.filedialog.asksaveasfilename", lambda **kwargs: str(out_path))
+        monkeypatch.setattr("tkinter.messagebox.showinfo", lambda *args, **kwargs: None)
+        monkeypatch.setattr("tkinter.messagebox.showwarning", lambda *args, **kwargs: None)
+
+        captured: list[str] = []
+
+        def _fake_generate(**kwargs):  # type: ignore[no-untyped-def]
+            assert kwargs["reference_witness"] == window.state.config.reference_witness
+            return EkdosisResult(
+                body="\\begin{speech}\n\\speaker{IOCASTE}\n\\vnum{1}{Texte\\\\\n}\n\\end{speech}\n",
+                full_document="\\documentclass{book}\n\\begin{document}\n\\end{document}\n",
+                diagnostics=[],
+                warnings=[],
+            )
+
+        def _fake_export(content: str, output_path: str | Path) -> Path:
+            captured.append(content)
+            path = Path(output_path)
+            path.write_text(content, encoding="utf-8")
+            return path
+
+        monkeypatch.setattr("ets.ui.tk.main_window.generate_ekdosis_from_text", _fake_generate)
+        monkeypatch.setattr("ets.ui.tk.main_window.export_ekdosis", _fake_export)
+
+        window.action_export_ekdosis()
+
+        assert captured == ["\\documentclass{book}\n\\begin{document}\n\\end{document}\n"]
+        assert "\\speaker{IOCASTE}" in window.outputs.get_ekdosis()
     finally:
         root.destroy()
 
@@ -376,6 +428,7 @@ def test_tools_menu_contains_manual_tei_validation_action() -> None:
         assert "Fusionner des transcriptions texte…" in labels
         assert "Fusionner des XML dramatiques…" in labels
         assert "Générer le site de publication…" in labels
+        assert "Export LaTeX-Ekdosis" in labels
     finally:
         root.destroy()
 

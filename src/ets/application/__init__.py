@@ -42,6 +42,15 @@ from .editorial_notice_import import (
     EditorialSourceKind,
     format_validation_report,
 )
+from .ekdosis_service import (
+    EkdosisGenerationError,
+    EkdosisMetadata,
+    EkdosisResult,
+    EkdosisWitness,
+    export_ekdosis,
+    generate_ekdosis_from_config,
+    generate_ekdosis_from_text,
+)
 from .services import (
     create_annotation,
     delete_annotation,
@@ -91,6 +100,13 @@ __all__ = [
     "generate_html_preview_from_text",
     "export_tei",
     "export_html",
+    "EkdosisWitness",
+    "EkdosisMetadata",
+    "EkdosisResult",
+    "EkdosisGenerationError",
+    "generate_ekdosis_from_text",
+    "generate_ekdosis_from_config",
+    "export_ekdosis",
     "suggest_output_basename",
     "SiteBuildRequest",
     "SiteBuildServiceResult",

@@ -10,7 +10,7 @@ from .annotation_panel import AnnotationPanel
 
 
 class OutputNotebook(ttk.Frame):
-    """Output tabs with editable TEI and read-only HTML."""
+    """Output tabs with editable TEI and read-only rendered outputs."""
 
     def __init__(
         self,
@@ -34,6 +34,7 @@ class OutputNotebook(ttk.Frame):
 
         self.tei_text = self._create_tab("TEI", editable=True)
         self.html_text = self._create_tab("HTML", editable=False)
+        self.ekdosis_text = self._create_tab("Ekdosis", editable=False)
         self.annotations_panel = self._create_annotations_tab(
             "Annotations",
             on_add=on_annotation_add,
@@ -120,8 +121,14 @@ class OutputNotebook(ttk.Frame):
     def set_html(self, value: str) -> None:
         self._set_text(self.html_text, value, editable=False)
 
+    def set_ekdosis(self, value: str) -> None:
+        self._set_text(self.ekdosis_text, value, editable=False)
+
     def get_tei(self) -> str:
         return self.tei_text.get("1.0", "end-1c")
+
+    def get_ekdosis(self) -> str:
+        return self.ekdosis_text.get("1.0", "end-1c")
 
     def set_annotations(self, collection: AnnotationCollection) -> None:
         self.annotations_panel.set_annotations(collection)

@@ -64,6 +64,7 @@ class MenuCallbacks:
     preview_html: Callable[[], None]
     export_tei: Callable[[], None]
     export_html: Callable[[], None]
+    export_ekdosis: Callable[[], None]
     merge_text_transcriptions: Callable[[], None]
     merge_dramatic_tei: Callable[[], None]
     build_publication_site: Callable[[], None]
@@ -168,6 +169,7 @@ def install_menus(root: tk.Tk, cb: MenuCallbacks) -> None:
     tools_menu.add_separator()
     tools_menu.add_command(label="Export TEI", command=cb.export_tei)
     tools_menu.add_command(label="Export HTML", command=cb.export_html)
+    tools_menu.add_command(label="Export LaTeX-Ekdosis", command=cb.export_ekdosis)
     tools_menu.add_command(label="Fusionner des transcriptions texte…", command=cb.merge_text_transcriptions)
     tools_menu.add_command(label="Fusionner des XML dramatiques…", command=cb.merge_dramatic_tei)
     tools_menu.add_command(label="Générer le site de publication…", command=cb.build_publication_site)

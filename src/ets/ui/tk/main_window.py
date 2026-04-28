@@ -13,15 +13,18 @@ from ets.markdown_editor import MarkdownEditorWidget
 from ets.references import CitationOccurrence, CitationTokenData, ReferencesPanel, format_inline_citation
 from ets.application import (
     AppDiagnostic,
+    EkdosisGenerationError,
     merge_dramatic_tei_files,
     merge_text_transcription_files,
     build_site_from_publication_request,
     create_annotation,
     delete_annotation,
+    export_ekdosis,
     enrich_tei_with_annotations,
     parse_annotation,
     export_html,
     export_tei,
+    generate_ekdosis_from_text,
     generate_html_preview_from_tei,
     generate_tei_from_text,
     load_annotations,
@@ -63,6 +66,8 @@ class UIState:
     config: EditionConfig | None = None
     tei_xml: str | None = None
     html_preview: str | None = None
+    ekdosis_body: str | None = None
+    ekdosis_full_document: str | None = None
     tei_dirty_by_user: bool = False
     diagnostics: list[AppDiagnostic] = field(default_factory=list)
     outputs_stale: bool = False
@@ -315,6 +320,7 @@ class MainWindow(ttk.Frame):
                 preview_html=self.action_preview_html,
                 export_tei=self.action_export_tei,
                 export_html=self.action_export_html,
+                export_ekdosis=self.action_export_ekdosis,
                 merge_text_transcriptions=self.action_merge_text_transcriptions,
                 merge_dramatic_tei=self.action_merge_dramatic_tei,
                 build_publication_site=self.action_build_publication_site,
@@ -766,14 +772,22 @@ class MainWindow(ttk.Frame):
             return
 
     def _invalidate_outputs(self, *, reason: str) -> None:
-        if self.state.tei_xml is None and self.state.html_preview is None and not self.state.diagnostics:
+        if (
+            self.state.tei_xml is None
+            and self.state.html_preview is None
+            and self.state.ekdosis_body is None
+            and not self.state.diagnostics
+        ):
             return
         self.state.tei_xml = None
         self.state.html_preview = None
+        self.state.ekdosis_body = None
+        self.state.ekdosis_full_document = None
         self.state.tei_dirty_by_user = False
         self.state.outputs_stale = True
         self.outputs.set_tei("")
         self.outputs.set_html("")
+        self.outputs.set_ekdosis("")
         if reason in {"text_changed", "new_file", "open_file", "config_changed", "reference_changed"}:
             self._set_diagnostics([])
 
@@ -794,9 +808,12 @@ class MainWindow(ttk.Frame):
             self._set_diagnostics(result.diagnostics)
             self.state.tei_xml = None
             self.state.html_preview = None
+            self.state.ekdosis_body = None
+            self.state.ekdosis_full_document = None
             self.state.outputs_stale = True
             self.outputs.set_tei("")
             self.outputs.set_html("")
+            self.outputs.set_ekdosis("")
             if show_error:
                 messagebox.showerror("Génération TEI", result.message or "Échec de génération TEI.", parent=self.master)
             return False
@@ -806,9 +823,12 @@ class MainWindow(ttk.Frame):
             self._set_diagnostics(result.diagnostics + enrichment_diagnostics)
             self.state.tei_xml = None
             self.state.html_preview = None
+            self.state.ekdosis_body = None
+            self.state.ekdosis_full_document = None
             self.state.outputs_stale = True
             self.outputs.set_tei("")
             self.outputs.set_html("")
+            self.outputs.set_ekdosis("")
             if show_error:
                 messagebox.showerror("Génération TEI", enrichment_error or "Échec de l'enrichissement TEI.", parent=self.master)
             return False
@@ -818,7 +838,10 @@ class MainWindow(ttk.Frame):
         self.outputs.set_tei(enriched_tei)
         self.state.tei_dirty_by_user = False
         self.state.html_preview = None
+        self.state.ekdosis_body = None
+        self.state.ekdosis_full_document = None
         self.outputs.set_html("")
+        self.outputs.set_ekdosis("")
         self.state.outputs_stale = False
         return True
 
@@ -1320,6 +1343,59 @@ class MainWindow(ttk.Frame):
             content=html_result.html,
             initialfile=self._default_filename(".html"),
             exporter=export_html,
+        )
+
+    def action_export_ekdosis(self) -> None:
+        if not self._ensure_config():
+            return
+        assert self.state.config is not None
+
+        metadata = {
+            "title": self.state.config.title,
+            "author": self.state.config.author,
+            "editor": self.state.config.editor,
+        }
+        witness_data = [
+            {"abbr": witness.siglum, "year": witness.year, "desc": witness.description}
+            for witness in self.state.config.witnesses
+        ]
+
+        try:
+            result = generate_ekdosis_from_text(
+                text=self._current_text(),
+                witnesses=witness_data,
+                reference_witness=self.state.config.reference_witness,
+                metadata=metadata,
+            )
+        except EkdosisGenerationError as exc:
+            if exc.diagnostics:
+                details = "\n".join(exc.diagnostics[:20])
+                message = f"{exc}\n\n{details}"
+            else:
+                message = str(exc)
+            messagebox.showerror("Export LaTeX-Ekdosis", message, parent=self.master)
+            return
+
+        self.state.ekdosis_body = result.body
+        self.state.ekdosis_full_document = result.full_document
+        self.outputs.set_ekdosis(result.body)
+
+        if result.warnings:
+            warning_lines = "\n".join(f"- {item}" for item in result.warnings[:20])
+            messagebox.showwarning(
+                "Export LaTeX-Ekdosis",
+                f"Le document Ekdosis a été généré avec avertissements.\n\n{warning_lines}",
+                parent=self.master,
+            )
+
+        self._export_content(
+            title="Exporter le LaTeX-Ekdosis",
+            warning_message="Aucun contenu Ekdosis à exporter.",
+            default_extension=".tex",
+            filetypes=[("LaTeX files", "*.tex"), ("All files", "*.*")],
+            content=result.full_document,
+            initialfile=self._default_filename(".tex", suffix="_ekdosis"),
+            exporter=export_ekdosis,
         )
 
     def action_build_publication_site(self) -> None:
