@@ -3,7 +3,8 @@ from __future__ import annotations
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
-from ets.core import run_pipeline
+from ets.core import run_pipeline, run_pipeline_from_text
+from ets.domain import EditionConfig, Witness
 
 NS = {"tei": "http://www.tei-c.org/ns/1.0"}
 
@@ -72,3 +73,77 @@ def test_pipeline_matches_stable_fixture_line_and_speaker_sequence() -> None:
 
     assert _line_numbers(generated_root) == _line_numbers(expected_root)
     assert _speakers(generated_root) == _speakers(expected_root)
+
+
+def _mini_config() -> EditionConfig:
+    return EditionConfig(
+        title="Mini",
+        author="Auteur",
+        editor="Editeur",
+        witnesses=[
+            Witness(siglum="A", year="1670", description="temoin A"),
+            Witness(siglum="B", year="1671", description="temoin B"),
+            Witness(siglum="C", year="1672", description="temoin C"),
+        ],
+        reference_witness=0,
+    )
+
+
+def test_pipeline_emits_tei_hi_for_simple_underscore_italic() -> None:
+    text = "\n".join(
+        [
+            "####ACTE I####",
+            "####ACTE I####",
+            "####ACTE I####",
+            "",
+            "###SCENE I###",
+            "###SCENE I###",
+            "###SCENE I###",
+            "",
+            "#ORESTE#",
+            "#ORESTE#",
+            "#ORESTE#",
+            "",
+            "Oui je viens en son _temple_ adorer l’Eternel",
+            "Oui je viens en son _temple_ adorer l’Eternel",
+            "Oui je viens en son _temple_ adorer l’Eternel",
+        ]
+    )
+    xml_text = run_pipeline_from_text(text, _mini_config())
+    root = _parse(xml_text)
+    line = _line(root, "1")
+    hi = line.find("tei:hi[@rend='italic']", NS)
+    assert hi is not None
+    assert "".join(hi.itertext()) == "temple"
+    assert "_temple_" not in xml_text
+
+
+def test_pipeline_keeps_apparatus_and_italic_in_lemma_or_readings() -> None:
+    text = "\n".join(
+        [
+            "####ACTE I####",
+            "####ACTE I####",
+            "####ACTE I####",
+            "",
+            "###SCENE I###",
+            "###SCENE I###",
+            "###SCENE I###",
+            "",
+            "#ORESTE#",
+            "#ORESTE#",
+            "#ORESTE#",
+            "",
+            "Oui je viens en son _temple_ adorer l’Eternel",
+            "Oui je viens en son temple adorer l’Eternel",
+            "Oui je viens en son _temple_ adorer l’Eternel",
+        ]
+    )
+    xml_text = run_pipeline_from_text(text, _mini_config())
+    root = _parse(xml_text)
+    line = _line(root, "1")
+    app = line.find("tei:app", NS)
+    assert app is not None
+    assert app.find("tei:lem/tei:hi[@rend='italic']", NS) is not None
+    assert app.find("tei:rdg[@wit='#B']", NS) is not None
+    assert app.find("tei:rdg[@wit='#B']/tei:hi", NS) is None
+    assert "_temple_" not in xml_text

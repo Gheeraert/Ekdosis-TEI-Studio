@@ -30,7 +30,7 @@ def _wit_attr(sigla: list[str]) -> str:
 
 def _append_reading(parent: ET.Element, tag: str, reading: CollatedReading) -> None:
     element = ET.SubElement(parent, _tei(tag), {"wit": _wit_attr(reading.witness_sigla)})
-    element.text = reading.text
+    _append_inline_italics(element, None, reading.text)
 
 
 def _append_text(container: ET.Element, last_child: ET.Element | None, text: str) -> None:
@@ -42,11 +42,47 @@ def _append_text(container: ET.Element, last_child: ET.Element | None, text: str
         last_child.tail = (last_child.tail or "") + text
 
 
+def _append_inline_italics(
+    container: ET.Element,
+    last_child: ET.Element | None,
+    text: str,
+) -> ET.Element | None:
+    if not text:
+        return last_child
+
+    cursor = 0
+    while cursor < len(text):
+        start = text.find("_", cursor)
+        if start < 0:
+            _append_text(container, last_child, text[cursor:])
+            break
+
+        end = text.find("_", start + 1)
+        if end < 0:
+            _append_text(container, last_child, text[cursor:])
+            break
+
+        if start > cursor:
+            _append_text(container, last_child, text[cursor:start])
+
+        content = text[start + 1 : end]
+        if content:
+            hi = ET.SubElement(container, _tei("hi"), {"rend": "italic"})
+            hi.text = content
+            last_child = hi
+        else:
+            _append_text(container, last_child, text[start : end + 1])
+
+        cursor = end + 1
+
+    return last_child
+
+
 def _append_collated_text(parent: ET.Element, text: CollatedText) -> None:
     last_child: ET.Element | None = None
     for segment in text.segments:
         if isinstance(segment, LiteralTokenSegment):
-            _append_text(parent, last_child, segment.text)
+            last_child = _append_inline_italics(parent, last_child, segment.text)
             continue
         if isinstance(segment, ApparatusTokenSegment):
             app = ET.SubElement(parent, _tei("app"))
@@ -71,7 +107,7 @@ def _append_collated_line(
         return
 
     if isinstance(line, LiteralLine):
-        l_element.text = line.text
+        _append_inline_italics(l_element, None, line.text)
         return
 
     app = ET.SubElement(l_element, _tei("app"))

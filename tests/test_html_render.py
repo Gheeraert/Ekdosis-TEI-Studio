@@ -12,7 +12,8 @@ from ets.annotations import (
     inject_annotations_into_tei,
     load_annotations,
 )
-from ets.core import run_pipeline
+from ets.core import run_pipeline, run_pipeline_from_text
+from ets.domain import EditionConfig, Witness
 from ets.html import HtmlExportOptions, render_html_export_from_tei, render_html_preview_from_tei
 
 
@@ -83,6 +84,20 @@ def _annotated_long_note_tei_xml() -> str:
         ],
     )
     return inject_annotations_into_tei(tei_xml, annotations)
+
+
+def _mini_config() -> EditionConfig:
+    return EditionConfig(
+        title="Mini",
+        author="Auteur",
+        editor="Editeur",
+        witnesses=[
+            Witness(siglum="A", year="1670", description="temoin A"),
+            Witness(siglum="B", year="1671", description="temoin B"),
+            Witness(siglum="C", year="1672", description="temoin C"),
+        ],
+        reference_witness=0,
+    )
 
 
 def test_html_preview_transforms_stable_tei_fixture() -> None:
@@ -226,3 +241,32 @@ def test_html_preview_renders_structured_tei_inside_note_body() -> None:
     assert doc.xpath("//section[contains(@class, 'notes')]//li[@id='note-1']//span[contains(@class, 'superscript') and text()='2']")
     assert doc.xpath("//section[contains(@class, 'notes')]//li[@id='note-1']//span[contains(@class, 'subscript') and text()='2']")
     assert doc.xpath("//section[contains(@class, 'notes')]//li[@id='note-1']//a[@href='https://example.org' and text()='lien']")
+
+
+def test_html_preview_renders_underscore_italic_without_literal_underscores() -> None:
+    text = "\n".join(
+        [
+            "####ACTE I####",
+            "####ACTE I####",
+            "####ACTE I####",
+            "",
+            "###SCENE I###",
+            "###SCENE I###",
+            "###SCENE I###",
+            "",
+            "#ORESTE#",
+            "#ORESTE#",
+            "#ORESTE#",
+            "",
+            "Oui je viens en son _temple_ adorer l’Eternel",
+            "Oui je viens en son _temple_ adorer l’Eternel",
+            "Oui je viens en son _temple_ adorer l’Eternel",
+        ]
+    )
+    tei_xml = run_pipeline_from_text(text, _mini_config())
+    assert "_temple_" not in tei_xml
+
+    preview = render_html_preview_from_tei(tei_xml)
+    doc = lxml_html.document_fromstring(preview)
+    assert doc.xpath("//span[contains(@class, 'italic') and text()='temple'] | //em[text()='temple']")
+    assert "_temple_" not in doc.text_content()

@@ -685,3 +685,30 @@ Ekdosis TEI Studio doit rester un outil d’édition savante, non un simple conv
 Sa vocation est de produire des **données éditoriales structurées** : un texte dramatique, ses témoins, ses variantes, ses paratextes, ses notes, sa navigation, ses métadonnées et ses formes de publication.
 
 La TEI n’est donc pas seulement un format de sortie. Elle devient le point d’articulation entre la philologie, l’édition numérique, la publication statique et la transmission durable d’un corpus.
+
+---
+
+## Installation from source
+
+### Windows
+
+```powershell
+python -m venv .venv
+.venv\Scripts\activate
+pip install -r requirements.txt
+python main.py
+```
+
+### Linux/macOS
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+python main.py
+```
+
+### Important external tools and resources
+
+- Pandoc is required for the editorial notice import workflow. It must be installed on the system PATH, or provided alongside the executable in bundled distributions.
+- Non-Python runtime resources (for example XSLT stylesheets, Relax NG schemas, templates, CSS/assets, logos) are not pip dependencies. They must be included in the application distribution package.
