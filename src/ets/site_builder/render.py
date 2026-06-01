@@ -624,8 +624,17 @@ def _layout(
     .note-ref a {{ text-decoration: none; }}
     .notice-notes {{ margin-top: 2.4rem; padding-top: 1rem; border-top: 1px solid var(--line); }}
     .notice-notes h3 {{ margin-top: 0; }}
-    .notice-notes ol {{ padding-left: 1.4rem; }}
-    .notice-notes li {{ margin: 0.4rem 0; }}
+    .notice-notes ol {{
+     list-style: none;
+     padding-left: 0;
+     }}
+
+    .notice-notes li {{
+     margin: 0.4rem 0;
+     text-align: justify;
+     hyphens: auto;
+     }}
+     
     .note-backlink {{ margin-left: 0.45rem; text-decoration: none; }}
 
 
