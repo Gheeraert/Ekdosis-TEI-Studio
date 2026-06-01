@@ -14,6 +14,7 @@ from ets.application import (
     validate_text,
 )
 from ets.annotations import Annotation, AnnotationAnchor, AnnotationCollection
+from ets.domain import EditionConfig, Witness
 
 
 def _root() -> Path:
@@ -54,6 +55,33 @@ def test_service_generate_tei_from_text_success() -> None:
     assert result.tei_xml is not None
     assert "<TEI" in result.tei_xml
     assert "<text>" in result.tei_xml
+
+
+def test_service_generate_tei_from_text_converts_inline_underscore_italics() -> None:
+    config = EditionConfig(
+        title="Test",
+        author="Auteur",
+        editor="Editeur",
+        witnesses=[Witness(siglum="A", year="", description="")],
+        reference_witness=0,
+    )
+    text = "\n".join(
+        [
+            "####ACTE I####",
+            "",
+            "###SCENE I###",
+            "",
+            "#MOISE#",
+            "",
+            "Oui je viens en son _temple_ adorer l’Eternel",
+        ]
+    )
+
+    result = generate_tei_from_text(text, config)
+    assert result.ok is True
+    assert result.tei_xml is not None
+    assert '<hi rend="italic">temple</hi>' in result.tei_xml
+    assert "_temple_" not in result.tei_xml
 
 
 def test_service_generate_html_preview_from_tei_success() -> None:
