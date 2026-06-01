@@ -57,14 +57,16 @@ class _Block:
         return self.lines[0].strip()
 
 
-_ACT_RE = re.compile(r"^####(.+?)####$")
-_SCENE_RE = re.compile(r"^###(.+?)###$")
-_SPEAKER_RE = re.compile(r"^#(.+?)#$")
-_CAST_LINE_RE = re.compile(r"^(##.+##)(\s+##.+##)*$")
-_CAST_TOKEN_RE = re.compile(r"##(.*?)##")
+_ACT_RE = re.compile(r"^####([^#]+?)####$")
+_SCENE_RE = re.compile(r"^###([^#]+?)###$")
+_SPEAKER_RE = re.compile(r"^#([^#]+?)#$")
+_CAST_LINE_RE = re.compile(r"^(##[^#]+##)(\s+##[^#]+##)*$")
+_CAST_TOKEN_RE = re.compile(r"##([^#]*?)##")
 _STAGE_RE = re.compile(r"^\*\*(?!\*)(.+?)(?<!\*)\*\*$")
 _IMPLICIT_OPEN_RE = re.compile(r"^\$\$([A-Za-z][A-Za-z0-9_-]*)\$\$$")
 _IMPLICIT_CLOSE_RE = re.compile(r"^\$\$fin\$\$$", re.IGNORECASE)
+_SHARED_VERSE_RE = re.compile(r"^(?:\*\*\*.+|.+\*\*\*)$")
+_WHOLE_LINE_VARIANT_RE = re.compile(r"^#####\s*\S.*$")
 
 
 def _split_parallel_blocks(text: str) -> list[_Block]:
@@ -186,6 +188,67 @@ def _clean_verse_for_collation(raw: str) -> tuple[str, bool]:
     return text.strip().replace("~", "\u00A0"), whole_line_variant
 
 
+def _classify_line_marker(line: str) -> str:
+    stripped = line.strip()
+    if _ACT_RE.match(stripped) and not stripped.startswith("#####"):
+        return "act"
+    if _SCENE_RE.match(stripped) and not stripped.startswith("####"):
+        return "scene"
+    if _CAST_LINE_RE.match(stripped) and stripped.startswith("##") and not stripped.startswith("###"):
+        return "cast"
+    if _SPEAKER_RE.match(stripped) and not stripped.startswith("##"):
+        return "speaker"
+    if _STAGE_RE.match(stripped):
+        return "stage"
+    if _IMPLICIT_OPEN_RE.match(stripped):
+        return "implicit_open"
+    if _IMPLICIT_CLOSE_RE.match(stripped):
+        return "implicit_close"
+    if _WHOLE_LINE_VARIANT_RE.match(stripped):
+        return "whole_line_variant"
+    if _SHARED_VERSE_RE.match(stripped):
+        return "shared_verse"
+    return "verse"
+
+
+def _line_has_malformed_hash_marker(line: str) -> bool:
+    stripped = line.strip()
+    if "#" not in stripped:
+        return False
+    if stripped.startswith("#####"):
+        return not _WHOLE_LINE_VARIANT_RE.match(stripped)
+    if stripped.startswith("####"):
+        return _ACT_RE.match(stripped) is None
+    if stripped.startswith("###"):
+        return _SCENE_RE.match(stripped) is None
+    if stripped.startswith("##"):
+        return _CAST_LINE_RE.match(stripped) is None
+    if stripped.startswith("#"):
+        return _SPEAKER_RE.match(stripped) is None
+    # In ETS input, any '#' must belong to a valid ETS marker.
+    return True
+
+
+def _line_has_malformed_star_marker(line: str) -> tuple[bool, str | None]:
+    stripped = line.strip()
+    if "*" not in stripped:
+        return False, None
+    if stripped.startswith("***") or stripped.endswith("***"):
+        if stripped.startswith("***") and stripped.endswith("***"):
+            # Triple stars on both sides are ambiguous for this format and must be rejected.
+            return True, "stage"
+        if stripped.startswith("****") or stripped.endswith("****"):
+            return True, "shared"
+        if _SHARED_VERSE_RE.match(stripped):
+            return False, None
+        return True, "shared"
+    if stripped.startswith("**") or stripped.endswith("**"):
+        if _STAGE_RE.match(stripped):
+            return False, None
+        return True, "stage"
+    return False, None
+
+
 def _validate_token_count_consistency(
     diagnostics: list[ValidationDiagnostic],
     *,
@@ -238,6 +301,7 @@ def validate_input_text(text: str, witness_count: int, witness_sigla: list[str] 
     shared_carried_across_scene: bool = False
     seen_scene = False
     seen_speaker = False
+    suppress_next_verse_without_speaker = False
 
     for block in blocks:
         first = block.first
@@ -258,6 +322,59 @@ def validate_input_text(text: str, witness_count: int, witness_sigla: list[str] 
                 speaker=current_speaker,
                 excerpt=first,
             )
+            continue
+
+        marker_types = {_classify_line_marker(raw) for raw in block.lines}
+        non_verse_types = {kind for kind in marker_types if kind != "verse"}
+        if len(non_verse_types) > 1:
+            _append_error(
+                diagnostics,
+                code="E_MARKER_MIXED_BLOCK",
+                message="Parallel block mixes incompatible marker types.",
+                line_number=line,
+                block_index=block.index,
+                act=current_act,
+                scene=current_scene,
+                speaker=current_speaker,
+                excerpt=first,
+                block_lines=block.lines,
+            )
+            continue
+
+        malformed_marker_found = False
+        for idx, raw in enumerate(block.lines):
+            if _line_has_malformed_hash_marker(raw):
+                _append_error(
+                    diagnostics,
+                    code="E_HASH_MARKER_MALFORMED",
+                    message="Malformed hash marker sequence.",
+                    line_number=line + idx,
+                    block_index=block.index,
+                    act=current_act,
+                    scene=current_scene,
+                    speaker=current_speaker,
+                    excerpt=raw.strip(),
+                )
+                malformed_marker_found = True
+            malformed_star, star_kind = _line_has_malformed_star_marker(raw)
+            if malformed_star:
+                _append_error(
+                    diagnostics,
+                    code="E_SHARED_VERSE_MARKER_MALFORMED" if star_kind == "shared" else "E_STAGE_MARKER_MALFORMED",
+                    message=(
+                        "Malformed shared-verse marker."
+                        if star_kind == "shared"
+                        else "Malformed explicit stage direction marker."
+                    ),
+                    line_number=line + idx,
+                    block_index=block.index,
+                    act=current_act,
+                    scene=current_scene,
+                    speaker=current_speaker,
+                    excerpt=raw.strip(),
+                )
+                malformed_marker_found = True
+        if malformed_marker_found:
             continue
 
         kinds = {
@@ -452,6 +569,30 @@ def validate_input_text(text: str, witness_count: int, witness_sigla: list[str] 
                     speaker=current_speaker,
                     excerpt=first,
                 )
+            cast_tokens_per_line = [[part.strip() for part in _CAST_TOKEN_RE.findall(raw)] for raw in block.lines]
+            cast_is_single_token = all(len(tokens) == 1 for tokens in cast_tokens_per_line)
+            if (
+                cast_is_single_token
+                and current_scene is not None
+                and current_speaker is None
+                and block.index + 1 < len(blocks)
+            ):
+                next_block = blocks[block.index + 1]
+                next_types = {_classify_line_marker(raw) for raw in next_block.lines}
+                if next_types == {"verse"}:
+                    _append_error(
+                        diagnostics,
+                        code="E_SPEAKER_MARKER_TOO_MANY_HASHES",
+                        message="Cette ligne ressemble a un locuteur encode avec deux dieses. Utilisez #NOM# et non ##NOM##.",
+                        line_number=line,
+                        block_index=block.index,
+                        act=current_act,
+                        scene=current_scene,
+                        speaker=current_speaker,
+                        excerpt=first,
+                        block_lines=block.lines,
+                    )
+                    suppress_next_verse_without_speaker = True
             continue
 
         if kinds["speaker"]:
@@ -667,18 +808,21 @@ def validate_input_text(text: str, witness_count: int, witness_sigla: list[str] 
             continue
 
         if current_speaker is None:
-            _append_error(
-                diagnostics,
-                code="E_VERSE_WITHOUT_SPEAKER",
-                message="Verse found before speaker.",
-                line_number=line,
-                block_index=block.index,
-                act=current_act,
-                scene=current_scene,
-                speaker=current_speaker,
-                excerpt=first,
-            )
+            if not suppress_next_verse_without_speaker:
+                _append_error(
+                    diagnostics,
+                    code="E_VERSE_WITHOUT_SPEAKER",
+                    message="Verse found before speaker.",
+                    line_number=line,
+                    block_index=block.index,
+                    act=current_act,
+                    scene=current_scene,
+                    speaker=current_speaker,
+                    excerpt=first,
+                )
+            suppress_next_verse_without_speaker = False
             continue
+        suppress_next_verse_without_speaker = False
 
         normalized_verse: list[str] = []
         whole_line_variant_any = False

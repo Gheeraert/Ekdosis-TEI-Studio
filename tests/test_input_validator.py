@@ -278,3 +278,201 @@ def test_pipeline_surfaces_token_count_mismatch_during_input_validation() -> Non
     with pytest.raises(InputValidationError) as captured:
         run_pipeline(input_path=input_path, config_path=config_path)
     assert any(diag.code == "E_TOKEN_COUNT_MISMATCH" for diag in captured.value.diagnostics)
+
+
+def test_minimal_valid_markers_remain_valid() -> None:
+    text = "\n".join(
+        [
+            "####ACTE I.####",
+            "####ACTE I.####",
+            "",
+            "###SCENE PREMIERE.###",
+            "###SCENE PREMIERE.###",
+            "",
+            "##IOCASTE,## ##OLYMPE.##",
+            "##IOCASTE,## ##OLYMPE.##",
+            "",
+            "#IOCASTE.#",
+            "#IOCASTE.#",
+            "",
+            "Oui je viens en son _temple_ adorer l'Eternel",
+            "Oui je viens en son _temple_ adorer l'Eternel",
+        ]
+    )
+    report = validate_input_text(text, witness_count=2)
+    assert report.has_errors is False
+
+
+def test_detects_speaker_with_two_hashes_before_verse_without_speaker() -> None:
+    text = "\n".join(
+        [
+            "####ACTE I####",
+            "####ACTE I####",
+            "",
+            "###SCENE I###",
+            "###SCENE I###",
+            "",
+            "##ORESTE##",
+            "##ORESTE##",
+            "",
+            "Je parle.",
+            "Je parle.",
+        ]
+    )
+    report = validate_input_text(text, witness_count=2)
+    codes = [diag.code for diag in report.diagnostics]
+    assert "E_SPEAKER_MARKER_TOO_MANY_HASHES" in codes
+    assert "E_VERSE_WITHOUT_SPEAKER" not in codes
+    diag = next(diag for diag in report.diagnostics if diag.code == "E_SPEAKER_MARKER_TOO_MANY_HASHES")
+    assert diag.line_number == 7
+
+
+def test_detects_mixed_marker_block() -> None:
+    text = "\n".join(
+        [
+            "####ACTE I####",
+            "####ACTE I####",
+            "",
+            "###SCENE I###",
+            "###SCENE I###",
+            "",
+            "#ORESTE#",
+            "##ORESTE##",
+        ]
+    )
+    report = validate_input_text(text, witness_count=2)
+    assert "E_MARKER_MIXED_BLOCK" in {diag.code for diag in report.diagnostics}
+
+
+@pytest.mark.parametrize("bad_line", ["**entre", "entre**", "***entre***"])
+def test_rejects_malformed_stage_markers(bad_line: str) -> None:
+    text = "\n".join(
+        [
+            "####ACTE I####",
+            "####ACTE I####",
+            "",
+            "###SCENE I###",
+            "###SCENE I###",
+            "",
+            "#ORESTE#",
+            "#ORESTE#",
+            "",
+            bad_line,
+            bad_line,
+        ]
+    )
+    report = validate_input_text(text, witness_count=2)
+    assert "E_STAGE_MARKER_MALFORMED" in {diag.code for diag in report.diagnostics}
+
+
+def test_whole_line_variant_remains_valid() -> None:
+    text = "\n".join(
+        [
+            "####ACTE I####",
+            "####ACTE I####",
+            "",
+            "###SCENE I###",
+            "###SCENE I###",
+            "",
+            "#ORESTE#",
+            "#ORESTE#",
+            "",
+            "##### (lacune)",
+            "##### (lacune)",
+        ]
+    )
+    report = validate_input_text(text, witness_count=2)
+    assert "E_WHOLE_LINE_VARIANT_MALFORMED" not in {diag.code for diag in report.diagnostics}
+
+
+def test_shared_verse_valid_case_still_valid() -> None:
+    text = "\n".join(
+        [
+            "####ACTE I####",
+            "####ACTE I####",
+            "",
+            "###SCENE I###",
+            "###SCENE I###",
+            "",
+            "#ORESTE#",
+            "#ORESTE#",
+            "",
+            "Mais en sont-ils aux mains~?***",
+            "Mais en sont-ils aux mains~?***",
+            "",
+            "***Du haut de la muraille,",
+            "***Du haut de la muraille,",
+        ]
+    )
+    report = validate_input_text(text, witness_count=2)
+    assert report.has_errors is False
+
+
+def test_rejects_malformed_shared_verse_marker() -> None:
+    text = "\n".join(
+        [
+            "####ACTE I####",
+            "####ACTE I####",
+            "",
+            "###SCENE I###",
+            "###SCENE I###",
+            "",
+            "#ORESTE#",
+            "#ORESTE#",
+            "",
+            "****Du haut de la muraille,",
+            "****Du haut de la muraille,",
+        ]
+    )
+    report = validate_input_text(text, witness_count=2)
+    assert "E_SHARED_VERSE_MARKER_MALFORMED" in {diag.code for diag in report.diagnostics}
+
+
+@pytest.mark.parametrize(
+    "bad_line,expected_code",
+    [
+        ("#ORESTE##", "E_HASH_MARKER_MALFORMED"),
+        ("##ORESTE###", "E_HASH_MARKER_MALFORMED"),
+        ("###SCENE I####", "E_HASH_MARKER_MALFORMED"),
+        ("####ACTE I#####", "E_HASH_MARKER_MALFORMED"),
+        ("##NOM#", "E_HASH_MARKER_MALFORMED"),
+        ("#NOM##", "E_HASH_MARKER_MALFORMED"),
+        ("NOM#", "E_HASH_MARKER_MALFORMED"),
+    ],
+)
+def test_rejects_hash_marker_with_parasitic_hashes(bad_line: str, expected_code: str) -> None:
+    text = "\n".join(
+        [
+            "####ACTE I####",
+            "####ACTE I####",
+            "",
+            "###SCENE I###",
+            "###SCENE I###",
+            "",
+            bad_line,
+            bad_line,
+        ]
+    )
+    report = validate_input_text(text, witness_count=2)
+    assert expected_code in {diag.code for diag in report.diagnostics}
+
+
+def test_plain_verse_without_hash_remains_accepted() -> None:
+    text = "\n".join(
+        [
+            "####ACTE I####",
+            "####ACTE I####",
+            "",
+            "###SCENE I###",
+            "###SCENE I###",
+            "",
+            "#ORESTE#",
+            "#ORESTE#",
+            "",
+            "Je parle sans dièse.",
+            "Je parle sans dièse.",
+        ]
+    )
+    report = validate_input_text(text, witness_count=2)
+    codes = {diag.code for diag in report.diagnostics}
+    assert "E_HASH_MARKER_MALFORMED" not in codes
