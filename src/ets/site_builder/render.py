@@ -604,7 +604,22 @@ def _layout(
     .notice-included-document {{ margin: 1.2rem 0 1.6rem; padding: 0.95rem 1rem; border: 1px solid var(--line); background: var(--bg-panel); }}
     .notice-included-document .doc-meta {{ margin: 0.35rem 0 0.8rem; color: var(--ink-muted); font-size: 0.93rem; }}
     .notice-section h3, .notice-section h4, .notice-section h5 {{ margin: 0 0 0.65rem; line-height: 1.28; }}
-    .notice-section p {{ margin: 0.6rem 0; }}
+    .notice-section p {{
+     margin: 0.6rem 0;
+     text-align: justify;
+     hyphens: auto;
+     }}
+
+    .notice-front p,
+    .notice-content p,
+    .home-page-notice p,
+    .home-general-notice p,
+    .home-editorial-section p,
+    .notice-included-document p,
+    .notice-notes li {{
+     text-align: justify;
+     hyphens: auto;
+     }}
 
     .note-ref a {{ text-decoration: none; }}
     .notice-notes {{ margin-top: 2.4rem; padding-top: 1rem; border-top: 1px solid var(--line); }}

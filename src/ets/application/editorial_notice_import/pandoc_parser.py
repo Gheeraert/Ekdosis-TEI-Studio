@@ -332,6 +332,11 @@ def _parse_inlines(raw_inlines: list[Any]) -> tuple[InlineNode, ...]:
             if isinstance(content, list) and len(content) == 2:
                 output.append(InlineNode(kind=InlineKind.TEXT, text=str(content[1])))
             continue
+        if inline_type == "Span":
+            if isinstance(content, list) and len(content) >= 2:
+                child_inlines = content[1] if isinstance(content[1], list) else []
+                output.extend(_parse_inlines(child_inlines))
+            continue
 
         output.append(InlineNode(kind=InlineKind.TEXT, text=_stringify_inline(item)))
     return tuple(output)
@@ -339,16 +344,37 @@ def _parse_inlines(raw_inlines: list[Any]) -> tuple[InlineNode, ...]:
 
 def _parse_note_blocks(blocks: list[Any]) -> tuple[InlineNode, ...]:
     note_inlines: list[InlineNode] = []
+
     for block in blocks:
-        if not isinstance(block, dict):
-            continue
-        block_type = block.get("t")
-        if block_type in {"Para", "Plain"}:
-            note_inlines.extend(_parse_inlines(block.get("c") if isinstance(block.get("c"), list) else []))
-            note_inlines.append(InlineNode(kind=InlineKind.TEXT, text=" "))
+        note_inlines.extend(_parse_note_block(block))
+
     while note_inlines and note_inlines[-1].kind is InlineKind.TEXT and not note_inlines[-1].text.strip():
         note_inlines.pop()
+
     return tuple(note_inlines)
+
+
+def _parse_note_block(block: Any) -> list[InlineNode]:
+    if not isinstance(block, dict):
+        return []
+
+    block_type = str(block.get("t") or "")
+    content = block.get("c")
+
+    if block_type in {"Para", "Plain"}:
+        runs = list(_parse_inlines(content if isinstance(content, list) else []))
+        if runs:
+            runs.append(InlineNode(kind=InlineKind.TEXT, text=" "))
+        return runs
+
+    if block_type == "Div":
+        nested_blocks = _extract_child_blocks_from_div(content)
+        runs: list[InlineNode] = []
+        for child in nested_blocks:
+            runs.extend(_parse_note_block(child))
+        return runs
+
+    return []
 
 
 def _stringify_inline(item: dict[str, Any]) -> str:

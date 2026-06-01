@@ -296,6 +296,61 @@ def test_docx_import_maps_bibliography_section() -> None:
     assert len(root.findall(".//tei:listBibl/tei:bibl", TEI_NS)) == 2
 
 
+def test_docx_import_preserves_footnote_div_content_and_inline_styles() -> None:
+    runtime = _runtime_dir("app_editorial_notice_import_footnote_div")
+    source = runtime / "notice_footnote_div.docx"
+    source.write_text("placeholder", encoding="utf-8")
+    payload = {
+        "meta": {},
+        "blocks": [
+            {
+                "t": "Para",
+                "c": [
+                    {"t": "Str", "c": "Texte"},
+                    {"t": "Space"},
+                    {"t": "Str", "c": "principal"},
+                    {"t": "Space"},
+                    {
+                        "t": "Note",
+                        "c": [
+                            {
+                                "t": "Div",
+                                "c": [
+                                    ["", [], [["custom-style", "Footnote"]]],
+                                    [
+                                        {
+                                            "t": "Para",
+                                            "c": [
+                                                {"t": "Str", "c": "Note"},
+                                                {"t": "Space"},
+                                                {"t": "Emph", "c": [{"t": "Str", "c": "italique"}]},
+                                                {"t": "Space"},
+                                                {"t": "Strong", "c": [{"t": "Str", "c": "gras"}]},
+                                            ],
+                                        }
+                                    ],
+                                ],
+                            }
+                        ],
+                    },
+                ],
+            }
+        ],
+    }
+    service = EditorialNoticeImportService(pandoc_bridge=_StubBridge({source.name: payload}))
+
+    result = service.import_docx(source, source_kind=EditorialSourceKind.PLAY_NOTICE)
+
+    assert result.report.status in {ValidationStatus.VALID, ValidationStatus.VALID_WITH_WARNINGS}
+    assert result.tei_xml is not None
+    root = ET.fromstring(result.tei_xml)
+    note = root.find(".//tei:note[@place='foot']", TEI_NS)
+    assert note is not None
+    assert "".join(note.itertext()).strip() != ""
+    assert note.find(".//tei:hi[@rend='italic']", TEI_NS) is not None
+    assert note.find(".//tei:hi[@rend='bold']", TEI_NS) is not None
+
+
 def test_docx_import_accepts_simple_table() -> None:
     service, source = _service_for("notice_ok_table_simple.json", source_name="notice_ok_table_simple.docx")
     result = service.import_docx(source, source_kind=EditorialSourceKind.PLAY_NOTICE)
