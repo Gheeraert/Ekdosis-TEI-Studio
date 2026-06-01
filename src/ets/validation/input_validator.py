@@ -216,7 +216,10 @@ def _line_has_malformed_hash_marker(line: str) -> bool:
     if "#" not in stripped:
         return False
     if stripped.startswith("#####"):
-        return not _WHOLE_LINE_VARIANT_RE.match(stripped)
+        if not _WHOLE_LINE_VARIANT_RE.match(stripped):
+            return True
+        content = stripped[5:].lstrip()
+        return "#" in content
     if stripped.startswith("####"):
         return _ACT_RE.match(stripped) is None
     if stripped.startswith("###"):
@@ -234,6 +237,10 @@ def _line_has_malformed_star_marker(line: str) -> tuple[bool, str | None]:
     if "*" not in stripped:
         return False, None
     if stripped.startswith("***") or stripped.endswith("***"):
+        if stripped.startswith("**") and stripped.endswith("***"):
+            return True, "stage"
+        if stripped.startswith("***") and stripped.endswith("**"):
+            return True, "stage"
         if stripped.startswith("***") and stripped.endswith("***"):
             # Triple stars on both sides are ambiguous for this format and must be rejected.
             return True, "stage"
@@ -574,7 +581,6 @@ def validate_input_text(text: str, witness_count: int, witness_sigla: list[str] 
             if (
                 cast_is_single_token
                 and current_scene is not None
-                and current_speaker is None
                 and block.index + 1 < len(blocks)
             ):
                 next_block = blocks[block.index + 1]
@@ -592,7 +598,10 @@ def validate_input_text(text: str, witness_count: int, witness_sigla: list[str] 
                         excerpt=first,
                         block_lines=block.lines,
                     )
-                    suppress_next_verse_without_speaker = True
+                    if current_speaker is None:
+                        suppress_next_verse_without_speaker = True
+                    # Avoid silently attaching following verses to the previous speaker.
+                    current_speaker = None
             continue
 
         if kinds["speaker"]:

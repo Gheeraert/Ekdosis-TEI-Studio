@@ -476,3 +476,73 @@ def test_plain_verse_without_hash_remains_accepted() -> None:
     report = validate_input_text(text, witness_count=2)
     codes = {diag.code for diag in report.diagnostics}
     assert "E_HASH_MARKER_MALFORMED" not in codes
+
+
+@pytest.mark.parametrize("bad_line", ["######foo", "######foo bar", "##### foo#bar"])
+def test_rejects_whole_line_variant_with_parasitic_hashes(bad_line: str) -> None:
+    text = "\n".join(
+        [
+            "####ACTE I####",
+            "####ACTE I####",
+            "",
+            "###SCENE I###",
+            "###SCENE I###",
+            "",
+            "#A#",
+            "#A#",
+            "",
+            bad_line,
+            bad_line,
+        ]
+    )
+    report = validate_input_text(text, witness_count=2)
+    assert "E_HASH_MARKER_MALFORMED" in {diag.code for diag in report.diagnostics}
+
+
+@pytest.mark.parametrize("bad_line", ["**entre***", "***entre**", "****entre****"])
+def test_rejects_hybrid_stage_and_shared_verse_markers(bad_line: str) -> None:
+    text = "\n".join(
+        [
+            "####ACTE I####",
+            "####ACTE I####",
+            "",
+            "###SCENE I###",
+            "###SCENE I###",
+            "",
+            "#A#",
+            "#A#",
+            "",
+            bad_line,
+            bad_line,
+        ]
+    )
+    report = validate_input_text(text, witness_count=2)
+    codes = {diag.code for diag in report.diagnostics}
+    assert ("E_STAGE_MARKER_MALFORMED" in codes) or ("E_SHARED_VERSE_MARKER_MALFORMED" in codes)
+
+
+def test_single_name_cast_before_verse_is_suspect_even_after_previous_speaker() -> None:
+    text = "\n".join(
+        [
+            "####ACTE I####",
+            "####ACTE I####",
+            "",
+            "###SCENE I###",
+            "###SCENE I###",
+            "",
+            "#A#",
+            "#A#",
+            "",
+            "Bonjour",
+            "Bonjour",
+            "",
+            "##B##",
+            "##B##",
+            "",
+            "Je parle",
+            "Je parle",
+        ]
+    )
+    report = validate_input_text(text, witness_count=2)
+    codes = {diag.code for diag in report.diagnostics}
+    assert "E_SPEAKER_MARKER_TOO_MANY_HASHES" in codes
