@@ -1491,7 +1491,7 @@ def _render_notice_document(
             if first_ref:
                 backlink = f' <a class="note-backlink" href="#{html.escape(first_ref, quote=True)}" aria-label="Retour a l\'appel de note">↩</a>'
             lines.append(
-                f'<li id="note-{html.escape(note.note_id, quote=True)}"><strong>[{html.escape(note.label)}]</strong> {html.escape(note.text)}{backlink}</li>'
+                f'<li id="note-{html.escape(note.note_id, quote=True)}"><strong>[{html.escape(note.label)}]</strong> {note.text}{backlink}</li>'
             )
         lines.append("</ol></section>")
 

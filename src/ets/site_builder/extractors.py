@@ -207,7 +207,7 @@ def _render_children_inline(node: etree._Element, notes: dict[str, NoticeNote], 
         elif name == "note":
             note_id = child.get(f"{{{XML_NS}}}id") or f"n{len(notes) + 1}"
             label = (child.get("n") or str(len(notes) + 1)).strip() or str(len(notes) + 1)
-            note_text = _normalize_ws(" ".join(child.itertext()))
+            note_text = _normalize_ws(_render_children_inline(child, notes, note_order))
             if note_id not in notes:
                 notes[note_id] = NoticeNote(note_id=note_id, label=label, text=note_text)
                 note_order.append(note_id)
