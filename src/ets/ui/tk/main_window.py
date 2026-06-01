@@ -201,6 +201,7 @@ class MainWindow(ttk.Frame):
             on_preview_html=self.action_preview_html,
             on_export_tei=self.action_export_tei,
             on_export_html=self.action_export_html,
+            on_build_publication_site=self.action_build_publication_site,
         )
         self.control.grid(row=1, column=0, sticky="ew", pady=(6, 0))
 

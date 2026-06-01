@@ -18,6 +18,7 @@ class ControlBar(ttk.Frame):
         on_preview_html: Callable[[], None],
         on_export_tei: Callable[[], None],
         on_export_html: Callable[[], None],
+        on_build_publication_site: Callable[[], None],
     ) -> None:
         super().__init__(master, padding=(6, 6))
         self.columnconfigure(0, weight=1)
@@ -54,7 +55,7 @@ class ControlBar(ttk.Frame):
         self.buttons_frame.grid(row=0, column=2, sticky="e")
         # Compatibility alias kept for existing tests and lightweight responsive relayout.
         self.buttons_row = self.buttons_frame
-        for i in range(5):
+        for i in range(6):
             self.buttons_frame.columnconfigure(i, weight=0)
 
         self.validate_button = ttk.Button(self.buttons_frame, text="Valider", command=on_validate)
@@ -62,6 +63,11 @@ class ControlBar(ttk.Frame):
         self.preview_html_button = ttk.Button(self.buttons_frame, text="Aperçu HTML", command=on_preview_html)
         self.export_tei_button = ttk.Button(self.buttons_frame, text="Exporter TEI", command=on_export_tei)
         self.export_html_button = ttk.Button(self.buttons_frame, text="Exporter HTML", command=on_export_html)
+        self.build_site_button = ttk.Button(
+            self.buttons_frame,
+            text="Générer site",
+            command=on_build_publication_site,
+        )
 
         buttons = [
             self.validate_button,
@@ -69,6 +75,7 @@ class ControlBar(ttk.Frame):
             self.preview_html_button,
             self.export_tei_button,
             self.export_html_button,
+            self.build_site_button,
         ]
         for index, button in enumerate(buttons):
             button.grid(row=0, column=index, padx=2)

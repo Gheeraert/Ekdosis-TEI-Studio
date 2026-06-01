@@ -148,6 +148,15 @@ def test_main_window_uses_vertical_pane_and_control_wrap_logic() -> None:
         root.destroy()
 
 
+def test_control_bar_contains_generate_site_button() -> None:
+    root = _make_root()
+    try:
+        window = MainWindow(root)
+        assert window.control.build_site_button.cget("text") == "Générer site"
+    finally:
+        root.destroy()
+
+
 def test_restore_autosave_reloads_text_and_invalidates_outputs(monkeypatch: pytest.MonkeyPatch) -> None:
     root = _make_root()
     try:
