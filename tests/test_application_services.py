@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+import xml.etree.ElementTree as ET
 from unittest.mock import patch
 
 from ets.application import (
@@ -82,6 +83,64 @@ def test_service_generate_tei_from_text_converts_inline_underscore_italics() -> 
     assert result.tei_xml is not None
     assert '<hi rend="italic">temple</hi>' in result.tei_xml
     assert "_temple_" not in result.tei_xml
+
+
+def test_service_generate_tei_keeps_italic_open_across_apparatus_segments() -> None:
+    config = EditionConfig(
+        title="Test",
+        author="Auteur",
+        editor="Editeur",
+        witnesses=[
+            Witness(siglum="A", year="", description=""),
+            Witness(siglum="B", year="", description=""),
+        ],
+        reference_witness=0,
+    )
+    text = "\n".join(
+        [
+            "####ACTE I####",
+            "####ACTE I####",
+            "",
+            "###SCENE I###",
+            "###SCENE I###",
+            "",
+            "#MOISE#",
+            "#MOISE#",
+            "",
+            "_Et le fer est moins dur pour trancher une lame_ enfin.",
+            "_Et le fer est moins doux pour trancher une épée_ enfin.",
+        ]
+    )
+
+    result = generate_tei_from_text(text, config)
+    assert result.ok is True
+    assert result.tei_xml is not None
+    assert "_" not in result.tei_xml
+    assert '<hi rend="italic">' in result.tei_xml
+
+    root = ET.fromstring(result.tei_xml)
+    ns = {"tei": "http://www.tei-c.org/ns/1.0"}
+    line = root.find(".//tei:l", ns)
+    assert line is not None
+
+    hi = line.find("tei:hi", ns)
+    assert hi is not None
+    assert hi.attrib.get("rend") == "italic"
+
+    hi_apps = hi.findall("tei:app", ns)
+    assert len(hi_apps) >= 2
+
+    first_app = hi_apps[0]
+    second_app = hi_apps[1]
+    assert first_app.find("tei:lem", ns) is not None
+    assert first_app.find("tei:rdg", ns) is not None
+    assert second_app.find("tei:lem", ns) is not None
+    assert second_app.find("tei:rdg", ns) is not None
+
+    assert (hi.text or "").endswith("Et le fer est moins ")
+    assert (first_app.tail or "") == "pour trancher une "
+    assert (second_app.tail or "").strip() == ""
+    assert (hi.tail or "").strip() == "enfin."
 
 
 def test_service_generate_html_preview_from_tei_success() -> None:

@@ -30,7 +30,7 @@ def _wit_attr(sigla: list[str]) -> str:
 
 def _append_reading(parent: ET.Element, tag: str, reading: CollatedReading) -> None:
     element = ET.SubElement(parent, _tei(tag), {"wit": _wit_attr(reading.witness_sigla)})
-    _append_inline_italics(element, None, reading.text)
+    _append_inline_italics(element, None, reading.text.replace("_", ""))
 
 
 def _append_text(container: ET.Element, last_child: ET.Element | None, text: str) -> None:
@@ -80,16 +80,74 @@ def _append_inline_italics(
 
 def _append_collated_text(parent: ET.Element, text: CollatedText) -> None:
     last_child: ET.Element | None = None
+    italic_open = False
+    italic_element: ET.Element | None = None
+    italic_last_child: ET.Element | None = None
+
+    def append_literal_segment(segment_text: str) -> None:
+        nonlocal last_child, italic_open, italic_element, italic_last_child
+        cursor = 0
+        while cursor < len(segment_text):
+            marker = segment_text.find("_", cursor)
+            if marker < 0:
+                chunk = segment_text[cursor:]
+                if italic_open and italic_element is not None:
+                    _append_text(italic_element, italic_last_child, chunk)
+                else:
+                    _append_text(parent, last_child, chunk)
+                break
+
+            if marker > cursor:
+                chunk = segment_text[cursor:marker]
+                if italic_open and italic_element is not None:
+                    _append_text(italic_element, italic_last_child, chunk)
+                else:
+                    _append_text(parent, last_child, chunk)
+
+            if italic_open:
+                italic_open = False
+                italic_element = None
+                italic_last_child = None
+            else:
+                italic_open = True
+                italic_element = ET.SubElement(parent, _tei("hi"), {"rend": "italic"})
+                last_child = italic_element
+                italic_last_child = None
+            cursor = marker + 1
+
+    def has_open_marker_in_apparatus(segment: ApparatusTokenSegment) -> bool:
+        readings = [segment.lemma, *segment.readings]
+        return any(item.text.lstrip().startswith("_") for item in readings if item.text)
+
+    def has_close_marker_in_apparatus(segment: ApparatusTokenSegment) -> bool:
+        readings = [segment.lemma, *segment.readings]
+        return any(item.text.rstrip().endswith("_") for item in readings if item.text)
+
     for segment in text.segments:
         if isinstance(segment, LiteralTokenSegment):
-            last_child = _append_inline_italics(parent, last_child, segment.text)
+            append_literal_segment(segment.text)
             continue
         if isinstance(segment, ApparatusTokenSegment):
-            app = ET.SubElement(parent, _tei("app"))
+            if not italic_open and has_open_marker_in_apparatus(segment):
+                italic_open = True
+                italic_element = ET.SubElement(parent, _tei("hi"), {"rend": "italic"})
+                last_child = italic_element
+                italic_last_child = None
+
+            app_parent = italic_element if italic_open and italic_element is not None else parent
+            app = ET.SubElement(app_parent, _tei("app"))
             _append_reading(app, "lem", segment.lemma)
             for rdg in segment.readings:
                 _append_reading(app, "rdg", rdg)
-            last_child = app
+            if italic_open and italic_element is not None:
+                italic_last_child = app
+            else:
+                last_child = app
+
+            if italic_open and has_close_marker_in_apparatus(segment):
+                italic_open = False
+                italic_element = None
+                italic_last_child = None
 
 
 def _append_collated_line(
