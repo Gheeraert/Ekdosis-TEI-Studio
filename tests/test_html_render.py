@@ -100,6 +100,44 @@ def _mini_config() -> EditionConfig:
     )
 
 
+def _mini_stanza_config() -> EditionConfig:
+    return EditionConfig(
+        title="Esther",
+        author="Jean Racine",
+        editor="Editeur",
+        witnesses=[
+            Witness(siglum="A", year="1689", description="temoin A"),
+            Witness(siglum="B", year="1689", description="temoin B"),
+            Witness(siglum="C", year="1689", description="temoin C"),
+            Witness(siglum="D", year="1689", description="temoin D"),
+        ],
+        reference_witness=0,
+    )
+
+
+def _mini_stanza_text() -> str:
+    return "\n".join(
+        [
+            *["####ACTE I####"] * 4,
+            "",
+            *["###SCENE I###"] * 4,
+            "",
+            *["#CHOEUR#"] * 4,
+            "",
+            *["%%strophe subtype=distique rhyme=aa%%"] * 4,
+            "",
+            "=12=Que vous semble, mes soeurs, de l’état où nous sommes~?",
+            "=12=Que vous semble, mes soeurs, de l’estat où nous sommes~?",
+            "=12=Que vous semble, mes soeurs, de l’estat où nous sommes~?",
+            "=12=Que vous semble, mes soeurs, de l’état où nous sommes~?",
+            "",
+            *["=10=D’Esther, d’Aman qui tombe dans les pommes~?"] * 4,
+            "",
+            *["%%fin_strophe%%"] * 4,
+        ]
+    )
+
+
 def test_html_preview_transforms_stable_tei_fixture() -> None:
     preview = render_html_preview_from_tei(_stable_tei_xml())
     doc = lxml_html.document_fromstring(preview)
@@ -270,3 +308,16 @@ def test_html_preview_renders_underscore_italic_without_literal_underscores() ->
     doc = lxml_html.document_fromstring(preview)
     assert doc.xpath("//span[contains(@class, 'italic') and text()='temple'] | //em[text()='temple']")
     assert "_temple_" not in doc.text_content()
+
+
+def test_html_preview_renders_stanza_and_meter_classes() -> None:
+    tei_xml = run_pipeline_from_text(_mini_stanza_text(), _mini_stanza_config())
+    preview = render_html_preview_from_tei(tei_xml)
+    doc = lxml_html.document_fromstring(preview)
+
+    assert doc.xpath("//div[@class='lg stanza' and @data-subtype='distique' and @data-rhyme='aa']")
+    assert doc.xpath("//div[contains(@class, 'vers-container') and contains(@class, 'met-12')]")
+    assert doc.xpath("//div[contains(@class, 'vers-container') and contains(@class, 'met-10')]")
+    variants = doc.xpath("//span[contains(@class, 'variation') and @data-tooltip]")
+    assert variants
+    assert "estat" in variants[0].get("data-tooltip")

@@ -12,12 +12,14 @@ from ets.domain import (
     CollatedReading,
     CollatedScene,
     CollatedSpeech,
+    CollatedStanza,
     CollatedStageDirection,
     CollatedText,
     ImplicitStageSpan,
     LiteralTokenSegment,
     Play,
     StageDirection,
+    Stanza,
     TokenCollatedLine,
     VerseLine,
 )
@@ -153,6 +155,7 @@ def collate_parallel_verse(
     scene_label: str,
     speaker_label: str | None,
     block_index: int,
+    met: str | None = None,
 ) -> CollatedLine:
     return TokenCollatedLine(
         number=number,
@@ -167,6 +170,7 @@ def collate_parallel_verse(
             speaker_label=speaker_label,
             block_index=block_index,
         ),
+        met=met,
     )
 
 
@@ -277,12 +281,37 @@ def collate_play(play: Play, witness_sigla: list[str], reference_witness: int) -
                                     scene_label=scene_label,
                                     speaker_label=speech.speaker_readings[reference_witness],
                                     block_index=verse.block_index,
+                                    met=verse.met,
                                 )
                             )
                         collated_speech.elements.append(
                             CollatedImplicitStageSpan(
                                 category=element.category,
                                 lines=span_lines,
+                            )
+                        )
+                        continue
+                    if isinstance(element, Stanza):
+                        collated_lines = [
+                            collate_parallel_verse(
+                                readings=verse.readings,
+                                witness_sigla=witness_sigla,
+                                ref_index=reference_witness,
+                                number=verse.number,
+                                whole_line_variant=verse.whole_line_variant,
+                                act_label=act_label,
+                                scene_label=scene_label,
+                                speaker_label=speech.speaker_readings[reference_witness],
+                                block_index=verse.block_index,
+                                met=verse.met,
+                            )
+                            for verse in element.lines
+                        ]
+                        collated_speech.elements.append(
+                            CollatedStanza(
+                                subtype=element.subtype,
+                                rhyme=element.rhyme,
+                                lines=collated_lines,
                             )
                         )
                         continue
@@ -299,6 +328,7 @@ def collate_play(play: Play, witness_sigla: list[str], reference_witness: int) -
                             scene_label=scene_label,
                             speaker_label=speech.speaker_readings[reference_witness],
                             block_index=element.block_index,
+                            met=element.met,
                         )
                     )
     return collated

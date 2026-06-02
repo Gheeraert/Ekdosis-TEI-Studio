@@ -486,6 +486,54 @@ def _layout(
       font-size: 0.82em;
     }}
     .content-shell-play .dramatic-content .vers-decale {{ margin-left: var(--ets-verse-decale); }}
+    .content-shell-play .dramatic-content .lg.stanza {{
+      margin-top: 0.8em;
+      margin-bottom: 0.8em;
+    }}
+    .content-shell-play .dramatic-content .vers-container.met-12 .texte-vers {{
+      display: inline-block;
+      margin-left: 0;
+    }}
+    .content-shell-play .dramatic-content .vers-container.met-11 .texte-vers {{
+      display: inline-block;
+      margin-left: 1em;
+    }}
+    .content-shell-play .dramatic-content .vers-container.met-10 .texte-vers {{
+      display: inline-block;
+      margin-left: 2em;
+    }}
+    .content-shell-play .dramatic-content .vers-container.met-9 .texte-vers {{
+      display: inline-block;
+      margin-left: 3em;
+    }}
+    .content-shell-play .dramatic-content .vers-container.met-8 .texte-vers {{
+      display: inline-block;
+      margin-left: 4em;
+    }}
+    .content-shell-play .dramatic-content .vers-container.met-7 .texte-vers {{
+      display: inline-block;
+      margin-left: 5em;
+    }}
+    .content-shell-play .dramatic-content .vers-container.met-6 .texte-vers {{
+      display: inline-block;
+      margin-left: 6em;
+    }}
+    .content-shell-play .dramatic-content .vers-container.met-5 .texte-vers {{
+      display: inline-block;
+      margin-left: 7em;
+    }}
+    .content-shell-play .dramatic-content .vers-container.met-4 .texte-vers {{
+      display: inline-block;
+      margin-left: 8em;
+    }}
+    .content-shell-play .dramatic-content .vers-container.met-3 .texte-vers {{
+      display: inline-block;
+      margin-left: 9em;
+    }}
+    .content-shell-play .dramatic-content .vers-container.met-2 .texte-vers {{
+      display: inline-block;
+      margin-left: 10em;
+    }}
     .content-shell-play .dramatic-content .notes {{
       margin-top: 1.8rem;
       padding-top: 0.75rem;

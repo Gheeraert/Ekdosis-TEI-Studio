@@ -231,6 +231,54 @@
           .vers-decale {
             margin-left: 14em;
           }
+          .lg.stanza {
+            margin-top: 0.8em;
+            margin-bottom: 0.8em;
+          }
+          .vers-container.met-12 .texte-vers {
+            display: inline-block;
+            margin-left: 0;
+          }
+          .vers-container.met-11 .texte-vers {
+            display: inline-block;
+            margin-left: 1em;
+          }
+          .vers-container.met-10 .texte-vers {
+            display: inline-block;
+            margin-left: 2em;
+          }
+          .vers-container.met-9 .texte-vers {
+            display: inline-block;
+            margin-left: 3em;
+          }
+          .vers-container.met-8 .texte-vers {
+            display: inline-block;
+            margin-left: 4em;
+          }
+          .vers-container.met-7 .texte-vers {
+            display: inline-block;
+            margin-left: 5em;
+          }
+          .vers-container.met-6 .texte-vers {
+            display: inline-block;
+            margin-left: 6em;
+          }
+          .vers-container.met-5 .texte-vers {
+            display: inline-block;
+            margin-left: 7em;
+          }
+          .vers-container.met-4 .texte-vers {
+            display: inline-block;
+            margin-left: 8em;
+          }
+          .vers-container.met-3 .texte-vers {
+            display: inline-block;
+            margin-left: 9em;
+          }
+          .vers-container.met-2 .texte-vers {
+            display: inline-block;
+            margin-left: 10em;
+          }
           .note-call {
             margin-left: 0.25em;
             font-size: 0.86em;
@@ -395,7 +443,23 @@
       <xsl:apply-templates select="tei:speaker"/>
     </div>
     <div class="tirade">
-      <xsl:apply-templates select="tei:stage | tei:l"/>
+      <xsl:apply-templates select="tei:stage | tei:l | tei:lg"/>
+    </div>
+  </xsl:template>
+
+  <xsl:template match="tei:lg[@type='stanza']">
+    <div class="lg stanza">
+      <xsl:if test="@subtype">
+        <xsl:attribute name="data-subtype">
+          <xsl:value-of select="@subtype"/>
+        </xsl:attribute>
+      </xsl:if>
+      <xsl:if test="@rhyme">
+        <xsl:attribute name="data-rhyme">
+          <xsl:value-of select="@rhyme"/>
+        </xsl:attribute>
+      </xsl:if>
+      <xsl:apply-templates select="tei:l"/>
     </div>
   </xsl:template>
 
@@ -425,7 +489,11 @@
   <xsl:template match="tei:l">
     <div>
       <xsl:attribute name="class">
-        <xsl:text>vers-container</xsl:text>
+        <xsl:text>vers-container l verse</xsl:text>
+        <xsl:if test="@met">
+          <xsl:text> met-</xsl:text>
+          <xsl:value-of select="@met"/>
+        </xsl:if>
         <xsl:if test="contains(@n, '.2')">
           <xsl:text> vers-decale</xsl:text>
         </xsl:if>

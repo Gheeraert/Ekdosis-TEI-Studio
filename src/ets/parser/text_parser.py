@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import re
 
-from ets.domain import Act, EditionConfig, ImplicitStageSpan, Play, Scene, Speech, StageDirection, VerseLine
+from ets.domain import Act, EditionConfig, ImplicitStageSpan, Play, Scene, Speech, StageDirection, Stanza, VerseLine
 
 _ACT_RE = re.compile(r"^####(.+?)####$")
 _SCENE_RE = re.compile(r"^###(.+?)###$")
@@ -11,6 +11,9 @@ _CAST_RE = re.compile(r"##(.*?)##")
 _STAGE_RE = re.compile(r"^\*\*(?!\*)(.+?)(?<!\*)\*\*$")
 _IMPLICIT_OPEN_RE = re.compile(r"^\$\$([A-Za-z][A-Za-z0-9_-]*)\$\$$")
 _IMPLICIT_CLOSE_RE = re.compile(r"^\$\$fin\$\$$", re.IGNORECASE)
+_STANZA_OPEN_RE = re.compile(r"^%%strophe(?:\s+(.+?))?%%$")
+_STANZA_CLOSE_RE = re.compile(r"^%%fin_strophe%%$", re.IGNORECASE)
+_METRICAL_PREFIX_RE = re.compile(r"^=(\d{2})=(.*)$")
 
 
 def _split_parallel_blocks(text: str, witness_count: int) -> list[list[str]]:
@@ -94,6 +97,52 @@ def _validate_implicit_close_block(block: list[str]) -> None:
             raise ValueError(f"Malformed implicit stage closing marker: {line}")
 
 
+def _extract_stanza_attributes(block: list[str]) -> tuple[str | None, str | None]:
+    signatures: list[tuple[str | None, str | None]] = []
+    for line in block:
+        match = _STANZA_OPEN_RE.match(line.strip())
+        if not match:
+            raise ValueError(f"Malformed stanza opening marker: {line}")
+        attrs: dict[str, str] = {}
+        raw_attrs = (match.group(1) or "").strip()
+        if raw_attrs:
+            for item in raw_attrs.split():
+                if "=" not in item:
+                    raise ValueError(f"Malformed stanza attribute: {item}")
+                key, value = item.split("=", maxsplit=1)
+                if key not in {"subtype", "rhyme"}:
+                    raise ValueError(f"Unsupported stanza attribute: {key}")
+                attrs[key] = value
+        signatures.append((attrs.get("subtype"), attrs.get("rhyme")))
+    if len(set(signatures)) != 1:
+        raise ValueError("Stanza opening marker variation between witnesses is unsupported.")
+    return signatures[0]
+
+
+def _validate_stanza_close_block(block: list[str]) -> None:
+    for line in block:
+        if not _STANZA_CLOSE_RE.match(line.strip()):
+            raise ValueError(f"Malformed stanza closing marker: {line}")
+
+
+def _strip_metrical_prefixes(block: list[str]) -> tuple[list[str], str]:
+    cleaned: list[str] = []
+    meters: list[str] = []
+    for line in block:
+        match = _METRICAL_PREFIX_RE.match(line.strip())
+        if not match:
+            raise ValueError("Verse inside stanza requires a metrical prefix.")
+        raw_meter = match.group(1)
+        meter = str(int(raw_meter))
+        if int(raw_meter) < 2 or int(raw_meter) > 12:
+            raise ValueError(f"Metrical value out of range: {raw_meter}")
+        meters.append(meter)
+        cleaned.append(match.group(2))
+    if len(set(meters)) != 1:
+        raise ValueError("Metrical value variation between witnesses is unsupported.")
+    return cleaned, meters[0]
+
+
 def parse_play(text: str, config: EditionConfig) -> Play:
     blocks = _split_parallel_blocks(text, len(config.witnesses))
     play = Play()
@@ -101,6 +150,7 @@ def parse_play(text: str, config: EditionConfig) -> Play:
     current_scene: Scene | None = None
     current_speech: Speech | None = None
     current_implicit_span: ImplicitStageSpan | None = None
+    current_stanza: Stanza | None = None
 
     line_number = 1
     shared_base: int | None = None
@@ -111,6 +161,8 @@ def parse_play(text: str, config: EditionConfig) -> Play:
         first = block[0].strip()
 
         if _ACT_RE.match(first):
+            if current_stanza is not None:
+                raise ValueError("Unclosed stanza before act boundary.")
             if current_implicit_span is not None:
                 raise ValueError("Unclosed implicit stage span before act boundary.")
             current_act = Act(head_readings=_extract_wrapped(block, _ACT_RE), head_block_index=block_index)
@@ -123,6 +175,8 @@ def parse_play(text: str, config: EditionConfig) -> Play:
             continue
 
         if _SCENE_RE.match(first) and not first.startswith("####"):
+            if current_stanza is not None:
+                raise ValueError("Unclosed stanza before scene boundary.")
             if current_implicit_span is not None:
                 raise ValueError("Unclosed implicit stage span before scene boundary.")
             if current_act is None:
@@ -144,6 +198,8 @@ def parse_play(text: str, config: EditionConfig) -> Play:
             continue
 
         if first.startswith("##") and not first.startswith("###") and _CAST_RE.search(first):
+            if current_stanza is not None:
+                raise ValueError("Unclosed stanza before cast block.")
             if current_implicit_span is not None:
                 raise ValueError("Unclosed implicit stage span before cast block.")
             if current_scene is None:
@@ -153,6 +209,8 @@ def parse_play(text: str, config: EditionConfig) -> Play:
             continue
 
         if _SPEAKER_RE.match(first) and not first.startswith("##"):
+            if current_stanza is not None:
+                raise ValueError("Unclosed stanza before speaker change.")
             if current_implicit_span is not None:
                 raise ValueError("Unclosed implicit stage span before speaker change.")
             if current_scene is None:
@@ -162,6 +220,8 @@ def parse_play(text: str, config: EditionConfig) -> Play:
             continue
 
         if _STAGE_RE.match(first):
+            if current_stanza is not None:
+                raise ValueError("Unclosed stanza before explicit stage direction.")
             if current_implicit_span is not None:
                 raise ValueError("Explicit stage directions inside implicit stage span are unsupported.")
             if current_scene is None:
@@ -174,7 +234,30 @@ def parse_play(text: str, config: EditionConfig) -> Play:
                 current_scene.stage_directions.append(direction)
             continue
 
+        if _STANZA_CLOSE_RE.match(first):
+            if current_stanza is None:
+                raise ValueError("Unexpected %%fin_strophe%% without open stanza.")
+            if current_speech is None:
+                raise ValueError("Stanza must be inside a speech.")
+            _validate_stanza_close_block(block)
+            current_speech.elements.append(current_stanza)
+            current_stanza = None
+            continue
+
+        if _STANZA_OPEN_RE.match(first):
+            if current_speech is None:
+                raise ValueError("Stanza opening marker found before speaker.")
+            if current_implicit_span is not None:
+                raise ValueError("Stanza inside implicit stage span is unsupported.")
+            if current_stanza is not None:
+                raise ValueError("Nested stanzas are unsupported.")
+            subtype, rhyme = _extract_stanza_attributes(block)
+            current_stanza = Stanza(subtype=subtype, rhyme=rhyme, block_index_open=block_index)
+            continue
+
         if _IMPLICIT_CLOSE_RE.match(first):
+            if current_stanza is not None:
+                raise ValueError("Unclosed stanza before implicit stage closing marker.")
             if current_implicit_span is None:
                 raise ValueError("Unexpected $$fin$$ without open implicit stage span.")
             if current_speech is None:
@@ -185,6 +268,8 @@ def parse_play(text: str, config: EditionConfig) -> Play:
             continue
 
         if _IMPLICIT_OPEN_RE.match(first):
+            if current_stanza is not None:
+                raise ValueError("Unclosed stanza before implicit stage opening marker.")
             if current_speech is None:
                 raise ValueError("Implicit stage span opening marker found before speaker.")
             if current_implicit_span is not None:
@@ -200,7 +285,14 @@ def parse_play(text: str, config: EditionConfig) -> Play:
         split_starts = False
         split_continues = False
         whole_line_variant = False
-        for line in block:
+        source_block = block
+        met: str | None = None
+        if current_stanza is not None:
+            source_block, met = _strip_metrical_prefixes(block)
+        elif any(_METRICAL_PREFIX_RE.match(line.strip()) for line in block):
+            raise ValueError("Metrical marker found outside stanza.")
+
+        for line in source_block:
             line_text, starts, continues, whole_line = _clean_verse_reading(line)
             cleaned.append(line_text)
             split_starts = split_starts or starts
@@ -236,13 +328,18 @@ def parse_play(text: str, config: EditionConfig) -> Play:
             readings=cleaned,
             block_index=block_index,
             whole_line_variant=whole_line_variant,
+            met=met,
         )
         if current_implicit_span is not None:
             current_implicit_span.lines.append(verse)
+        elif current_stanza is not None:
+            current_stanza.lines.append(verse)
         else:
             current_speech.elements.append(verse)
 
     if current_implicit_span is not None:
         raise ValueError("Unclosed implicit stage span at end of input.")
+    if current_stanza is not None:
+        raise ValueError("Unclosed stanza at end of input.")
 
     return play

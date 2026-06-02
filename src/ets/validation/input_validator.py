@@ -65,8 +65,26 @@ _CAST_TOKEN_RE = re.compile(r"##([^#]*?)##")
 _STAGE_RE = re.compile(r"^\*\*(?!\*)(.+?)(?<!\*)\*\*$")
 _IMPLICIT_OPEN_RE = re.compile(r"^\$\$([A-Za-z][A-Za-z0-9_-]*)\$\$$")
 _IMPLICIT_CLOSE_RE = re.compile(r"^\$\$fin\$\$$", re.IGNORECASE)
+_STANZA_OPEN_RE = re.compile(r"^%%strophe(?:\s+(.+?))?%%$")
+_STANZA_CLOSE_RE = re.compile(r"^%%fin_strophe%%$", re.IGNORECASE)
+_METRICAL_PREFIX_RE = re.compile(r"^=(\d{2})=(.*)$")
 _SHARED_VERSE_RE = re.compile(r"^(?:\*\*\*.+|.+\*\*\*)$")
 _WHOLE_LINE_VARIANT_RE = re.compile(r"^#####\s*\S.*$")
+
+STANZA_SUBTYPE_LINE_COUNTS = {
+    "distique": 2,
+    "tercet": 3,
+    "quatrain": 4,
+    "quintil": 5,
+    "sixain": 6,
+    "sizain": 6,
+    "septain": 7,
+    "huitain": 8,
+    "neuvain": 9,
+    "dizain": 10,
+    "onzain": 11,
+    "douzain": 12,
+}
 
 
 def _split_parallel_blocks(text: str) -> list[_Block]:
@@ -188,6 +206,40 @@ def _clean_verse_for_collation(raw: str) -> tuple[str, bool]:
     return text.strip().replace("~", "\u00A0"), whole_line_variant
 
 
+def _parse_stanza_open_attrs(raw: str) -> tuple[dict[str, str], str | None]:
+    match = _STANZA_OPEN_RE.match(raw.strip())
+    if match is None:
+        return {}, "malformed"
+    attrs: dict[str, str] = {}
+    raw_attrs = (match.group(1) or "").strip()
+    if not raw_attrs:
+        return attrs, None
+    for item in raw_attrs.split():
+        if "=" not in item:
+            return attrs, "malformed"
+        key, value = item.split("=", maxsplit=1)
+        if key == "type":
+            return attrs, "type_forbidden"
+        if key not in {"subtype", "rhyme"}:
+            return attrs, key
+        attrs[key] = value
+    return attrs, None
+
+
+def _stanza_signature(raw: str) -> tuple[str | None, str | None] | None:
+    attrs, error = _parse_stanza_open_attrs(raw)
+    if error is not None:
+        return None
+    return attrs.get("subtype"), attrs.get("rhyme")
+
+
+def _strip_metrical_prefix_for_validation(raw: str) -> tuple[str | None, str | None]:
+    match = _METRICAL_PREFIX_RE.match(raw.strip())
+    if match is None:
+        return None, None
+    return str(int(match.group(1))), match.group(2)
+
+
 def _classify_line_marker(line: str) -> str:
     stripped = line.strip()
     if _ACT_RE.match(stripped) and not stripped.startswith("#####"):
@@ -204,6 +256,10 @@ def _classify_line_marker(line: str) -> str:
         return "implicit_open"
     if _IMPLICIT_CLOSE_RE.match(stripped):
         return "implicit_close"
+    if _STANZA_OPEN_RE.match(stripped):
+        return "stanza_open"
+    if _STANZA_CLOSE_RE.match(stripped):
+        return "stanza_close"
     if _WHOLE_LINE_VARIANT_RE.match(stripped):
         return "whole_line_variant"
     if _SHARED_VERSE_RE.match(stripped):
@@ -304,6 +360,10 @@ def validate_input_text(text: str, witness_count: int, witness_sigla: list[str] 
     current_scene: str | None = None
     current_speaker: str | None = None
     implicit_open: bool = False
+    stanza_open: bool = False
+    stanza_subtype: str | None = None
+    stanza_rhyme: str | None = None
+    stanza_line_count = 0
     shared_open: bool = False
     shared_carried_across_scene: bool = False
     seen_scene = False
@@ -392,10 +452,25 @@ def validate_input_text(text: str, witness_count: int, witness_sigla: list[str] 
             "stage": _STAGE_RE.match(first) is not None,
             "implicit_open": _IMPLICIT_OPEN_RE.match(first) is not None,
             "implicit_close": _IMPLICIT_CLOSE_RE.match(first) is not None,
+            "stanza_open": _STANZA_OPEN_RE.match(first) is not None,
+            "stanza_close": _STANZA_CLOSE_RE.match(first) is not None,
             "whole_line_variant": first.startswith("#####"),
         }
 
         if kinds["act"]:
+            if stanza_open:
+                _append_error(
+                    diagnostics,
+                    code="E_STANZA_UNCLOSED",
+                    message="Unclosed stanza before act boundary.",
+                    line_number=line,
+                    block_index=block.index,
+                    act=current_act,
+                    scene=current_scene,
+                    speaker=current_speaker,
+                    excerpt=first,
+                )
+                stanza_open = False
             normalized_act: list[str] = []
             malformed = False
             for idx, raw in enumerate(block.lines):
@@ -449,6 +524,19 @@ def validate_input_text(text: str, witness_count: int, witness_sigla: list[str] 
             continue
 
         if kinds["scene"]:
+            if stanza_open:
+                _append_error(
+                    diagnostics,
+                    code="E_STANZA_UNCLOSED",
+                    message="Unclosed stanza before scene boundary.",
+                    line_number=line,
+                    block_index=block.index,
+                    act=current_act,
+                    scene=current_scene,
+                    speaker=current_speaker,
+                    excerpt=first,
+                )
+                stanza_open = False
             normalized_scene: list[str] = []
             malformed = False
             for idx, raw in enumerate(block.lines):
@@ -519,6 +607,19 @@ def validate_input_text(text: str, witness_count: int, witness_sigla: list[str] 
             continue
 
         if kinds["cast"]:
+            if stanza_open:
+                _append_error(
+                    diagnostics,
+                    code="E_STANZA_UNCLOSED",
+                    message="Unclosed stanza before cast block.",
+                    line_number=line,
+                    block_index=block.index,
+                    act=current_act,
+                    scene=current_scene,
+                    speaker=current_speaker,
+                    excerpt=first,
+                )
+                stanza_open = False
             normalized_cast: list[str] = []
             malformed = False
             for idx, raw in enumerate(block.lines):
@@ -605,6 +706,19 @@ def validate_input_text(text: str, witness_count: int, witness_sigla: list[str] 
             continue
 
         if kinds["speaker"]:
+            if stanza_open:
+                _append_error(
+                    diagnostics,
+                    code="E_STANZA_UNCLOSED",
+                    message="Unclosed stanza before speaker change.",
+                    line_number=line,
+                    block_index=block.index,
+                    act=current_act,
+                    scene=current_scene,
+                    speaker=current_speaker,
+                    excerpt=first,
+                )
+                stanza_open = False
             normalized_speaker: list[str] = []
             malformed = False
             for idx, raw in enumerate(block.lines):
@@ -667,6 +781,19 @@ def validate_input_text(text: str, witness_count: int, witness_sigla: list[str] 
             continue
 
         if kinds["stage"]:
+            if stanza_open:
+                _append_error(
+                    diagnostics,
+                    code="E_STANZA_UNCLOSED",
+                    message="Unclosed stanza before explicit stage direction.",
+                    line_number=line,
+                    block_index=block.index,
+                    act=current_act,
+                    scene=current_scene,
+                    speaker=current_speaker,
+                    excerpt=first,
+                )
+                stanza_open = False
             normalized_stage: list[str] = []
             malformed = False
             for idx, raw in enumerate(block.lines):
@@ -725,7 +852,161 @@ def validate_input_text(text: str, witness_count: int, witness_sigla: list[str] 
                 )
             continue
 
+        if kinds["stanza_close"]:
+            for idx, raw in enumerate(block.lines):
+                if _STANZA_CLOSE_RE.match(raw.strip()) is None:
+                    _append_error(
+                        diagnostics,
+                        code="E_STANZA_CLOSE_MALFORMED",
+                        message="Malformed stanza closing marker.",
+                        line_number=line + idx,
+                        block_index=block.index,
+                        act=current_act,
+                        scene=current_scene,
+                        speaker=current_speaker,
+                        excerpt=raw.strip(),
+                    )
+            if not stanza_open:
+                _append_error(
+                    diagnostics,
+                    code="E_STANZA_CLOSE_WITHOUT_OPEN",
+                    message="Unexpected %%fin_strophe%% without open stanza.",
+                    line_number=line,
+                    block_index=block.index,
+                    act=current_act,
+                    scene=current_scene,
+                    speaker=current_speaker,
+                    excerpt=first,
+                )
+            else:
+                if stanza_subtype:
+                    expected = STANZA_SUBTYPE_LINE_COUNTS.get(stanza_subtype)
+                    if expected is not None and stanza_line_count != expected:
+                        _append_error(
+                            diagnostics,
+                            code="E_STANZA_SUBTYPE_COUNT_MISMATCH",
+                            message=f"Stanza subtype {stanza_subtype!r} expects {expected} verse lines, got {stanza_line_count}.",
+                            line_number=line,
+                            block_index=block.index,
+                            act=current_act,
+                            scene=current_scene,
+                            speaker=current_speaker,
+                            excerpt=first,
+                        )
+                if stanza_rhyme and len(stanza_rhyme) != stanza_line_count:
+                    _append_error(
+                        diagnostics,
+                        code="E_STANZA_RHYME_COUNT_MISMATCH",
+                        message=f"Stanza rhyme scheme expects {len(stanza_rhyme)} verse lines, got {stanza_line_count}.",
+                        line_number=line,
+                        block_index=block.index,
+                        act=current_act,
+                        scene=current_scene,
+                        speaker=current_speaker,
+                        excerpt=first,
+                    )
+            stanza_open = False
+            stanza_subtype = None
+            stanza_rhyme = None
+            stanza_line_count = 0
+            continue
+
+        if kinds["stanza_open"]:
+            signatures: set[tuple[str | None, str | None]] = set()
+            malformed = False
+            for idx, raw in enumerate(block.lines):
+                attrs, error = _parse_stanza_open_attrs(raw)
+                if error == "type_forbidden":
+                    _append_error(
+                        diagnostics,
+                        code="E_STANZA_TYPE_ATTRIBUTE_FORBIDDEN",
+                        message="Stanza marker must use subtype=..., not type=....",
+                        line_number=line + idx,
+                        block_index=block.index,
+                        act=current_act,
+                        scene=current_scene,
+                        speaker=current_speaker,
+                        excerpt=raw.strip(),
+                    )
+                    malformed = True
+                elif error is not None:
+                    _append_error(
+                        diagnostics,
+                        code="E_STANZA_UNKNOWN_ATTRIBUTE" if error != "malformed" else "E_STANZA_OPEN_MALFORMED",
+                        message=(
+                            f"Unknown stanza attribute: {error}."
+                            if error != "malformed"
+                            else "Malformed stanza opening marker."
+                        ),
+                        line_number=line + idx,
+                        block_index=block.index,
+                        act=current_act,
+                        scene=current_scene,
+                        speaker=current_speaker,
+                        excerpt=raw.strip(),
+                    )
+                    malformed = True
+                else:
+                    signatures.add((attrs.get("subtype"), attrs.get("rhyme")))
+            if malformed:
+                continue
+            if len(signatures) != 1:
+                _append_error(
+                    diagnostics,
+                    code="E_STANZA_OPEN_VARIATION",
+                    message="Stanza opening marker variation between witnesses is unsupported.",
+                    line_number=line,
+                    block_index=block.index,
+                    act=current_act,
+                    scene=current_scene,
+                    speaker=current_speaker,
+                    excerpt=first,
+                    block_lines=block.lines,
+                )
+            if current_speaker is None:
+                _append_error(
+                    diagnostics,
+                    code="E_STANZA_OPEN_BEFORE_SPEAKER",
+                    message="Stanza opening marker found before speaker.",
+                    line_number=line,
+                    block_index=block.index,
+                    act=current_act,
+                    scene=current_scene,
+                    speaker=current_speaker,
+                    excerpt=first,
+                )
+            if stanza_open:
+                _append_error(
+                    diagnostics,
+                    code="E_STANZA_NESTED",
+                    message="Nested stanzas are unsupported.",
+                    line_number=line,
+                    block_index=block.index,
+                    act=current_act,
+                    scene=current_scene,
+                    speaker=current_speaker,
+                    excerpt=first,
+                )
+            signature = next(iter(signatures)) if signatures else (None, None)
+            stanza_open = True
+            stanza_subtype, stanza_rhyme = signature
+            stanza_line_count = 0
+            continue
+
         if kinds["implicit_close"]:
+            if stanza_open:
+                _append_error(
+                    diagnostics,
+                    code="E_STANZA_UNCLOSED",
+                    message="Unclosed stanza before implicit stage closing marker.",
+                    line_number=line,
+                    block_index=block.index,
+                    act=current_act,
+                    scene=current_scene,
+                    speaker=current_speaker,
+                    excerpt=first,
+                )
+                stanza_open = False
             for idx, raw in enumerate(block.lines):
                 if _IMPLICIT_CLOSE_RE.match(raw.strip()) is None:
                     _append_error(
@@ -755,6 +1036,19 @@ def validate_input_text(text: str, witness_count: int, witness_sigla: list[str] 
             continue
 
         if kinds["implicit_open"]:
+            if stanza_open:
+                _append_error(
+                    diagnostics,
+                    code="E_STANZA_UNCLOSED",
+                    message="Unclosed stanza before implicit stage opening marker.",
+                    line_number=line,
+                    block_index=block.index,
+                    act=current_act,
+                    scene=current_scene,
+                    speaker=current_speaker,
+                    excerpt=first,
+                )
+                stanza_open = False
             categories: set[str] = set()
             malformed = False
             for idx, raw in enumerate(block.lines):
@@ -817,6 +1111,18 @@ def validate_input_text(text: str, witness_count: int, witness_sigla: list[str] 
             continue
 
         if current_speaker is None:
+            if any(_METRICAL_PREFIX_RE.match(raw.strip()) for raw in block.lines):
+                _append_error(
+                    diagnostics,
+                    code="E_METRICAL_MARKER_OUTSIDE_STANZA",
+                    message="Metrical marker =nn= is only allowed inside a stanza.",
+                    line_number=line,
+                    block_index=block.index,
+                    act=current_act,
+                    scene=current_scene,
+                    speaker=current_speaker,
+                    excerpt=first,
+                )
             if not suppress_next_verse_without_speaker:
                 _append_error(
                     diagnostics,
@@ -833,9 +1139,75 @@ def validate_input_text(text: str, witness_count: int, witness_sigla: list[str] 
             continue
         suppress_next_verse_without_speaker = False
 
+        verse_block_lines = block.lines
+        if stanza_open:
+            meters: list[str] = []
+            stripped_lines: list[str] = []
+            for idx, raw in enumerate(block.lines):
+                raw_meter, stripped_line = _strip_metrical_prefix_for_validation(raw)
+                if raw_meter is None or stripped_line is None:
+                    _append_error(
+                        diagnostics,
+                        code="E_STANZA_VERSE_WITHOUT_MET",
+                        message="Verse inside stanza requires a metrical prefix =02= to =12=.",
+                        line_number=line + idx,
+                        block_index=block.index,
+                        act=current_act,
+                        scene=current_scene,
+                        speaker=current_speaker,
+                        excerpt=raw.strip(),
+                    )
+                    continue
+                raw_value = int(raw.strip()[1:3])
+                if raw_value < 2 or raw_value > 12:
+                    _append_error(
+                        diagnostics,
+                        code="E_METRICAL_VALUE_OUT_OF_RANGE",
+                        message="Metrical value must be between 02 and 12.",
+                        line_number=line + idx,
+                        block_index=block.index,
+                        act=current_act,
+                        scene=current_scene,
+                        speaker=current_speaker,
+                        excerpt=raw.strip(),
+                    )
+                meters.append(raw_meter)
+                stripped_lines.append(stripped_line)
+            if len(meters) == witness_count and len(set(meters)) != 1:
+                _append_error(
+                    diagnostics,
+                    code="E_STANZA_METRICAL_VALUE_VARIATION",
+                    message="Metrical values vary between witnesses of the same stanza verse block.",
+                    line_number=line,
+                    block_index=block.index,
+                    act=current_act,
+                    scene=current_scene,
+                    speaker=current_speaker,
+                    excerpt=first,
+                    witness_labels=labels,
+                    block_lines=block.lines,
+                )
+            if len(stripped_lines) == witness_count:
+                verse_block_lines = stripped_lines
+            stanza_line_count += 1
+        elif any(_METRICAL_PREFIX_RE.match(raw.strip()) for raw in block.lines):
+            _append_error(
+                diagnostics,
+                code="E_METRICAL_MARKER_OUTSIDE_STANZA",
+                message="Metrical marker =nn= is only allowed inside a stanza.",
+                line_number=line,
+                block_index=block.index,
+                act=current_act,
+                scene=current_scene,
+                speaker=current_speaker,
+                excerpt=first,
+                block_lines=block.lines,
+            )
+            continue
+
         normalized_verse: list[str] = []
         whole_line_variant_any = False
-        for raw in block.lines:
+        for raw in verse_block_lines:
             cleaned, whole_line_variant = _clean_verse_for_collation(raw)
             normalized_verse.append(cleaned)
             whole_line_variant_any = whole_line_variant_any or whole_line_variant
@@ -853,8 +1225,8 @@ def validate_input_text(text: str, witness_count: int, witness_sigla: list[str] 
                 block_lines=block.lines,
             )
 
-        starts = [raw.strip().endswith("***") for raw in block.lines]
-        continues = [raw.strip().startswith("***") for raw in block.lines]
+        starts = [raw.strip().endswith("***") for raw in verse_block_lines]
+        continues = [raw.strip().startswith("***") for raw in verse_block_lines]
         starts_any = any(starts)
         continues_any = any(continues)
         if any(raw.strip().startswith("#####") and len(raw.strip()) <= 5 for raw in block.lines):
@@ -909,6 +1281,18 @@ def validate_input_text(text: str, witness_count: int, witness_sigla: list[str] 
             diagnostics,
             code="E_IMPLICIT_SPAN_UNCLOSED",
             message="Unclosed implicit stage span at end of input.",
+            line_number=None,
+            block_index=None,
+            act=current_act,
+            scene=current_scene,
+            speaker=current_speaker,
+            excerpt=None,
+        )
+    if stanza_open:
+        _append_error(
+            diagnostics,
+            code="E_STANZA_UNCLOSED",
+            message="Unclosed stanza at end of input.",
             line_number=None,
             block_index=None,
             act=current_act,

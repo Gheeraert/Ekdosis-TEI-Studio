@@ -546,3 +546,124 @@ def test_single_name_cast_before_verse_is_suspect_even_after_previous_speaker() 
     report = validate_input_text(text, witness_count=2)
     codes = {diag.code for diag in report.diagnostics}
     assert "E_SPEAKER_MARKER_TOO_MANY_HASHES" in codes
+
+
+def _stanza_text(stanza_blocks: list[str], witness_count: int = 4) -> str:
+    prefix = [
+        *["####ACTE I####"] * witness_count,
+        "",
+        *["###SCENE I###"] * witness_count,
+        "",
+        *["#CHOEUR#"] * witness_count,
+        "",
+    ]
+    return "\n".join(prefix + stanza_blocks)
+
+
+def test_accepts_valid_distique_stanza() -> None:
+    text = _stanza_text(
+        [
+            *["%%strophe subtype=distique rhyme=aa%%"] * 4,
+            "",
+            *["=12=Que vous semble, mes soeurs"] * 4,
+            "",
+            *["=10=D'Esther qui tombe"] * 4,
+            "",
+            *["%%fin_strophe%%"] * 4,
+        ]
+    )
+    report = validate_input_text(text, witness_count=4, witness_sigla=["A", "B", "C", "D"])
+    assert report.has_errors is False
+
+
+def test_rejects_forbidden_stanza_type_attribute() -> None:
+    text = _stanza_text([*["%%strophe type=distique%%"] * 4])
+    report = validate_input_text(text, witness_count=4)
+    assert "E_STANZA_TYPE_ATTRIBUTE_FORBIDDEN" in {diag.code for diag in report.diagnostics}
+
+
+def test_rejects_metrical_marker_outside_stanza() -> None:
+    text = _stanza_text([*["=12=Je parle"] * 4])
+    report = validate_input_text(text, witness_count=4)
+    assert "E_METRICAL_MARKER_OUTSIDE_STANZA" in {diag.code for diag in report.diagnostics}
+
+
+def test_rejects_stanza_verse_without_meter() -> None:
+    text = _stanza_text(
+        [
+            *["%%strophe subtype=distique rhyme=aa%%"] * 4,
+            "",
+            *["Je parle"] * 4,
+        ]
+    )
+    report = validate_input_text(text, witness_count=4)
+    assert "E_STANZA_VERSE_WITHOUT_MET" in {diag.code for diag in report.diagnostics}
+
+
+def test_rejects_unclosed_stanza() -> None:
+    text = _stanza_text(
+        [
+            *["%%strophe subtype=distique rhyme=aa%%"] * 4,
+            "",
+            *["=12=Je parle"] * 4,
+        ]
+    )
+    report = validate_input_text(text, witness_count=4)
+    assert "E_STANZA_UNCLOSED" in {diag.code for diag in report.diagnostics}
+
+
+def test_rejects_stanza_close_without_open() -> None:
+    text = _stanza_text([*["%%fin_strophe%%"] * 4])
+    report = validate_input_text(text, witness_count=4)
+    assert "E_STANZA_CLOSE_WITHOUT_OPEN" in {diag.code for diag in report.diagnostics}
+
+
+def test_rejects_distique_with_three_verses() -> None:
+    text = _stanza_text(
+        [
+            *["%%strophe subtype=distique%%"] * 4,
+            "",
+            *["=12=Un"] * 4,
+            "",
+            *["=10=Deux"] * 4,
+            "",
+            *["=08=Trois"] * 4,
+            "",
+            *["%%fin_strophe%%"] * 4,
+        ]
+    )
+    report = validate_input_text(text, witness_count=4)
+    assert "E_STANZA_SUBTYPE_COUNT_MISMATCH" in {diag.code for diag in report.diagnostics}
+
+
+def test_rejects_rhyme_with_three_verses() -> None:
+    text = _stanza_text(
+        [
+            *["%%strophe rhyme=aa%%"] * 4,
+            "",
+            *["=12=Un"] * 4,
+            "",
+            *["=10=Deux"] * 4,
+            "",
+            *["=08=Trois"] * 4,
+            "",
+            *["%%fin_strophe%%"] * 4,
+        ]
+    )
+    report = validate_input_text(text, witness_count=4)
+    assert "E_STANZA_RHYME_COUNT_MISMATCH" in {diag.code for diag in report.diagnostics}
+
+
+def test_rejects_stanza_metrical_value_variation_between_witnesses() -> None:
+    text = _stanza_text(
+        [
+            *["%%strophe subtype=distique rhyme=aa%%"] * 4,
+            "",
+            "=12=Un vers",
+            "=10=Un vers",
+            "=12=Un vers",
+            "=12=Un vers",
+        ]
+    )
+    report = validate_input_text(text, witness_count=4, witness_sigla=["A", "B", "C", "D"])
+    assert "E_STANZA_METRICAL_VALUE_VARIATION" in {diag.code for diag in report.diagnostics}

@@ -25,6 +25,7 @@ class VerseLine:
     readings: list[str]
     block_index: int
     whole_line_variant: bool = False
+    met: str | None = None
 
 
 @dataclass
@@ -40,7 +41,15 @@ class ImplicitStageSpan:
     lines: list[VerseLine] = field(default_factory=list)
 
 
-SpeechElement = VerseLine | StageDirection | ImplicitStageSpan
+@dataclass
+class Stanza:
+    subtype: str | None
+    rhyme: str | None
+    block_index_open: int
+    lines: list[VerseLine] = field(default_factory=list)
+
+
+SpeechElement = VerseLine | StageDirection | ImplicitStageSpan | Stanza
 
 
 @dataclass
@@ -56,6 +65,8 @@ class Speech:
             if isinstance(element, VerseLine):
                 verses.append(element)
             elif isinstance(element, ImplicitStageSpan):
+                verses.extend(element.lines)
+            elif isinstance(element, Stanza):
                 verses.extend(element.lines)
         return verses
 
@@ -121,6 +132,7 @@ class CollatedText:
 class TokenCollatedLine:
     number: str
     text: CollatedText
+    met: str | None = None
 
 
 @dataclass(frozen=True)
@@ -133,10 +145,19 @@ class ApparatusLine:
 CollatedLine = TokenCollatedLine | ApparatusLine | LiteralLine
 
 
+@dataclass(frozen=True)
+class CollatedStanza:
+    subtype: str | None
+    rhyme: str | None
+    lines: list[CollatedLine]
+
+
 @dataclass
 class CollatedSpeech:
     speaker: CollatedText
-    elements: list[CollatedLine | "CollatedStageDirection" | "CollatedImplicitStageSpan"] = field(default_factory=list)
+    elements: list[
+        CollatedLine | "CollatedStageDirection" | "CollatedImplicitStageSpan" | CollatedStanza
+    ] = field(default_factory=list)
 
     @property
     def lines(self) -> list[CollatedLine]:

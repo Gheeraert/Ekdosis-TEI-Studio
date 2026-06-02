@@ -8,6 +8,7 @@ from ets.domain import (
     CollatedImplicitStageSpan,
     CollatedPlay,
     CollatedReading,
+    CollatedStanza,
     CollatedStageDirection,
     CollatedText,
     EditionConfig,
@@ -159,6 +160,8 @@ def _append_collated_line(
     attrs = {"n": line.number}
     if line_xml_id:
         attrs["xml:id"] = line_xml_id
+    if getattr(line, "met", None):
+        attrs["met"] = line.met
     l_element = ET.SubElement(parent, _tei("l"), attrs)
     if isinstance(line, TokenCollatedLine):
         _append_collated_text(l_element, line.text)
@@ -249,6 +252,19 @@ def generate_tei_xml(collated: CollatedPlay, config: EditionConfig) -> str:
                         )
                         for span_line in element.lines:
                             _append_collated_line(span, span_line, line_xml_id=f"A{act_n}S{scene_n}L{span_line.number}")
+                    elif isinstance(element, CollatedStanza):
+                        attrs = {"type": "stanza"}
+                        if element.subtype:
+                            attrs["subtype"] = element.subtype
+                        if element.rhyme:
+                            attrs["rhyme"] = element.rhyme
+                        lg = ET.SubElement(sp, _tei("lg"), attrs)
+                        for stanza_line in element.lines:
+                            _append_collated_line(
+                                lg,
+                                stanza_line,
+                                line_xml_id=f"A{act_n}S{scene_n}L{stanza_line.number}",
+                            )
                     else:
                         _append_collated_line(sp, element, line_xml_id=f"A{act_n}S{scene_n}L{element.number}")
 
