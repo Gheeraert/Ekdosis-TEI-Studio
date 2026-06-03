@@ -1,0 +1,55 @@
+from __future__ import annotations
+
+from ets.characters import (
+    is_ambiguous_character_label,
+    normalize_character_label,
+    resolve_character_id,
+)
+from ets.domain import Character
+
+
+def test_normalize_character_label_is_cautious_and_predictable() -> None:
+    assert normalize_character_label("  HERMIONNE.  ") == "hermionne"
+    assert normalize_character_label("CHŒUR !") == "choeur"
+    assert normalize_character_label("ÉRIPHILE") == "eriphile"
+
+
+def test_declared_aliases_resolve_hermione_variants() -> None:
+    characters = [
+        Character(
+            id="char001",
+            label="Hermione",
+            aliases=["HERMIONNE.", "HERMIONE", "Hermione"],
+        )
+    ]
+
+    assert resolve_character_id("HERMIONNE.", characters) == "char001"
+    assert resolve_character_id("HERMIONE", characters) == "char001"
+    assert resolve_character_id("Hermione", characters) == "char001"
+
+
+def test_declared_aliases_resolve_iocaste_and_jocaste() -> None:
+    characters = [
+        Character(
+            id="char002",
+            label="Jocaste",
+            aliases=["IOCASTE", "JOCASTE"],
+        )
+    ]
+
+    assert resolve_character_id("IOCASTE", characters) == "char002"
+    assert resolve_character_id("JOCASTE", characters) == "char002"
+
+
+def test_no_resolution_without_declared_characters() -> None:
+    assert resolve_character_id("HERMIONE", []) is None
+
+
+def test_ambiguous_alias_is_detected_and_not_resolved() -> None:
+    characters = [
+        Character(id="char001", label="Hermione", aliases=["Reine"]),
+        Character(id="char002", label="Andromaque", aliases=["REINE."]),
+    ]
+
+    assert is_ambiguous_character_label("reine", characters)
+    assert resolve_character_id("REINE.", characters) is None

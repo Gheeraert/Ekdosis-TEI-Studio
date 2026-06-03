@@ -3,7 +3,9 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from ets.domain import EditionConfig, Witness
+import pytest
+
+from ets.domain import Character, EditionConfig, Witness
 from ets.parser import load_config, save_config
 
 
@@ -84,6 +86,132 @@ def test_cli_override_keeps_priority() -> None:
     assert config.reference_witness == 0
 
 
+def test_load_config_without_characters_keeps_legacy_compatibility() -> None:
+    config_path = RUNTIME_DIR / "config_loader_without_characters.json"
+    config_path.write_text(
+        json.dumps(_config_payload_with_reference("TÃ©moin de rÃ©fÃ©rence", "B"), ensure_ascii=False),
+        encoding="utf-8",
+    )
+
+    config = load_config(config_path)
+
+    assert config.characters == []
+
+
+def test_load_config_reads_optional_personnages() -> None:
+    payload = _config_payload_with_reference("TÃ©moin de rÃ©fÃ©rence", "B")
+    payload["Personnages"] = [
+        {
+            "id": "char001",
+            "nom": "Hermione",
+            "aliases": ["HERMIONNE.", "HERMIONE", "Hermione"],
+        }
+    ]
+    config_path = RUNTIME_DIR / "config_loader_personnages.json"
+    config_path.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
+
+    config = load_config(config_path)
+
+    assert config.characters == [
+        Character(
+            id="char001",
+            label="Hermione",
+            aliases=["HERMIONNE.", "HERMIONE", "Hermione"],
+        )
+    ]
+
+
+def test_load_config_reads_optional_characters_alias() -> None:
+    payload = _config_payload_with_reference("TÃ©moin de rÃ©fÃ©rence", "B")
+    payload["characters"] = [
+        {
+            "id": "char002",
+            "label": "Jocaste",
+            "aliases": ["IOCASTE", "JOCASTE"],
+        }
+    ]
+    config_path = RUNTIME_DIR / "config_loader_characters.json"
+    config_path.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
+
+    config = load_config(config_path)
+
+    assert config.characters == [
+        Character(id="char002", label="Jocaste", aliases=["IOCASTE", "JOCASTE"])
+    ]
+
+
+def _write_character_config(name: str, characters: list[dict[str, object]]) -> Path:
+    payload = _config_payload_with_reference("TÃƒÂ©moin de rÃƒÂ©fÃƒÂ©rence", "B")
+    payload["Personnages"] = characters
+    config_path = RUNTIME_DIR / name
+    config_path.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
+    return config_path
+
+
+def test_load_config_rejects_character_with_empty_id() -> None:
+    config_path = _write_character_config(
+        "config_loader_character_empty_id.json",
+        [{"id": " ", "nom": "Hermione", "aliases": []}],
+    )
+
+    with pytest.raises(ValueError, match="id is required"):
+        load_config(config_path)
+
+
+def test_load_config_rejects_character_with_empty_label() -> None:
+    config_path = _write_character_config(
+        "config_loader_character_empty_label.json",
+        [{"id": "char001", "nom": " ", "aliases": []}],
+    )
+
+    with pytest.raises(ValueError, match="nom/label is required"):
+        load_config(config_path)
+
+
+def test_load_config_rejects_duplicate_character_ids() -> None:
+    config_path = _write_character_config(
+        "config_loader_character_duplicate_id.json",
+        [
+            {"id": "char001", "nom": "Hermione", "aliases": []},
+            {"id": "char001", "nom": "Andromaque", "aliases": []},
+        ],
+    )
+
+    with pytest.raises(ValueError, match="duplicate id"):
+        load_config(config_path)
+
+
+def test_load_config_rejects_character_id_starting_with_digit() -> None:
+    config_path = _write_character_config(
+        "config_loader_character_digit_id.json",
+        [{"id": "1char", "nom": "Hermione", "aliases": []}],
+    )
+
+    with pytest.raises(ValueError, match="XML-compatible id"):
+        load_config(config_path)
+
+
+def test_load_config_rejects_character_id_containing_space() -> None:
+    config_path = _write_character_config(
+        "config_loader_character_space_id.json",
+        [{"id": "char 001", "nom": "Hermione", "aliases": []}],
+    )
+
+    with pytest.raises(ValueError, match="XML-compatible id"):
+        load_config(config_path)
+
+
+def test_load_config_accepts_simple_character_id() -> None:
+    config_path = _write_character_config(
+        "config_loader_character_simple_id.json",
+        [{"id": "char001", "nom": "Hermione", "aliases": []}],
+    )
+
+    config = load_config(config_path)
+
+    assert config.characters == [Character(id="char001", label="Hermione", aliases=[])]
+
+
 def test_save_config_writes_canonical_json_without_reference_key() -> None:
     config = EditionConfig(
         title="Britannicus",
@@ -112,6 +240,23 @@ def test_save_config_writes_canonical_json_without_reference_key() -> None:
 
     assert "reference_witness" not in payload
     assert "Témoin de référence" not in payload
+
+
+def test_save_config_writes_characters_when_present() -> None:
+    config = EditionConfig(
+        title="Thebaide",
+        author="Jean Racine",
+        editor="Tony Gheeraert",
+        witnesses=[Witness(siglum="A", year="1664", description="A")],
+        reference_witness=0,
+        characters=[Character(id="char001", label="Jocaste", aliases=["IOCASTE", "JOCASTE"])],
+    )
+    saved_path = save_config(config, RUNTIME_DIR / "canonique_personnages.json")
+    payload = json.loads(saved_path.read_text(encoding="utf-8"))
+
+    assert payload["Personnages"] == [
+        {"id": "char001", "nom": "Jocaste", "aliases": ["IOCASTE", "JOCASTE"]}
+    ]
 
 
 def test_load_config_after_save_remains_compatible() -> None:

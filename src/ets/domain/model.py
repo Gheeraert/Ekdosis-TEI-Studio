@@ -11,6 +11,13 @@ class Witness:
 
 
 @dataclass(frozen=True)
+class Character:
+    id: str
+    label: str
+    aliases: list[str] = field(default_factory=list)
+
+
+@dataclass(frozen=True)
 class EditionConfig:
     title: str
     author: str
@@ -18,6 +25,7 @@ class EditionConfig:
     witnesses: list[Witness]
     reference_witness: int
     transcriber: str = ""
+    characters: list[Character] = field(default_factory=list)
 
 
 @dataclass

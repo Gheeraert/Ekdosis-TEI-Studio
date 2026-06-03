@@ -201,3 +201,30 @@ When uncertain, prefer:
 - simplicity
 - deterministic output
 - existing ETS rendering engines over approximations
+
+
+## Environnement Python
+
+Le projet utilise le venv local suivant :
+
+`C:\ETS_1juin\.venv`
+
+Ne pas utiliser `pytest` directement.
+
+Pour lancer Python, utiliser :
+
+`C:\ETS_1juin\.venv\Scripts\python.exe`
+
+Pour lancer les tests, utiliser toujours :
+
+`C:\ETS_1juin\.venv\Scripts\python.exe -m pytest`
+
+Avant de conclure que pytest est absent, vérifier avec :
+
+`C:\ETS_1juin\.venv\Scripts\python.exe -m pip show pytest`
+
+## Validation
+
+Après toute modification du code Python, lancer :
+
+`C:\ETS_1juin\.venv\Scripts\python.exe -m pytest`

@@ -2,9 +2,13 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+import re
 from typing import Any
 
-from ets.domain import EditionConfig, Witness
+from ets.domain import Character, EditionConfig, Witness
+
+
+_CHARACTER_ID_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_.-]*$")
 
 
 def _pick(data: dict[str, Any], keys: list[str], default: Any = "") -> Any:
@@ -68,11 +72,44 @@ def _split_person_name(full_name: str) -> tuple[str, str]:
     return parts[0], " ".join(parts[1:])
 
 
+def _load_characters(raw: dict[str, Any]) -> list[Character]:
+    characters_raw = _pick(raw, ["Personnages", "characters"], [])
+    if characters_raw is None:
+        return []
+    if not isinstance(characters_raw, list):
+        raise ValueError("Invalid characters config: expected a list.")
+
+    characters: list[Character] = []
+    seen_ids: set[str] = set()
+    for index, item in enumerate(characters_raw):
+        if not isinstance(item, dict):
+            raise ValueError(f"Invalid characters config at index {index}: expected an object.")
+        character_id = str(_pick(item, ["id"], "")).strip()
+        label = str(_pick(item, ["nom", "label"], "")).strip()
+        if not character_id:
+            raise ValueError(f"Invalid character at index {index}: id is required.")
+        if not _CHARACTER_ID_RE.fullmatch(character_id):
+            raise ValueError(f"Invalid character id {character_id!r}: expected an XML-compatible id.")
+        if character_id in seen_ids:
+            raise ValueError(f"Invalid characters config: duplicate id {character_id!r}.")
+        if not label:
+            raise ValueError(f"Invalid character {character_id!r}: nom/label is required.")
+        aliases_raw = _pick(item, ["aliases"], [])
+        if aliases_raw is None:
+            aliases_raw = []
+        if not isinstance(aliases_raw, list):
+            raise ValueError(f"Invalid aliases for character {character_id or index!r}: expected a list.")
+        aliases = [str(alias).strip() for alias in aliases_raw if str(alias).strip()]
+        seen_ids.add(character_id)
+        characters.append(Character(id=character_id, label=label, aliases=aliases))
+    return characters
+
+
 def _canonical_config_payload(config: EditionConfig) -> dict[str, Any]:
     author_first, author_last = _split_person_name(config.author)
     editor_first, editor_last = _split_person_name(config.editor)
     transcriber_first, transcriber_last = _split_person_name(config.transcriber)
-    return {
+    payload = {
         "Prénom de l'auteur": author_first,
         "Nom de l'auteur": author_last,
         "Titre de la pièce": config.title,
@@ -85,6 +122,12 @@ def _canonical_config_payload(config: EditionConfig) -> dict[str, Any]:
             for witness in config.witnesses
         ],
     }
+    if config.characters:
+        payload["Personnages"] = [
+            {"id": character.id, "nom": character.label, "aliases": list(character.aliases)}
+            for character in config.characters
+        ]
+    return payload
 
 
 def load_config(path: str | Path, reference_override: int | None = None) -> EditionConfig:
@@ -135,6 +178,7 @@ def load_config(path: str | Path, reference_override: int | None = None) -> Edit
     author = f"{author_first} {author_last}".strip()
     editor = f"{editor_first} {editor_last}".strip()
     transcriber = f"{transcriber_first} {transcriber_last}".strip()
+    characters = _load_characters(raw)
     return EditionConfig(
         title=title,
         author=author,
@@ -142,6 +186,7 @@ def load_config(path: str | Path, reference_override: int | None = None) -> Edit
         witnesses=witnesses,
         reference_witness=reference_witness,
         transcriber=transcriber,
+        characters=characters,
     )
 
 
