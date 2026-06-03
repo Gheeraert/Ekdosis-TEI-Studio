@@ -185,8 +185,9 @@ def generate_tei_xml(collated: CollatedPlay, config: EditionConfig) -> str:
     title_stmt = ET.SubElement(file_desc, _tei("titleStmt"))
     ET.SubElement(title_stmt, _tei("title")).text = config.title
     ET.SubElement(title_stmt, _tei("author")).text = config.author
-    editor = ET.SubElement(title_stmt, _tei("editor"), {"role": "scientific"})
-    editor.text = config.editor
+    if config.editor:
+        editor = ET.SubElement(title_stmt, _tei("editor"), {"role": "scientific"})
+        editor.text = config.editor
     if config.transcriber:
         resp_stmt = ET.SubElement(title_stmt, _tei("respStmt"))
         ET.SubElement(resp_stmt, _tei("resp")).text = "Transcription"

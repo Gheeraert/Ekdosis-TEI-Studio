@@ -59,3 +59,24 @@ def test_tei_header_includes_optional_transcriber_respstmt() -> None:
     assert editor.attrib.get("role") == "scientific"
     assert xml_root.findtext(".//tei:titleStmt/tei:respStmt/tei:resp", namespaces=TEI_NS) == "Transcription"
     assert xml_root.findtext(".//tei:titleStmt/tei:respStmt/tei:name", namespaces=TEI_NS) == "Jeanne Martin"
+
+
+def test_tei_header_omits_empty_scientific_editor_and_empty_transcriber() -> None:
+    root = Path(__file__).resolve().parents[1]
+    fixture_dir = root / "fixtures" / "stable"
+    input_text = (fixture_dir / "input.txt").read_text(encoding="utf-8")
+    base_config = load_config(fixture_dir / "config.json")
+    config = EditionConfig(
+        title=base_config.title,
+        author=base_config.author,
+        editor="",
+        witnesses=base_config.witnesses,
+        reference_witness=base_config.reference_witness,
+        transcriber="",
+    )
+
+    tei_xml = run_pipeline_from_text(input_text, config)
+    xml_root = ET.fromstring(tei_xml)
+
+    assert xml_root.find(".//tei:titleStmt/tei:editor", namespaces=TEI_NS) is None
+    assert xml_root.find(".//tei:titleStmt/tei:respStmt", namespaces=TEI_NS) is None
