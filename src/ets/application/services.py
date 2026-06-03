@@ -76,7 +76,12 @@ def save_config(config: EditionConfig, output_path: str | Path) -> Path:
 
 def validate_text(text: str, config: EditionConfig) -> ValidationResult:
     """Run input-level transcription validation only (pre-parse checks)."""
-    report = validate_input_text(text, len(config.witnesses), witness_sigla=[w.siglum for w in config.witnesses])
+    report = validate_input_text(
+        text,
+        len(config.witnesses),
+        witness_sigla=[w.siglum for w in config.witnesses],
+        characters=config.characters,
+    )
     diagnostics = _map_diagnostics(report)
     if _has_error(diagnostics):
         return ValidationResult(ok=False, diagnostics=diagnostics, message="Input validation failed.")

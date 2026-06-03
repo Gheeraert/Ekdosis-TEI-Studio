@@ -15,6 +15,7 @@ def run_pipeline_from_text(input_text: str, config: EditionConfig, *, validate_i
             input_text,
             len(config.witnesses),
             witness_sigla=[w.siglum for w in config.witnesses],
+            characters=config.characters,
         )
         if report.has_errors:
             raise InputValidationError(report.diagnostics)

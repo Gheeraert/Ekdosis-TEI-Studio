@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import xml.etree.ElementTree as ET
 
+from ets.characters import resolve_speaker_block
 from ets.domain import (
     ApparatusLine,
     ApparatusTokenSegment,
@@ -238,7 +239,12 @@ def generate_tei_xml(collated: CollatedPlay, config: EditionConfig) -> str:
                 append_explicit_stage(scene_div, stage.text)
 
             for speech in scene.speeches:
-                sp = ET.SubElement(scene_div, _tei("sp"))
+                sp_attrs: dict[str, str] = {}
+                if config.characters and speech.speaker_readings:
+                    resolution = resolve_speaker_block(speech.speaker_readings, config.characters)
+                    if resolution.status == "resolved" and resolution.character_id is not None:
+                        sp_attrs["who"] = f"#{resolution.character_id}"
+                sp = ET.SubElement(scene_div, _tei("sp"), sp_attrs)
                 speaker = ET.SubElement(sp, _tei("speaker"))
                 _append_collated_text(speaker, speech.speaker)
                 for element in speech.elements:

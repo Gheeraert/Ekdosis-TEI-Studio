@@ -5,6 +5,7 @@ from pathlib import Path
 import pytest
 
 from ets.core import run_pipeline
+from ets.domain import Character
 from ets.parser import load_config
 from ets.validation import InputValidationError, validate_input_text
 
@@ -21,6 +22,81 @@ def test_input_validator_reports_no_errors_on_stable_fixture() -> None:
     )
     assert report.has_errors is False
     assert [diag for diag in report.diagnostics if diag.level.value == "ERROR"] == []
+
+
+def _minimal_speaker_text(speaker_lines: list[str]) -> str:
+    return "\n".join(
+        [
+            *["####ACTE I####"] * len(speaker_lines),
+            "",
+            *["###SCENE I###"] * len(speaker_lines),
+            "",
+            *[f"#{speaker}#" for speaker in speaker_lines],
+            "",
+            *["Je parle."] * len(speaker_lines),
+        ]
+    )
+
+
+def test_character_validator_without_characters_emits_no_character_warning() -> None:
+    report = validate_input_text(_minimal_speaker_text(["INCONNU", "INCONNU"]), witness_count=2)
+
+    assert not [diag for diag in report.diagnostics if diag.code.startswith("W_CHARACTER_WHO_")]
+
+
+def test_character_validator_known_speaker_emits_no_character_warning() -> None:
+    characters = [Character(id="char001", label="Hermione", aliases=["HERMIONE"])]
+    report = validate_input_text(
+        _minimal_speaker_text(["HERMIONE", "HERMIONE"]),
+        witness_count=2,
+        characters=characters,
+    )
+
+    assert not [diag for diag in report.diagnostics if diag.code.startswith("W_CHARACTER_WHO_")]
+
+
+def test_character_validator_unknown_speaker_emits_unresolved_warning() -> None:
+    characters = [Character(id="char001", label="Hermione", aliases=["HERMIONE"])]
+    report = validate_input_text(
+        _minimal_speaker_text(["INCONNU", "INCONNU"]),
+        witness_count=2,
+        characters=characters,
+    )
+
+    warnings = [diag for diag in report.diagnostics if diag.code == "W_CHARACTER_WHO_UNRESOLVED"]
+    assert warnings
+    assert warnings[0].level.value == "WARNING"
+    assert warnings[0].block_type == "speaker"
+    assert "INCONNU" in warnings[0].message
+    assert "Personnages > aliases" in warnings[0].message
+
+
+def test_character_validator_ambiguous_speaker_emits_ambiguous_warning() -> None:
+    characters = [
+        Character(id="char001", label="Hermione", aliases=["REINE"]),
+        Character(id="char002", label="Andromaque", aliases=["REINE."]),
+    ]
+    report = validate_input_text(
+        _minimal_speaker_text(["REINE", "REINE"]),
+        witness_count=2,
+        characters=characters,
+    )
+
+    assert "W_CHARACTER_WHO_AMBIGUOUS" in {diag.code for diag in report.diagnostics}
+
+
+def test_character_validator_conflicting_speaker_readings_emit_conflict_warning() -> None:
+    characters = [
+        Character(id="char001", label="Hermione", aliases=["HERMIONE"]),
+        Character(id="char002", label="Andromaque", aliases=["ANDROMAQUE"]),
+    ]
+    report = validate_input_text(
+        _minimal_speaker_text(["HERMIONE", "ANDROMAQUE"]),
+        witness_count=2,
+        characters=characters,
+    )
+
+    assert "W_CHARACTER_WHO_CONFLICT" in {diag.code for diag in report.diagnostics}
 
 
 def test_input_validator_reports_malformed_parallel_block_with_context() -> None:

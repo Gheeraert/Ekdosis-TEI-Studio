@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Literal
 import re
 import unicodedata
 
@@ -15,6 +16,13 @@ _SPACE_RE = re.compile(r"\s+")
 class CharacterAuthority:
     aliases: dict[str, str]
     ambiguous_aliases: frozenset[str]
+
+
+@dataclass(frozen=True)
+class SpeakerResolution:
+    status: Literal["resolved", "unresolved", "ambiguous", "conflict"]
+    character_id: str | None = None
+    problematic_forms: tuple[str, ...] = ()
 
 
 def normalize_character_label(label: str) -> str:
@@ -59,3 +67,37 @@ def resolve_character_id(label: str, characters: list[Character]) -> str | None:
 def is_ambiguous_character_label(label: str, characters: list[Character]) -> bool:
     authority = build_character_authority(characters)
     return normalize_character_label(label) in authority.ambiguous_aliases
+
+
+def resolve_speaker_block(readings: list[str], characters: list[Character]) -> SpeakerResolution:
+    authority = build_character_authority(characters)
+    resolved_ids: set[str] = set()
+    ambiguous_forms: list[str] = []
+    unresolved_forms: list[str] = []
+
+    for raw in readings:
+        form = raw.strip()
+        normalized = normalize_character_label(form)
+        if not normalized:
+            continue
+        if normalized in authority.ambiguous_aliases:
+            ambiguous_forms.append(form)
+            continue
+        character_id = authority.aliases.get(normalized)
+        if character_id is None:
+            unresolved_forms.append(form)
+            continue
+        resolved_ids.add(character_id)
+
+    if ambiguous_forms:
+        return SpeakerResolution(status="ambiguous", problematic_forms=tuple(ambiguous_forms))
+    if unresolved_forms:
+        return SpeakerResolution(status="unresolved", problematic_forms=tuple(unresolved_forms))
+    if len(resolved_ids) > 1:
+        return SpeakerResolution(
+            status="conflict",
+            problematic_forms=tuple(form.strip() for form in readings if form.strip()),
+        )
+    if len(resolved_ids) == 1:
+        return SpeakerResolution(status="resolved", character_id=next(iter(resolved_ids)))
+    return SpeakerResolution(status="unresolved", problematic_forms=())

@@ -164,6 +164,7 @@ class CollatedStanza:
 @dataclass
 class CollatedSpeech:
     speaker: CollatedText
+    speaker_readings: list[str] = field(default_factory=list)
     elements: list[
         CollatedLine | "CollatedStageDirection" | "CollatedImplicitStageSpan" | CollatedStanza
     ] = field(default_factory=list)

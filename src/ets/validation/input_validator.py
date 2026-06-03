@@ -4,7 +4,9 @@ from dataclasses import dataclass
 from enum import Enum
 import re
 
+from ets.characters import resolve_speaker_block
 from ets.collation import token_counts_for_readings
+from ets.domain import Character
 
 
 class DiagnosticLevel(str, Enum):
@@ -367,9 +369,55 @@ def _validate_token_count_consistency(
     )
 
 
-def validate_input_text(text: str, witness_count: int, witness_sigla: list[str] | None = None) -> ValidationReport:
+def _append_character_speaker_warning(
+    diagnostics: list[ValidationDiagnostic],
+    *,
+    speaker_readings: list[str],
+    characters: list[Character],
+    line_number: int,
+    block_index: int,
+    act: str | None,
+    scene: str | None,
+    block_lines: list[str],
+) -> None:
+    if not characters:
+        return
+    resolution = resolve_speaker_block(speaker_readings, characters)
+    if resolution.status == "resolved":
+        return
+    code_by_status = {
+        "unresolved": "W_CHARACTER_WHO_UNRESOLVED",
+        "ambiguous": "W_CHARACTER_WHO_AMBIGUOUS",
+        "conflict": "W_CHARACTER_WHO_CONFLICT",
+    }
+    forms = ", ".join(repr(form) for form in resolution.problematic_forms) or "empty speaker label"
+    _append_warning(
+        diagnostics,
+        code=code_by_status[resolution.status],
+        message=(
+            f"Character authority could not safely resolve speaker form(s): {forms}. "
+            "Complete Personnages > aliases in the configuration if this speaker should receive @who."
+        ),
+        line_number=line_number,
+        block_index=block_index,
+        act=act,
+        scene=scene,
+        speaker=speaker_readings[0] if speaker_readings else None,
+        excerpt=block_lines[0].strip() if block_lines else None,
+        block_type="speaker",
+        block_lines=block_lines,
+    )
+
+
+def validate_input_text(
+    text: str,
+    witness_count: int,
+    witness_sigla: list[str] | None = None,
+    characters: list[Character] | None = None,
+) -> ValidationReport:
     diagnostics: list[ValidationDiagnostic] = []
     blocks = _split_parallel_blocks(text)
+    character_table = characters or []
     labels = witness_sigla if witness_sigla is not None and len(witness_sigla) == witness_count else [
         f"W{i + 1}" for i in range(witness_count)
     ]
@@ -767,6 +815,16 @@ def validate_input_text(text: str, witness_count: int, witness_sigla: list[str] 
                     act=current_act,
                     scene=current_scene,
                     speaker=current_speaker,
+                    block_lines=block.lines,
+                )
+                _append_character_speaker_warning(
+                    diagnostics,
+                    speaker_readings=normalized_speaker,
+                    characters=character_table,
+                    line_number=line,
+                    block_index=block.index,
+                    act=current_act,
+                    scene=current_scene,
                     block_lines=block.lines,
                 )
             if implicit_open:

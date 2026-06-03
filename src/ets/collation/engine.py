@@ -247,7 +247,8 @@ def collate_play(play: Play, witness_sigla: list[str], reference_witness: int) -
                         scene_label=scene_label,
                         speaker_label=None,
                         block_index=speech.speaker_block_index,
-                    )
+                    ),
+                    speaker_readings=list(speech.speaker_readings),
                 )
                 collated_scene.speeches.append(collated_speech)
                 for element in speech.elements:
