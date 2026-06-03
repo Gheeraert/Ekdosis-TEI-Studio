@@ -110,6 +110,16 @@ def _parse_attrs(
                 excerpt=name,
             )
             has_errors = True
+        elif name in attrs:
+            _error(
+                diagnostics,
+                code="E_CAST_ATTR_DUPLICATE",
+                message=f"Duplicate cast attribute {name!r}.",
+                line_number=line_number,
+                block_index=block_index,
+                excerpt=name,
+            )
+            has_errors = True
 
         if position >= len(raw) or raw[position] != "=":
             _error(

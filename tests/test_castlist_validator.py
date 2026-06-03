@@ -158,6 +158,21 @@ def test_unclosed_attribute_quote_is_malformed_error() -> None:
     assert "E_CAST_ATTR_MALFORMED" in _codes(text)
 
 
+def test_duplicate_cast_attribute_is_error() -> None:
+    text = "\n".join(
+        [
+            "%%castlist%%",
+            '%%cast id=thesee id=helene role="Thesee" desc="roi" aliases="THESEE"%%',
+            "Thesee",
+            "Thesee",
+            "%%fin_cast%%",
+            "%%fin_castlist%%",
+        ]
+    )
+
+    assert "E_CAST_ATTR_DUPLICATE" in _codes(text)
+
+
 def test_cast_without_id_is_error() -> None:
     text = "\n".join(
         [
