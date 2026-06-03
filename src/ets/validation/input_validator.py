@@ -295,20 +295,31 @@ def _line_has_malformed_hash_marker(line: str) -> bool:
     return True
 
 
-def _line_has_malformed_star_marker(line: str) -> tuple[bool, str | None]:
+def _line_has_malformed_star_marker(line: str, *, shared_open: bool = False) -> tuple[bool, str | None]:
     stripped = line.strip()
     if "*" not in stripped:
         return False, None
+
     if stripped.startswith("***") or stripped.endswith("***"):
-        if stripped.startswith("**") and stripped.endswith("***"):
-            return True, "stage"
-        if stripped.startswith("***") and stripped.endswith("**"):
-            return True, "stage"
-        if stripped.startswith("***") and stripped.endswith("***"):
-            # Triple stars on both sides are ambiguous for this format and must be rejected.
-            return True, "stage"
         if stripped.startswith("****") or stripped.endswith("****"):
             return True, "shared"
+
+        is_triple_both = stripped.startswith("***") and stripped.endswith("***")
+        is_hybrid_stage_shared = (
+            (stripped.startswith("**") and not stripped.startswith("***") and stripped.endswith("***"))
+            or (stripped.startswith("***") and stripped.endswith("**") and not stripped.endswith("***"))
+        )
+        if is_hybrid_stage_shared:
+            return True, "stage"
+
+        if is_triple_both:
+            middle = stripped[3:-3].strip()
+            if not middle:
+                return True, "shared"
+            if shared_open:
+                return False, None
+            return True, "stage"
+
         if _SHARED_VERSE_RE.match(stripped):
             return False, None
         return True, "shared"
@@ -430,7 +441,7 @@ def validate_input_text(text: str, witness_count: int, witness_sigla: list[str] 
                     excerpt=raw.strip(),
                 )
                 malformed_marker_found = True
-            malformed_star, star_kind = _line_has_malformed_star_marker(raw)
+            malformed_star, star_kind = _line_has_malformed_star_marker(raw, shared_open=shared_open)
             if malformed_star:
                 _append_error(
                     diagnostics,

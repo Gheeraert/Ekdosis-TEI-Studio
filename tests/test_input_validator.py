@@ -408,6 +408,38 @@ def test_shared_verse_valid_case_still_valid() -> None:
     assert report.has_errors is False
 
 
+def test_shared_verse_three_fragments_valid_case_still_valid() -> None:
+    text = "\n".join(
+        [
+            "####ACTE I####",
+            "####ACTE I####",
+            "",
+            "###SCENE I###",
+            "###SCENE I###",
+            "",
+            "#A#",
+            "#A#",
+            "",
+            "Fragment d'ouverture***",
+            "Fragment d'ouverture***",
+            "",
+            "#B#",
+            "#B#",
+            "",
+            "***fragment du milieu***",
+            "***fragment du milieu***",
+            "",
+            "#C#",
+            "#C#",
+            "",
+            "***fragment de fermeture",
+            "***fragment de fermeture",
+        ]
+    )
+    report = validate_input_text(text, witness_count=2)
+    assert report.has_errors is False
+
+
 def test_rejects_malformed_shared_verse_marker() -> None:
     text = "\n".join(
         [
