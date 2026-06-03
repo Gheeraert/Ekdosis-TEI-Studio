@@ -75,3 +75,37 @@ def test_complete_chain_preserves_etat_estat_variant_in_stanza() -> None:
     assert rdg.get("wit") == "#B #C"
     assert "état" in "".join(lem.itertext())
     assert "estat" in "".join(rdg.itertext())
+
+
+def test_complete_chain_generates_metered_line_app_for_stanza_whole_line_variant() -> None:
+    text = "\n".join(
+        [
+            *["####ACTE I####"] * 4,
+            "",
+            *["###SCENE I###"] * 4,
+            "",
+            *["#CHOEUR#"] * 4,
+            "",
+            *["%%strophe%%"] * 4,
+            "",
+            "#####=12=Un vers entierement variant",
+            "#####=12=Un vers tout a fait variant",
+            "#####=12=Un vers tout a fait variant",
+            "#####=12=Un vers entierement variant",
+            "",
+            *["%%fin_strophe%%"] * 4,
+        ]
+    )
+    tei_xml = run_pipeline_from_text(text, _config())
+    root = ET.fromstring(tei_xml)
+
+    line = root.find(".//tei:lg[@type='stanza']/tei:l[@met='12']", NS)
+    assert line is not None
+    app = line.find("tei:app", NS)
+    assert app is not None
+    lem = app.find("tei:lem", NS)
+    rdg = app.find("tei:rdg", NS)
+    assert lem is not None
+    assert rdg is not None
+    assert lem.get("wit") == "#A #D"
+    assert rdg.get("wit") == "#B #C"

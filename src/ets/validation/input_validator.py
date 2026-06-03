@@ -68,6 +68,7 @@ _IMPLICIT_CLOSE_RE = re.compile(r"^\$\$fin\$\$$", re.IGNORECASE)
 _STANZA_OPEN_RE = re.compile(r"^%%strophe(?:\s+(.+?))?%%$")
 _STANZA_CLOSE_RE = re.compile(r"^%%fin_strophe%%$", re.IGNORECASE)
 _METRICAL_PREFIX_RE = re.compile(r"^=(\d{2})=(.*)$")
+_STANZA_WHOLE_LINE_VARIANT_METRICAL_RE = re.compile(r"^#####=(\d{2})=(.*)$")
 _SHARED_VERSE_RE = re.compile(r"^(?:\*\*\*.+|.+\*\*\*)$")
 _WHOLE_LINE_VARIANT_RE = re.compile(r"^#####\s*\S.*$")
 
@@ -233,11 +234,17 @@ def _stanza_signature(raw: str) -> tuple[str | None, str | None] | None:
     return attrs.get("subtype"), attrs.get("rhyme")
 
 
-def _strip_metrical_prefix_for_validation(raw: str) -> tuple[str | None, str | None]:
-    match = _METRICAL_PREFIX_RE.match(raw.strip())
+def _read_stanza_verse_marker(raw: str) -> tuple[str | None, str | None, bool]:
+    stripped = raw.strip()
+    whole_line_match = _STANZA_WHOLE_LINE_VARIANT_METRICAL_RE.match(stripped)
+    if whole_line_match:
+        text = whole_line_match.group(2)
+        return str(int(whole_line_match.group(1))), f"#####{text}", True
+
+    match = _METRICAL_PREFIX_RE.match(stripped)
     if match is None:
-        return None, None
-    return str(int(match.group(1))), match.group(2)
+        return None, None, False
+    return str(int(match.group(1))), match.group(2), False
 
 
 def _classify_line_marker(line: str) -> str:
@@ -1144,7 +1151,7 @@ def validate_input_text(text: str, witness_count: int, witness_sigla: list[str] 
             meters: list[str] = []
             stripped_lines: list[str] = []
             for idx, raw in enumerate(block.lines):
-                raw_meter, stripped_line = _strip_metrical_prefix_for_validation(raw)
+                raw_meter, stripped_line, whole_line_variant = _read_stanza_verse_marker(raw)
                 if raw_meter is None or stripped_line is None:
                     _append_error(
                         diagnostics,
@@ -1158,7 +1165,19 @@ def validate_input_text(text: str, witness_count: int, witness_sigla: list[str] 
                         excerpt=raw.strip(),
                     )
                     continue
-                raw_value = int(raw.strip()[1:3])
+                if whole_line_variant and not stripped_line[5:].strip():
+                    _append_error(
+                        diagnostics,
+                        code="E_WHOLE_LINE_VARIANT_MALFORMED",
+                        message="Malformed whole-line variant marker (#####=nn= requires content or explicit lacuna).",
+                        line_number=line + idx,
+                        block_index=block.index,
+                        act=current_act,
+                        scene=current_scene,
+                        speaker=current_speaker,
+                        excerpt=raw.strip(),
+                    )
+                raw_value = int(raw_meter)
                 if raw_value < 2 or raw_value > 12:
                     _append_error(
                         diagnostics,

@@ -14,6 +14,7 @@ _IMPLICIT_CLOSE_RE = re.compile(r"^\$\$fin\$\$$", re.IGNORECASE)
 _STANZA_OPEN_RE = re.compile(r"^%%strophe(?:\s+(.+?))?%%$")
 _STANZA_CLOSE_RE = re.compile(r"^%%fin_strophe%%$", re.IGNORECASE)
 _METRICAL_PREFIX_RE = re.compile(r"^=(\d{2})=(.*)$")
+_STANZA_WHOLE_LINE_VARIANT_METRICAL_RE = re.compile(r"^#####=(\d{2})=(.*)$")
 
 
 def _split_parallel_blocks(text: str, witness_count: int) -> list[list[str]]:
@@ -125,19 +126,34 @@ def _validate_stanza_close_block(block: list[str]) -> None:
             raise ValueError(f"Malformed stanza closing marker: {line}")
 
 
+def _read_stanza_verse_marker(raw: str) -> tuple[str | None, str | None]:
+    stripped = raw.strip()
+    whole_line_match = _STANZA_WHOLE_LINE_VARIANT_METRICAL_RE.match(stripped)
+    if whole_line_match:
+        text = whole_line_match.group(2)
+        if not text.strip():
+            raise ValueError("Whole-line variant marker inside stanza requires content or explicit lacuna.")
+        return str(int(whole_line_match.group(1))), f"#####{text}"
+
+    match = _METRICAL_PREFIX_RE.match(stripped)
+    if match is None:
+        return None, None
+    if match.group(2).lstrip().startswith("#####"):
+        raise ValueError("Whole-line variant marker must precede the metrical prefix inside stanza.")
+    return str(int(match.group(1))), match.group(2)
+
+
 def _strip_metrical_prefixes(block: list[str]) -> tuple[list[str], str]:
     cleaned: list[str] = []
     meters: list[str] = []
     for line in block:
-        match = _METRICAL_PREFIX_RE.match(line.strip())
-        if not match:
+        meter, text = _read_stanza_verse_marker(line)
+        if meter is None or text is None:
             raise ValueError("Verse inside stanza requires a metrical prefix.")
-        raw_meter = match.group(1)
-        meter = str(int(raw_meter))
-        if int(raw_meter) < 2 or int(raw_meter) > 12:
-            raise ValueError(f"Metrical value out of range: {raw_meter}")
+        if int(meter) < 2 or int(meter) > 12:
+            raise ValueError(f"Metrical value out of range: {meter}")
         meters.append(meter)
-        cleaned.append(match.group(2))
+        cleaned.append(text)
     if len(set(meters)) != 1:
         raise ValueError("Metrical value variation between witnesses is unsupported.")
     return cleaned, meters[0]

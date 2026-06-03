@@ -667,3 +667,75 @@ def test_rejects_stanza_metrical_value_variation_between_witnesses() -> None:
     )
     report = validate_input_text(text, witness_count=4, witness_sigla=["A", "B", "C", "D"])
     assert "E_STANZA_METRICAL_VALUE_VARIATION" in {diag.code for diag in report.diagnostics}
+
+
+def test_accepts_whole_line_variant_with_meter_inside_stanza() -> None:
+    text = _stanza_text(
+        [
+            *["%%strophe%%"] * 4,
+            "",
+            *["#####=12=Un vers variant"] * 4,
+            "",
+            *["%%fin_strophe%%"] * 4,
+        ]
+    )
+    report = validate_input_text(text, witness_count=4)
+    assert report.has_errors is False
+
+
+def test_accepts_whole_line_lacuna_with_meter_inside_stanza() -> None:
+    for lacuna in ["#####=12=(lacune)", "#####=12= (lacune)"]:
+        text = _stanza_text(
+            [
+                *["%%strophe%%"] * 4,
+                "",
+                *[lacuna] * 4,
+                "",
+                *["%%fin_strophe%%"] * 4,
+            ]
+        )
+        report = validate_input_text(text, witness_count=4)
+        assert report.has_errors is False
+
+
+def test_rejects_empty_metered_whole_line_variant_inside_stanza() -> None:
+    for empty_variant in ["#####=12=", "#####=12=   "]:
+        text = _stanza_text(
+            [
+                *["%%strophe%%"] * 4,
+                "",
+                *[empty_variant] * 4,
+                "",
+                *["%%fin_strophe%%"] * 4,
+            ]
+        )
+        report = validate_input_text(text, witness_count=4)
+        assert "E_WHOLE_LINE_VARIANT_MALFORMED" in {diag.code for diag in report.diagnostics}
+
+
+def test_rejects_meter_before_whole_line_variant_marker_inside_stanza() -> None:
+    text = _stanza_text(
+        [
+            *["%%strophe%%"] * 4,
+            "",
+            *["=12=#####Un vers variant"] * 4,
+            "",
+            *["%%fin_strophe%%"] * 4,
+        ]
+    )
+    report = validate_input_text(text, witness_count=4)
+    assert report.has_errors is True
+
+
+def test_rejects_stanza_whole_line_variant_with_parasitic_hash() -> None:
+    text = _stanza_text(
+        [
+            *["%%strophe%%"] * 4,
+            "",
+            *["#####=12=foo#bar"] * 4,
+            "",
+            *["%%fin_strophe%%"] * 4,
+        ]
+    )
+    report = validate_input_text(text, witness_count=4)
+    assert "E_HASH_MARKER_MALFORMED" in {diag.code for diag in report.diagnostics}
