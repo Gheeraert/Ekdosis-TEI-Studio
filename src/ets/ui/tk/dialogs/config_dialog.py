@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from dataclasses import dataclass
 import tkinter as tk
@@ -40,6 +40,8 @@ class _ConfigVars:
     title: tk.StringVar
     editor_first: tk.StringVar
     editor_last: tk.StringVar
+    transcriber_first: tk.StringVar
+    transcriber_last: tk.StringVar
 
 
 class ConfigDialog(tk.Toplevel):
@@ -53,12 +55,15 @@ class ConfigDialog(tk.Toplevel):
 
         author_first, author_last = _split_name(initial.author if initial else "")
         editor_first, editor_last = _split_name(initial.editor if initial else "")
+        transcriber_first, transcriber_last = _split_name(initial.transcriber if initial else "")
         self.vars = _ConfigVars(
             author_first=tk.StringVar(value=author_first),
             author_last=tk.StringVar(value=author_last),
             title=tk.StringVar(value=initial.title if initial else ""),
             editor_first=tk.StringVar(value=editor_first),
             editor_last=tk.StringVar(value=editor_last),
+            transcriber_first=tk.StringVar(value=transcriber_first),
+            transcriber_last=tk.StringVar(value=transcriber_last),
         )
         self._reference_witness = initial.reference_witness if initial else 0
 
@@ -67,21 +72,23 @@ class ConfigDialog(tk.Toplevel):
         self.columnconfigure(0, weight=1)
         self.rowconfigure(0, weight=1)
         body.columnconfigure(1, weight=1)
-        body.rowconfigure(5, weight=1)
+        body.rowconfigure(7, weight=1)
 
         self._add_entry(body, 0, "Prénom de l'auteur", self.vars.author_first)
         self._add_entry(body, 1, "Nom de l'auteur", self.vars.author_last)
         self._add_entry(body, 2, "Titre de la pièce", self.vars.title)
-        self._add_entry(body, 3, "Prénom de l'éditeur", self.vars.editor_first)
-        self._add_entry(body, 4, "Nom de l'éditeur (vous)", self.vars.editor_last)
+        self._add_entry(body, 3, "Prénom de l'éditeur scientifique", self.vars.editor_first)
+        self._add_entry(body, 4, "Nom de l'éditeur scientifique", self.vars.editor_last)
+        self._add_entry(body, 5, "Prénom du transcripteur", self.vars.transcriber_first)
+        self._add_entry(body, 6, "Nom du transcripteur", self.vars.transcriber_last)
 
-        ttk.Label(body, text="Témoins (abbr|year|desc, un par ligne)").grid(row=5, column=0, sticky="nw", padx=(0, 8))
+        ttk.Label(body, text="Témoins (abbr|year|desc, un par ligne)").grid(row=7, column=0, sticky="nw", padx=(0, 8))
         self.witnesses = tk.Text(body, height=8, width=60, font=("Consolas", 10))
-        self.witnesses.grid(row=5, column=1, sticky="nsew")
+        self.witnesses.grid(row=7, column=1, sticky="nsew")
         self.witnesses.insert("1.0", _witnesses_to_lines(initial.witnesses if initial else []))
 
         buttons = ttk.Frame(body)
-        buttons.grid(row=6, column=0, columnspan=2, sticky="e", pady=(10, 0))
+        buttons.grid(row=8, column=0, columnspan=2, sticky="e", pady=(10, 0))
         ttk.Button(buttons, text="Annuler", command=self.destroy).grid(row=0, column=0, padx=4)
         ttk.Button(buttons, text="Valider", command=self._on_validate).grid(row=0, column=1, padx=4)
 
@@ -100,6 +107,7 @@ class ConfigDialog(tk.Toplevel):
                 editor=f"{self.vars.editor_first.get().strip()} {self.vars.editor_last.get().strip()}".strip(),
                 witnesses=witnesses,
                 reference_witness=reference,
+                transcriber=f"{self.vars.transcriber_first.get().strip()} {self.vars.transcriber_last.get().strip()}".strip(),
             )
         except ValueError as exc:
             messagebox.showerror("Configuration invalide", str(exc), parent=self)

@@ -17,6 +17,7 @@ class EditionConfig:
     editor: str
     witnesses: list[Witness]
     reference_witness: int
+    transcriber: str = ""
 
 
 @dataclass

@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import json
 from pathlib import Path
@@ -48,6 +48,37 @@ def test_load_config_uses_legacy_fallback_key() -> None:
     assert config.reference_witness == 1
 
 
+
+
+def test_load_config_keeps_legacy_editor_keys_and_optional_transcriber() -> None:
+    config_path = RUNTIME_DIR / "config_loader_legacy_editor_keys.json"
+    config_path.write_text(
+        json.dumps(_config_payload_with_reference("Témoin de référence", "B"), ensure_ascii=False),
+        encoding="utf-8",
+    )
+
+    config = load_config(config_path)
+
+    assert config.editor == "Clémentine Gheeraert"
+    assert config.transcriber == ""
+
+
+def test_load_config_reads_scientific_editor_and_transcriber_keys() -> None:
+    payload = _config_payload_with_reference("Témoin de référence", "B")
+    payload.pop("Prénom de l'éditeur")
+    payload.pop("Nom de l'éditeur (vous)")
+    payload["Prénom de l'éditeur scientifique"] = "Caroline"
+    payload["Nom de l'éditeur scientifique"] = "Labrune"
+    payload["Prénom du transcripteur"] = "Jeanne"
+    payload["Nom du transcripteur"] = "Martin"
+    config_path = RUNTIME_DIR / "config_loader_scientific_editor_transcriber.json"
+    config_path.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
+
+    config = load_config(config_path)
+
+    assert config.editor == "Caroline Labrune"
+    assert config.transcriber == "Jeanne Martin"
+
 def test_cli_override_keeps_priority() -> None:
     config = load_config(ROOT / "fixtures" / "stable" / "config.json", reference_override=0)
     assert config.reference_witness == 0
@@ -70,8 +101,10 @@ def test_save_config_writes_canonical_json_without_reference_key() -> None:
     assert payload["Prénom de l'auteur"] == "Jean"
     assert payload["Nom de l'auteur"] == "Racine"
     assert payload["Titre de la pièce"] == "Britannicus"
-    assert payload["Prénom de l'éditeur"] == "Tony"
-    assert payload["Nom de l'éditeur (vous)"] == "Gheeraert"
+    assert payload["Prénom de l'éditeur scientifique"] == "Tony"
+    assert payload["Nom de l'éditeur scientifique"] == "Gheeraert"
+    assert payload["Prénom du transcripteur"] == ""
+    assert payload["Nom du transcripteur"] == ""
     assert payload["Temoins"][0] == {"abbr": "A", "year": "1670", "desc": "Barbin"}
     assert "Numéro du vers de départ" not in payload
     assert "Numéro de l'acte" not in payload
@@ -88,6 +121,7 @@ def test_load_config_after_save_remains_compatible() -> None:
         editor="Tony Gheeraert",
         witnesses=[Witness(siglum="A", year="1670", description="Barbin")],
         reference_witness=0,
+        transcriber="Caroline Labrune",
     )
     path = save_config(original, RUNTIME_DIR / "saved.json")
 
@@ -95,6 +129,7 @@ def test_load_config_after_save_remains_compatible() -> None:
     assert reloaded.title == "Britannicus"
     assert reloaded.author == "Jean Racine"
     assert reloaded.editor == "Tony Gheeraert"
+    assert reloaded.transcriber == "Caroline Labrune"
     assert len(reloaded.witnesses) == 1
 
 

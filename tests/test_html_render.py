@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from pathlib import Path
 
@@ -168,7 +168,7 @@ def test_html_export_generates_editorial_shell_and_credits() -> None:
         for line in doc.xpath("//*[contains(@class, 'bloc-credit')]//*[contains(@class, 'credit-line')]")
     ]
     assert "Jean Racine - Andromaque, Acte 1, Scène 1" in credit_lines
-    assert "Édition critique par Clémentine Gheeraert" in credit_lines
+    assert "Édition scientifique par Clémentine Gheeraert" in credit_lines
     assert any(line.startswith("Document généré le ") and "Ekdosis-TEI Studio" in line for line in credit_lines)
     assert any("Télécharger le XML" in line for line in credit_lines)
     assert doc.xpath("//a[@href='../xml-tei/stable.xml']")

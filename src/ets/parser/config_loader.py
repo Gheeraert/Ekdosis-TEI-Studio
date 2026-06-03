@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import json
 from pathlib import Path
@@ -71,12 +71,15 @@ def _split_person_name(full_name: str) -> tuple[str, str]:
 def _canonical_config_payload(config: EditionConfig) -> dict[str, Any]:
     author_first, author_last = _split_person_name(config.author)
     editor_first, editor_last = _split_person_name(config.editor)
+    transcriber_first, transcriber_last = _split_person_name(config.transcriber)
     return {
         "Prénom de l'auteur": author_first,
         "Nom de l'auteur": author_last,
         "Titre de la pièce": config.title,
-        "Prénom de l'éditeur": editor_first,
-        "Nom de l'éditeur (vous)": editor_last,
+        "Prénom de l'éditeur scientifique": editor_first,
+        "Nom de l'éditeur scientifique": editor_last,
+        "Prénom du transcripteur": transcriber_first,
+        "Nom du transcripteur": transcriber_last,
         "Temoins": [
             {"abbr": witness.siglum, "year": witness.year, "desc": witness.description}
             for witness in config.witnesses
@@ -91,8 +94,26 @@ def load_config(path: str | Path, reference_override: int | None = None) -> Edit
     author_first = _pick(raw, ["Prénom de l'auteur", "PrÃ©nom de l'auteur", "PrÃƒÂ©nom de l'auteur"])
     author_last = _pick(raw, ["Nom de l'auteur"])
     title = _pick(raw, ["Titre de la pièce", "Titre de la piÃ¨ce", "Titre de la piÃƒÂ¨ce"])
-    editor_first = _pick(raw, ["Prénom de l'éditeur", "PrÃ©nom de l'Ã©diteur", "PrÃƒÂ©nom de l'ÃƒÂ©diteur"])
-    editor_last = _pick(raw, ["Nom de l'éditeur (vous)", "Nom de l'Ã©diteur (vous)", "Nom de l'ÃƒÂ©diteur (vous)"])
+    editor_first = _pick(
+        raw,
+        [
+            "Prénom de l'éditeur scientifique",
+            "Prénom de l'éditeur",
+            "PrÃ©nom de l'Ã©diteur",
+            "PrÃƒÂ©nom de l'ÃƒÂ©diteur",
+        ],
+    )
+    editor_last = _pick(
+        raw,
+        [
+            "Nom de l'éditeur scientifique",
+            "Nom de l'éditeur (vous)",
+            "Nom de l'Ã©diteur (vous)",
+            "Nom de l'ÃƒÂ©diteur (vous)",
+        ],
+    )
+    transcriber_first = _pick(raw, ["Prénom du transcripteur", "PrÃ©nom du transcripteur"], default="")
+    transcriber_last = _pick(raw, ["Nom du transcripteur"], default="")
 
     witnesses_raw = _pick(raw, ["Temoins"], [])
     witnesses = [
@@ -113,12 +134,14 @@ def load_config(path: str | Path, reference_override: int | None = None) -> Edit
 
     author = f"{author_first} {author_last}".strip()
     editor = f"{editor_first} {editor_last}".strip()
+    transcriber = f"{transcriber_first} {transcriber_last}".strip()
     return EditionConfig(
         title=title,
         author=author,
         editor=editor,
         witnesses=witnesses,
         reference_witness=reference_witness,
+        transcriber=transcriber,
     )
 
 

@@ -66,6 +66,7 @@ def _build_credit_block(
     act: str,
     scene: str,
     editor: str,
+    transcriber: str,
     xml_href: str | None,
 ) -> str:
     context: list[str] = []
@@ -87,7 +88,9 @@ def _build_credit_block(
     if first_line_text:
         credit_lines.append(f'<div class="credit-line">{first_line_text}</div>')
     if editor:
-        credit_lines.append(f'<div class="credit-line">Édition critique par {std_html.escape(editor)}</div>')
+        credit_lines.append(f'<div class="credit-line">Édition scientifique par {std_html.escape(editor)}</div>')
+    if transcriber:
+        credit_lines.append(f'<div class="credit-line">Transcription par {std_html.escape(transcriber)}</div>')
     credit_lines.append(
         f'<div class="credit-line">Document généré le {date.today().isoformat()} depuis Ekdosis-TEI Studio</div>'
     )
@@ -205,6 +208,10 @@ def render_html_export_from_tei(
     title = _first_text(tei_doc, "string(/tei:TEI/tei:teiHeader/tei:fileDesc/tei:titleStmt/tei:title[1])") or "Edition TEI"
     author = _first_text(tei_doc, "string(/tei:TEI/tei:teiHeader/tei:fileDesc/tei:titleStmt/tei:author[1])")
     editor = _first_text(tei_doc, "string(/tei:TEI/tei:teiHeader/tei:fileDesc/tei:titleStmt/tei:editor[1])")
+    transcriber = _first_text(
+        tei_doc,
+        "string(/tei:TEI/tei:teiHeader/tei:fileDesc/tei:titleStmt/tei:respStmt[tei:resp='Transcription']/tei:name[1])",
+    )
     act = _first_text(tei_doc, "string((/tei:TEI/tei:text/tei:body/tei:div[@type='act']/@n)[1])")
     scene = _first_text(tei_doc, "string((/tei:TEI/tei:text/tei:body/tei:div[@type='act']/tei:div[@type='scene']/@n)[1])")
 
@@ -216,6 +223,7 @@ def render_html_export_from_tei(
         act=act,
         scene=scene,
         editor=editor,
+        transcriber=transcriber,
         xml_href=xml_href,
     )
     page_title = selected.document_title or title
