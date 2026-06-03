@@ -107,6 +107,24 @@ class Play:
 
 
 @dataclass(frozen=True)
+class CastEntry:
+    id: str
+    role: str
+    desc: str = ""
+    aliases: list[str] = field(default_factory=list)
+    readings: list[str] = field(default_factory=list)
+    block_index: int | None = None
+    line_number: int | None = None
+
+
+@dataclass(frozen=True)
+class DramatisPersonae:
+    head_readings: list[str] = field(default_factory=list)
+    entries: list[CastEntry] = field(default_factory=list)
+    setting_readings: list[str] = field(default_factory=list)
+
+
+@dataclass(frozen=True)
 class CollatedReading:
     text: str
     witness_sigla: list[str]
