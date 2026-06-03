@@ -53,6 +53,8 @@ class PlayEntry:
     main_divisions: tuple[str, ...] = ()
     has_text_body: bool = False
     xml_download_relpath: str | None = None
+    scientific_editor: str | None = None
+    transcriber: str | None = None
 
 
 @dataclass(frozen=True)

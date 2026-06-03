@@ -454,6 +454,68 @@ def test_play_page_keeps_xml_download_and_embeds_transformed_text() -> None:
     assert doc.xpath("//*[contains(@class, 'vers-container')]")
     assert not doc.xpath("//*[contains(@class, 'play-reading-layout')]")
     assert not doc.xpath("//*[contains(., 'Divisions reperees')]")
+    assert "Type: dramatic_tei" not in play_html
+    assert "Editeur scientifique:" not in play_html
+    assert "Transcripteur:" not in play_html
+
+
+def test_play_page_shows_scientific_editor_and_transcriber_instead_of_document_type(tmp_path: Path) -> None:
+    xml_path = tmp_path / "britannicus.xml"
+    xml_path.write_text(
+        """<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0">
+  <teiHeader>
+    <fileDesc>
+      <titleStmt>
+        <title>Britannicus</title>
+        <author>Jean Racine</author>
+        <editor role="scientific">Caroline Labrune</editor>
+        <respStmt>
+          <resp>Transcription</resp>
+          <name role="transcriber">Jeanne Martin</name>
+        </respStmt>
+      </titleStmt>
+      <publicationStmt><p>Test</p></publicationStmt>
+      <sourceDesc><p>Test</p></sourceDesc>
+    </fileDesc>
+  </teiHeader>
+  <text>
+    <body>
+      <div type="act" n="1">
+        <div type="scene" n="1">
+          <sp>
+            <speaker>AGRIPPINE</speaker>
+            <l>Tout m'afflige et me nuit, et conspire à me nuire.</l>
+          </sp>
+        </div>
+      </div>
+    </body>
+  </text>
+</TEI>
+""",
+        encoding="utf-8",
+    )
+    play = extract_play_entry(xml_path)
+    config = site_config_from_dict(
+        {
+            "site_title": "ETS Demo",
+            "dramatic_xml_dir": str(tmp_path),
+            "output_dir": str(tmp_path / "site"),
+            "include_metadata": True,
+            "publish_notices": False,
+        }
+    )
+    manifest = SiteManifest(config=config, plays=(play,))
+
+    play_html = render_play_page(manifest, play)
+    doc = lxml_html.document_fromstring(play_html)
+    meta_texts = [" ".join(node.itertext()).strip() for node in doc.xpath("//p[contains(@class, 'meta')]")]
+
+    assert play.scientific_editor == "Caroline Labrune"
+    assert play.transcriber == "Jeanne Martin"
+    assert "Editeur scientifique: Caroline Labrune" in meta_texts
+    assert "Transcripteur: Jeanne Martin" in meta_texts
+    assert not any(text.startswith("Type:") for text in meta_texts)
 
 
 def test_play_anchor_injection_prefers_outer_title_wrappers_and_keeps_scene_alignment(

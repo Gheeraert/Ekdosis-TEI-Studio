@@ -1323,7 +1323,10 @@ def render_play_page(manifest: SiteManifest, play: PlayEntry) -> str:
     lines.append(f"<h2>{html.escape(play.title)}</h2>")
 
     if manifest.config.include_metadata:
-        lines.append(f'<p class="meta">Type: {html.escape(play.document_type)}</p>')
+        if play.scientific_editor:
+            lines.append(f'<p class="meta">Editeur scientifique: {html.escape(play.scientific_editor)}</p>')
+        if play.transcriber:
+            lines.append(f'<p class="meta">Transcripteur: {html.escape(play.transcriber)}</p>')
     if manifest.config.show_xml_download and play.xml_download_relpath:
         lines.append(
             f'<p><a href="../{html.escape(play.xml_download_relpath, quote=True)}" download>Telecharger le XML</a></p>'

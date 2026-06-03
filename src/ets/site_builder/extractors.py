@@ -139,6 +139,30 @@ def _infer_editorial_role(
     return "notice"
 
 
+
+def _extract_scientific_editor(tree: etree._ElementTree) -> str | None:
+    return _first_text(
+        tree,
+        (
+            "string((//*[local-name()='teiHeader']//*[local-name()='titleStmt']/*[local-name()='editor' "
+            "and translate(@role,'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz')='scientific'])[1])",
+            "string((//*[local-name()='teiHeader']//*[local-name()='titleStmt']/*[local-name()='editor'])[1])",
+        ),
+    )
+
+
+def _extract_transcriber(tree: etree._ElementTree) -> str | None:
+    return _first_text(
+        tree,
+        (
+            "string((//*[local-name()='teiHeader']//*[local-name()='titleStmt']/*[local-name()='respStmt' "
+            "and *[local-name()='resp' and contains(translate(normalize-space(.),'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'),'transcription')]]"
+            "/*[local-name()='name'][1])[1])",
+            "string((//*[local-name()='teiHeader']//*[local-name()='titleStmt']//*[local-name()='name' "
+            "and translate(@role,'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz')='transcriber'])[1])",
+        ),
+    )
+
 def _extract_author_list(tree: etree._ElementTree) -> tuple[str, ...]:
     authors: list[str] = []
     for author in tree.xpath("//*[local-name()='teiHeader']//*[local-name()='titleStmt']/*[local-name()='author']"):
@@ -590,6 +614,8 @@ def extract_play_entry(xml_path: Path) -> PlayEntry:
         ("string(//*[local-name()='teiHeader']//*[local-name()='titleStmt']/*[local-name()='author'][1])",),
     )
     slug = _slugify(xml_path.stem)
+    scientific_editor = _extract_scientific_editor(tree)
+    transcriber = _extract_transcriber(tree)
     divisions = _collect_main_divisions(tree)
     return PlayEntry(
         source_path=xml_path.resolve(),
@@ -597,6 +623,8 @@ def extract_play_entry(xml_path: Path) -> PlayEntry:
         title=title or xml_path.stem,
         author=author,
         document_type="dramatic_tei",
+        scientific_editor=scientific_editor,
+        transcriber=transcriber,
         main_divisions=divisions,
         has_text_body=_has_text_body(tree),
     )
