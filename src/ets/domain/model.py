@@ -26,6 +26,7 @@ class EditionConfig:
     reference_witness: int
     transcriber: str = ""
     characters: list[Character] = field(default_factory=list)
+    castlist_path: str = ""
 
 
 @dataclass

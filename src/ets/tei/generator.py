@@ -178,7 +178,12 @@ def _append_collated_line(
         _append_reading(app, "rdg", rdg)
 
 
-def generate_tei_xml(collated: CollatedPlay, config: EditionConfig) -> str:
+def generate_tei_xml(
+    collated: CollatedPlay,
+    config: EditionConfig,
+    *,
+    front_elements: list[ET.Element] | None = None,
+) -> str:
     tei = ET.Element(_tei("TEI"))
     tei_header = ET.SubElement(tei, _tei("teiHeader"))
     file_desc = ET.SubElement(tei_header, _tei("fileDesc"))
@@ -207,6 +212,10 @@ def generate_tei_xml(collated: CollatedPlay, config: EditionConfig) -> str:
         ET.SubElement(source_desc, _tei("p")).text = "Generated from plain-text parallel witnesses."
 
     text = ET.SubElement(tei, _tei("text"))
+    if front_elements:
+        front = ET.SubElement(text, _tei("front"))
+        for element in front_elements:
+            front.append(element)
     body = ET.SubElement(text, _tei("body"))
     implicit_counter = 0
 

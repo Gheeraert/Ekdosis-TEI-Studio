@@ -127,6 +127,8 @@ def _canonical_config_payload(config: EditionConfig) -> dict[str, Any]:
             {"id": character.id, "nom": character.label, "aliases": list(character.aliases)}
             for character in config.characters
         ]
+    if config.castlist_path.strip():
+        payload["castlist_path"] = config.castlist_path.strip()
     return payload
 
 
@@ -179,6 +181,7 @@ def load_config(path: str | Path, reference_override: int | None = None) -> Edit
     editor = f"{editor_first} {editor_last}".strip()
     transcriber = f"{transcriber_first} {transcriber_last}".strip()
     characters = _load_characters(raw)
+    castlist_path = str(_pick(raw, ["castlist_path"], "") or "").strip()
     return EditionConfig(
         title=title,
         author=author,
@@ -187,6 +190,7 @@ def load_config(path: str | Path, reference_override: int | None = None) -> Edit
         reference_witness=reference_witness,
         transcriber=transcriber,
         characters=characters,
+        castlist_path=castlist_path,
     )
 
 
