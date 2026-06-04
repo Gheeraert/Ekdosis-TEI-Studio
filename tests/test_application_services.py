@@ -22,6 +22,74 @@ def _root() -> Path:
     return Path(__file__).resolve().parents[1]
 
 
+def _service_castlist_runtime() -> Path:
+    runtime = _root() / "tests" / "_runtime" / "application_services_castlist_who"
+    runtime.mkdir(parents=True, exist_ok=True)
+    return runtime
+
+
+def _service_who_config(*, castlist_path: str = "") -> EditionConfig:
+    return EditionConfig(
+        title="Mini",
+        author="Auteur",
+        editor="Editeur",
+        witnesses=[
+            Witness(siglum="A", year="1670", description="A"),
+            Witness(siglum="B", year="1671", description="B"),
+        ],
+        reference_witness=0,
+        castlist_path=castlist_path,
+    )
+
+
+def _service_speaker_text(speakers: list[str]) -> str:
+    return "\n".join(
+        [
+            *["####ACTE I####"] * len(speakers),
+            "",
+            *["###SCENE I###"] * len(speakers),
+            "",
+            *[f"#{speaker}#" for speaker in speakers],
+            "",
+            *["Je parle."] * len(speakers),
+        ]
+    )
+
+
+def _write_service_castlist(filename: str, cast_blocks: list[str]) -> Path:
+    path = _service_castlist_runtime() / filename
+    path.write_text(
+        "\n".join(
+            [
+                "%%castlist%%",
+                "%%head%%",
+                "Acteurs",
+                "Acteurs",
+                "%%fin_head%%",
+                *cast_blocks,
+                "%%fin_castlist%%",
+            ]
+        ),
+        encoding="utf-8",
+    )
+    return path
+
+
+def _cast_block(identifier: str, role: str, aliases: str, line: str) -> str:
+    return "\n".join(
+        [
+            f'%%cast id={identifier} role="{role}" desc="" aliases="{aliases}"%%',
+            line,
+            line,
+            "%%fin_cast%%",
+        ]
+    )
+
+
+def _who_warning_codes(result) -> set[str]:
+    return {item.code for item in result.diagnostics if item.code.startswith("W_CHARACTER_WHO_")}
+
+
 def test_service_validate_text_success_on_stable_fixture() -> None:
     root = _root()
     config = load_config(root / "fixtures" / "stable" / "config.json")
@@ -44,6 +112,79 @@ def test_service_validate_text_failure_preserves_diagnostics() -> None:
     assert first.code == "E_BLOCK_SIZE"
     assert first.block_index == 159
     assert first.line_number is not None
+
+
+def test_service_validate_text_with_castlist_resolved_speaker_has_no_who_warning() -> None:
+    _write_service_castlist(
+        "castlist_resolved.txt",
+        [_cast_block("neron", "Néron", "NERON|NERON.", "Néron, empereur de Rome")],
+    )
+
+    result = validate_text(
+        _service_speaker_text(["NERON.", "NERON."]),
+        _service_who_config(castlist_path="castlist_resolved.txt"),
+        castlist_base_dir=_service_castlist_runtime(),
+    )
+
+    assert result.ok is True
+    assert _who_warning_codes(result) == set()
+
+
+def test_service_validate_text_with_castlist_unresolved_speaker_warns() -> None:
+    _write_service_castlist(
+        "castlist_unresolved.txt",
+        [_cast_block("neron", "Néron", "NERON|NERON.", "Néron, empereur de Rome")],
+    )
+
+    result = validate_text(
+        _service_speaker_text(["NARCISSE.", "NARCISSE."]),
+        _service_who_config(castlist_path="castlist_unresolved.txt"),
+        castlist_base_dir=_service_castlist_runtime(),
+    )
+
+    warnings = [item for item in result.diagnostics if item.code == "W_CHARACTER_WHO_UNRESOLVED"]
+    assert result.ok is True
+    assert warnings
+    assert "NARCISSE." in warnings[0].message
+    assert "castlist" in warnings[0].message
+
+
+def test_service_validate_text_with_castlist_ambiguous_alias_warns() -> None:
+    _write_service_castlist(
+        "castlist_ambiguous.txt",
+        [
+            _cast_block("neron", "Néron", "EMPEREUR", "Néron, empereur de Rome"),
+            _cast_block("titus", "Titus", "EMPEREUR", "Titus, empereur de Rome"),
+        ],
+    )
+
+    result = validate_text(
+        _service_speaker_text(["EMPEREUR", "EMPEREUR"]),
+        _service_who_config(castlist_path="castlist_ambiguous.txt"),
+        castlist_base_dir=_service_castlist_runtime(),
+    )
+
+    assert result.ok is True
+    assert "W_CHARACTER_WHO_AMBIGUOUS" in _who_warning_codes(result)
+
+
+def test_service_validate_text_with_castlist_conflicting_speaker_readings_warns() -> None:
+    _write_service_castlist(
+        "castlist_conflict.txt",
+        [
+            _cast_block("neron", "Néron", "NERON", "Néron, empereur de Rome"),
+            _cast_block("narcisse", "Narcisse", "NARCISSE", "Narcisse"),
+        ],
+    )
+
+    result = validate_text(
+        _service_speaker_text(["NERON", "NARCISSE"]),
+        _service_who_config(castlist_path="castlist_conflict.txt"),
+        castlist_base_dir=_service_castlist_runtime(),
+    )
+
+    assert result.ok is True
+    assert "W_CHARACTER_WHO_CONFLICT" in _who_warning_codes(result)
 
 
 def test_service_generate_tei_from_text_success() -> None:

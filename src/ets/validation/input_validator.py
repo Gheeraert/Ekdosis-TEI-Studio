@@ -374,6 +374,7 @@ def _append_character_speaker_warning(
     *,
     speaker_readings: list[str],
     characters: list[Character],
+    character_alias_hint: str,
     line_number: int,
     block_index: int,
     act: str | None,
@@ -396,7 +397,7 @@ def _append_character_speaker_warning(
         code=code_by_status[resolution.status],
         message=(
             f"Character authority could not safely resolve speaker form(s): {forms}. "
-            "Complete Personnages > aliases in the configuration if this speaker should receive @who."
+            f"{character_alias_hint}"
         ),
         line_number=line_number,
         block_index=block_index,
@@ -414,6 +415,7 @@ def validate_input_text(
     witness_count: int,
     witness_sigla: list[str] | None = None,
     characters: list[Character] | None = None,
+    character_alias_hint: str = "Complete Personnages > aliases in the configuration if this speaker should receive @who.",
 ) -> ValidationReport:
     diagnostics: list[ValidationDiagnostic] = []
     blocks = _split_parallel_blocks(text)
@@ -821,6 +823,7 @@ def validate_input_text(
                     diagnostics,
                     speaker_readings=normalized_speaker,
                     characters=character_table,
+                    character_alias_hint=character_alias_hint,
                     line_number=line,
                     block_index=block.index,
                     act=current_act,

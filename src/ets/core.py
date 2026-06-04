@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
 from pathlib import Path
 import xml.etree.ElementTree as ET
 
@@ -12,10 +13,17 @@ from ets.tei import generate_tei_xml
 from ets.validation import InputValidationError, validate_input_text, validate_play_structure
 
 
-def _load_castlist_front_element(
+@dataclass(frozen=True)
+class CastlistContext:
+    front_element: ET.Element
+    dramatis_personae: DramatisPersonae
+    characters: list[Character]
+
+
+def load_castlist_context(
     config: EditionConfig,
     base_dir: Path | None,
-) -> tuple[ET.Element, DramatisPersonae] | None:
+) -> CastlistContext | None:
     if not config.castlist_path.strip():
         return None
     raw_path = Path(config.castlist_path)
@@ -28,7 +36,11 @@ def _load_castlist_front_element(
     if report.has_errors:
         raise InputValidationError(report.diagnostics)
     dramatis_personae = parse_castlist_text(text, config)
-    return build_castlist_tei_element(dramatis_personae, config), dramatis_personae
+    return CastlistContext(
+        front_element=build_castlist_tei_element(dramatis_personae, config),
+        dramatis_personae=dramatis_personae,
+        characters=characters_from_dramatis_personae(dramatis_personae),
+    )
 
 
 def run_pipeline_from_text(
@@ -38,12 +50,23 @@ def run_pipeline_from_text(
     validate_input: bool = True,
     castlist_base_dir: str | Path | None = None,
 ) -> str:
+    base_dir = Path(castlist_base_dir) if castlist_base_dir is not None else None
+    castlist_context = load_castlist_context(config, base_dir)
+    front_elements: list[ET.Element] | None = None
+    effective_characters: list[Character] = config.characters
+    character_alias_hint = "Complete Personnages > aliases in the configuration if this speaker should receive @who."
+    if castlist_context is not None:
+        front_elements = [castlist_context.front_element]
+        effective_characters = castlist_context.characters
+        character_alias_hint = "Ajoutez éventuellement un alias dans le castlist."
+
     if validate_input:
         report = validate_input_text(
             input_text,
             len(config.witnesses),
             witness_sigla=[w.siglum for w in config.witnesses],
-            characters=config.characters,
+            characters=effective_characters,
+            character_alias_hint=character_alias_hint,
         )
         if report.has_errors:
             raise InputValidationError(report.diagnostics)
@@ -51,14 +74,6 @@ def run_pipeline_from_text(
     validate_play_structure(parsed)
     sigla = [w.siglum for w in config.witnesses]
     collated = collate_play(parsed, witness_sigla=sigla, reference_witness=config.reference_witness)
-    base_dir = Path(castlist_base_dir) if castlist_base_dir is not None else None
-    castlist = _load_castlist_front_element(config, base_dir)
-    front_elements: list[ET.Element] | None = None
-    effective_characters: list[Character] = config.characters
-    if castlist is not None:
-        front_element, dramatis_personae = castlist
-        front_elements = [front_element]
-        effective_characters = characters_from_dramatis_personae(dramatis_personae)
     return generate_tei_xml(collated, config, front_elements=front_elements, characters=effective_characters)
 
 

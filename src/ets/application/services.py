@@ -18,8 +18,8 @@ from ets.annotations import (
     update_annotation as _update_annotation,
 )
 from ets.annotations import save_annotations as _save_annotations
-from ets.core import run_pipeline_from_text
-from ets.domain import EditionConfig
+from ets.core import load_castlist_context, run_pipeline_from_text
+from ets.domain import Character, EditionConfig
 from ets.html import render_html_preview_from_tei
 from ets.parser import load_config as _load_config
 from ets.parser import save_config as _save_config
@@ -74,13 +74,38 @@ def save_config(config: EditionConfig, output_path: str | Path) -> Path:
     return _save_config(config, output_path)
 
 
-def validate_text(text: str, config: EditionConfig) -> ValidationResult:
+def validate_text(
+    text: str,
+    config: EditionConfig,
+    *,
+    castlist_base_dir: str | Path | None = None,
+) -> ValidationResult:
     """Run input-level transcription validation only (pre-parse checks)."""
+    effective_characters: list[Character] = config.characters
+    character_alias_hint = "Complete Personnages > aliases in the configuration if this speaker should receive @who."
+    try:
+        castlist_context = load_castlist_context(
+            config,
+            Path(castlist_base_dir) if castlist_base_dir is not None else None,
+        )
+    except InputValidationError as exc:
+        diagnostics = [AppDiagnostic.from_validation(item) for item in exc.diagnostics]
+        return ValidationResult(ok=False, diagnostics=diagnostics, message=str(exc))
+    except (OSError, ValueError) as exc:
+        return ValidationResult(
+            ok=False,
+            diagnostics=_single_diagnostic("E_CASTLIST", str(exc)),
+            message=str(exc),
+        )
+    if castlist_context is not None:
+        effective_characters = castlist_context.characters
+        character_alias_hint = "Ajoutez éventuellement un alias dans le castlist."
     report = validate_input_text(
         text,
         len(config.witnesses),
         witness_sigla=[w.siglum for w in config.witnesses],
-        characters=config.characters,
+        characters=effective_characters,
+        character_alias_hint=character_alias_hint,
     )
     diagnostics = _map_diagnostics(report)
     if _has_error(diagnostics):
@@ -95,7 +120,7 @@ def generate_tei_from_text(
     castlist_base_dir: str | Path | None = None,
 ) -> GenerationResult:
     """Generate TEI XML from in-memory transcription text."""
-    validation = validate_text(text, config)
+    validation = validate_text(text, config, castlist_base_dir=castlist_base_dir)
     if not validation.ok:
         return GenerationResult(ok=False, tei_xml=None, diagnostics=validation.diagnostics, message=validation.message)
 
