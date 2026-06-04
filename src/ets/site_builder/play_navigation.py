@@ -214,13 +214,13 @@ def extract_play_navigation(
 
     if dramatis_personae:
         dramatis_anchor = _reserve_anchor_id(
-            f"ets-nav-{_slugify(play.slug)}-dramatis-personae",
+            "dramatis-personae",
             used_anchor_ids,
         )
         front_items.append(
             PlayFrontItemNavigation(
                 kind="dramatis_personae",
-                label="Personnages",
+                label="Dramatis personae",
                 href=f"plays/{play.slug}.html#{dramatis_anchor}",
                 anchor_id=dramatis_anchor,
             )

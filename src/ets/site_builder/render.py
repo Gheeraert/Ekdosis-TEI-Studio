@@ -592,7 +592,7 @@ def _layout(
       border: 1px solid var(--line);
       background: var(--bg-soft);
     }}
-    .dramatis-personae-block h3 {{
+    .dramatis-personae-block h2 {{
       margin: 0 0 0.45rem;
       font-family: var(--font-ui);
       letter-spacing: 0.02em;
@@ -1030,17 +1030,120 @@ def _front_item_by_kind(play_navigation: PlayNavigation, kind: str) -> PlayFront
     return None
 
 
-def _render_dramatis_personae(play_navigation: PlayNavigation) -> str:
+def _local_name(node: etree._Element) -> str:
+    if not isinstance(node.tag, str):
+        return ""
+    return etree.QName(node).localname
+
+
+def _normalize_ws(value: str) -> str:
+    return " ".join(value.split())
+
+
+def _canonical_tei_text(node: etree._Element) -> str:
+    fragments: list[str] = []
+    if node.text:
+        fragments.append(node.text)
+    for child in node:
+        if _local_name(child) == "app":
+            lem_nodes = child.xpath("./*[local-name()='lem'][1]")
+            if lem_nodes and isinstance(lem_nodes[0], etree._Element):
+                fragments.append(_canonical_tei_text(lem_nodes[0]))
+            else:
+                fragments.append(" ".join(child.itertext()))
+            if child.tail:
+                fragments.append(child.tail)
+            continue
+        fragments.append(_canonical_tei_text(child))
+        if child.tail:
+            fragments.append(child.tail)
+    return _normalize_ws("".join(fragments))
+
+
+def _first_child_text(node: etree._Element, local_name: str, *, type_value: str | None = None) -> str:
+    predicate = f"*[local-name()='{local_name}']"
+    if type_value is not None:
+        predicate += f"[@type='{type_value}']"
+    children = node.xpath(f"./{predicate}[1]")
+    if not children or not isinstance(children[0], etree._Element):
+        return ""
+    return _canonical_tei_text(children[0])
+
+
+def _cast_item_display_text(cast_item: etree._Element) -> str:
+    note_nodes = cast_item.xpath(".//*[local-name()='note' and @type='semi-diplomatic'][1]")
+    if note_nodes and isinstance(note_nodes[0], etree._Element):
+        note_text = _canonical_tei_text(note_nodes[0])
+        if note_text:
+            return note_text
+
+    role = _first_child_text(cast_item, "role")
+    role_desc = _first_child_text(cast_item, "roleDesc")
+    if role and role_desc:
+        return f"{role}, {role_desc}"
+    return role or role_desc
+
+
+def _extract_structured_dramatis_div(play: PlayEntry) -> etree._Element | None:
+    try:
+        parser = etree.XMLParser(recover=False, remove_blank_text=False)
+        tree = etree.parse(str(play.source_path), parser)
+    except (OSError, etree.XMLSyntaxError):
+        return None
+    nodes = tree.xpath(
+        "//*[local-name()='text']/*[local-name()='front']"
+        "/*[local-name()='div' and @type='dramatis-personae'][1]"
+    )
+    if nodes and isinstance(nodes[0], etree._Element):
+        return nodes[0]
+    return None
+
+
+def _render_structured_dramatis_personae(
+    play: PlayEntry,
+    front_item: PlayFrontItemNavigation,
+) -> str:
+    dramatis_div = _extract_structured_dramatis_div(play)
+    if dramatis_div is None:
+        return ""
+
+    anchor_id = front_item.anchor_id or "dramatis-personae"
+    title = _first_child_text(dramatis_div, "head") or "Dramatis personae"
+    cast_items = dramatis_div.xpath("./*[local-name()='castList']/*[local-name()='castItem']")
+    entries = "".join(
+        f"<li>{html.escape(text)}</li>"
+        for cast_item in cast_items
+        if isinstance(cast_item, etree._Element)
+        for text in [_cast_item_display_text(cast_item)]
+        if text
+    )
+    setting = _first_child_text(dramatis_div, "stage", type_value="setting")
+    setting_html = f'<p class="setting">{html.escape(setting)}</p>' if setting else ""
+    return (
+        f'<section class="dramatis-personae-block dramatis-personae" '
+        f'id="{html.escape(anchor_id, quote=True)}">'
+        f"<h2>{html.escape(title)}</h2>"
+        f'<ul class="cast-list">{entries}</ul>'
+        f"{setting_html}"
+        f"</section>"
+    )
+
+
+def _render_dramatis_personae(play_navigation: PlayNavigation, play: PlayEntry) -> str:
     if not play_navigation.dramatis_personae:
         return ""
     front_item = _front_item_by_kind(play_navigation, "dramatis_personae")
     if front_item is None or not front_item.anchor_id:
         return ""
+    structured_html = _render_structured_dramatis_personae(play, front_item)
+    if structured_html:
+        return structured_html
     entries = "".join(f"<li>{html.escape(item)}</li>" for item in play_navigation.dramatis_personae)
     return (
-        f'<section class="dramatis-personae-block" id="{html.escape(front_item.anchor_id, quote=True)}">'
-        f"<h3>Personnages</h3>"
-        f"<ul>{entries}</ul>"
+        f'<section class="dramatis-personae-block dramatis-personae" '
+        f'id="{html.escape(front_item.anchor_id, quote=True)}">'
+        f"<h2>Dramatis personae</h2>"
+        f'<ul class="cast-list">{entries}</ul>'
         f"</section>"
     )
 
@@ -1335,7 +1438,7 @@ def render_play_page(manifest: SiteManifest, play: PlayEntry) -> str:
         lines.append(f'<p class="meta">{html.escape(manifest.config.credits)}</p>')
 
     play_navigation = _play_navigation_for(manifest, play)
-    lines.append(_render_dramatis_personae(play_navigation))
+    lines.append(_render_dramatis_personae(play_navigation, play))
     dramatic_html, dramatic_assets = _play_reading_html(play, play_navigation)
     lines.append(dramatic_html)
     head_extras = f"{dramatic_assets}{_play_nav_hash_sync_script()}"
