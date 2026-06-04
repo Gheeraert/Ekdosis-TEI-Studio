@@ -30,7 +30,9 @@ def _write_play_xml(path: Path, *, front: str = "") -> None:
     {front}
     <body>
       <div type="act" n="1">
+        <head>ACTE 1</head>
         <div type="scene" n="1">
+          <head>SCENE 1</head>
           <sp>
             <speaker>THESEE</speaker>
             <l><app><lem wit="#A">Je parle.</lem><rdg wit="#B">Je dis.</rdg></app></l>
@@ -106,11 +108,16 @@ def test_site_builder_renders_embedded_dramatis_personae_before_first_act(tmp_pa
     play_html = _build_site(tmp_path, front=front)
     doc = lxml_html.document_fromstring(play_html)
 
+    dramatis_sections = doc.xpath("//section[contains(@class, 'dramatis-personae')]")
+    assert len(dramatis_sections) == 1
     assert doc.xpath("//section[@id='dramatis-personae' and contains(@class, 'dramatis-personae-block')]")
+    assert not doc.xpath("//section[contains(@class, 'dramatic-content')]//section[contains(@class, 'dramatis-personae')]")
     assert doc.xpath("//section[@id='dramatis-personae']/h2[normalize-space(.)='Acteurs']")
-    assert doc.xpath("//section[@id='dramatis-personae']//ul[contains(@class, 'cast-list')]/li[normalize-space(.)=\"Thesee, roi d'Athenes\"]")
+    assert doc.xpath("//section[@id='dramatis-personae']//ul[contains(@class, 'cast-list')]/li//span[contains(@class, 'variation') and normalize-space(.)=\"Thesee, roi d'Athenes\"]")
+    assert doc.xpath("//section[@id='dramatis-personae']//ul[contains(@class, 'cast-list')]/li//span[contains(@class, 'variation') and contains(@data-tooltip, \"Thesee, Roi d'Athenes\")]")
     assert doc.xpath("//section[@id='dramatis-personae']//li[normalize-space(.)='Aricie']")
-    assert doc.xpath("//section[@id='dramatis-personae']/p[contains(@class, 'setting') and normalize-space(.)='La scene est a Trezene.']")
+    assert doc.xpath("//section[@id='dramatis-personae']/p[contains(@class, 'setting')]//span[contains(@class, 'variation') and normalize-space(.)='La scene est a Trezene.']")
+    assert doc.xpath("//section[@id='dramatis-personae']/p[contains(@class, 'setting')]//span[contains(@class, 'variation') and contains(@data-tooltip, 'La Scene est a Trezene.')]")
 
     nav_links = doc.xpath("//main/nav//a[contains(@href, '#dramatis-personae')]")
     assert len(nav_links) == 1
@@ -118,6 +125,10 @@ def test_site_builder_renders_embedded_dramatis_personae_before_first_act(tmp_pa
     assert play_html.index('#dramatis-personae') < play_html.index("#ets-nav-phedre-act-1")
     assert play_html.index('id="dramatis-personae"') < play_html.index('id="ets-nav-phedre-act-1"')
     assert "roleDesc" not in play_html
+    assert doc.xpath("//section[contains(@class, 'dramatic-content')]//*[normalize-space(.)='ACTE 1']")
+    assert doc.xpath("//section[contains(@class, 'dramatic-content')]//*[normalize-space(.)='SCENE 1']")
+    assert doc.xpath("//section[contains(@class, 'dramatic-content')]//*[normalize-space(.)='THESEE']")
+    assert doc.xpath("//section[contains(@class, 'dramatic-content')]//span[contains(@class, 'variation') and contains(@data-tooltip, 'Je dis.')]")
     assert "Je parle." in play_html
 
 

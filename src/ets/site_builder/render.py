@@ -415,7 +415,8 @@ def _layout(
       color: var(--ink);
       font-family: var(--font-body);
     }}
-    .content-shell-play .dramatic-content {{
+    .content-shell-play .dramatic-content,
+    .content-shell-play .dramatis-personae-block {{
       --ets-speaker-offset: 11rem;
       --ets-heading-offset: 11rem;
       --ets-cast-offset: 9rem;
@@ -556,24 +557,35 @@ def _layout(
       --ets-stage-ink: #6d6258;
     }}
     
-    html[data-theme="dark"] .content-shell-play .dramatic-content {{
+    html[data-theme="dark"] .content-shell-play .dramatic-content,
+    html[data-theme="dark"] .content-shell-play .dramatis-personae-block {{
       --ets-tooltip-shadow: 0 12px 28px rgba(0, 0, 0, 0.42);
       --ets-stage-ink: #d8c8bb;
     }}
     
-    .content-shell-play .dramatic-content .variation {{
+    .content-shell-play .dramatic-content .variation,
+    .content-shell-play .dramatis-personae-block .variation {{
       position: relative;
+      border-bottom: 1px dotted var(--accent);
       border-bottom-color: color-mix(in oklab, var(--accent) 50%, var(--ink-muted));
+      cursor: help;
     }}
     
     
-    .content-shell-play .dramatic-content .variation::after {{
-      background: var(--ets-tooltip-bg);
-      color: var(--ets-tooltip-ink);
-      border: 1px solid var(--ets-tooltip-border);
-      box-shadow: var(--ets-tooltip-shadow);
+    .content-shell-play .dramatic-content .variation::after,
+    .content-shell-play .dramatis-personae-block .variation::after {{
+      content: attr(data-tooltip);
+      position: absolute;
+      top: 1.5em;
+      left: 0;
+      display: none;
+      background: var(--ets-tooltip-bg, var(--bg-panel));
+      color: var(--ets-tooltip-ink, var(--ink));
+      border: 1px solid var(--ets-tooltip-border, var(--line));
+      box-shadow: var(--ets-tooltip-shadow, 0 10px 24px rgba(46, 34, 24, 0.16));
       border-radius: 8px;
       padding: 0.55em 0.7em;
+      font-size: 0.8em;
       line-height: 1.35;
       max-width: min(50rem, calc(100vw - 4rem));
       z-index: 1000;
@@ -582,7 +594,8 @@ def _layout(
       pointer-events: none;
     }}
     
-    .content-shell-play .dramatic-content .variation:hover::after {{
+    .content-shell-play .dramatic-content .variation:hover::after,
+    .content-shell-play .dramatis-personae-block .variation:hover::after {{
       display: block;
     }}
 
@@ -831,7 +844,8 @@ def _layout(
       }}
       .content-shell {{ padding: 1rem; }}
       .content-shell-play {{ padding: 0.45rem 0 2rem; }}
-      .content-shell-play .dramatic-content {{
+      .content-shell-play .dramatic-content,
+      .content-shell-play .dramatis-personae-block {{
         --ets-speaker-offset: 2.6rem;
         --ets-heading-offset: 2.35rem;
         --ets-cast-offset: 2.3rem;
@@ -1070,6 +1084,96 @@ def _first_child_text(node: etree._Element, local_name: str, *, type_value: str 
     return _canonical_tei_text(children[0])
 
 
+def _render_tei_inline_children(node: etree._Element) -> str:
+    fragments: list[str] = []
+    if node.text:
+        fragments.append(html.escape(node.text))
+    for child in node:
+        if isinstance(child, etree._Element):
+            fragments.append(_render_tei_inline_element(child))
+        if child.tail:
+            fragments.append(html.escape(child.tail))
+    return "".join(fragments)
+
+
+XML_ID_ATTR = "{http://www.w3.org/XML/1998/namespace}id"
+
+
+def _witness_label_for_tooltip(context_node: etree._Element, witness_ref: str) -> str:
+    witness_id = witness_ref.strip().removeprefix("#")
+    if not witness_id:
+        return witness_ref
+
+    root = context_node.getroottree().getroot()
+    for witness in root.xpath(".//*[local-name()='witness']"):
+        if not isinstance(witness, etree._Element):
+            continue
+        if witness.get(XML_ID_ATTR) != witness_id:
+            continue
+
+        label = _normalize_ws("".join(witness.itertext()))
+        if label and ")" in label:
+            return label.split(")", maxsplit=1)[0] + ")"
+        return label or f"#{witness_id}"
+
+    return f"#{witness_id}"
+
+def _render_app_tooltip(app_node: etree._Element) -> str:
+    readings: list[str] = []
+    for rdg in app_node.xpath("./*[local-name()='rdg']"):
+        if not isinstance(rdg, etree._Element):
+            continue
+        text = _canonical_tei_text(rdg)
+        if not text:
+            continue
+
+        wit_tokens = (rdg.get("wit") or "").split()
+        if not wit_tokens:
+            readings.append(text)
+            continue
+
+        for wit_token in wit_tokens:
+            label = _witness_label_for_tooltip(app_node, wit_token)
+            readings.append(f"{label}: {text}")
+
+    return "\n\n".join(readings)
+
+def _render_tei_inline_element(node: etree._Element) -> str:
+    local_name = _local_name(node)
+    if local_name == "app":
+        lem_nodes = node.xpath("./*[local-name()='lem'][1]")
+        lemma_html = ""
+        if lem_nodes and isinstance(lem_nodes[0], etree._Element):
+            lemma_html = _render_tei_inline_children(lem_nodes[0])
+        if not lemma_html:
+            lemma_html = html.escape(_canonical_tei_text(node))
+        tooltip = _render_app_tooltip(node)
+        if not tooltip:
+            return lemma_html
+        return (
+            f'<span class="variation" data-tooltip="{html.escape(tooltip, quote=True)}">'
+            f"{lemma_html}</span>"
+        )
+    if local_name == "rdg":
+        return ""
+    return _render_tei_inline_children(node)
+
+
+def _render_first_child_inline(
+    node: etree._Element,
+    local_name: str,
+    *,
+    type_value: str | None = None,
+) -> str:
+    predicate = f"*[local-name()='{local_name}']"
+    if type_value is not None:
+        predicate += f"[@type='{type_value}']"
+    children = node.xpath(f"./{predicate}[1]")
+    if not children or not isinstance(children[0], etree._Element):
+        return ""
+    return _render_tei_inline_children(children[0])
+
+
 def _cast_item_display_text(cast_item: etree._Element) -> str:
     note_nodes = cast_item.xpath(".//*[local-name()='note' and @type='semi-diplomatic'][1]")
     if note_nodes and isinstance(note_nodes[0], etree._Element):
@@ -1082,6 +1186,24 @@ def _cast_item_display_text(cast_item: etree._Element) -> str:
     if role and role_desc:
         return f"{role}, {role_desc}"
     return role or role_desc
+
+
+def _render_cast_item_display_html(cast_item: etree._Element) -> str:
+    note_nodes = cast_item.xpath(".//*[local-name()='note' and @type='semi-diplomatic'][1]")
+    if note_nodes and isinstance(note_nodes[0], etree._Element):
+        note_html = _render_tei_inline_children(note_nodes[0]).strip()
+        if note_html:
+            return note_html
+
+    role_html = _render_first_child_inline(cast_item, "role").strip()
+    role_desc_html = _render_first_child_inline(cast_item, "roleDesc").strip()
+    if role_html and role_desc_html:
+        return f'<span class="cast-role">{role_html}</span>, <span class="cast-desc">{role_desc_html}</span>'
+    if role_html:
+        return f'<span class="cast-role">{role_html}</span>'
+    if role_desc_html:
+        return f'<span class="cast-desc">{role_desc_html}</span>'
+    return ""
 
 
 def _extract_structured_dramatis_div(play: PlayEntry) -> etree._Element | None:
@@ -1111,14 +1233,14 @@ def _render_structured_dramatis_personae(
     title = _first_child_text(dramatis_div, "head") or "Dramatis personae"
     cast_items = dramatis_div.xpath("./*[local-name()='castList']/*[local-name()='castItem']")
     entries = "".join(
-        f"<li>{html.escape(text)}</li>"
+        f"<li>{item_html}</li>"
         for cast_item in cast_items
         if isinstance(cast_item, etree._Element)
-        for text in [_cast_item_display_text(cast_item)]
-        if text
+        for item_html in [_render_cast_item_display_html(cast_item)]
+        if item_html
     )
-    setting = _first_child_text(dramatis_div, "stage", type_value="setting")
-    setting_html = f'<p class="setting">{html.escape(setting)}</p>' if setting else ""
+    setting = _render_first_child_inline(dramatis_div, "stage", type_value="setting").strip()
+    setting_html = f'<p class="setting">{setting}</p>' if setting else ""
     return (
         f'<section class="dramatis-personae-block dramatis-personae" '
         f'id="{html.escape(anchor_id, quote=True)}">'
@@ -1221,6 +1343,16 @@ def _dramatic_assets_from_export_doc(export_doc: etree._Element) -> str:
     return "".join(chunks)
 
 
+def _remove_front_from_play_reading_tei(tei_tree: etree._ElementTree) -> None:
+    front_nodes = tei_tree.xpath("//*[local-name()='text']/*[local-name()='front']")
+    for front in front_nodes:
+        if not isinstance(front, etree._Element):
+            continue
+        parent = front.getparent()
+        if parent is not None:
+            parent.remove(front)
+
+
 def _play_reading_html(play: PlayEntry, play_navigation: PlayNavigation) -> tuple[str, str]:
     try:
         parser = etree.XMLParser(recover=False, remove_blank_text=False)
@@ -1228,6 +1360,7 @@ def _play_reading_html(play: PlayEntry, play_navigation: PlayNavigation) -> tupl
     except (OSError, etree.XMLSyntaxError):
         return '<article class="dramatic-content"></article>', ""
 
+    _remove_front_from_play_reading_tei(tei_tree)
     tei_xml = etree.tostring(tei_tree.getroot(), encoding="unicode")
     export_html = render_html_export_from_tei(
         tei_xml,
