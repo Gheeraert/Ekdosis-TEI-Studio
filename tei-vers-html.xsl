@@ -303,6 +303,33 @@
             padding-top: 0.5em;
             border-top: 1px solid #ccbba6;
           }
+          .dramatis-personae {
+            margin: 2em 0 2em 9em;
+            max-width: 520px;
+          }
+          .dramatis-head {
+            font-weight: bold;
+            margin-left: 2em;
+            margin-bottom: 0.8em;
+          }
+          .cast-list {
+            list-style: none;
+            padding-left: 0;
+            margin: 0 0 1em 0;
+          }
+          .cast-item {
+            margin: 0.25em 0;
+          }
+          .cast-role {
+            font-variant: small-caps;
+          }
+          .cast-desc {
+            font-style: italic;
+          }
+          .dramatis-personae .setting {
+            margin-left: 0;
+            margin-top: 1em;
+          }
           .notes-title {
             font-size: 1.05em;
             margin-bottom: 0.6em;
@@ -429,6 +456,61 @@
       </xsl:attribute>
       <xsl:apply-templates select="tei:lem"/>
     </span>
+  </xsl:template>
+
+  <xsl:template match="tei:div[@type='dramatis-personae']">
+    <section class="dramatis-personae">
+      <xsl:apply-templates select="tei:head"/>
+      <xsl:apply-templates select="tei:castList"/>
+      <xsl:apply-templates select="tei:stage[@type='setting']"/>
+    </section>
+  </xsl:template>
+
+  <xsl:template match="tei:div[@type='dramatis-personae']/tei:head">
+    <div class="dramatis-head">
+      <xsl:apply-templates/>
+    </div>
+  </xsl:template>
+
+  <xsl:template match="tei:div[@type='dramatis-personae']/tei:castList">
+    <ul class="cast-list">
+      <xsl:apply-templates select="tei:castItem"/>
+    </ul>
+  </xsl:template>
+
+  <xsl:template match="tei:div[@type='dramatis-personae']//tei:castItem">
+    <li class="cast-item">
+      <xsl:choose>
+        <xsl:when test="tei:note[@type='semi-diplomatic']">
+          <xsl:apply-templates select="tei:note[@type='semi-diplomatic']/node()"/>
+        </xsl:when>
+        <xsl:otherwise>
+          <xsl:apply-templates select="tei:role"/>
+          <xsl:if test="normalize-space(tei:roleDesc) != ''">
+            <xsl:text>, </xsl:text>
+            <xsl:apply-templates select="tei:roleDesc"/>
+          </xsl:if>
+        </xsl:otherwise>
+      </xsl:choose>
+    </li>
+  </xsl:template>
+
+  <xsl:template match="tei:div[@type='dramatis-personae']//tei:role">
+    <span class="cast-role">
+      <xsl:apply-templates/>
+    </span>
+  </xsl:template>
+
+  <xsl:template match="tei:div[@type='dramatis-personae']//tei:roleDesc">
+    <span class="cast-desc">
+      <xsl:apply-templates/>
+    </span>
+  </xsl:template>
+
+  <xsl:template match="tei:div[@type='dramatis-personae']/tei:stage[@type='setting']" priority="2">
+    <p class="didascalie setting">
+      <em><xsl:apply-templates/></em>
+    </p>
   </xsl:template>
 
   <xsl:template match="tei:stage[not(@type='DI') and not(@type='characters') and not(@type='personnages')]">

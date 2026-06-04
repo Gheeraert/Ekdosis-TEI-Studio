@@ -12,7 +12,7 @@ def _append_readings(parent: ET.Element, readings: list[str], config: EditionCon
         readings=readings,
         witness_sigla=[witness.siglum for witness in config.witnesses],
         ref_index=config.reference_witness,
-        whole_line_variant=True,
+        strict_validation=False,
     )
     _append_collated_text(parent, collated)
 

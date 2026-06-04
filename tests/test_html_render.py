@@ -151,6 +151,85 @@ def test_html_preview_transforms_stable_tei_fixture() -> None:
     assert not doc.xpath("//sup[contains(@class, 'note-call')]")
 
 
+def test_html_preview_renders_dramatis_personae_front_structurally() -> None:
+    tei_xml = """<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0">
+  <teiHeader>
+    <fileDesc>
+      <titleStmt>
+        <title>Britannicus</title>
+        <author>Jean Racine</author>
+      </titleStmt>
+      <publicationStmt><p>Test</p></publicationStmt>
+      <sourceDesc>
+        <listWit>
+          <witness xml:id="A">A (1670) témoin A</witness>
+          <witness xml:id="B">B (1671) témoin B</witness>
+          <witness xml:id="C">C (1672) témoin C</witness>
+          <witness xml:id="D">D (1673) témoin D</witness>
+          <witness xml:id="E">E (1674) témoin E</witness>
+        </listWit>
+      </sourceDesc>
+    </fileDesc>
+  </teiHeader>
+  <text>
+    <front>
+      <div type="dramatis-personae">
+        <head>Acteurs</head>
+        <castList>
+          <castItem xml:id="britannicus">
+            <role>Britannicus</role>
+            <roleDesc>prince de Rome</roleDesc>
+            <note type="semi-diplomatic">
+              <app>
+                <lem wit="#A #C #D #E">Britannicus, prince de Rome</lem>
+                <rdg wit="#B">Britannicus, Prince de Rome</rdg>
+              </app>
+            </note>
+          </castItem>
+          <castItem xml:id="neron">
+            <role>Néron</role>
+            <roleDesc>empereur de Rome</roleDesc>
+          </castItem>
+        </castList>
+        <stage type="setting">
+          <app>
+            <lem wit="#A">La scène est à Rome.</lem>
+            <rdg wit="#B">La Scene est à Rome.</rdg>
+          </app>
+        </stage>
+      </div>
+    </front>
+    <body>
+      <div type="act" n="1">
+        <head>ACTE I</head>
+        <div type="scene" n="1">
+          <head>SCENE I</head>
+          <sp>
+            <speaker>BRITANNICUS</speaker>
+            <l n="1">Je parle.</l>
+          </sp>
+        </div>
+      </div>
+    </body>
+  </text>
+</TEI>
+"""
+    preview = render_html_preview_from_tei(tei_xml)
+    doc = lxml_html.document_fromstring(preview)
+
+    section = doc.xpath("//section[contains(@class, 'dramatis-personae')]")[0]
+    assert section.xpath(".//div[contains(@class, 'dramatis-head') and normalize-space(.)='Acteurs']")
+    assert section.xpath(".//ul[contains(@class, 'cast-list')]")
+    assert section.xpath(".//li[contains(@class, 'cast-item')]//span[contains(@class, 'variation') and contains(., 'Britannicus, prince de Rome')]")
+    assert section.xpath(".//li[contains(@class, 'cast-item')]//span[contains(@class, 'variation') and contains(@data-tooltip, 'Britannicus, Prince de Rome')]")
+    assert section.xpath(".//li[contains(@class, 'cast-item')]//span[contains(@class, 'cast-role') and normalize-space(.)='Néron']")
+    assert section.xpath(".//li[contains(@class, 'cast-item')]//span[contains(@class, 'cast-desc') and normalize-space(.)='empereur de Rome']")
+    assert section.xpath(".//p[contains(@class, 'didascalie') and contains(@class, 'setting')]//span[contains(@class, 'variation') and contains(., 'La scène est à Rome.')]")
+    assert doc.xpath("//div[contains(@class, 'acte-titre') or contains(@class, 'acte-titre-sans-variation')]")
+    assert doc.xpath("//div[contains(@class, 'vers-container')]")
+
+
 def test_html_export_generates_editorial_shell_and_credits() -> None:
     export = render_html_export_from_tei(_stable_tei_xml(), xml_href="../xml-tei/stable.xml")
     doc = lxml_html.document_fromstring(export)
