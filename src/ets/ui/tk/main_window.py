@@ -894,6 +894,37 @@ class MainWindow(ttk.Frame):
         self._refresh_config_ui()
         self._schedule_autosave()
 
+    def _ensure_castlist_associated_if_needed(self) -> bool:
+        if self.state.config is None:
+            return True
+        if self.state.config.castlist_path.strip():
+            return True
+        if not self._current_castlist_text().strip():
+            return True
+
+        choice = messagebox.askyesnocancel(
+            "Dramatis personae non associé",
+            "Un dramatis personae est présent dans l'onglet, mais il n'est pas associé à la configuration de la pièce.\n\n"
+            "Il ne sera pas utilisé pour générer le front TEI ni les attributs sp/@who.\n\n"
+            "Voulez-vous l'enregistrer et l'associer maintenant ?",
+            parent=self.master,
+        )
+        if choice is None:
+            return False
+        if choice is False:
+            return True
+
+        self.action_save_castlist_as()
+        if self.state.config is None or not self.state.config.castlist_path.strip():
+            return False
+        if self.state.config_path is not None:
+            try:
+                save_config(self.state.config, self.state.config_path)
+            except (OSError, ValueError) as exc:
+                messagebox.showerror("Configuration", str(exc), parent=self.master)
+                return False
+        return True
+
     def _load_configured_castlist(self) -> None:
         if self.state.config is None:
             return
@@ -961,6 +992,8 @@ class MainWindow(ttk.Frame):
         if not self._ensure_config():
             return False
         assert self.state.config is not None
+        if not self._ensure_castlist_associated_if_needed():
+            return False
         result = generate_tei_from_text(
             self._current_text(),
             self.state.config,
@@ -1463,6 +1496,8 @@ class MainWindow(ttk.Frame):
         if not self._ensure_config():
             return
         assert self.state.config is not None
+        if not self._ensure_castlist_associated_if_needed():
+            return
         result = validate_text(
             self._current_text(),
             self.state.config,

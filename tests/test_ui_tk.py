@@ -83,21 +83,10 @@ def _make_root() -> tk.Tk:
     root.withdraw()
     return root
 
-
 @pytest.fixture(autouse=True)
 def _disable_welcome_dialog(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr("ets.ui.tk.main_window.show_welcome_dialog", lambda *_args, **_kwargs: None)
     monkeypatch.setattr("ets.ui.tk.main_window.MainWindow._schedule_autosave", lambda self: None)
-
-    def _run_after_idle_immediately(self, callback, *args):
-        callback(*args)
-        return "after_idle_immediate"
-
-    monkeypatch.setattr(
-        "ets.ui.tk.main_window.MainWindow.after_idle",
-        _run_after_idle_immediately,
-    )
-
 
 def _annotations_fixture_dir() -> Path:
     return Path(__file__).resolve().parents[1] / "fixtures" / "annotations" / "berenice_1_1"
@@ -2113,4 +2102,125 @@ def test_generate_tei_uses_config_directory_for_castlist_path(monkeypatch: pytes
     finally:
         root.destroy()
 
+def test_generate_tei_with_configured_castlist_path_does_not_show_unassociated_guard(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    root = _make_root()
+    try:
+        window = MainWindow(root)
+        base_dir = RUNTIME_DIR / f"ui_castlist_configured_{uuid4().hex}"
+        base_dir.mkdir(parents=True, exist_ok=True)
+        config_path = base_dir / "config.json"
+        castlist_path = base_dir / "castlist.txt"
+        castlist_path.write_text(_two_witness_castlist_text(), encoding="utf-8")
+
+        window._set_current_config(
+            replace(_two_witness_config(), castlist_path="castlist.txt"),
+            config_path,
+        )
+        window.editor.set_text("texte")
+        generated: list[str] = []
+
+        def fail_guard(*_args, **_kwargs):
+            raise AssertionError("unexpected unassociated castlist guard")
+
+        monkeypatch.setattr("tkinter.messagebox.askyesnocancel", fail_guard)
+        monkeypatch.setattr("tkinter.messagebox.showwarning", lambda *args, **kwargs: None)
+        monkeypatch.setattr(
+            "ets.ui.tk.main_window.generate_tei_from_text",
+            lambda *args, **kwargs: generated.append("tei") or GenerationResult(ok=True, tei_xml="<TEI/>"),
+        )
+
+        window.action_generate_tei()
+
+        assert generated == ["tei"]
+    finally:
+        root.destroy()
+
+def test_generate_tei_with_unassociated_castlist_cancel_stops_generation(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    root = _make_root()
+    try:
+        window = MainWindow(root)
+        window._set_current_config(_two_witness_config(), None)
+        window.editor.set_text("texte")
+        window.castlist_editor.set_text(_two_witness_castlist_text())
+        generated: list[str] = []
+        monkeypatch.setattr("tkinter.messagebox.askyesnocancel", lambda *args, **kwargs: None)
+        monkeypatch.setattr(
+            "ets.ui.tk.main_window.generate_tei_from_text",
+            lambda *args, **kwargs: generated.append("tei") or GenerationResult(ok=True, tei_xml="<TEI/>"),
+        )
+
+        window.action_generate_tei()
+
+        assert generated == []
+        assert window.state.config is not None
+        assert window.state.config.castlist_path == ""
+    finally:
+        root.destroy()
+
+
+def test_generate_tei_with_unassociated_castlist_ignore_continues_without_association(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    root = _make_root()
+    try:
+        window = MainWindow(root)
+        window._set_current_config(_two_witness_config(), None)
+        window.editor.set_text("texte")
+        window.castlist_editor.set_text(_two_witness_castlist_text())
+        generated: list[str] = []
+        monkeypatch.setattr("tkinter.messagebox.askyesnocancel", lambda *args, **kwargs: False)
+        monkeypatch.setattr(
+            "ets.ui.tk.main_window.generate_tei_from_text",
+            lambda *args, **kwargs: generated.append("tei") or GenerationResult(ok=True, tei_xml="<TEI/>"),
+        )
+
+        window.action_generate_tei()
+
+        assert generated == ["tei"]
+        assert window.state.config is not None
+        assert window.state.config.castlist_path == ""
+    finally:
+        root.destroy()
+
+
+def test_generate_tei_with_unassociated_castlist_save_associates_then_continues(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    root = _make_root()
+    try:
+        window = MainWindow(root)
+        base_dir = RUNTIME_DIR / f"ui_castlist_guard_{uuid4().hex}"
+        base_dir.mkdir(parents=True, exist_ok=True)
+        config_path = base_dir / "config.json"
+        target = base_dir / "castlist.txt"
+        window._set_current_config(_two_witness_config(), config_path)
+        window.editor.set_text("texte")
+        window.castlist_editor.set_text(_two_witness_castlist_text())
+        generated: list[str] = []
+        saved_configs: list[Path] = []
+        monkeypatch.setattr("tkinter.messagebox.askyesnocancel", lambda *args, **kwargs: True)
+        monkeypatch.setattr("tkinter.filedialog.asksaveasfilename", lambda **kwargs: str(target))
+        monkeypatch.setattr("tkinter.messagebox.showinfo", lambda *args, **kwargs: None)
+        monkeypatch.setattr(
+            "ets.ui.tk.main_window.save_config",
+            lambda config, path: saved_configs.append(Path(path)) or Path(path),
+        )
+        monkeypatch.setattr(
+            "ets.ui.tk.main_window.generate_tei_from_text",
+            lambda *args, **kwargs: generated.append("tei") or GenerationResult(ok=True, tei_xml="<TEI/>"),
+        )
+
+        window.action_generate_tei()
+
+        assert generated == ["tei"]
+        assert target.read_text(encoding="utf-8") == _two_witness_castlist_text()
+        assert window.state.config is not None
+        assert window.state.config.castlist_path == "castlist.txt"
+        assert saved_configs == [config_path]
+    finally:
+        root.destroy()
 
