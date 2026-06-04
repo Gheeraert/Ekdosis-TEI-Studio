@@ -1463,7 +1463,11 @@ class MainWindow(ttk.Frame):
         if not self._ensure_config():
             return
         assert self.state.config is not None
-        result = validate_text(self._current_text(), self.state.config)
+        result = validate_text(
+            self._current_text(),
+            self.state.config,
+            castlist_base_dir=self._config_base_dir(),
+        )
         self._set_diagnostics(result.diagnostics)
         if result.ok:
             messagebox.showinfo("Validation", result.message or "Validation réussie.", parent=self.master)
