@@ -11,6 +11,7 @@ from ets.ui.tk.welcome_dialog import show_welcome_dialog
 from ets.annotations import Annotation, AnnotationCollection, AnnotationValidationError
 from ets.markdown_editor import MarkdownEditorWidget
 from ets.references import CitationOccurrence, CitationTokenData, ReferencesPanel, format_inline_citation
+from ets.castlist import validate_castlist_text
 from ets.application import (
     AppDiagnostic,
     merge_dramatic_tei_files,
@@ -59,6 +60,7 @@ from .output_notebook import OutputNotebook
 @dataclass
 class UIState:
     current_file_path: Path | None = None
+    castlist_file_path: Path | None = None
     config_path: Path | None = None
     config: EditionConfig | None = None
     tei_xml: str | None = None
@@ -155,6 +157,12 @@ class MainWindow(ttk.Frame):
         self.editor = TextEditor(self.transcription_tab)
         self.editor.grid(row=0, column=0, sticky="nsew")
 
+        self.castlist_tab = ttk.Frame(self.editor_tabs)
+        self.castlist_tab.columnconfigure(0, weight=1)
+        self.castlist_tab.rowconfigure(0, weight=1)
+        self.castlist_editor = TextEditor(self.castlist_tab)
+        self.castlist_editor.grid(row=0, column=0, sticky="nsew")
+
         self.markdown_editor = MarkdownEditorWidget(self.editor_tabs)
         self._last_editor_mode = "transcription"
         self._last_editable_text_widget: tk.Text = self.editor.text
@@ -167,6 +175,7 @@ class MainWindow(ttk.Frame):
         self.markdown_editor.set_citation_resolver(self._resolve_markdown_citation_preview)
 
         self.editor_tabs.add(self.transcription_tab, text="Transcription")
+        self.editor_tabs.add(self.castlist_tab, text="Dramatis personae")
         self.editor_tabs.add(self.markdown_editor, text="Éditeur Markdown")
         self.editor_tabs.add(self.references_panel, text="Références")
         self.editor_tabs.bind("<<NotebookTabChanged>>", self._on_editor_tab_changed, add="+")
@@ -210,6 +219,7 @@ class MainWindow(ttk.Frame):
         self.editor.text.bind("<<Cut>>", self._on_editor_content_changed, add="+")
         self.editor.text.bind("<Delete>", self._on_editor_content_changed, add="+")
         self.editor.text.bind("<FocusIn>", self._track_transcription_focus, add="+")
+        self.castlist_editor.text.bind("<FocusIn>", self._track_castlist_focus, add="+")
         self.markdown_editor.source_text.bind("<FocusIn>", self._track_markdown_focus, add="+")
 
         self._refresh_config_ui()
@@ -227,6 +237,9 @@ class MainWindow(ttk.Frame):
         elif self._is_transcription_mode():
             self._last_editor_mode = "transcription"
             self.after_idle(self.editor.focus_editor)
+        elif self._is_castlist_mode():
+            self._last_editor_mode = "castlist"
+            self.after_idle(self.castlist_editor.focus_editor)
 
         self._refresh_window_title()
         self._refresh_menu_state()
@@ -239,6 +252,10 @@ class MainWindow(ttk.Frame):
         selected = self.editor_tabs.select()
         return bool(selected) and self.editor_tabs.nametowidget(selected) is self.transcription_tab
 
+    def _is_castlist_mode(self) -> bool:
+        selected = self.editor_tabs.select()
+        return bool(selected) and self.editor_tabs.nametowidget(selected) is self.castlist_tab
+
     def _select_markdown_mode(self) -> None:
         self.editor_tabs.select(self.markdown_editor)
         self.after_idle(self.markdown_editor.focus_source)
@@ -249,6 +266,12 @@ class MainWindow(ttk.Frame):
                 self.master.title(f"Ekdosis TEI Studio v2 - {self.markdown_editor.current_path.name} [Markdown]")
             else:
                 self.master.title("Ekdosis TEI Studio v2 - Document Markdown")
+            return
+        if self._is_castlist_mode():
+            if self.state.castlist_file_path is not None:
+                self.master.title(f"Ekdosis TEI Studio v2 - {self.state.castlist_file_path.name} [Dramatis personae]")
+            else:
+                self.master.title("Ekdosis TEI Studio v2 - Dramatis personae")
             return
         if self.state.current_file_path is not None:
             self.master.title(f"Ekdosis TEI Studio v2 - {self.state.current_file_path.name}")
@@ -271,6 +294,15 @@ class MainWindow(ttk.Frame):
                 edit_config=self.action_edit_config,
                 save_config_as=self.action_save_config_as,
                 load_config=self.action_load_config,
+                new_castlist=self.action_new_castlist,
+                open_castlist=self.action_open_castlist,
+                save_castlist=self.action_save_castlist,
+                save_castlist_as=self.action_save_castlist_as,
+                validate_castlist=self.action_validate_castlist,
+                insert_castlist_skeleton=self.action_insert_castlist_skeleton,
+                insert_cast_entry=self.action_insert_cast_entry,
+                insert_cast_head=self.action_insert_cast_head,
+                insert_cast_setting=self.action_insert_cast_setting,
                 load_annotations=self.action_load_annotations,
                 save_annotations=self.action_save_annotations,
                 quit_app=self.action_quit,
@@ -367,6 +399,8 @@ class MainWindow(ttk.Frame):
             return focused
         if self._is_markdown_mode():
             return self.markdown_editor.source_text
+        if self._is_castlist_mode():
+            return self.castlist_editor.text
         if self._is_transcription_mode():
             return self.editor.text
         return None
@@ -374,6 +408,10 @@ class MainWindow(ttk.Frame):
     def _track_transcription_focus(self, _event: tk.Event[tk.Misc]) -> None:
         self._last_editable_text_widget = self.editor.text
         self._last_editor_mode = "transcription"
+
+    def _track_castlist_focus(self, _event: tk.Event[tk.Misc]) -> None:
+        self._last_editable_text_widget = self.castlist_editor.text
+        self._last_editor_mode = "castlist"
 
     def _track_markdown_focus(self, _event: tk.Event[tk.Misc]) -> None:
         self._last_editable_text_widget = self.markdown_editor.source_text
@@ -388,6 +426,8 @@ class MainWindow(ttk.Frame):
             return self._last_editable_text_widget
         if self._last_editor_mode == "markdown":
             return self.markdown_editor.source_text
+        if self._last_editor_mode == "castlist":
+            return self.castlist_editor.text
         return self.editor.text
 
     def _insert_citation_token_into_active_editor(self, token: str) -> bool:
@@ -711,6 +751,9 @@ class MainWindow(ttk.Frame):
     def _current_text(self) -> str:
         return self.editor.get_text()
 
+    def _current_castlist_text(self) -> str:
+        return self.castlist_editor.get_text()
+
     def _current_tei_text(self) -> str:
         return self.outputs.get_tei()
 
@@ -743,6 +786,112 @@ class MainWindow(ttk.Frame):
         target.write_text(self._current_text(), encoding="utf-8")
         self.state.current_file_path = target
         self._refresh_window_title()
+
+    def _write_current_castlist_file(self, target: Path) -> None:
+        target.write_text(self._current_castlist_text(), encoding="utf-8")
+        self.state.castlist_file_path = target
+        self._associate_castlist_path(target)
+        self._refresh_window_title()
+
+    @staticmethod
+    def _cast_entry_template() -> str:
+        return (
+            '%%cast id=personnage role="Nom" desc="" aliases=""%%\n'
+            "Nom, description\n"
+            "Nom, description\n"
+            "%%fin_cast%%\n"
+        )
+
+    @classmethod
+    def _castlist_skeleton(cls) -> str:
+        return (
+            "%%castlist%%\n\n"
+            "%%head%%\n"
+            "Acteurs\n"
+            "Acteurs\n"
+            "%%fin_head%%\n\n"
+            f"{cls._cast_entry_template()}\n"
+            "%%setting%%\n"
+            "La scène est à ...\n"
+            "La Scene est à ...\n"
+            "%%fin_setting%%\n\n"
+            "%%fin_castlist%%\n"
+        )
+
+    def _insert_into_castlist_editor(self, text: str) -> None:
+        self.editor_tabs.select(self.castlist_tab)
+        self.castlist_editor.text.insert("insert", text)
+        self.castlist_editor.text.focus_set()
+
+    @staticmethod
+    def _format_validation_messages(title: str, diagnostics: list[object]) -> str:
+        lines = [f"{title}:"]
+        for item in diagnostics[:20]:
+            level = getattr(getattr(item, "level", None), "value", "")
+            code = getattr(item, "code", "")
+            message = getattr(item, "message", "")
+            line_number = getattr(item, "line_number", None)
+            location = f" (ligne {line_number})" if line_number is not None else ""
+            prefix = "Erreur" if level == "ERROR" else "Avertissement"
+            lines.append(f"- {prefix} {code}: {message}{location}")
+        if len(diagnostics) > 20:
+            lines.append(f"- ... {len(diagnostics) - 20} diagnostic(s) supplémentaire(s).")
+        return "\n".join(lines)
+
+    def _config_base_dir(self) -> Path | None:
+        return self.state.config_path.parent if self.state.config_path is not None else None
+
+    def _resolve_castlist_path(self, raw_path: str) -> Path:
+        path = Path(raw_path)
+        if path.is_absolute():
+            return path
+        base_dir = self._config_base_dir()
+        return (base_dir or Path.cwd()) / path
+
+    def _castlist_path_for_config(self, path: Path) -> str:
+        if self.state.config_path is None:
+            return str(path.resolve())
+        return self._castlist_path_relative_to_config_file(path, self.state.config_path)
+
+    @staticmethod
+    def _castlist_path_relative_to_config_file(path: Path, config_path: Path) -> str:
+        try:
+            return str(path.resolve().relative_to(config_path.parent.resolve()))
+        except ValueError:
+            try:
+                return str(path.resolve().relative_to(Path.cwd().resolve()))
+            except ValueError:
+                return str(path.resolve())
+
+    def _associate_castlist_path(self, path: Path) -> None:
+        if self.state.config is None:
+            return
+        config_path = self._castlist_path_for_config(path)
+        if self.state.config.castlist_path == config_path:
+            return
+        self.state.config = replace(self.state.config, castlist_path=config_path)
+        self._invalidate_outputs(reason="config_changed")
+        self._refresh_config_ui()
+        self._schedule_autosave()
+
+    def _load_configured_castlist(self) -> None:
+        if self.state.config is None or not self.state.config.castlist_path.strip():
+            self.castlist_editor.clear()
+            self.state.castlist_file_path = None
+            return
+        path = self._resolve_castlist_path(self.state.config.castlist_path)
+        self.state.castlist_file_path = path
+        if not path.exists():
+            messagebox.showwarning(
+                "Dramatis personae",
+                f"Le fichier dramatis personae déclaré dans la configuration est introuvable:\n{path}",
+                parent=self.master,
+            )
+            return
+        try:
+            self.castlist_editor.set_text(path.read_text(encoding="utf-8"))
+        except OSError as exc:
+            messagebox.showwarning("Dramatis personae", str(exc), parent=self.master)
 
     def _on_editor_content_changed(self, _event: tk.Event[tk.Misc]) -> None:
         self.after_idle(lambda: self._invalidate_outputs(reason="text_changed"))
@@ -790,7 +939,11 @@ class MainWindow(ttk.Frame):
         if not self._ensure_config():
             return False
         assert self.state.config is not None
-        result = generate_tei_from_text(self._current_text(), self.state.config)
+        result = generate_tei_from_text(
+            self._current_text(),
+            self.state.config,
+            castlist_base_dir=self._config_base_dir(),
+        )
         if not result.ok or result.tei_xml is None:
             self._set_diagnostics(result.diagnostics)
             self.state.tei_xml = None
@@ -856,11 +1009,15 @@ class MainWindow(ttk.Frame):
     def _set_current_config(self, config: EditionConfig, config_path: Path | None) -> None:
         self.state.config = config
         self.state.config_path = config_path
+        self._load_configured_castlist()
         self._invalidate_outputs(reason="config_changed")
         self._refresh_config_ui()
         self._schedule_autosave()
 
     def action_new_file(self) -> None:
+        if self._is_castlist_mode():
+            self.action_new_castlist()
+            return
         if self._is_markdown_mode():
             self.markdown_editor.new_document()
             self._refresh_window_title()
@@ -872,6 +1029,9 @@ class MainWindow(ttk.Frame):
         self._schedule_autosave()
 
     def action_open_file(self) -> None:
+        if self._is_castlist_mode():
+            self.action_open_castlist()
+            return
         if self._is_markdown_mode():
             try:
                 opened = self.markdown_editor.open_file()
@@ -902,6 +1062,9 @@ class MainWindow(ttk.Frame):
         self._schedule_autosave()
 
     def action_save_file(self) -> None:
+        if self._is_castlist_mode():
+            self.action_save_castlist()
+            return
         if self._is_markdown_mode():
             try:
                 saved = self.markdown_editor.save_file()
@@ -920,6 +1083,9 @@ class MainWindow(ttk.Frame):
             messagebox.showerror("Erreur d'enregistrement", str(exc), parent=self.master)
 
     def action_save_file_as(self) -> None:
+        if self._is_castlist_mode():
+            self.action_save_castlist_as()
+            return
         if self._is_markdown_mode():
             try:
                 saved = self.markdown_editor.save_file_as()
@@ -946,6 +1112,9 @@ class MainWindow(ttk.Frame):
         self._schedule_autosave()
 
     def action_close_document(self) -> None:
+        if self._is_castlist_mode():
+            self.action_new_castlist()
+            return
         if self._is_markdown_mode():
             self.markdown_editor.close_document()
             self._refresh_window_title()
@@ -1022,14 +1191,132 @@ class MainWindow(ttk.Frame):
         )
         if not chosen:
             return
+        config_to_save = self.state.config
+        if self.state.castlist_file_path is not None:
+            config_to_save = replace(
+                config_to_save,
+                castlist_path=self._castlist_path_relative_to_config_file(self.state.castlist_file_path, Path(chosen)),
+            )
         try:
-            target = save_config(self.state.config, chosen)
+            target = save_config(config_to_save, chosen)
         except (OSError, ValueError) as exc:
             messagebox.showerror("Configuration", str(exc), parent=self.master)
             return
         self.state.config_path = target
+        self.state.config = config_to_save
         self._refresh_config_ui()
         messagebox.showinfo("Configuration", f"Configuration enregistrée:\n{target}", parent=self.master)
+
+    def action_new_castlist(self) -> None:
+        self.castlist_editor.set_text(self._castlist_skeleton())
+        self.state.castlist_file_path = None
+        self.editor_tabs.select(self.castlist_tab)
+        self._refresh_window_title()
+
+    def action_open_castlist(self) -> None:
+        chosen = filedialog.askopenfilename(
+            parent=self.master,
+            title="Ouvrir un dramatis personae",
+            filetypes=[("Text files", "*.txt"), ("All files", "*.*")],
+        )
+        if not chosen:
+            return
+        path = Path(chosen)
+        try:
+            text = path.read_text(encoding="utf-8")
+        except OSError as exc:
+            messagebox.showerror("Dramatis personae", str(exc), parent=self.master)
+            return
+        self.castlist_editor.set_text(text)
+        self.state.castlist_file_path = path
+        self._associate_castlist_path(path)
+        self.editor_tabs.select(self.castlist_tab)
+        self._refresh_window_title()
+        if self.state.config is None:
+            messagebox.showwarning(
+                "Dramatis personae",
+                "Fichier chargé, mais aucune configuration n'est active pour enregistrer castlist_path.",
+                parent=self.master,
+            )
+
+    def action_save_castlist(self) -> None:
+        if self.state.castlist_file_path is None:
+            self.action_save_castlist_as()
+            return
+        try:
+            self._write_current_castlist_file(self.state.castlist_file_path)
+        except OSError as exc:
+            messagebox.showerror("Dramatis personae", str(exc), parent=self.master)
+            return
+        messagebox.showinfo("Dramatis personae", f"Fichier enregistré:\n{self.state.castlist_file_path}", parent=self.master)
+
+    def action_save_castlist_as(self) -> None:
+        chosen = filedialog.asksaveasfilename(
+            parent=self.master,
+            title="Enregistrer le dramatis personae",
+            defaultextension=".txt",
+            filetypes=[("Text files", "*.txt"), ("All files", "*.*")],
+            initialfile="castlist.txt",
+        )
+        if not chosen:
+            return
+        path = Path(chosen)
+        try:
+            self._write_current_castlist_file(path)
+        except OSError as exc:
+            messagebox.showerror("Dramatis personae", str(exc), parent=self.master)
+            return
+        if self.state.config is None:
+            messagebox.showwarning(
+                "Dramatis personae",
+                f"Fichier enregistré:\n{path}\n\nAucune configuration n'est active pour enregistrer castlist_path.",
+                parent=self.master,
+            )
+            return
+        messagebox.showinfo(
+            "Dramatis personae",
+            f"Fichier enregistré:\n{path}\n\ncastlist_path: {self.state.config.castlist_path}",
+            parent=self.master,
+        )
+
+    def action_validate_castlist(self) -> None:
+        if not self._ensure_config():
+            return
+        assert self.state.config is not None
+        report = validate_castlist_text(self._current_castlist_text(), self.state.config)
+        diagnostics = [AppDiagnostic.from_validation(item) for item in report.diagnostics]
+        if diagnostics:
+            self.diagnostics.set_diagnostics(diagnostics)
+        errors = [item for item in report.diagnostics if item.level.value == "ERROR"]
+        warnings = [item for item in report.diagnostics if item.level.value == "WARNING"]
+        if errors:
+            messagebox.showwarning(
+                "Validation dramatis personae",
+                self._format_validation_messages("Erreurs", report.diagnostics),
+                parent=self.master,
+            )
+            return
+        if warnings:
+            messagebox.showwarning(
+                "Validation dramatis personae",
+                self._format_validation_messages("Avertissements", report.diagnostics),
+                parent=self.master,
+            )
+            return
+        self.diagnostics.set_diagnostics([])
+        messagebox.showinfo("Validation dramatis personae", "Dramatis personae valide.", parent=self.master)
+
+    def action_insert_castlist_skeleton(self) -> None:
+        self._insert_into_castlist_editor(self._castlist_skeleton())
+
+    def action_insert_cast_entry(self) -> None:
+        self._insert_into_castlist_editor(self._cast_entry_template())
+
+    def action_insert_cast_head(self) -> None:
+        self._insert_into_castlist_editor("%%head%%\nActeurs\nActeurs\n%%fin_head%%\n")
+
+    def action_insert_cast_setting(self) -> None:
+        self._insert_into_castlist_editor("%%setting%%\nLa scène est à ...\nLa Scene est à ...\n%%fin_setting%%\n")
 
     def action_load_annotations(self) -> None:
         chosen = filedialog.askopenfilename(
@@ -1271,9 +1558,7 @@ class MainWindow(ttk.Frame):
                 except ValueError:
                     config = None
                 if config is not None:
-                    self.state.config = config
-                    self.state.config_path = config_path
-                    self._refresh_config_ui()
+                    self._set_current_config(config, config_path)
 
         self._schedule_autosave()
         messagebox.showinfo("Autosave", "Enregistrement automatique restauré.", parent=self.master)
@@ -1565,7 +1850,12 @@ class MainWindow(ttk.Frame):
     def action_select_all(self) -> None:
         widget = self._active_text_widget()
         if widget is None:
-            widget = self.markdown_editor.source_text if self._is_markdown_mode() else self.editor.text
+            if self._is_markdown_mode():
+                widget = self.markdown_editor.source_text
+            elif self._is_castlist_mode():
+                widget = self.castlist_editor.text
+            else:
+                widget = self.editor.text
         widget.tag_add("sel", "1.0", "end-1c")
         widget.mark_set("insert", "1.0")
         widget.see("insert")
@@ -1802,7 +2092,7 @@ class MainWindow(ttk.Frame):
                 continue
 
     def _refresh_menu_state(self) -> None:
-        if self._is_transcription_mode():
+        if self._is_transcription_mode() or self._is_castlist_mode():
             states = {
                 "Insertion": "disabled",
                 "Références": "disabled",

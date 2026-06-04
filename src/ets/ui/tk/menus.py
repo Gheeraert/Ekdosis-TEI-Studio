@@ -19,6 +19,15 @@ class MenuCallbacks:
     edit_config: Callable[[], None]
     save_config_as: Callable[[], None]
     load_config: Callable[[], None]
+    new_castlist: Callable[[], None]
+    open_castlist: Callable[[], None]
+    save_castlist: Callable[[], None]
+    save_castlist_as: Callable[[], None]
+    validate_castlist: Callable[[], None]
+    insert_castlist_skeleton: Callable[[], None]
+    insert_cast_entry: Callable[[], None]
+    insert_cast_head: Callable[[], None]
+    insert_cast_setting: Callable[[], None]
     load_annotations: Callable[[], None]
     save_annotations: Callable[[], None]
     quit_app: Callable[[], None]
@@ -116,6 +125,20 @@ def install_menus(root: tk.Tk, cb: MenuCallbacks) -> None:
     edit_menu.add_command(label="Remplacer", command=cb.replace)
     edit_menu.add_command(label="Rechercher dans l’aperçu", command=cb.find_in_preview)
     menu.add_cascade(label="Édition", menu=edit_menu)
+
+    play_menu = tk.Menu(menu, tearoff=False)
+    play_menu.add_command(label="Nouveau dramatis personae", command=cb.new_castlist)
+    play_menu.add_command(label="Ouvrir un dramatis personae…", command=cb.open_castlist)
+    play_menu.add_command(label="Enregistrer le dramatis personae", command=cb.save_castlist)
+    play_menu.add_command(label="Enregistrer le dramatis personae sous…", command=cb.save_castlist_as)
+    play_menu.add_separator()
+    play_menu.add_command(label="Valider le dramatis personae", command=cb.validate_castlist)
+    play_menu.add_separator()
+    play_menu.add_command(label="Insérer squelette dramatis personae", command=cb.insert_castlist_skeleton)
+    play_menu.add_command(label="Insérer entrée de personnage", command=cb.insert_cast_entry)
+    play_menu.add_command(label="Insérer bloc head", command=cb.insert_cast_head)
+    play_menu.add_command(label="Insérer bloc setting", command=cb.insert_cast_setting)
+    menu.add_cascade(label="Pièce", menu=play_menu)
 
     insertion_menu = tk.Menu(menu, tearoff=False)
     insertion_menu.add_command(label="Note", command=cb.insert_note)

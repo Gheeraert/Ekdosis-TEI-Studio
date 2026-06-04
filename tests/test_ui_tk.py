@@ -2,8 +2,10 @@ from __future__ import annotations
 
 import json
 import tkinter as tk
+from dataclasses import replace
 from pathlib import Path
 from uuid import uuid4
+import xml.etree.ElementTree as ET
 
 import pytest
 
@@ -31,6 +33,8 @@ from ets.application.editorial_notice_import.models import (
 )
 from ets.application.site_builder_models import SiteBuildServiceResult
 from ets.infrastructure import AutosavePayload, AutosaveStore
+from ets.domain import EditionConfig, Witness
+from ets.parser import save_config as save_edition_config
 from ets.ui.tk.helpers import diagnostic_line_numbers, format_config_status
 from ets.ui.tk.main_window import MainWindow, suggest_next_annotation_id
 from ets.ui.tk.dialogs.publication_dialog import PublicationDialog, PublicationDialogResult
@@ -78,6 +82,21 @@ def _make_root() -> tk.Tk:
         pytest.skip(f"Tk not available in this environment: {exc}")
     root.withdraw()
     return root
+
+
+@pytest.fixture(autouse=True)
+def _disable_welcome_dialog(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr("ets.ui.tk.main_window.show_welcome_dialog", lambda *_args, **_kwargs: None)
+    monkeypatch.setattr("ets.ui.tk.main_window.MainWindow._schedule_autosave", lambda self: None)
+
+    def _run_after_idle_immediately(self, callback, *args):
+        callback(*args)
+        return "after_idle_immediate"
+
+    monkeypatch.setattr(
+        "ets.ui.tk.main_window.MainWindow.after_idle",
+        _run_after_idle_immediately,
+    )
 
 
 def _annotations_fixture_dir() -> Path:
@@ -217,6 +236,7 @@ def test_validate_generated_tei_action_with_invalid_tei_keeps_state(monkeypatch:
     root = _make_root()
     try:
         window = MainWindow(root)
+        window.outputs.set_tei("<root/>")
         window.state.tei_xml = "<root/>"
         warnings: list[str] = []
         monkeypatch.setattr("tkinter.messagebox.showwarning", lambda *args, **kwargs: warnings.append("warn"))
@@ -871,8 +891,9 @@ def test_action_build_publication_site_publish_ftp_generates_then_uploads(monkey
 
         assert called == ["ftp"]
         assert infos
-        assert "published on FTP" in infos[-1]
-        assert "Files transferred: 5" in infos[-1]
+        assert "publié via FTP" in infos[-1]
+        assert "Fichiers transférés: 5" in infos[-1]
+        assert "Répertoires créés: 2" in infos[-1]
     finally:
         root.destroy()
 
@@ -1924,4 +1945,173 @@ def test_selecting_line_range_annotation_focuses_first_line_and_range(monkeypatc
         assert focus_line == 19
     finally:
         root.destroy()
+
+
+def _two_witness_config() -> EditionConfig:
+    return EditionConfig(
+        title="Phèdre",
+        author="Jean Racine",
+        editor="Claire Martin",
+        witnesses=[
+            Witness(siglum="A", year="1677", description="A"),
+            Witness(siglum="B", year="1687", description="B"),
+        ],
+        reference_witness=0,
+    )
+
+
+def _two_witness_castlist_text() -> str:
+    return """%%castlist%%
+
+%%head%%
+Acteurs
+Acteurs
+%%fin_head%%
+
+%%cast id=thesee role="Thésée" desc="roi d'Athènes" aliases="THESEE|THESEE."%%
+Thésée, roi d'Athènes
+Thésée, Roi d'Athènes
+%%fin_cast%%
+
+%%setting%%
+La scène est à Trézène.
+La Scene est à Trézène.
+%%fin_setting%%
+
+%%fin_castlist%%
+"""
+
+
+def test_tk_main_window_has_dramatis_personae_tab_and_menu() -> None:
+    root = _make_root()
+    try:
+        window = MainWindow(root)
+        tab_labels = [window.editor_tabs.tab(tab_id, "text") for tab_id in window.editor_tabs.tabs()]
+        menu = root.nametowidget(root.cget("menu"))
+        menu = root.nametowidget(root.cget("menu"))
+        menu_end = menu.index("end")
+        assert menu_end is not None
+
+        menu_labels = [
+            menu.entrycget(index, "label")
+            for index in range(menu_end + 1)
+            if menu.type(index) == "cascade"
+        ]
+
+        assert "Dramatis personae" in tab_labels
+        assert "Pièce" in menu_labels
+    finally:
+        root.destroy()
+
+
+def test_load_config_action_loads_configured_castlist_relative_to_config(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    root = _make_root()
+    try:
+        window = MainWindow(root)
+        base_dir = RUNTIME_DIR / f"ui_castlist_load_{uuid4().hex}"
+        base_dir.mkdir(parents=True, exist_ok=True)
+        castlist_path = base_dir / "castlist.txt"
+        castlist_path.write_text(_two_witness_castlist_text(), encoding="utf-8")
+        config_path = base_dir / "config.json"
+        save_edition_config(replace(_two_witness_config(), castlist_path="castlist.txt"), config_path)
+        monkeypatch.setattr("tkinter.filedialog.askopenfilename", lambda **kwargs: str(config_path))
+        monkeypatch.setattr("tkinter.messagebox.showinfo", lambda *args, **kwargs: None)
+
+        window.action_load_config()
+
+        assert window.state.config_path == config_path
+        assert window.state.castlist_file_path == castlist_path
+        assert "%%castlist%%" in window.castlist_editor.get_text()
+        assert "Thésée, roi d'Athènes" in window.castlist_editor.get_text()
+    finally:
+        root.destroy()
+
+
+def test_save_castlist_as_updates_config_with_relative_path(monkeypatch: pytest.MonkeyPatch) -> None:
+    root = _make_root()
+    try:
+        window = MainWindow(root)
+        base_dir = RUNTIME_DIR / f"ui_castlist_save_{uuid4().hex}"
+        base_dir.mkdir(parents=True, exist_ok=True)
+        config_path = base_dir / "config.json"
+        window._set_current_config(_two_witness_config(), config_path)
+        window.castlist_editor.set_text(_two_witness_castlist_text())
+        target = base_dir / "castlist.txt"
+        monkeypatch.setattr("tkinter.filedialog.asksaveasfilename", lambda **kwargs: str(target))
+        monkeypatch.setattr("tkinter.messagebox.showinfo", lambda *args, **kwargs: None)
+
+        window.action_save_castlist_as()
+
+        assert target.read_text(encoding="utf-8") == _two_witness_castlist_text()
+        assert window.state.castlist_file_path == target
+        assert window.state.config is not None
+        assert window.state.config.castlist_path == "castlist.txt"
+    finally:
+        root.destroy()
+
+
+def test_validate_castlist_action_reports_success_and_errors(monkeypatch: pytest.MonkeyPatch) -> None:
+    root = _make_root()
+    try:
+        window = MainWindow(root)
+        window._set_current_config(_two_witness_config(), None)
+        infos: list[str] = []
+        warnings: list[str] = []
+        monkeypatch.setattr("tkinter.messagebox.showinfo", lambda _title, message, **kwargs: infos.append(message))
+        monkeypatch.setattr("tkinter.messagebox.showwarning", lambda _title, message, **kwargs: warnings.append(message))
+
+        window.castlist_editor.set_text(_two_witness_castlist_text())
+        window.action_validate_castlist()
+        window.castlist_editor.set_text("%%castlist%%\n%%fin_castlist%%\n")
+        window.action_validate_castlist()
+
+        assert infos == ["Dramatis personae valide."]
+        assert warnings
+        assert "E_CASTLIST_NO_CAST_ENTRY" in warnings[-1]
+    finally:
+        root.destroy()
+
+
+def test_generate_tei_uses_config_directory_for_castlist_path(monkeypatch: pytest.MonkeyPatch) -> None:
+    root = _make_root()
+    try:
+        window = MainWindow(root)
+        fixture_dir = Path(__file__).resolve().parents[1] / "fixtures" / "stable"
+        base_config = load_config(fixture_dir / "config.json")
+        base_dir = RUNTIME_DIR / f"ui_castlist_generate_{uuid4().hex}"
+        base_dir.mkdir(parents=True, exist_ok=True)
+        castlist_lines = [
+            "%%castlist%%",
+            "",
+            '%%cast id=thesee role="Thésée" desc="roi d\'Athènes" aliases="THESEE"%%',
+            *["Thésée, roi d'Athènes"] * len(base_config.witnesses),
+            "%%fin_cast%%",
+            "",
+            "%%fin_castlist%%",
+            "",
+        ]
+        (base_dir / "castlist.txt").write_text("\n".join(castlist_lines), encoding="utf-8")
+        config_path = base_dir / "config.json"
+        window._set_current_config(replace(base_config, castlist_path="castlist.txt"), config_path)
+        window.editor.set_text((fixture_dir / "input.txt").read_text(encoding="utf-8"))
+        monkeypatch.setattr("tkinter.messagebox.showerror", lambda *args, **kwargs: None)
+
+        window.action_generate_tei()
+
+        assert window.state.tei_xml is not None
+
+        root_el = ET.fromstring(window.state.tei_xml)
+        ns = {"tei": "http://www.tei-c.org/ns/1.0"}
+
+        dramatis = root_el.find(".//tei:front/tei:div[@type='dramatis-personae']", ns)
+        assert dramatis is not None
+
+        cast_item = dramatis.find(".//tei:castItem", ns)
+        assert cast_item is not None
+        assert cast_item.get("{http://www.w3.org/XML/1998/namespace}id") == "thesee"
+    finally:
+        root.destroy()
+
 

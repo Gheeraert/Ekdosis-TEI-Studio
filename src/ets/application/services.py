@@ -88,18 +88,28 @@ def validate_text(text: str, config: EditionConfig) -> ValidationResult:
     return ValidationResult(ok=True, diagnostics=diagnostics, message="Input validation successful.")
 
 
-def generate_tei_from_text(text: str, config: EditionConfig) -> GenerationResult:
+def generate_tei_from_text(
+    text: str,
+    config: EditionConfig,
+    *,
+    castlist_base_dir: str | Path | None = None,
+) -> GenerationResult:
     """Generate TEI XML from in-memory transcription text."""
     validation = validate_text(text, config)
     if not validation.ok:
         return GenerationResult(ok=False, tei_xml=None, diagnostics=validation.diagnostics, message=validation.message)
 
     try:
-        tei_xml = run_pipeline_from_text(text, config, validate_input=False)
+        tei_xml = run_pipeline_from_text(
+            text,
+            config,
+            validate_input=False,
+            castlist_base_dir=castlist_base_dir,
+        )
     except InputValidationError as exc:
         diagnostics = [AppDiagnostic.from_validation(item) for item in exc.diagnostics]
         return GenerationResult(ok=False, tei_xml=None, diagnostics=diagnostics, message=str(exc))
-    except ValueError as exc:
+    except (OSError, ValueError) as exc:
         return GenerationResult(
             ok=False,
             tei_xml=None,
