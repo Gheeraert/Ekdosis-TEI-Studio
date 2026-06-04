@@ -895,10 +895,12 @@ class MainWindow(ttk.Frame):
         self._schedule_autosave()
 
     def _load_configured_castlist(self) -> None:
-        if self.state.config is None or not self.state.config.castlist_path.strip():
-            self.castlist_editor.clear()
-            self.state.castlist_file_path = None
+        if self.state.config is None:
             return
+
+        if not self.state.config.castlist_path.strip():
+            return
+
         path = self._resolve_castlist_path(self.state.config.castlist_path)
         self.state.castlist_file_path = path
         if not path.exists():
@@ -1049,9 +1051,7 @@ class MainWindow(ttk.Frame):
         self._schedule_autosave()
 
     def action_open_file(self) -> None:
-        if self._is_castlist_mode():
-            self.action_open_castlist()
-            return
+
         if self._is_markdown_mode():
             try:
                 opened = self.markdown_editor.open_file()
@@ -1076,6 +1076,8 @@ class MainWindow(ttk.Frame):
             messagebox.showerror("Erreur d'ouverture", str(exc), parent=self.master)
             return
         self.editor.set_text(text)
+        self.editor_tabs.select(self.transcription_tab)
+        self.editor.focus_editor()
         self._invalidate_outputs(reason="open_file")
         self.state.current_file_path = path
         self._refresh_window_title()
