@@ -5,7 +5,7 @@ from typing import Literal
 import re
 import unicodedata
 
-from ets.domain import Character
+from ets.domain import Character, DramatisPersonae
 
 
 _FINAL_PUNCTUATION_RE = re.compile(r"[\s.,;:!?]+$")
@@ -54,6 +54,13 @@ def build_character_authority(characters: list[Character]) -> CharacterAuthority
         if alias not in ambiguous_aliases and len(character_ids) == 1
     }
     return CharacterAuthority(aliases=aliases, ambiguous_aliases=ambiguous_aliases)
+
+
+def characters_from_dramatis_personae(dramatis: DramatisPersonae) -> list[Character]:
+    return [
+        Character(id=entry.id, label=entry.role, aliases=list(entry.aliases))
+        for entry in dramatis.entries
+    ]
 
 
 def resolve_character_id(label: str, characters: list[Character]) -> str | None:

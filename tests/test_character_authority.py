@@ -1,12 +1,13 @@
 from __future__ import annotations
 
 from ets.characters import (
+    characters_from_dramatis_personae,
     is_ambiguous_character_label,
     normalize_character_label,
     resolve_character_id,
     resolve_speaker_block,
 )
-from ets.domain import Character
+from ets.domain import CastEntry, Character, DramatisPersonae
 
 
 def test_normalize_character_label_is_cautious_and_predictable() -> None:
@@ -44,6 +45,61 @@ def test_declared_aliases_resolve_iocaste_and_jocaste() -> None:
 
 def test_no_resolution_without_declared_characters() -> None:
     assert resolve_character_id("HERMIONE", []) is None
+
+
+def test_characters_from_dramatis_personae_maps_cast_entries() -> None:
+    dramatis = DramatisPersonae(
+        entries=[
+            CastEntry(
+                id="neron",
+                role="Néron",
+                desc="empereur de Rome",
+                aliases=["NERON", "NERON."],
+            )
+        ]
+    )
+
+    assert characters_from_dramatis_personae(dramatis) == [
+        Character(id="neron", label="Néron", aliases=["NERON", "NERON."])
+    ]
+
+
+def test_characters_from_dramatis_personae_aliases_resolve_speaker_block() -> None:
+    dramatis = DramatisPersonae(
+        entries=[
+            CastEntry(
+                id="neron",
+                role="Néron",
+                desc="empereur de Rome",
+                aliases=["NERON", "NERON."],
+            )
+        ]
+    )
+    characters = characters_from_dramatis_personae(dramatis)
+
+    resolution = resolve_speaker_block(["NERON."], characters)
+
+    assert resolution.status == "resolved"
+    assert resolution.character_id == "neron"
+
+
+def test_characters_from_dramatis_personae_role_label_is_resolvable_without_aliases() -> None:
+    dramatis = DramatisPersonae(
+        entries=[
+            CastEntry(
+                id="neron",
+                role="Néron",
+                desc="empereur de Rome",
+                aliases=[],
+            )
+        ]
+    )
+    characters = characters_from_dramatis_personae(dramatis)
+
+    resolution = resolve_speaker_block(["Néron"], characters)
+
+    assert resolution.status == "resolved"
+    assert resolution.character_id == "neron"
 
 
 def test_ambiguous_alias_is_detected_and_not_resolved() -> None:
