@@ -1988,7 +1988,6 @@ def test_tk_main_window_has_dramatis_personae_tab_and_menu() -> None:
         window = MainWindow(root)
         tab_labels = [window.editor_tabs.tab(tab_id, "text") for tab_id in window.editor_tabs.tabs()]
         menu = root.nametowidget(root.cget("menu"))
-        menu = root.nametowidget(root.cget("menu"))
         menu_end = menu.index("end")
         assert menu_end is not None
 
