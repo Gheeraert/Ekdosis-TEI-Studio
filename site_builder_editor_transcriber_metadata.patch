@@ -1,0 +1,147 @@
+--- a/src/ets/site_builder/models.py
++++ b/src/ets/site_builder/models.py
+@@ -53,6 +53,8 @@
+     main_divisions: tuple[str, ...] = ()
+     has_text_body: bool = False
+     xml_download_relpath: str | None = None
++    scientific_editor: str | None = None
++    transcriber: str | None = None
+ 
+ 
+ @dataclass(frozen=True)
+--- a/src/ets/site_builder/extractors.py
++++ b/src/ets/site_builder/extractors.py
+@@ -138,6 +138,30 @@
+         return "author_preface"
+     return "notice"
+ 
++
++
++def _extract_scientific_editor(tree: etree._ElementTree) -> str | None:
++    return _first_text(
++        tree,
++        (
++            "string((//*[local-name()='teiHeader']//*[local-name()='titleStmt']/*[local-name()='editor' "
++            "and translate(@role,'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz')='scientific'])[1])",
++            "string((//*[local-name()='teiHeader']//*[local-name()='titleStmt']/*[local-name()='editor'])[1])",
++        ),
++    )
++
++
++def _extract_transcriber(tree: etree._ElementTree) -> str | None:
++    return _first_text(
++        tree,
++        (
++            "string((//*[local-name()='teiHeader']//*[local-name()='titleStmt']/*[local-name()='respStmt' "
++            "and *[local-name()='resp' and contains(translate(normalize-space(.),'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'),'transcription')]]"
++            "/*[local-name()='name'][1])[1])",
++            "string((//*[local-name()='teiHeader']//*[local-name()='titleStmt']//*[local-name()='name' "
++            "and translate(@role,'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz')='transcriber'])[1])",
++        ),
++    )
+ 
+ def _extract_author_list(tree: etree._ElementTree) -> tuple[str, ...]:
+     authors: list[str] = []
+@@ -590,6 +614,8 @@
+         ("string(//*[local-name()='teiHeader']//*[local-name()='titleStmt']/*[local-name()='author'][1])",),
+     )
+     slug = _slugify(xml_path.stem)
++    scientific_editor = _extract_scientific_editor(tree)
++    transcriber = _extract_transcriber(tree)
+     divisions = _collect_main_divisions(tree)
+     return PlayEntry(
+         source_path=xml_path.resolve(),
+@@ -597,6 +623,8 @@
+         title=title or xml_path.stem,
+         author=author,
+         document_type="dramatic_tei",
++        scientific_editor=scientific_editor,
++        transcriber=transcriber,
+         main_divisions=divisions,
+         has_text_body=_has_text_body(tree),
+     )
+--- a/src/ets/site_builder/render.py
++++ b/src/ets/site_builder/render.py
+@@ -1323,7 +1323,10 @@
+     lines.append(f"<h2>{html.escape(play.title)}</h2>")
+ 
+     if manifest.config.include_metadata:
+-        lines.append(f'<p class="meta">Type: {html.escape(play.document_type)}</p>')
++        if play.scientific_editor:
++            lines.append(f'<p class="meta">Editeur scientifique: {html.escape(play.scientific_editor)}</p>')
++        if play.transcriber:
++            lines.append(f'<p class="meta">Transcripteur: {html.escape(play.transcriber)}</p>')
+     if manifest.config.show_xml_download and play.xml_download_relpath:
+         lines.append(
+             f'<p><a href="../{html.escape(play.xml_download_relpath, quote=True)}" download>Telecharger le XML</a></p>'
+--- a/tests/test_site_builder_builder.py
++++ b/tests/test_site_builder_builder.py
+@@ -454,6 +454,68 @@
+     assert doc.xpath("//*[contains(@class, 'vers-container')]")
+     assert not doc.xpath("//*[contains(@class, 'play-reading-layout')]")
+     assert not doc.xpath("//*[contains(., 'Divisions reperees')]")
++    assert "Type: dramatic_tei" not in play_html
++    assert "Editeur scientifique:" not in play_html
++    assert "Transcripteur:" not in play_html
++
++
++def test_play_page_shows_scientific_editor_and_transcriber_instead_of_document_type(tmp_path: Path) -> None:
++    xml_path = tmp_path / "britannicus.xml"
++    xml_path.write_text(
++        """<?xml version="1.0" encoding="UTF-8"?>
++<TEI xmlns="http://www.tei-c.org/ns/1.0">
++  <teiHeader>
++    <fileDesc>
++      <titleStmt>
++        <title>Britannicus</title>
++        <author>Jean Racine</author>
++        <editor role="scientific">Caroline Labrune</editor>
++        <respStmt>
++          <resp>Transcription</resp>
++          <name role="transcriber">Jeanne Martin</name>
++        </respStmt>
++      </titleStmt>
++      <publicationStmt><p>Test</p></publicationStmt>
++      <sourceDesc><p>Test</p></sourceDesc>
++    </fileDesc>
++  </teiHeader>
++  <text>
++    <body>
++      <div type="act" n="1">
++        <div type="scene" n="1">
++          <sp>
++            <speaker>AGRIPPINE</speaker>
++            <l>Tout m'afflige et me nuit, et conspire à me nuire.</l>
++          </sp>
++        </div>
++      </div>
++    </body>
++  </text>
++</TEI>
++""",
++        encoding="utf-8",
++    )
++    play = extract_play_entry(xml_path)
++    config = site_config_from_dict(
++        {
++            "site_title": "ETS Demo",
++            "dramatic_xml_dir": str(tmp_path),
++            "output_dir": str(tmp_path / "site"),
++            "include_metadata": True,
++            "publish_notices": False,
++        }
++    )
++    manifest = SiteManifest(config=config, plays=(play,))
++
++    play_html = render_play_page(manifest, play)
++    doc = lxml_html.document_fromstring(play_html)
++    meta_texts = [" ".join(node.itertext()).strip() for node in doc.xpath("//p[contains(@class, 'meta')]")]
++
++    assert play.scientific_editor == "Caroline Labrune"
++    assert play.transcriber == "Jeanne Martin"
++    assert "Editeur scientifique: Caroline Labrune" in meta_texts
++    assert "Transcripteur: Jeanne Martin" in meta_texts
++    assert not any(text.startswith("Type:") for text in meta_texts)
+ 
+ 
+ def test_play_anchor_injection_prefers_outer_title_wrappers_and_keeps_scene_alignment(

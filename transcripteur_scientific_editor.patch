@@ -1,0 +1,358 @@
+diff --git a/src/ets/domain/model.py b/src/ets/domain/model.py
+index f03ae92..902ebb6 100644
+--- a/src/ets/domain/model.py
++++ b/src/ets/domain/model.py
+@@ -17,6 +17,7 @@ class EditionConfig:
+     editor: str
+     witnesses: list[Witness]
+     reference_witness: int
++    transcriber: str = ""
+ 
+ 
+ @dataclass
+diff --git a/src/ets/html/render.py b/src/ets/html/render.py
+index 0452fd0..246d98d 100644
+--- a/src/ets/html/render.py
++++ b/src/ets/html/render.py
+@@ -66,6 +66,7 @@ def _build_credit_block(
+     act: str,
+     scene: str,
+     editor: str,
++    transcriber: str,
+     xml_href: str | None,
+ ) -> str:
+     context: list[str] = []
+@@ -87,7 +88,9 @@ def _build_credit_block(
+     if first_line_text:
+         credit_lines.append(f'<div class="credit-line">{first_line_text}</div>')
+     if editor:
+-        credit_lines.append(f'<div class="credit-line">Édition critique par {std_html.escape(editor)}</div>')
++        credit_lines.append(f'<div class="credit-line">Édition scientifique par {std_html.escape(editor)}</div>')
++    if transcriber:
++        credit_lines.append(f'<div class="credit-line">Transcription par {std_html.escape(transcriber)}</div>')
+     credit_lines.append(
+         f'<div class="credit-line">Document généré le {date.today().isoformat()} depuis Ekdosis-TEI Studio</div>'
+     )
+@@ -205,6 +208,10 @@ def render_html_export_from_tei(
+     title = _first_text(tei_doc, "string(/tei:TEI/tei:teiHeader/tei:fileDesc/tei:titleStmt/tei:title[1])") or "Edition TEI"
+     author = _first_text(tei_doc, "string(/tei:TEI/tei:teiHeader/tei:fileDesc/tei:titleStmt/tei:author[1])")
+     editor = _first_text(tei_doc, "string(/tei:TEI/tei:teiHeader/tei:fileDesc/tei:titleStmt/tei:editor[1])")
++    transcriber = _first_text(
++        tei_doc,
++        "string(/tei:TEI/tei:teiHeader/tei:fileDesc/tei:titleStmt/tei:respStmt[tei:resp='Transcription']/tei:name[1])",
++    )
+     act = _first_text(tei_doc, "string((/tei:TEI/tei:text/tei:body/tei:div[@type='act']/@n)[1])")
+     scene = _first_text(tei_doc, "string((/tei:TEI/tei:text/tei:body/tei:div[@type='act']/tei:div[@type='scene']/@n)[1])")
+ 
+@@ -216,6 +223,7 @@ def render_html_export_from_tei(
+         act=act,
+         scene=scene,
+         editor=editor,
++        transcriber=transcriber,
+         xml_href=xml_href,
+     )
+     page_title = selected.document_title or title
+diff --git a/src/ets/parser/config_loader.py b/src/ets/parser/config_loader.py
+index cc2bf1c..41c3e6e 100644
+--- a/src/ets/parser/config_loader.py
++++ b/src/ets/parser/config_loader.py
+@@ -1,4 +1,4 @@
+-﻿from __future__ import annotations
++from __future__ import annotations
+ 
+ import json
+ from pathlib import Path
+@@ -71,12 +71,15 @@ def _split_person_name(full_name: str) -> tuple[str, str]:
+ def _canonical_config_payload(config: EditionConfig) -> dict[str, Any]:
+     author_first, author_last = _split_person_name(config.author)
+     editor_first, editor_last = _split_person_name(config.editor)
++    transcriber_first, transcriber_last = _split_person_name(config.transcriber)
+     return {
+         "Prénom de l'auteur": author_first,
+         "Nom de l'auteur": author_last,
+         "Titre de la pièce": config.title,
+-        "Prénom de l'éditeur": editor_first,
+-        "Nom de l'éditeur (vous)": editor_last,
++        "Prénom de l'éditeur scientifique": editor_first,
++        "Nom de l'éditeur scientifique": editor_last,
++        "Prénom du transcripteur": transcriber_first,
++        "Nom du transcripteur": transcriber_last,
+         "Temoins": [
+             {"abbr": witness.siglum, "year": witness.year, "desc": witness.description}
+             for witness in config.witnesses
+@@ -91,8 +94,26 @@ def load_config(path: str | Path, reference_override: int | None = None) -> Edit
+     author_first = _pick(raw, ["Prénom de l'auteur", "PrÃ©nom de l'auteur", "PrÃƒÂ©nom de l'auteur"])
+     author_last = _pick(raw, ["Nom de l'auteur"])
+     title = _pick(raw, ["Titre de la pièce", "Titre de la piÃ¨ce", "Titre de la piÃƒÂ¨ce"])
+-    editor_first = _pick(raw, ["Prénom de l'éditeur", "PrÃ©nom de l'Ã©diteur", "PrÃƒÂ©nom de l'ÃƒÂ©diteur"])
+-    editor_last = _pick(raw, ["Nom de l'éditeur (vous)", "Nom de l'Ã©diteur (vous)", "Nom de l'ÃƒÂ©diteur (vous)"])
++    editor_first = _pick(
++        raw,
++        [
++            "Prénom de l'éditeur scientifique",
++            "Prénom de l'éditeur",
++            "PrÃ©nom de l'Ã©diteur",
++            "PrÃƒÂ©nom de l'ÃƒÂ©diteur",
++        ],
++    )
++    editor_last = _pick(
++        raw,
++        [
++            "Nom de l'éditeur scientifique",
++            "Nom de l'éditeur (vous)",
++            "Nom de l'Ã©diteur (vous)",
++            "Nom de l'ÃƒÂ©diteur (vous)",
++        ],
++    )
++    transcriber_first = _pick(raw, ["Prénom du transcripteur", "PrÃ©nom du transcripteur"], default="")
++    transcriber_last = _pick(raw, ["Nom du transcripteur"], default="")
+ 
+     witnesses_raw = _pick(raw, ["Temoins"], [])
+     witnesses = [
+@@ -113,12 +134,14 @@ def load_config(path: str | Path, reference_override: int | None = None) -> Edit
+ 
+     author = f"{author_first} {author_last}".strip()
+     editor = f"{editor_first} {editor_last}".strip()
++    transcriber = f"{transcriber_first} {transcriber_last}".strip()
+     return EditionConfig(
+         title=title,
+         author=author,
+         editor=editor,
+         witnesses=witnesses,
+         reference_witness=reference_witness,
++        transcriber=transcriber,
+     )
+ 
+ 
+diff --git a/src/ets/tei/generator.py b/src/ets/tei/generator.py
+index 73e5895..31a9ebb 100644
+--- a/src/ets/tei/generator.py
++++ b/src/ets/tei/generator.py
+@@ -184,7 +184,12 @@ def generate_tei_xml(collated: CollatedPlay, config: EditionConfig) -> str:
+     title_stmt = ET.SubElement(file_desc, _tei("titleStmt"))
+     ET.SubElement(title_stmt, _tei("title")).text = config.title
+     ET.SubElement(title_stmt, _tei("author")).text = config.author
+-    ET.SubElement(title_stmt, _tei("editor")).text = config.editor
++    editor = ET.SubElement(title_stmt, _tei("editor"), {"role": "scientific"})
++    editor.text = config.editor
++    if config.transcriber:
++        resp_stmt = ET.SubElement(title_stmt, _tei("respStmt"))
++        ET.SubElement(resp_stmt, _tei("resp")).text = "Transcription"
++        ET.SubElement(resp_stmt, _tei("name"), {"role": "transcriber"}).text = config.transcriber
+ 
+     publication_stmt = ET.SubElement(file_desc, _tei("publicationStmt"))
+     ET.SubElement(publication_stmt, _tei("p")).text = "Generated by Ekdosis TEI Studio v2 core"
+diff --git a/src/ets/ui/tk/dialogs/config_dialog.py b/src/ets/ui/tk/dialogs/config_dialog.py
+index 70168e7..f37856a 100644
+--- a/src/ets/ui/tk/dialogs/config_dialog.py
++++ b/src/ets/ui/tk/dialogs/config_dialog.py
+@@ -1,4 +1,4 @@
+-﻿from __future__ import annotations
++from __future__ import annotations
+ 
+ from dataclasses import dataclass
+ import tkinter as tk
+@@ -40,6 +40,8 @@ class _ConfigVars:
+     title: tk.StringVar
+     editor_first: tk.StringVar
+     editor_last: tk.StringVar
++    transcriber_first: tk.StringVar
++    transcriber_last: tk.StringVar
+ 
+ 
+ class ConfigDialog(tk.Toplevel):
+@@ -53,12 +55,15 @@ class ConfigDialog(tk.Toplevel):
+ 
+         author_first, author_last = _split_name(initial.author if initial else "")
+         editor_first, editor_last = _split_name(initial.editor if initial else "")
++        transcriber_first, transcriber_last = _split_name(initial.transcriber if initial else "")
+         self.vars = _ConfigVars(
+             author_first=tk.StringVar(value=author_first),
+             author_last=tk.StringVar(value=author_last),
+             title=tk.StringVar(value=initial.title if initial else ""),
+             editor_first=tk.StringVar(value=editor_first),
+             editor_last=tk.StringVar(value=editor_last),
++            transcriber_first=tk.StringVar(value=transcriber_first),
++            transcriber_last=tk.StringVar(value=transcriber_last),
+         )
+         self._reference_witness = initial.reference_witness if initial else 0
+ 
+@@ -67,21 +72,23 @@ class ConfigDialog(tk.Toplevel):
+         self.columnconfigure(0, weight=1)
+         self.rowconfigure(0, weight=1)
+         body.columnconfigure(1, weight=1)
+-        body.rowconfigure(5, weight=1)
++        body.rowconfigure(7, weight=1)
+ 
+         self._add_entry(body, 0, "Prénom de l'auteur", self.vars.author_first)
+         self._add_entry(body, 1, "Nom de l'auteur", self.vars.author_last)
+         self._add_entry(body, 2, "Titre de la pièce", self.vars.title)
+-        self._add_entry(body, 3, "Prénom de l'éditeur", self.vars.editor_first)
+-        self._add_entry(body, 4, "Nom de l'éditeur (vous)", self.vars.editor_last)
++        self._add_entry(body, 3, "Prénom de l'éditeur scientifique", self.vars.editor_first)
++        self._add_entry(body, 4, "Nom de l'éditeur scientifique", self.vars.editor_last)
++        self._add_entry(body, 5, "Prénom du transcripteur", self.vars.transcriber_first)
++        self._add_entry(body, 6, "Nom du transcripteur", self.vars.transcriber_last)
+ 
+-        ttk.Label(body, text="Témoins (abbr|year|desc, un par ligne)").grid(row=5, column=0, sticky="nw", padx=(0, 8))
++        ttk.Label(body, text="Témoins (abbr|year|desc, un par ligne)").grid(row=7, column=0, sticky="nw", padx=(0, 8))
+         self.witnesses = tk.Text(body, height=8, width=60, font=("Consolas", 10))
+-        self.witnesses.grid(row=5, column=1, sticky="nsew")
++        self.witnesses.grid(row=7, column=1, sticky="nsew")
+         self.witnesses.insert("1.0", _witnesses_to_lines(initial.witnesses if initial else []))
+ 
+         buttons = ttk.Frame(body)
+-        buttons.grid(row=6, column=0, columnspan=2, sticky="e", pady=(10, 0))
++        buttons.grid(row=8, column=0, columnspan=2, sticky="e", pady=(10, 0))
+         ttk.Button(buttons, text="Annuler", command=self.destroy).grid(row=0, column=0, padx=4)
+         ttk.Button(buttons, text="Valider", command=self._on_validate).grid(row=0, column=1, padx=4)
+ 
+@@ -100,6 +107,7 @@ class ConfigDialog(tk.Toplevel):
+                 editor=f"{self.vars.editor_first.get().strip()} {self.vars.editor_last.get().strip()}".strip(),
+                 witnesses=witnesses,
+                 reference_witness=reference,
++                transcriber=f"{self.vars.transcriber_first.get().strip()} {self.vars.transcriber_last.get().strip()}".strip(),
+             )
+         except ValueError as exc:
+             messagebox.showerror("Configuration invalide", str(exc), parent=self)
+diff --git a/tests/test_config_loader.py b/tests/test_config_loader.py
+index 36c9725..7434f48 100644
+--- a/tests/test_config_loader.py
++++ b/tests/test_config_loader.py
+@@ -1,4 +1,4 @@
+-﻿from __future__ import annotations
++from __future__ import annotations
+ 
+ import json
+ from pathlib import Path
+@@ -48,6 +48,37 @@ def test_load_config_uses_legacy_fallback_key() -> None:
+     assert config.reference_witness == 1
+ 
+ 
++
++
++def test_load_config_keeps_legacy_editor_keys_and_optional_transcriber() -> None:
++    config_path = RUNTIME_DIR / "config_loader_legacy_editor_keys.json"
++    config_path.write_text(
++        json.dumps(_config_payload_with_reference("Témoin de référence", "B"), ensure_ascii=False),
++        encoding="utf-8",
++    )
++
++    config = load_config(config_path)
++
++    assert config.editor == "Clémentine Gheeraert"
++    assert config.transcriber == ""
++
++
++def test_load_config_reads_scientific_editor_and_transcriber_keys() -> None:
++    payload = _config_payload_with_reference("Témoin de référence", "B")
++    payload.pop("Prénom de l'éditeur")
++    payload.pop("Nom de l'éditeur (vous)")
++    payload["Prénom de l'éditeur scientifique"] = "Caroline"
++    payload["Nom de l'éditeur scientifique"] = "Labrune"
++    payload["Prénom du transcripteur"] = "Jeanne"
++    payload["Nom du transcripteur"] = "Martin"
++    config_path = RUNTIME_DIR / "config_loader_scientific_editor_transcriber.json"
++    config_path.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
++
++    config = load_config(config_path)
++
++    assert config.editor == "Caroline Labrune"
++    assert config.transcriber == "Jeanne Martin"
++
+ def test_cli_override_keeps_priority() -> None:
+     config = load_config(ROOT / "fixtures" / "stable" / "config.json", reference_override=0)
+     assert config.reference_witness == 0
+@@ -70,8 +101,10 @@ def test_save_config_writes_canonical_json_without_reference_key() -> None:
+     assert payload["Prénom de l'auteur"] == "Jean"
+     assert payload["Nom de l'auteur"] == "Racine"
+     assert payload["Titre de la pièce"] == "Britannicus"
+-    assert payload["Prénom de l'éditeur"] == "Tony"
+-    assert payload["Nom de l'éditeur (vous)"] == "Gheeraert"
++    assert payload["Prénom de l'éditeur scientifique"] == "Tony"
++    assert payload["Nom de l'éditeur scientifique"] == "Gheeraert"
++    assert payload["Prénom du transcripteur"] == ""
++    assert payload["Nom du transcripteur"] == ""
+     assert payload["Temoins"][0] == {"abbr": "A", "year": "1670", "desc": "Barbin"}
+     assert "Numéro du vers de départ" not in payload
+     assert "Numéro de l'acte" not in payload
+@@ -88,6 +121,7 @@ def test_load_config_after_save_remains_compatible() -> None:
+         editor="Tony Gheeraert",
+         witnesses=[Witness(siglum="A", year="1670", description="Barbin")],
+         reference_witness=0,
++        transcriber="Caroline Labrune",
+     )
+     path = save_config(original, RUNTIME_DIR / "saved.json")
+ 
+@@ -95,6 +129,7 @@ def test_load_config_after_save_remains_compatible() -> None:
+     assert reloaded.title == "Britannicus"
+     assert reloaded.author == "Jean Racine"
+     assert reloaded.editor == "Tony Gheeraert"
++    assert reloaded.transcriber == "Caroline Labrune"
+     assert len(reloaded.witnesses) == 1
+ 
+ 
+diff --git a/tests/test_html_render.py b/tests/test_html_render.py
+index 01de880..ad32e7c 100644
+--- a/tests/test_html_render.py
++++ b/tests/test_html_render.py
+@@ -1,4 +1,4 @@
+-﻿from __future__ import annotations
++from __future__ import annotations
+ 
+ from pathlib import Path
+ 
+@@ -168,7 +168,7 @@ def test_html_export_generates_editorial_shell_and_credits() -> None:
+         for line in doc.xpath("//*[contains(@class, 'bloc-credit')]//*[contains(@class, 'credit-line')]")
+     ]
+     assert "Jean Racine - Andromaque, Acte 1, Scène 1" in credit_lines
+-    assert "Édition critique par Clémentine Gheeraert" in credit_lines
++    assert "Édition scientifique par Clémentine Gheeraert" in credit_lines
+     assert any(line.startswith("Document généré le ") and "Ekdosis-TEI Studio" in line for line in credit_lines)
+     assert any("Télécharger le XML" in line for line in credit_lines)
+     assert doc.xpath("//a[@href='../xml-tei/stable.xml']")
+diff --git a/tests/test_tei_header_config.py b/tests/test_tei_header_config.py
+index 60bb98a..0bf70df 100644
+--- a/tests/test_tei_header_config.py
++++ b/tests/test_tei_header_config.py
+@@ -1,9 +1,10 @@
+-﻿from __future__ import annotations
++from __future__ import annotations
+ 
+ from pathlib import Path
+ import xml.etree.ElementTree as ET
+ 
+ from ets.core import run_pipeline_from_text
++from ets.domain import EditionConfig, Witness
+ from ets.parser import load_config
+ 
+ TEI_NS = {"tei": "http://www.tei-c.org/ns/1.0"}
+@@ -33,3 +34,28 @@ def test_tei_header_keeps_config_metadata_and_clean_listwit_structure() -> None:
+     witnesses = source_desc.findall("tei:listWit/tei:witness", TEI_NS)
+     assert len(witnesses) == len(config.witnesses)
+     assert [w.attrib.get(XML_ID) for w in witnesses] == [w.siglum for w in config.witnesses]
++
++
++def test_tei_header_includes_optional_transcriber_respstmt() -> None:
++    root = Path(__file__).resolve().parents[1]
++    fixture_dir = root / "fixtures" / "stable"
++    input_text = (fixture_dir / "input.txt").read_text(encoding="utf-8")
++    base_config = load_config(fixture_dir / "config.json")
++    config = EditionConfig(
++        title=base_config.title,
++        author=base_config.author,
++        editor="Caroline Labrune",
++        witnesses=base_config.witnesses,
++        reference_witness=base_config.reference_witness,
++        transcriber="Jeanne Martin",
++    )
++
++    tei_xml = run_pipeline_from_text(input_text, config)
++    xml_root = ET.fromstring(tei_xml)
++
++    editor = xml_root.find(".//tei:titleStmt/tei:editor", namespaces=TEI_NS)
++    assert editor is not None
++    assert editor.text == "Caroline Labrune"
++    assert editor.attrib.get("role") == "scientific"
++    assert xml_root.findtext(".//tei:titleStmt/tei:respStmt/tei:resp", namespaces=TEI_NS) == "Transcription"
++    assert xml_root.findtext(".//tei:titleStmt/tei:respStmt/tei:name", namespaces=TEI_NS) == "Jeanne Martin"

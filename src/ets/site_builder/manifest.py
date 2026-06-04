@@ -344,10 +344,10 @@ def _compose_play_navigation(
             )
 
         for front_item in base.front_items:
-            if front_item.kind == "dramatis_personae":
+            if front_item.kind != "dramatis_personae":
                 front_items.append(front_item)
         for front_item in base.front_items:
-            if front_item.kind != "dramatis_personae":
+            if front_item.kind == "dramatis_personae":
                 front_items.append(front_item)
 
         composed.append(replace(base, front_items=tuple(front_items)))

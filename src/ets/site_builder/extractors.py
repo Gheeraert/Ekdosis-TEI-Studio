@@ -613,7 +613,8 @@ def extract_play_entry(xml_path: Path) -> PlayEntry:
         tree,
         ("string(//*[local-name()='teiHeader']//*[local-name()='titleStmt']/*[local-name()='author'][1])",),
     )
-    slug = _slugify(xml_path.stem)
+    slug_source = title if title and _slugify(xml_path.stem) in {"piece", "play", "untitled"} else xml_path.stem
+    slug = _slugify(slug_source)
     scientific_editor = _extract_scientific_editor(tree)
     transcriber = _extract_transcriber(tree)
     divisions = _collect_main_divisions(tree)

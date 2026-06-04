@@ -248,6 +248,57 @@ def test_builder_warns_on_invalid_mapping_without_failing() -> None:
     assert any("notice slug not found" in warning for warning in result.warnings)
 
 
+def test_play_slug_uses_full_title_when_source_filename_is_generic_piece() -> None:
+    base_dir = _runtime_dir("site_builder_play_slug_title")
+    xml_path = base_dir / "piece.xml"
+    xml_path.write_text(
+        """<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0">
+  <teiHeader>
+    <fileDesc>
+      <titleStmt>
+        <title>La Th&#233;ba&#239;de ou les fr&#232;res ennemis</title>
+        <author>Jean Racine</author>
+      </titleStmt>
+      <publicationStmt><p>Test</p></publicationStmt>
+      <sourceDesc><p>Test</p></sourceDesc>
+    </fileDesc>
+  </teiHeader>
+  <text><body><div type="act" n="1"><head>Acte I</head></div></body></text>
+</TEI>
+""",
+        encoding="utf-8",
+    )
+
+    play = extract_play_entry(xml_path)
+
+    assert play.slug == "la-thebaide-ou-les-freres-ennemis"
+
+
+def test_play_slug_keeps_generic_piece_only_when_no_title_is_available() -> None:
+    base_dir = _runtime_dir("site_builder_play_slug_fallback")
+    xml_path = base_dir / "piece.xml"
+    xml_path.write_text(
+        """<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0">
+  <teiHeader>
+    <fileDesc>
+      <titleStmt><author>Jean Racine</author></titleStmt>
+      <publicationStmt><p>Test</p></publicationStmt>
+      <sourceDesc><p>Test</p></sourceDesc>
+    </fileDesc>
+  </teiHeader>
+  <text><body/></text>
+</TEI>
+""",
+        encoding="utf-8",
+    )
+
+    play = extract_play_entry(xml_path)
+
+    assert play.slug == "piece"
+
+
 def test_builder_handles_missing_notice_directory_without_failure() -> None:
     base_dir = _runtime_dir("site_builder")
     dramatic_dir = base_dir / "dramatic_only"

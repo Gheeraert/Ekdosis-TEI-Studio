@@ -85,7 +85,7 @@ def _copy_assets(config: SiteConfig, output_root: Path, warnings: list[str]) -> 
         shutil.copy2(logo, target)
         copied.append(target.resolve())
     banner_target = output_root / "assets" / "logos" / _AFFILIATION_BANNER_FILENAME
-    if not banner_target.exists():
+    if config.assets.logo_files and not banner_target.exists():
         for base in _banner_search_roots(config):
             banner_source = base / "assets" / "logos" / _AFFILIATION_BANNER_FILENAME
             if banner_source.exists() and banner_source.is_file():
@@ -108,11 +108,18 @@ def _copy_assets(config: SiteConfig, output_root: Path, warnings: list[str]) -> 
 
 def _auto_detect_logo_files(config: SiteConfig) -> tuple[Path, ...]:
     start = config.dramatic_xml_dir.resolve()
+    boundary = config.output_dir.resolve().parent
 
     candidates = []
     if start.is_dir():
         candidates.append(start)
-    candidates.extend(start.parents)
+    if boundary in start.parents:
+        for parent in start.parents:
+            candidates.append(parent)
+            if parent == boundary:
+                break
+    elif start.parent != start:
+        candidates.append(start.parent)
 
     for base in candidates:
         logos_dir = base / "assets" / "logos"
@@ -125,7 +132,7 @@ def _auto_detect_logo_files(config: SiteConfig) -> tuple[Path, ...]:
             if (
                     candidate.is_file()
                     and candidate.suffix.lower() in _SUPPORTED_AUTO_LOGO_EXTENSIONS
-                    and candidate.name.lower().startswith("logo_")
+                    and candidate.name != _AFFILIATION_BANNER_FILENAME
                     and "nagscreen" not in candidate.name.lower()
             )
         ]
