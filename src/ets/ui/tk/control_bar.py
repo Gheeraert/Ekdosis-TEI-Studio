@@ -58,7 +58,7 @@ class ControlBar(ttk.Frame):
         for i in range(6):
             self.buttons_frame.columnconfigure(i, weight=0)
 
-        self.validate_button = ttk.Button(self.buttons_frame, text="Valider", command=on_validate)
+        self.validate_button = ttk.Button(self.buttons_frame, text="Valider pièce", command=on_validate)
         self.generate_tei_button = ttk.Button(self.buttons_frame, text="Générer TEI", command=on_generate_tei)
         self.preview_html_button = ttk.Button(self.buttons_frame, text="Aperçu HTML", command=on_preview_html)
         self.export_tei_button = ttk.Button(self.buttons_frame, text="Exporter TEI", command=on_export_tei)
@@ -88,6 +88,9 @@ class ControlBar(ttk.Frame):
 
     def set_config_status(self, value: str) -> None:
         self.config_status.set(value)
+
+    def set_validate_label(self, value: str) -> None:
+        self.validate_button.configure(text=value)
 
     def set_reference_choices(self, witness_sigla: list[str], selected_index: int) -> None:
         self.reference_combo["values"] = witness_sigla

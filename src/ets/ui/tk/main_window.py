@@ -105,7 +105,6 @@ def _numeric_equivalents(token: str) -> set[str]:
             prev = current
     return {value, text, str(total)}
 
-
 class MainWindow(ttk.Frame):
     """Main Tkinter application window for local text workflows."""
 
@@ -205,7 +204,7 @@ class MainWindow(ttk.Frame):
         self.control = ControlBar(
             self,
             on_reference_change=self._on_reference_changed,
-            on_validate=self.action_validate,
+            on_validate=self.action_validate_current_editor,
             on_generate_tei=self.action_generate_tei,
             on_preview_html=self.action_preview_html,
             on_export_tei=self.action_export_tei,
@@ -229,6 +228,8 @@ class MainWindow(ttk.Frame):
 
         self.after_idle(lambda: show_welcome_dialog(self.winfo_toplevel()))
 
+        self._refresh_validate_button_label()
+
     def _on_editor_tab_changed(self, _event: tk.Event[tk.Misc]) -> None:
         if self._is_markdown_mode():
             self._last_editor_mode = "markdown"
@@ -243,6 +244,7 @@ class MainWindow(ttk.Frame):
 
         self._refresh_window_title()
         self._refresh_menu_state()
+        self._refresh_validate_button_label()
 
     def _is_markdown_mode(self) -> bool:
         selected = self.editor_tabs.select()
@@ -251,6 +253,24 @@ class MainWindow(ttk.Frame):
     def _is_transcription_mode(self) -> bool:
         selected = self.editor_tabs.select()
         return bool(selected) and self.editor_tabs.nametowidget(selected) is self.transcription_tab
+
+    def _active_editor_tab_label(self) -> str:
+        selected = self.editor_tabs.select()
+        if not selected:
+            return ""
+        return self.editor_tabs.tab(selected, "text")
+
+    def _refresh_validate_button_label(self) -> None:
+        if self._active_editor_tab_label() == "Dramatis personae":
+            self.control.set_validate_label("Valider dramatis")
+        else:
+            self.control.set_validate_label("Valider pièce")
+
+    def action_validate_current_editor(self) -> None:
+        if self._active_editor_tab_label() == "Dramatis personae":
+            self.action_validate_castlist()
+            return
+        self.action_validate()
 
     def _is_castlist_mode(self) -> bool:
         selected = self.editor_tabs.select()
