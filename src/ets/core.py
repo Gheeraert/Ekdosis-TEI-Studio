@@ -4,14 +4,18 @@ from pathlib import Path
 import xml.etree.ElementTree as ET
 
 from ets.castlist import build_castlist_tei_element, parse_castlist_text, validate_castlist_text
+from ets.characters import characters_from_dramatis_personae
 from ets.collation import collate_play
-from ets.domain import EditionConfig
+from ets.domain import Character, DramatisPersonae, EditionConfig
 from ets.parser import load_config, parse_play
 from ets.tei import generate_tei_xml
 from ets.validation import InputValidationError, validate_input_text, validate_play_structure
 
 
-def _load_castlist_front_element(config: EditionConfig, base_dir: Path | None) -> ET.Element | None:
+def _load_castlist_front_element(
+    config: EditionConfig,
+    base_dir: Path | None,
+) -> tuple[ET.Element, DramatisPersonae] | None:
     if not config.castlist_path.strip():
         return None
     raw_path = Path(config.castlist_path)
@@ -24,7 +28,7 @@ def _load_castlist_front_element(config: EditionConfig, base_dir: Path | None) -
     if report.has_errors:
         raise InputValidationError(report.diagnostics)
     dramatis_personae = parse_castlist_text(text, config)
-    return build_castlist_tei_element(dramatis_personae, config)
+    return build_castlist_tei_element(dramatis_personae, config), dramatis_personae
 
 
 def run_pipeline_from_text(
@@ -48,8 +52,14 @@ def run_pipeline_from_text(
     sigla = [w.siglum for w in config.witnesses]
     collated = collate_play(parsed, witness_sigla=sigla, reference_witness=config.reference_witness)
     base_dir = Path(castlist_base_dir) if castlist_base_dir is not None else None
-    front_element = _load_castlist_front_element(config, base_dir)
-    return generate_tei_xml(collated, config, front_elements=[front_element] if front_element is not None else None)
+    castlist = _load_castlist_front_element(config, base_dir)
+    front_elements: list[ET.Element] | None = None
+    effective_characters: list[Character] = config.characters
+    if castlist is not None:
+        front_element, dramatis_personae = castlist
+        front_elements = [front_element]
+        effective_characters = characters_from_dramatis_personae(dramatis_personae)
+    return generate_tei_xml(collated, config, front_elements=front_elements, characters=effective_characters)
 
 
 def run_pipeline(input_path: str | Path, config_path: str | Path, reference_witness: int | None = None) -> str:

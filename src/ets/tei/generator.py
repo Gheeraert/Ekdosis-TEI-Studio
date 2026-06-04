@@ -12,6 +12,7 @@ from ets.domain import (
     CollatedStanza,
     CollatedStageDirection,
     CollatedText,
+    Character,
     EditionConfig,
     LiteralLine,
     LiteralTokenSegment,
@@ -183,6 +184,7 @@ def generate_tei_xml(
     config: EditionConfig,
     *,
     front_elements: list[ET.Element] | None = None,
+    characters: list[Character] | None = None,
 ) -> str:
     tei = ET.Element(_tei("TEI"))
     tei_header = ET.SubElement(tei, _tei("teiHeader"))
@@ -218,6 +220,7 @@ def generate_tei_xml(
             front.append(element)
     body = ET.SubElement(text, _tei("body"))
     implicit_counter = 0
+    authority_characters = config.characters if characters is None else characters
 
     for act_index, act in enumerate(collated.acts, start=1):
         act_n = str(act_index)
@@ -250,8 +253,8 @@ def generate_tei_xml(
 
             for speech in scene.speeches:
                 sp_attrs: dict[str, str] = {}
-                if config.characters and speech.speaker_readings:
-                    resolution = resolve_speaker_block(speech.speaker_readings, config.characters)
+                if authority_characters and speech.speaker_readings:
+                    resolution = resolve_speaker_block(speech.speaker_readings, authority_characters)
                     if resolution.status == "resolved" and resolution.character_id is not None:
                         sp_attrs["who"] = f"#{resolution.character_id}"
                 sp = ET.SubElement(scene_div, _tei("sp"), sp_attrs)
