@@ -1,230 +1,186 @@
-# AGENTS.md
+# AGENTS.md — instructions for Codex
 
-## Project goal
+Last documentation refresh: 2026-06-05.
 
-This repository is a clean rewrite of **Ekdosis TEI Studio**.
+## 1. Project identity
 
-The project converts a structured plain-text transcription format for **classical French drama with multiple witnesses** into **valid XML-TEI**, with a strong focus on:
-- theatrical structure
-- critical apparatus
-- robustness on difficult edge cases
-- testability
-- future interfaces and publication layers
+Ekdosis-TEI Studio is an editorial tool for critical editions of French classical drama, especially seventeenth-century theatre transmitted by multiple witnesses.
 
-The current objective is **not** to repair the legacy monolithic application.  
-The objective is to build a **new modular system**, starting from a stable TEI core and extending cleanly toward interface and publication services.
+The application lets non-technical editors transcribe texts in a simplified ETS pseudo-markdown format, validate that input, generate canonical XML-TEI, preview the edition in HTML, and prepare publication outputs.
 
-## Priority order of truth sources
+The project is no longer a small proof of concept. It now has several cooperating layers:
 
-When making decisions, use these sources in this order:
+1. input validation;
+2. parsing and domain modeling;
+3. witness collation;
+4. canonical TEI generation;
+5. HTML preview and site publication;
+6. annotation and reference utilities;
+7. Word/Pandoc notice import;
+8. future LaTeX exports for print publication.
 
-1. `fixtures/`  
-   These are the most important source of truth.  
-   They contain real inputs and expected XML outputs.
+## 2. Highest architectural principle
 
-2. `docs/SPEC_V2.md`  
-   This is the functional and architectural specification for the rewrite.
+The generated TEI is the canonical editorial representation.
 
-3. `docs/Documentation_ancienne.md` and other legacy docs  
-   These explain the historical behavior and input conventions.
+All publication outputs must be derived from the canonical TEI whenever possible.
 
-4. `legacy/`  
-   Legacy code is reference material only. Reuse ideas if useful, but do not preserve its architecture.
+Expected pipeline:
 
-5. `docs/ETS_SITE_BUILDER.md` and publication-specific docs  
-   These define the future static publication layer and how dramatic TEI must coexist with other XML editorial sources such as Métopes notices.
+```text
+ETS transcription
+  → validation
+  → parsing / domain model / collation
+  → canonical TEI
+  → HTML preview / static site
+  → LaTeX-Ekdosis for critical dramatic text
+  → standard LaTeX for peritexts
+  → PURH print template
+```
 
-6. `docs/SITE_BUILDER_TARGET.md`  
-   This file defines the next publication target: richer editorial structure, visual quality requirements, legacy inspiration, and phased implementation priorities.
+Do not restore a legacy direct `ETS transcription → LaTeX` pipeline.
+Do not duplicate editorial logic between TEI generation and LaTeX generation.
 
-## Immediate objective
+## 3. Sources of truth, in priority order
 
-Build a minimal, well-tested Python core that can:
+Use these sources in this order:
 
-1. read a plain text input file
-2. parse structural markers such as:
-   - `####...####` for act headers
-   - `###...###` for scene headers
-   - `##...##` for cast on stage
-   - `#...#` for speaker changes
-   - `**...**` for explicit stage directions
-   - `***` for shared verse segmentation
-3. collate parallel witness lines using a reference witness
-4. generate minimal XML-TEI
-5. pass the stable fixture tests
+1. tests and fixtures;
+2. `docs/SPEC_V2.md`;
+3. this file;
+4. focused module docs in `docs/`;
+5. legacy documentation and `legacy/`, as reference material only.
 
-At the same time, keep the architecture open for two later layers:
-- a presentation layer (local desktop UI and/or web UI),
-- a publication layer called **ETS Site Builder**.
+If tests and docs disagree, prefer tests and propose a documentation correction.
+If legacy code and current architecture disagree, prefer current architecture.
 
-## Non-goals for now
+## 4. Current active priorities
+
+### 4.1 Input validation
+
+The validator is the gatekeeper. Invalid ETS pseudo-markdown must be rejected before TEI, HTML, or LaTeX generation.
+
+Key rule: `#` is reserved for ETS markers and must not appear as ordinary transcribed text outside a valid marker.
+
+Valid marker families include:
+
+```text
+#SPEAKER#
+##CAST##
+###SCENE###
+####ACT####
+##### whole-line variant
+##### (lacune)
+#####=12= metered whole-line variant in stanza contexts
+```
+
+Malformed hash markers must remain blocking errors, especially cases like `NOM#`, `######foo`, `##### foo#bar`, and `=12=#####...`.
+
+### 4.2 TEI generation
+
+The TEI generator must preserve editorial structure and mixed XML content:
+
+- acts and scenes;
+- cast-on-stage lists;
+- speakers and speeches;
+- explicit stage directions;
+- implicit stage directions;
+- apparatus entries `<app>`, `<lem>`, `<rdg>`;
+- inline italics;
+- non-breaking spaces;
+- whole-line variants and lacunae;
+- shared verses;
+- stanza and metre data.
+
+For shared verses, prefer the natural TEI solution: fragments of `<l>` with the same verse number and `@part` when needed.
+
+### 4.3 LaTeX outputs
+
+LaTeX output is now an active target, not a remote deferred feature.
+
+There are two distinct LaTeX targets:
+
+1. critical dramatic text: TEI → LaTeX-Ekdosis;
+2. peritexts and paratexts: TEI → standard LaTeX.
+
+Both must be assembled through a shared PURH print layer.
+
+Do not use Ekdosis for ordinary prose notices, introductions, bibliographies, or peritexts unless a task explicitly asks for it.
+
+See `docs/LATEX_EXPORTS.md`.
+
+## 5. Non-goals
 
 Do not:
-- rebuild the old monolithic application,
-- mix UI logic with parsing, collation, or TEI generation,
-- pursue broad feature parity with legacy code before stabilizing the modular core.
 
-Deferred or separately scoped work includes:
-- advanced LaTeX / ekdosis export,
-- full historical feature parity,
-- large-scale publication polish beyond the first documented scope.
+- reintroduce the legacy monolithic architecture;
+- put parsing, collation, TEI generation, UI code, and publication code in the same module;
+- patch generated HTML, TEI, or LaTeX to compensate for invalid input;
+- silently normalize editorial data that should remain semi-diplomatic;
+- make Codex fix broad unrelated issues in the same patch;
+- change public ETS syntax without updating tests and documentation.
 
-UI work and publication work are allowed **only as separate layers on top of the core**.
+## 6. Coding rules
 
-## Architectural rules
+Prefer small, reviewable patches.
 
-- No global mutable state
-- No monolithic script
-- Separate:
-  - parsing
-  - domain model
-  - collation
-  - TEI generation
-  - validation
-  - application/services
-  - UI
-  - publication rendering
-- Use typed Python
-- Prefer dataclasses for domain objects
-- Keep functions small and testable
-- Avoid hidden side effects
+Keep layers separate:
 
-## Editorial publication perspective
+```text
+src/ets/validation     input validation
+src/ets/parser         ETS parsing
+src/ets/domain         internal model
+src/ets/collation      witness collation
+src/ets/tei            TEI generation
+src/ets/html           HTML preview/rendering
+src/ets/site_builder   static publication
+src/ets/ui/tk          Tkinter interface
+src/ets/application    service orchestration
+```
 
-Beyond TEI generation, the project is expected to support a second autonomous module called **ETS Site Builder**.
+A future LaTeX layer should be separate, for example:
 
-Its role is to generate a complete static scholarly website from editorial XML sources.
+```text
+src/ets/latex/
+  ekdosis_from_tei.py
+  standard_from_tei.py
+  escaping.py
+  templates.py
+```
 
-This publication layer must be designed to work with two complementary TEI source families:
+Exact names may vary, but the separation must remain.
 
-1. **dramatic TEI generated by ETS** from the structured plain-text transcription workflow;
-2. **paratextual TEI notices produced with Métopes** for each play.
+## 7. Testing rules
 
-Each play may therefore have:
-- one dramatic TEI source for the edited text,
-- one separate TEI notice source for scholarly paratexts.
+Every functional change needs tests.
 
-These two sources must be treated as distinct editorial objects and must not be collapsed into a single internal representation too early.
+For LaTeX restoration, use fixtures of the form:
 
-The site builder should eventually be able to:
-- associate one play TEI with one notice TEI,
-- support one general notice independent from the plays,
-- extract metadata from all editorial sources,
-- generate navigation automatically,
-- publish a static site without manual menu maintenance,
-- persist and reload publication configuration from the UI.
+```text
+tests/fixtures/latex/ekdosis/<case>/input.xml
+tests/fixtures/latex/ekdosis/<case>/expected.tex
+```
 
-## Visual publication requirements
+Start with minimal deterministic cases before using complete acts or plays.
 
-ETS Site Builder is no longer allowed to settle for purely functional placeholder rendering.
+Do not compare large generated documents too early if a smaller structural test would be clearer.
 
-When publication pages are implemented or revised, contributors must pay attention not only to correctness but also to **editorial legibility, hierarchy, sobriety, and elegance**.
+## 8. Legacy material
 
-The intended public is not a technical audience alone. It includes literary scholars, editors, readers accustomed to high-quality critical editions, and users who will immediately perceive visual awkwardness, clumsy spacing, weak hierarchy, or degraded typographic rendering.
+Legacy code may be mined for:
 
-Therefore:
-- reuse the real ETS XML -> HTML rendering engines when they already exist;
-- do not replace them with poor preview-like approximations;
-- do not accept a layout that is merely “working” if it visibly harms reading quality;
-- treat navigation, spacing, hierarchy, and typographic rhythm as part of correctness for the publication layer;
-- use legacy publication outputs as inspiration, not as architecture to copy.
+- Ekdosis macro conventions;
+- escaping rules;
+- successful examples;
+- expected output syntax;
+- old user-visible behavior.
 
-## Expected repository structure
+Legacy code must not dictate architecture.
 
-- `src/ets/domain/` for domain model
-- `src/ets/parser/` for parsing input text
-- `src/ets/collation/` for tokenization and variant alignment
-- `src/ets/tei/` for TEI generation
-- `src/ets/validation/` for structural and XML validation
-- `src/ets/application/` for service-layer entry points
-- `src/ets/ui/` for desktop or web UI glue
-- `src/ets/site_builder/` for static publication services
-- `src/ets/tools/` for autonomous utility tools
-- `tests/` for pytest test suite
-- `fixtures/` for real inputs and expected outputs
-- `legacy/` for archived historical code and publication references
-- `docs/ETS_SITE_BUILDER.md` for publication architecture
-- `docs/SITE_BUILDER_TARGET.md` for the next publication target and phased roadmap
+## 9. User profile reminder for interface decisions
 
-## Testing rules
+ETS is used by literary scholars, students, and editors who may not know TEI, LaTeX, Git, Python, or digital humanities markup.
 
-- Use `pytest`
-- Prefer real fixtures over artificial examples
-- Add regression tests for every bug fixed
-- The first target is to pass the stable fixture exactly or with a documented XML normalization strategy
-- Keep unit tests and integration tests separate
-- For publication work, include structural HTML assertions and, where appropriate, targeted visual/UX regression checks
+UI and diagnostics must remain explicit, calm, and actionable.
 
-## TEI principles
-
-Target output should be a clean TEI theatrical structure, progressively improved over time.
-
-At minimum, support:
-- TEI root and header
-- witness list
-- act and scene divisions
-- speeches
-- verse lines
-- stage directions
-- critical apparatus using lemma + readings
-
-The reference witness is the lemma witness.
-
-## Legacy code policy
-
-Legacy code is available only as a fallback source of logic.
-Do not extend the old architecture.
-Do not copy large chunks blindly.
-Prefer reimplementation from specification and fixtures.
-
-Legacy publication outputs and legacy deployed sites may, however, be used as **visual and editorial reference material**.
-They are valuable for:
-- layout hierarchy,
-- menu logic,
-- collapsible navigation ideas,
-- color and typographic tone,
-- identifying what a literary editorial public will expect.
-
-## How to work
-
-When implementing:
-1. inspect the fixture
-2. infer the minimal structure needed
-3. implement the smallest coherent slice
-4. add or update tests
-5. keep the code modular
-6. for publication/UI work, verify the actual reading experience, not just machine correctness
-
-When uncertain, prefer:
-- fixture behavior
-- explicit domain modeling
-- simplicity
-- deterministic output
-- existing ETS rendering engines over approximations
-
-
-## Environnement Python
-
-Le projet utilise le venv local suivant :
-
-`C:\ETS_1juin\.venv`
-
-Ne pas utiliser `pytest` directement.
-
-Pour lancer Python, utiliser :
-
-`C:\ETS_1juin\.venv\Scripts\python.exe`
-
-Pour lancer les tests, utiliser toujours :
-
-`C:\ETS_1juin\.venv\Scripts\python.exe -m pytest`
-
-Avant de conclure que pytest est absent, vérifier avec :
-
-`C:\ETS_1juin\.venv\Scripts\python.exe -m pip show pytest`
-
-## Validation
-
-Après toute modification du code Python, lancer :
-
-`C:\ETS_1juin\.venv\Scripts\python.exe -m pytest`
+A blocking error should explain what is wrong in the transcription, not expose internal implementation details.

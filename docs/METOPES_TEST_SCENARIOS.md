@@ -1,47 +1,46 @@
-# Scénarios de test conseillés pour ETS Site Builder
+# Scénarios de test Métopes / notices
 
-## Niveau 1 — fixtures minimales
+Dernière mise à jour documentaire : 5 juin 2026.
 
-### Détection du volume maître
-- charger `Metopes_Test_Book.xml`
-- vérifier que le document est reconnu comme un volume de type `book`
-- vérifier que la navigation principale n'est pas vide
+## 1. Objet
 
-### Extraction des chapitres
-- détecter l'introduction
-- détecter le chapitre à sections hiérarchisées
-- détecter la bibliographie
+Ce fichier rassemble des scénarios de test pour l’import et le rendu des notices ou péritextes issus d’une chaîne Word/Pandoc/Métopes-compatible.
 
-### Extraction des titres
-- titre principal du volume
-- sous-titre du volume
-- titre d'introduction
-- titre du chapitre
-- titres imbriqués `section1 / section2 / section3`
+## 2. Tests minimaux
 
-### Rendu HTML minimal
-- génération d'une page d'accueil
-- génération d'une page de chapitre
-- génération d'une page d'introduction
-- présence visible des titres
-- présence visible d'au moins une note
-- présence visible d'un passage en italique
+Vérifier :
 
-## Niveau 2 — fixtures réalistes
+- chargement d’un document simple ;
+- extraction du titre ;
+- extraction des auteurs si présents ;
+- sections et sous-sections ;
+- paragraphes ;
+- italiques ;
+- notes ;
+- listes ;
+- citations simples ;
+- bibliographie simple si disponible.
 
-### Volume maître réel
-- charger `Heraldique_et_Papaute_volII.xml`
-- vérifier la détection de `group type="book"`
-- vérifier la prise en compte des `xi:include`
-- vérifier la détection des grands ensembles (`introduction`, `section1`, `bibliography`, etc.)
+## 3. Tests d’intégration site
 
-### Introduction réelle
-- charger `Ch01_Introduction.xml`
-- vérifier l'extraction du titre principal
-- vérifier l'extraction de l'auteur
-- vérifier la présence de notes de bas de page
-- vérifier la présence d'italiques
+Vérifier qu’une notice peut être :
 
-### Robustesse
-- vérifier qu'un build sans résolution complète de tous les `xi:include` échoue proprement ou dégrade proprement, selon la stratégie retenue
-- vérifier que le rendu ne casse pas en présence de métadonnées incomplètes
+- attachée à une pièce ;
+- affichée avant le texte dramatique ;
+- intégrée dans la navigation ;
+- publiée dans un site statique ;
+- séparée du dramatis personae.
+
+## 4. Tests futurs LaTeX
+
+Vérifier qu’une notice TEI peut être exportée en LaTeX standard :
+
+- `\section` ;
+- `\subsection` ;
+- paragraphes ;
+- notes ;
+- italiques ;
+- citations ;
+- bibliographie.
+
+Ne pas utiliser Ekdosis pour ces tests.

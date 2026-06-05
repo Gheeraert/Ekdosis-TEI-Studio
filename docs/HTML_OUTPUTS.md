@@ -1,141 +1,87 @@
-# Sorties HTML V2
+# Sorties HTML
 
-## Objectif
+Dernière mise à jour documentaire : 5 juin 2026.
 
-La V2 fournit deux sorties HTML distinctes à partir du même TEI :
+## 1. Objet
 
-1. **Preview HTML rapide**
-2. **Export HTML publiable (base)**
+Les sorties HTML servent à deux usages :
 
-Cette séparation permet de garder un rendu éditeur immédiat, tout en préparant une sortie plus stable pour la publication.
+1. prévisualisation locale dans l’interface ;
+2. publication statique via ETS Site Builder.
 
-Les sorties HTML doivent désormais aussi pouvoir prendre en compte une première couche de **notes éditoriales**, lorsque le TEI en contient.
+Dans les deux cas, le HTML doit être dérivé de la TEI canonique.
 
-## Preview HTML rapide
+## 2. Prévisualisation rapide
 
-- Fonction : `render_html_preview_from_tei(tei_xml: str) -> str`
-- Module : `src/ets/html/transform.py`
-- Mecanisme : transformation XSLT via fichier externe `tei-vers-html.xsl`
-- But : affichage direct des elements editoriaux principaux (acte/scene, locuteurs, vers, variantes, didascalies)
+La prévisualisation doit afficher de façon lisible :
 
-La preview doit rester simple et robuste, sans habillage portail complexe.
+- le titre ;
+- les crédits disponibles ;
+- les actes ;
+- les scènes ;
+- les personnages présents si disponibles ;
+- les locuteurs ;
+- les vers ;
+- les didascalies ;
+- les variantes ;
+- les lacunes ;
+- les italiques ;
+- les strophes si présentes.
 
-Si le TEI contient des notes éditoriales, la preview doit afficher des appels de note lisibles ainsi qu’un rendu simple du contenu des notes.
+## 3. Variantes
 
-Si le contenu des annotations utilise la syntaxe Markdown limitée documentée pour V1, ce contenu doit d’abord avoir été converti en TEI au moment de l’enrichissement. La preview HTML ne doit pas interpréter du Markdown brut à l’intérieur des `<note>`.
+Les variantes doivent pouvoir être consultées au survol ou via un dispositif équivalent.
 
-## Export HTML publiable (base)
+Les infobulles doivent afficher les témoins et, si disponible, leurs années ou descriptions.
 
-- Fonction : `render_html_export_from_tei(tei_xml: str, xml_href: str | None = None, options: HtmlExportOptions | None = None) -> str`
-- Module : `src/ets/html/render.py`
-- Mecanisme :
-  - reutilise la preview XSLT comme couche de rendu du texte
-  - ajoute un habillage HTML complet et un bloc de credits
-  - permet d'ajouter un lien vers le XML source (`xml_href`)
+Si une année disparaît du tooltip, vérifier d’abord :
 
-Cette sortie est une base publiable et extensible. Elle n'est pas encore un clone du portail editorial final.
-Elle ne cherche pas, a ce stade, a reproduire la structure complete de `fixtures/html_reference/britannicus_AI_S1_of4.html`.
+- la configuration des témoins ;
+- le `teiHeader` ;
+- le mapping abréviation → description ;
+- la validité du XML.
 
-Lorsque le TEI contient des notes éditoriales, l’export HTML doit les préserver.
-Pour cette V1, un rendu simple et stable suffit : notes de fin, notes de bas de page simples, ou bloc de notes en fin de scène / fin de document.
-Aucun dispositif interactif complexe n’est requis à ce stade.
+## 4. Crédits
 
-Si le contenu des annotations emploie la syntaxe Markdown limitée autorisée en V1, cette syntaxe doit déjà avoir été convertie en TEI pendant l’enrichissement des notes. L’export HTML doit consommer la structure TEI obtenue, et non tenter de rendre directement du Markdown brut.
+Ne pas afficher `type: dramatic_TEI` comme crédit public.
 
-## Enveloppe editoriale export (niveau actuel)
+Afficher si disponibles :
 
-L'export ajoute maintenant une structure de page proche de la reference editoriale :
+```text
+Éditeur scientifique : ...
+Transcripteur : ...
+```
 
-- `div#container`
-- `aside#menu-lateral` (optionnel)
-- `main`
-- `div#header` (optionnel)
-- bloc credits
-- `section#contenu-editorial` (contenu transforme depuis la preview XSLT)
-- `div#footer` (optionnel)
+Les champs vides sont ignorés.
 
-Le menu/header/footer restent volontairement simples a ce stade pour preparer une integration future.
-L'export adapte aussi la mise en page :
+## 5. Didascalies implicites
 
-- menu present : grille a deux colonnes
-- menu absent : grille mono-colonne sans espace lateral vide
+Les didascalies implicites peuvent être rendues discrètement mais doivent rester repérables.
 
-## Configuration simple de l'habillage
+Elles ne doivent pas perturber l’alignement du texte dramatique.
 
-`HtmlExportOptions` permet de parametrer legerement l'enveloppe :
+## 6. Site statique
 
-- `document_title`
-- `css_href`
-- `script_srcs`
-- `include_menu`, `include_header`, `include_footer`
-- `menu_placeholder`
-- `header_html`, `footer_html`
+Le site statique doit articuler :
 
-## Qualite typographique (passe courte)
+- notices ;
+- préfaces ;
+- dramatis personae ;
+- texte dramatique ;
+- navigation actes/scènes.
 
-La passe actuelle corrige les libelles export en francais :
+Le rendu dramatique HTML du site ne doit pas réimplémenter une logique différente de la prévisualisation sans raison forte.
 
-- `Scène`
-- `Édition critique par`
-- `Document généré le`
-- `Télécharger le XML`
+## 7. Tests recommandés
 
-Cette amelioration reste volontairement sobre et n'ouvre pas de chantier editorial plus large.
+Tester au minimum :
 
-## Notes éditoriales (V1)
-
-Les notes éditoriales constituent une couche distincte de la transcription source.
-
-En conséquence :
-
-- elles ne sont pas saisies dans `input.txt`
-- elles sont injectées dans le TEI après génération
-- les sorties HTML doivent les rendre de façon lisible si elles sont présentes
-
-Pour cette première version, un rendu simple est acceptable :
-
-- appel de note discret dans le texte ;
-- note affichée en bas de document ;
-- ou note affichée en fin de scène.
-
-L’objectif n’est pas encore de produire un appareil critique HTML richement interactif, mais d’assurer la continuité :
-annotation -> TEI enrichi -> HTML lisible.
-
-## Markdown des annotations (V1)
-
-Le contenu des annotations peut utiliser une syntaxe Markdown limitée, documentée dans `docs/ANNOTATION_MARKDOWN_V1.md`.
-
-Cette syntaxe n’est pas le modèle canonique des sorties HTML.
-Le modèle canonique reste le **TEI enrichi**.
-
-La chaîne attendue est donc :
-
-- saisie d’une annotation avec une syntaxe Markdown limitée ;
-- conversion de cette syntaxe vers le TEI pendant l’enrichissement des annotations ;
-- rendu HTML à partir du TEI obtenu.
-
-En particulier :
-
-- les sorties HTML ne doivent pas dépendre d’un parseur Markdown généraliste ;
-- elles doivent consommer des éléments TEI structurés comme `<p>`, `<hi>`, `<ref>` ;
-- un balisage Markdown mal formé doit rester du texte littéral si la conversion en TEI n’a pas pu être faite proprement.
-
-## Role de `tei-vers-html.xsl`
-
-- `tei-vers-html.xsl` est la feuille de transformation principale pour le rendu TEI -> HTML.
-- Elle est chargee depuis le fichier du depot (pas de XSLT embarquee en chaine Python).
-- Les evolutions doivent privilegier de petits ajustements compatibles avec le TEI reel produit par le moteur.
-
-## Statut de `fixtures/html_reference/britannicus_AI_S1_of4.html`
-
-Le fichier `fixtures/html_reference/britannicus_AI_S1_of4.html` est une **reference de structure**.
-
-- Ce n'est pas une golden fixture a reproduire au caractere pres.
-- Les tests HTML verifient des proprietes structurelles et semantiques (presence d'elements/classes/contenu utile), pas une stricte egalite textuelle.
-- L'export actuel s'en rapproche sur l'ossature, mais pas encore sur tous les details de portail (scripts, menu dynamique, theme complet).
-
-## `teiHeader` vs `metadonnees`
-
-- Le **header canonique** reste `teiHeader`.
-- Le bloc optionnel `metadonnees` est un support de presentation HTML.
-- Cette distinction doit rester explicite dans le code et la documentation.
+- un vers simple ;
+- une variante locale ;
+- une variante de ligne entière ;
+- une lacune ;
+- un changement de locuteur ;
+- un vers partagé ;
+- une didascalie ;
+- un tooltip avec année ;
+- un bloc de crédits avec éditeur/transcripteur.

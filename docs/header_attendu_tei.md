@@ -1,96 +1,63 @@
-# En-tête TEI attendu pour la génération HTML
+# En-tête TEI et crédits de prévisualisation
 
-## 1. Distinguer deux choses
+Dernière mise à jour documentaire : 5 juin 2026.
 
-Il faut distinguer clairement deux niveaux.
+## 1. Deux niveaux à distinguer
 
-### A. Le vrai en-tête TEI (`teiHeader`)
-C'est lui qui appartient au document TEI canonique. Il doit être présent dans le XML produit.
+ETS doit distinguer :
 
-### B. Le bloc de crédits de prévisualisation (`metadonnees`)
-Ce bloc n'appartient pas au `teiHeader`. Il sert uniquement à l'affichage HTML dans la feuille XSLT actuelle.
-Il peut rester **optionnel** pour ne pas compliquer inutilement la TEI de base.
+1. le vrai `teiHeader`, qui appartient à la TEI canonique ;
+2. les blocs de crédits affichés dans les sorties HTML ou LaTeX.
 
----
+Ne pas confondre les deux.
 
-## 2. Structure minimale attendue du document
+## 2. Métadonnées éditoriales importantes
 
-```xml
-<TEI xmlns="http://www.tei-c.org/ns/1.0">
-  <teiHeader>
-    <fileDesc>
-      <titleStmt>
-        <title>...</title>
-        <author>...</author>
-        <editor>...</editor>
-      </titleStmt>
-      <publicationStmt>
-        <publisher>Presses de l'Université de Rouen et du Havre</publisher>
-        <pubPlace>Rouen</pubPlace>
-        <date>...</date>
-      </publicationStmt>
-      <sourceDesc>
-        <p>généré par Ekdosis-TEI Studio – Acte X, Scène Y</p>
-      </sourceDesc>
-    </fileDesc>
-  </teiHeader>
+La configuration peut contenir notamment :
 
-  <!-- optionnel : seulement pour le rendu HTML -->
-  <metadonnees>
-    <credit>...</credit>
-    <credit>...</credit>
-  </metadonnees>
+- titre de l’œuvre ;
+- acte ou scène courante ;
+- auteur ;
+- éditeur scientifique ;
+- transcripteur ;
+- témoins ;
+- année ou description des témoins ;
+- témoin de référence.
 
-  <text>
-    <body>
-      ...
-    </body>
-  </text>
-</TEI>
+L’éditeur scientifique et le transcripteur sont facultatifs.
+S’ils sont vides, les sorties ne doivent pas afficher de ligne vide.
+
+## 3. Bloc de crédits attendu dans les rendus
+
+Dans le bloc de crédits visible, ne plus afficher `type: dramatic_TEI`.
+
+Afficher plutôt, si les champs existent :
+
+```text
+Éditeur scientifique : Prénom Nom
+Transcripteur : Prénom Nom
 ```
 
----
+Si l’un des champs est absent ou vide, ne rien afficher pour ce champ.
 
-## 3. Contraintes à documenter explicitement
+## 4. Témoins
 
-- La racine doit être `TEI` dans l'espace de noms TEI.
-- `teiHeader` doit précéder `text`.
-- `fileDesc` doit contenir au minimum `titleStmt`, `publicationStmt`, `sourceDesc`.
-- `titleStmt` doit contenir au moins :
-  - `title`
-  - `author`
-  - `editor`
-- `publicationStmt` doit contenir au moins :
-  - `publisher`
-  - `pubPlace`
-  - `date`
-- `sourceDesc/p` doit indiquer au minimum le contexte de génération, par exemple acte et scène.
-- `text/body` reste la zone canonique du texte édité.
+Les identifiants de témoins doivent rester stables et cohérents entre :
 
----
+- TEI ;
+- HTML ;
+- infobulles ;
+- futurs exports LaTeX-Ekdosis.
 
-## 4. Ce que la feuille XSLT attend en plus aujourd'hui
+Dans la TEI, les témoins sont typiquement référencés par `#A`, `#B`, etc.
 
-Pour le rendu HTML actuel, la feuille XSLT exploite surtout :
+Dans Ekdosis, ces témoins seront probablement rendus sous la forme `A`, `B`, etc., dans `wit={...}`.
 
-- `metadonnees/credit` pour le cartouche de crédits ;
-- `text/body` pour le texte ;
-- `stage[@type='DI']` pour les didascalies implicites ;
-- `stage[@type='personnages']` ou `stage[@type='characters']` pour la liste des personnages ;
-- `app/lem/rdg` pour les variantes.
+## 5. Règle de prudence
 
-Autrement dit :
+Toute modification du header ou des crédits doit être testée sur :
 
-- le **XML canonique** repose sur `teiHeader` ;
-- le **rendu HTML actuel** repose aussi sur un bloc auxiliaire `metadonnees`.
-
----
-
-## 5. Recommandation simple pour la suite
-
-La solution la plus prudente est la suivante :
-
-1. conserver le `teiHeader` comme structure canonique obligatoire ;
-2. conserver `metadonnees` comme bloc optionnel de confort pour l'aperçu HTML ;
-3. documenter noir sur blanc que `metadonnees` n'est pas le vrai en-tête TEI mais un bloc de présentation ;
-4. à plus long terme, faire dériver ce cartouche HTML directement du `teiHeader` pour éviter la redondance.
+- une configuration avec éditeur scientifique seul ;
+- une configuration avec transcripteur seul ;
+- une configuration avec les deux ;
+- une configuration avec les deux champs vides.

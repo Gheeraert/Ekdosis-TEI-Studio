@@ -1,347 +1,215 @@
-# SPEC_V2.md
-
-## 1. Purpose of this specification
-
-This document defines the target behavior and architecture of the rewrite of **Ekdosis TEI Studio**.
-
-It is the main functional specification for the modular system.
-
-The rewrite should:
-- parse a structured plain-text editorial format;
-- collate multiple witnesses;
-- produce XML-TEI;
-- expose thin service-layer entry points;
-- support UI layers without mixing them with business logic;
-- support a static publication layer able to publish edited texts and scholarly notices.
-
-## 2. Foundational principles
-
-### 2.1 Separation of responsibilities
+# SPEC_V2.md — spécification fonctionnelle actuelle
+
+Dernière mise à jour documentaire : 5 juin 2026.
+
+Ce fichier conserve son nom historique `SPEC_V2.md` pour ne pas casser les références existantes, mais il décrit l’état cible actuel du projet.
+
+## 1. Objet
+
+Ekdosis-TEI Studio transforme une transcription ETS en TEI canonique, puis dérive différents rendus et exports de cette TEI.
+
+Le système doit rester modulaire, testable et utilisable par des éditeurs non techniciens.
+
+## 2. Principe cardinal
+
+La TEI est la source canonique des sorties éditoriales.
+
+```text
+ETS transcription
+  → validation
+  → parsing
+  → modèle interne
+  → collation
+  → TEI canonique
+  → HTML / site / LaTeX
+```
+
+Aucune sortie de publication ne doit reconstituer sa propre logique éditoriale à partir du texte brut si la TEI contient déjà l’information nécessaire.
+
+## 3. Couches du système
+
+Les responsabilités doivent rester séparées :
+
+| Couche | Rôle |
+|---|---|
+| validation | refuser le pseudo-markdown ETS invalide |
+| parser | transformer les lignes en structures dramatiques |
+| domain | représenter les objets éditoriaux internes |
+| collation | comparer les témoins et produire les variantes |
+| TEI | générer la représentation canonique |
+| HTML | prévisualiser ou publier depuis la TEI |
+| site builder | construire un site statique complet |
+| notice import | convertir des notices Word/Pandoc vers TEI |
+| annotations | gérer les notes éditoriales |
+| références | gérer citations et bibliographie |
+| LaTeX | produire les sorties imprimées depuis la TEI |
+| UI Tk | orchestrer les services sans logique métier lourde |
+
+## 4. Syntaxe ETS supportée
 
-The system must keep distinct layers for:
-- parsing;
-- domain model;
-- collation;
-- TEI generation;
-- validation;
-- application/service orchestration;
-- UI;
-- publication rendering;
-- autonomous editorial utilities.
-
-No major feature should be implemented by collapsing these layers into one script.
+Le validateur et le parseur doivent traiter au minimum :
+
+```text
+####...####                  actes
+###...###                    scènes
+##...##                      personnages présents
+#...#                        locuteurs
+**...**                      didascalies explicites
+***                          segments de vers partagés
+#####...                     variantes de ligne entière
+##### (lacune)               lacunes
+_..._                        italiques
+~                            espace insécable ou retrait manuel
+$$TYPE$$ ... $$fin$$         didascalies implicites
+%%strophe ...%%              strophes lyriques
+%%fin_strophe%%              fin de strophe
+=02= à =12=                  indication métrique en strophe
+```
 
-### 2.2 Determinism
+## 5. Validation d’entrée
 
-Given the same inputs and the same configuration, the system must produce the same output.
+Le validateur est bloquant.
 
-This applies to:
-- TEI generation;
-- XML merge tools;
-- text merge tools;
-- site publication builds;
-- generated navigation;
-- asset copying;
-- output file structure.
-
-### 2.3 Editorial realism
-
-The rewrite is not only a technical cleanup. It is intended for real scholarly editorial work.
-
-Therefore, the specification must account for:
-- difficult dramatic edge cases;
-- editorial paratexts;
-- repeated publication workflows;
-- visual quality expected by literary scholars and editors.
-
-For the publication layer in particular, structural correctness alone is not enough. The rendered result must also be readable, hierarchically clear, typographically decent, and worthy of an audience accustomed to high-quality editions.
-
-## 3. Core text input model
+Il ne corrige pas silencieusement la transcription.
+Il empêche une entrée malade de parvenir à la génération TEI.
 
-### 3.1 Plain-text transcription syntax
-
-The parser must support, at minimum:
-- `####...####` for act headers;
-- `###...###` for scene headers;
-- `##...##` for cast on stage;
-- `#...#` for speaker changes;
-- `**...**` for explicit stage directions;
-- `***` for shared verse segmentation;
-- `#####` for whole-line variant mode;
-- `$$TYPE$$ ... $$fin$$` for implicit stage direction spans;
-- `_..._` for italic text;
-- `~` for bound/non-breaking spacing.
-
-### 3.2 Domain model expectation
+Règles importantes :
 
-The internal domain model must represent:
-- play;
-- act;
-- scene;
-- cast list;
-- speech;
-- verse or prose unit;
-- stage direction;
-- shared verse segment;
-- witness-aligned textual units.
-
-The model should make difficult editorial cases explicit rather than hiding them in formatting tricks.
-
-## 4. Parsing requirements
-
-The parser must:
-- read structured plain-text inputs;
-- detect dramatic hierarchy;
-- preserve order;
-- preserve witness-line grouping;
-- expose structured parsed objects;
-- remain independent from TEI serialization and UI logic.
-
-## 5. Collation requirements
+- `#` est réservé au balisage ETS ;
+- tout `#` isolé ou mal équilibré est invalide ;
+- les formes `NOM#`, `######foo`, `##### foo#bar` sont invalides ;
+- `#####=12=...` est valide en contexte métrique ;
+- `=12=#####...` est invalide ;
+- `#####=12=(lacune)` est valide ;
+- un marqueur de strophe doit être fermé ;
+- les bornes de didascalie implicite doivent être équilibrées.
 
-The collation subsystem must be separable into:
-- tokenization;
-- alignment;
-- apparatus construction.
+Les diagnostics doivent être clairs, localisables et exploitables dans l’interface.
 
-The reference witness is the lemma witness.
+## 6. TEI dramatique cible
 
-A first implementation may provide minimal alignment and apparatus generation, but the design must remain open to:
-- whole-line variants;
-- lacunae;
-- shared verses;
-- partial rewritings;
-- difficult segment boundaries.
-
-## 6. TEI generation requirements
-
-### 6.1 Minimal first milestone
-
-The first milestone may generate a minimal but valid TEI output.
-
-At minimum, it should support:
-- TEI root and header;
-- witness list;
-- act and scene divisions;
-- speeches;
-- verse lines;
-- stage directions;
-- critical apparatus with lemma + readings.
-
-### 6.2 Ongoing principle
-
-TEI output should be structurally clean and progressively improved over time.
-
-The TEI layer must not:
-- perform UI work;
-- depend on global mutable state;
-- absorb ad hoc publication styling;
-- make layout decisions unrelated to XML semantics.
-
-## 7. Application/service layer requirements
-
-The application layer must provide thin orchestration services for:
-- TEI generation workflows;
-- site publication workflows;
-- dramatic TEI merge workflows;
-- transcription text merge workflows;
-- future reusable UI entry points.
-
-These services should:
-- accept typed requests or normalized config payloads;
-- return structured results;
-- surface warnings and errors cleanly;
-- remain independent from Tkinter details.
-
-## 8. UI requirements
-
-UI code must remain thin.
-
-It may:
-- collect user input;
-- build request objects;
-- call services;
-- display success/warning/error feedback.
-
-It must not:
-- implement parsing logic;
-- implement TEI merge logic;
-- implement publication rendering logic;
-- duplicate service normalization.
-
-## 9. Publication requirements: ETS Site Builder
-
-### 9.1 Editorial inputs
-
-The site publication layer must support at least two source families:
-- dramatic TEI produced by ETS;
-- scholarly notice-like TEI produced with Métopes or a compatible editorial subset.
-
-For a given site, the model must be able to support:
-- one dramatic TEI per play as the preferred publication unit;
-- one per-play scholarly notice where applicable;
-- one or more per-play author prefaces where applicable;
-- one general notice independent from the plays;
-- optional static institutional/editorial pages;
-- assets such as logos and visual files.
-
-### 9.2 Play-level editorial structure
-
-For publication purposes, the system must treat a play as a structured editorial object.
-
-A play publication may contain:
-- the dramatic text;
-- one scholarly notice attached to the play;
-- one or more author prefaces attached to the play;
-- one dramatis personae block;
-- acts and scenes inside the dramatic text.
-
-The distinction between these elements must remain explicit in the publication model.
-
-In particular:
-- a scholarly notice is an editorial paratext of the modern edition;
-- an author preface is an authorial paratext and must not be silently collapsed into the same role as a scholarly notice;
-- a dramatis personae block belongs to dramatic front matter, not to notice rendering.
-
-### 9.3 Publication configuration
-
-The publication workflow must support explicit configuration of:
-- site identity;
-- editorial context;
-- dramatic inputs;
-- notice-like inputs;
-- play ordering;
-- play -> notice associations;
-- play -> preface association(s);
-- assets;
-- output directory;
-- publication switches.
-
-This configuration must be persistable and reloadable from the UI so a site can be regenerated repeatedly after corrections.
-
-### 9.4 Publication structure target
-
-The target site structure is expected to evolve toward:
-- a rich home page explaining the project, the corpus, the team, and the institutional context;
-- an optional general notice independent from the plays;
-- for each play: a reading page for the dramatic text, plus optional play-level paratexts;
-- act/scene navigation under each play;
-- coherent global navigation.
-
-At the play level, the target order is:
-1. notice of the play, if present;
-2. author preface(s), if present;
-3. dramatis personae, if present;
-4. dramatic text structured by acts and scenes.
-
-### 9.5 Rendering requirements
-
-For dramatic texts:
-- the site builder must reuse the real ETS XML -> HTML rendering engine whenever available;
-- it must not replace the canonical rendering with a poor local approximation;
-- act/scene anchors may be injected or aligned after rendering, but the dramatic HTML engine remains the source of truth;
-- dramatis personae should be rendered before Act I when available from the dramatic TEI.
-
-For notices and prefaces:
-- the builder may follow a dedicated notice-like rendering path inspired by Impressions and Métopes publication logic;
-- the shared rendering path must still preserve distinct editorial labels and menu semantics for scholarly notices versus author prefaces.
-
-### 9.6 Navigation requirements
-
-The site should support:
-- automatic menu generation;
-- one coherent sidebar/navigation model;
-- per-play front matter navigation;
-- per-play act/scene navigation;
-- collapsible or foldable act/scene trees;
-- stable deterministic anchors.
-
-A mandatory design rule applies:
-- the menu must be generated from one explicit intermediate editorial navigation structure;
-- this structure must represent play-level front matter and dramatic hierarchy together;
-- the renderer must consume this structure, not rebuild a second hierarchy independently.
-
-### 9.7 Visual requirements
-
-Publication quality is not limited to technical correctness.
-
-The publication layer must also consider:
-- typographic tone;
-- spacing;
-- hierarchy;
-- reading comfort;
-- colors and page balance;
-- visual coherence with the project’s literary and scholarly ambitions.
-
-Legacy sites and archived publication outputs may be used as inspiration for:
-- structure;
-- collapsible navigation behavior;
-- home-page content hierarchy;
-- CSS direction;
-- overall editorial tone.
-
-They must not be copied as monolithic CMS architecture.
-
-## 10. Autonomous tools
-
-The system may include small independent editorial tools, such as:
-- dramatic TEI merge;
-- transcription text merge;
-- future validators or converters.
-
-These tools must remain modular, testable, and callable from thin UI entry points.
-
-## 11. Testing requirements
-
-The repository must use `pytest` and distinguish between:
-- unit tests;
-- integration tests;
-- publication tests;
-- UI bridge tests.
-
-For publication work, tests should include:
-- structural assertions on generated HTML;
-- deterministic path assertions;
-- regression checks for navigation and anchors;
-- focused checks that the real rendering engine is being reused;
-- visual/UX-sensitive structural checks where appropriate.
-
-For the next play-front-matter pass, tests should explicitly cover:
-- play with notice + preface + dramatis personae + acts/scenes;
-- play with preface but no notice;
-- play with notice but no preface;
-- play with no dramatis personae;
-- canonical menu order;
-- stable “Personnages” anchor before Act I.
-
-## 12. Legacy policy
-
-Legacy code is reference material only.
-
-Use it to:
-- understand historical behavior;
-- recover useful editorial ideas;
-- identify durable UI or publication expectations.
-
-Do not use it as a reason to:
-- restore monolithic architecture;
-- reintroduce hidden coupling;
-- bypass typed models and tests.
-
-## 13. Documentation requirement
-
-Major architectural changes must update the relevant documentation files.
-
-At minimum, publication changes affecting play-level structure must remain coherent across:
-- `docs/ETS_SITE_BUILDER.md`;
-- `docs/SITE_BUILDER_TARGET.md`;
-- `docs/SPEC_V2.md`.
-
-The same editorial vocabulary must be used consistently in all three places:
-- scholarly notice;
-- author preface;
-- dramatis personae;
-- act;
-- scene;
-- play-level front matter;
-- canonical menu order.
+La TEI doit représenter :
+
+- le titre et les métadonnées ;
+- les témoins ;
+- l’éditeur scientifique et le transcripteur si renseignés ;
+- les actes et scènes ;
+- les personnages présents ;
+- les locuteurs ;
+- les vers ;
+- les vers partagés ;
+- les didascalies explicites ;
+- les didascalies implicites ;
+- les variantes ;
+- les lacunes ;
+- les italiques ;
+- les espaces insécables ;
+- les strophes et mètres.
+
+Les variantes doivent être représentées par :
+
+```xml
+<app>
+  <lem wit="#A">...</lem>
+  <rdg wit="#B #C">...</rdg>
+</app>
+```
+
+Les vers partagés doivent tendre vers une représentation TEI naturelle : fragments de `<l>` avec même numéro de vers et attribut `@part` quand c’est nécessaire.
+
+## 7. Strophes lyriques
+
+Hors strophe, l’alexandrin ordinaire n’est pas marqué `=12=`.
+
+Dans une strophe lyrique :
+
+- ouverture par `%%strophe ...%%` ;
+- fermeture par `%%fin_strophe%%` ;
+- tous les vers portent un mètre explicite ;
+- `subtype` devient `@subtype` ;
+- `rhyme` devient `@rhyme` ;
+- la TEI cible utilise `<lg type="stanza">` et `<l met="...">`.
+
+Exemple cible :
+
+```xml
+<lg type="stanza" subtype="distique" rhyme="aa">
+  <l met="12">...</l>
+  <l met="10">...</l>
+</lg>
+```
+
+## 8. HTML
+
+La prévisualisation HTML et le site statique doivent consommer la TEI.
+
+Le rendu HTML doit préserver :
+
+- structure acte/scène ;
+- locuteurs ;
+- numéros de vers ;
+- didascalies ;
+- variantes au survol ou autre dispositif lisible ;
+- dates ou descriptions de témoins si disponibles ;
+- notices et péritextes quand ils existent.
+
+## 9. Site builder
+
+Le site builder assemble des dossiers éditoriaux par pièce :
+
+1. notice savante ;
+2. préfaces ou péritextes ;
+3. dramatis personae ;
+4. texte dramatique ;
+5. actes et scènes.
+
+Il doit produire un site statique déterministe, sans dépendance à un serveur lourd.
+
+## 10. Notices et péritextes
+
+Les notices issues de Word/Pandoc forment une TEI de prose savante.
+
+Elles sont distinctes du texte dramatique.
+Elles peuvent être publiées en HTML et exportées en LaTeX standard.
+
+## 11. LaTeX
+
+Il existe deux sorties LaTeX :
+
+1. TEI dramatique → LaTeX-Ekdosis ;
+2. TEI de prose savante → LaTeX standard.
+
+Ces sorties sont ensuite réunies dans une couche PURH.
+
+Voir `docs/LATEX_EXPORTS.md`.
+
+## 12. Interface Tk
+
+L’interface Tkinter doit rester une couche d’orchestration :
+
+- ouvrir/enregistrer ;
+- gérer la configuration ;
+- lancer validation, TEI, HTML, site, exports ;
+- afficher diagnostics et sorties ;
+- proposer des boîtes de dialogue simples.
+
+Elle ne doit pas contenir de logique éditoriale profonde.
+
+## 13. Tests
+
+Les tests doivent couvrir :
+
+- validation d’entrée ;
+- parsing ;
+- collation ;
+- génération TEI ;
+- strophes ;
+- vers partagés ;
+- didascalies implicites ;
+- HTML ;
+- site builder ;
+- notices ;
+- UI ;
+- futurs exports LaTeX.
+
+Tout nouveau chantier doit commencer par des fixtures minimales, puis être vérifié sur des fixtures réalistes.

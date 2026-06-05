@@ -1,151 +1,147 @@
-# Éditer Racine
+# Éditer Racine — principes éditoriaux et chaîne ETS
 
-## Principes généraux d’édition
+Dernière mise à jour documentaire : 5 juin 2026.
 
-Nous proposons **la première édition critique et semi-diplomatique complète de Racine**.
+## 1. Projet éditorial
 
-Elle tiendra compte :
-- de toutes les variantes,
-- de toutes les graphies (orthographe, ponctuation).
+Le projet Racine vise une édition critique et semi-diplomatique complète du théâtre de Racine.
 
-👉 Site de pré-production : http://www.edition-racine.org/
+Elle doit tenir compte :
 
-## Publication
+- des variantes textuelles ;
+- des variantes de ponctuation ;
+- des graphies ;
+- des noms de personnages ;
+- des locuteurs ;
+- des didascalies explicites et implicites ;
+- des strophes et mètres quand ils apparaissent ;
+- des péritextes et notices.
 
-Les douze pièces seront proposées :
+## 2. Supports de publication
 
-- en version papier (PURH)
-- sur une plateforme en libre accès (Université de Rouen)
+Les douze pièces doivent pouvoir être publiées :
 
-Les textes seront accompagnés de :
-- variantes complètes
-- notices
-- introductions
-- commentaires
-- notes
-- bibliographies
-- textes annexes
+- sous forme numérique, dans un site statique en libre accès ;
+- sous forme imprimée, dans une mise en page PURH ;
+- avec une chaîne suffisamment structurée pour produire des données éditoriales réutilisables.
 
-## Notices par pièce
+## 3. Principe de chaîne
 
-Chaque pièce publiée sur la plateforme sera accompagnée d'une **notice savante autonome**.
+La transcription ETS n’est pas la publication finale.
+Elle est une interface de saisie savante, simplifiée pour les éditeurs.
 
-Cette notice sera produite comme **fichier XML-TEI issu de Métopes**.
+La chaîne cible est :
 
-Elle pourra contenir selon les cas :
-- notice générale
-- introduction
-- bibliographie
-- annexes
-- autres paratextes scientifiques
+```text
+transcription ETS
+  → validation
+  → TEI canonique
+  → HTML / site
+  → LaTeX-Ekdosis / LaTeX standard
+  → mise en page PURH
+```
 
-Le site de publication devra donc articuler, pour chaque pièce :
-- le texte dramatique édité
-- l'apparat de variantes
-- la notice savante
-- les métadonnées et téléchargements associés
+La TEI est le pivot.
 
----
+## 4. Syntaxe de transcription
 
-## Choix des textes
+Principaux marqueurs :
 
-### Principe
+| Marqueur | Fonction |
+|---|---|
+| `####...####` | acte |
+| `###...###` | scène |
+| `##...##` | personnage présent dans la scène |
+| `#...#` | locuteur |
+| `**...**` | didascalie explicite |
+| `***` | vers partagé |
+| `#####...` | variante de ligne entière |
+| `##### (lacune)` | lacune |
+| `_..._` | italique |
+| `~` | espace insécable ou retrait manuel |
+| `$$TYPE$$ ... $$fin$$` | didascalie implicite |
+| `%%strophe ...%%` | strophe lyrique |
+| `=02=` à `=12=` | mètre dans une strophe |
 
-L’édition en ligne proposera :
-- toutes les variantes des éditions contrôlées par l’auteur :
-  - éditions originales
-  - éditions individuelles
-  - éditions collectives
-  - édition définitive (1697)
+## 5. Réserve du caractère dièse
 
-### Texte de référence
+Le caractère `#` appartient au balisage ETS.
+Il ne doit jamais apparaître comme caractère parasite dans le texte.
 
-➡️ Édition originale
+Toute forme mal équilibrée doit être rejetée avant génération TEI.
 
-### Éditions retenues
+## 6. Didascalies implicites
 
-- 1675-1676
-- 1687
-- 1697
+Les didascalies implicites peuvent être encodées par :
 
-### Éditions exclues
+```text
+$$EVT$$
+Va chez elle. Dy-luy qu’importun à regret,
+$$fin$$
+```
 
-- contrefaçons
-- erreurs d’impression non significatives
+Types disponibles :
 
----
+| Code | Sens |
+|---|---|
+| `SPC` | parole |
+| `ASP` | aspect |
+| `TMP` | temps |
+| `EVT` | événement |
+| `SET` | décor |
+| `PROX` | proxémie |
+| `ATT` | attitude |
+| `VOI` | voix |
 
-## Méthode d’encodage
+## 7. Strophes lyriques
 
-Pipeline :
+Les strophes lyriques sont distinctes du flux dramatique ordinaire.
 
-pseudo-markdown → TEI → LaTeX (Ekdosis)
+Dans le flux tragique ordinaire, l’alexandrin n’est pas marqué `=12=`.
 
----
+Dans les strophes, tous les vers sont métrés :
 
-## Règles essentielles
+```text
+%%strophe subtype=distique rhyme=aa%%
+=12=Premier vers
+=10=Second vers
+%%fin_strophe%%
+```
 
-- respecter strictement le texte
-- conserver les variantes
-- même nombre de mots par ligne
-- utiliser ~ pour bloquer les espaces
+Pour les variantes de ligne entière métrées :
 
-Exemple :
+```text
+#####=12=Vers variant
+#####=12=(lacune)
+```
 
-l’as~tu laissé  
-l’as-tu laissé  
+## 8. Sortie TEI
 
----
+La TEI doit préserver la richesse philologique plutôt que normaliser le texte.
 
-## Didascalies implicites
+Elle doit notamment représenter :
 
-Encodage :
+- les témoins ;
+- les variantes ;
+- les graphies ;
+- les lacunes ;
+- les italiques ;
+- les espaces insécables ;
+- les strophes ;
+- les métadonnées ;
+- les rôles éditoriaux : éditeur scientifique, transcripteur si renseigné.
 
-$$EVT$$  
-texte  
-$$fin$$  
+## 9. Sorties imprimées
 
----
+Le texte dramatique critique relève de LaTeX-Ekdosis.
 
-## Version régularisée
+Les notices, introductions, bibliographies et péritextes relèvent du LaTeX standard.
 
-- dissimilation u/v, i/j
-- résolution des abréviations
-- correction minimale
+La mise en page finale doit être portée par une couche PURH commune.
 
----
+## 10. Finalité scientifique
 
-## Ressources
+ETS ne produit pas seulement un texte.
+Il produit un modèle éditorial du texte : une donnée philologique structurée, vérifiable, publiable et réexploitable.
 
-- https://tei-c.org/activities/sig/
-- https://dramacode.github.io/moliere/
-- https://cahier.hypotheses.org/guides/guide-correspondance
-
----
-
-## Exemple
-
-####ACTE I.####
-###SCENE PREMIERE.###
-
-##IOCASTE## ##OLYMPE##
-
-#IOCASTE#
-
-ILs sont sortis, Olympe~? Ah mortelles douleurs~!
-
-
----
-
-## Publication statique
-
-Le chantier **ETS Site Builder** a pour but de générer automatiquement un site statique complet à partir des XML éditoriaux.
-
-Le site devra :
-- générer automatiquement la navigation,
-- éviter toute maintenance manuelle du menu,
-- permettre l'affichage de métadonnées éditoriales,
-- permettre, selon configuration, le téléchargement des XML,
-- agréger dans une même publication le texte dramatique ETS et la notice TEI Métopes.
-
-Pour la visualisation des notices, on pourra s'inspirer du projet **Impressions**, pensé comme un générateur de livre web statique à partir d'un XML TEI Métopes.
+C’est ce point qui relie le projet à la problématique de l’édition comme production de données.

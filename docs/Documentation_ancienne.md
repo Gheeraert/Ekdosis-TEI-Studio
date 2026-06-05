@@ -1,42 +1,71 @@
-**1. 🖊️ Syntaxe de saisie (inspirée du Markdown)**
-L’encodage se fait dans une zone de saisie structurée avec une syntaxe simple : les vers sont saisis ligne à ligne, avec ou sans variantes selon les témoins.
+# Documentation ancienne — mémoire historique
 
-Soit une édition avec trois témoins, on écrira:
+Ce fichier conserve la mémoire des conventions et comportements de la première version d’Ekdosis-TEI Studio.
+Il ne doit pas être utilisé comme spécification prioritaire si les tests, `AGENTS.md` ou `docs/SPEC_V2.md` disent autre chose.
 
-Etat du vers 1 selon le témoin 1<br>
-Etat du vers 1 selon le témoin 2<br>
-Etat du vers 1 selon le témoin 3<br>
+## 1. Statut
 
-Etat du vers 1 selon le témoin 1<br>
-Etat du vers 1 selon le témoin 2<br>
-Etat du vers 1 selon le témoin 3<br>
+La V1 était fonctionnelle et a notamment produit des sorties LaTeX-Ekdosis utiles.
+Cependant, son architecture était plus monolithique.
 
-etc...
+Dans la version actuelle, on peut reprendre de la V1 :
 
-Les changements de locuteurs, d'actes, de scènes et de listes de personnages en tête des scènes sont notés ainsi:
+- les exemples fonctionnels ;
+- les conventions Ekdosis ;
+- les macros qui compilaient ;
+- les règles d’échappement LaTeX ;
+- les sorties attendues comme fixtures.
 
-####n####	Début d’un acte numéroté	####1####
-###n###	Début d’une scène numérotée	###3###
-##NOM##	Liste des personnages présents sur scène	##PHÈDRE, HIPPOLYTE##
-#NOM#	Indique le locuteur d’une tirade	#PHÈDRE#
-**didascalie**	Insère une didascalie	**Elle sort.**
-***vers partagé***	Indique un vers réparti entre deux personnages	"Imaginations!***" / "***Eternelles clartés"!
+On ne doit pas reprendre :
 
+- la génération directe depuis la transcription brute ;
+- la confusion entre UI et logique métier ;
+- les dépendances implicites ;
+- les correctifs tardifs qui masquent une entrée invalide.
 
-**2. 💾 Enregistrement de la saisie brute**
-Pour sauvegarder la saisie initiale, il suffit d’utiliser le menu Fichier > Enregistrer.
-Cela enregistre le contenu brut de la zone de saisie dans un fichier .txt lisible, avec la syntaxe décrite ci-dessus.
+## 2. Ancienne syntaxe de base
 
-Une fois enregistré (nom prédéfini), ce fichier peut être rouvert pour édition ou réutilisé comme base de traitement TEI/LaTeX.
+| Ancien marqueur | Fonction |
+|---|---|
+| `####n####` | début d’acte |
+| `###n###` | début de scène |
+| `##NOM##` | personnages présents |
+| `#NOM#` | locuteur |
+| `**...**` | didascalie |
+| `***` | vers partagé |
+| `#####` | variante de ligne entière |
+| `_..._` | italique |
+| `~` | espace insécable |
 
-**3. ⚙️ Paramétrage des sorties TEI et LaTeX**
-Avant d’exporter une édition en TEI ou en LaTeX (ekdosis), une boîte de dialogue vous demandera d'entrer pour chaque témoin
-- une abréviation (sigle court, par exemple A, B, C, etc.)
-- une année de publication
-- une description du témoin ("édition princeps", "dernière édition du vivant de l'auteur", etc.)
+## 3. Ce qui reste valable
 
-Ces métadonnées sont ensuite automatiquement intégrées dans l'environnement de l'édition critique (TEI ou LaTeX-ekdosis)
-Le fichier LaTeX généré est compatible avec le package ekdosis, prêt à être compilé, ou visualisé en html statique via traitement XSLT dynamique intégré au logiciel.
+L’esprit général reste valable : permettre une saisie simple, puis produire une édition critique encodée.
 
-N.B. Attention, ekdosis exige la compilation par LuaLaTeX.
-N.B. La sortie ekdosis qui apparaît à la volée dans l'onglet du bas doit être intégrée au template (fourni sur le dépôt) pour être opérationnelle, tandis que la sortie "exporter ekdosis" est complète et compilable telle quelle en LaTeX.
+La logique d’apparat reste valable :
+
+```text
+transcription parallèle des témoins
+  → comparaison
+  → lemme / lectures
+  → apparat critique
+```
+
+## 4. Ce qui a changé
+
+La TEI est désormais la source canonique.
+
+Les sorties HTML, site et LaTeX doivent être dérivées de la TEI.
+
+Le validateur d’entrée a été durci : les marqueurs ETS malformés sont des erreurs bloquantes.
+
+Les strophes lyriques et vers métrés ont désormais des conventions spécifiques.
+
+## 5. Utilisation recommandée
+
+Pour un chantier Codex, ce fichier peut servir uniquement à répondre à des questions du type :
+
+- “À quoi ressemblait l’ancienne sortie Ekdosis ?”
+- “Quelle macro était utilisée pour tel cas ?”
+- “Quelle syntaxe compilait dans la V1 ?”
+
+Il ne doit pas servir à reconstruire l’ancienne architecture.

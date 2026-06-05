@@ -1,63 +1,44 @@
-# Internal patch notes — annotations V1
+# Notes internes de documentation
 
-This document was used to update project documentation.
-It is not part of the functional specification.
+Dernière mise à jour documentaire : 5 juin 2026.
 
-# DOC_PATCHES_ANNOTATIONS.md
+## 1. Statut
 
-Ce dossier contient deux choses :
+Ce fichier n’est pas une spécification fonctionnelle.
+Il sert de mémoire interne pour les grands réalignements documentaires.
 
-1. un **nouveau fichier** à ajouter au projet : `docs/ANNOTATIONS_V1.md`
-2. des **versions mises à jour complètes** des fichiers de documentation existants
+## 2. Réécriture du 5 juin 2026
 
-## Nouveau fichier
+Objectif : remettre la documentation Markdown en accord avec l’état actuel du projet.
 
-- `updated_project_docs/docs/ANNOTATIONS_V1.md`
+Principes ajoutés ou clarifiés :
 
-## Fichiers existants mis à jour
+- TEI comme représentation canonique ;
+- validateur comme gardien du seuil ;
+- sortie LaTeX-Ekdosis à rétablir depuis la TEI ;
+- sortie LaTeX standard pour les péritextes ;
+- couche de mise en page PURH séparée ;
+- site builder comme publication statique ;
+- notices comme objets distincts du texte dramatique ;
+- ancienne documentation reclassée comme mémoire historique.
 
-- `updated_project_docs/README.md`
-- `updated_project_docs/AGENTS.md`
-- `updated_project_docs/docs/SPEC_V2.md`
-- `updated_project_docs/docs/UI_TK_V1.md`
-- `updated_project_docs/docs/HTML_OUTPUTS.md`
+## 3. Fichiers concernés
 
-## Nature des changements
+- `AGENTS.md`
+- `README.md`
+- `docs/SPEC_V2.md`
+- `docs/LATEX_EXPORTS.md`
+- `docs/editer_racine_principes.md`
+- `docs/Documentation_ancienne.md`
+- `docs/header_attendu_tei.md`
+- `docs/HTML_OUTPUTS.md`
+- `docs/UI_TK_V1.md`
+- `docs/ETS_SITE_BUILDER.md`
+- `docs/SITE_BUILDER_TARGET.md`
+- `docs/notice_import/*`
 
-### README.md
-- ajout du périmètre « editorial annotations »
-- mise à jour de la structure du dépôt
-- ajout d’une section dédiée aux annotations
-- mise à jour de la roadmap
+## 4. Règle pour les futurs patchs
 
-### AGENTS.md
-- annotations éditoriales ajoutées au scope
-- non-goals précisés
-- nouvelle section `Editorial annotations policy`
-- objectif UI enrichi
+Toute mise à jour documentaire doit éviter d’empiler des doctrines contradictoires.
 
-### docs/SPEC_V2.md
-- milestone initial légèrement resserré
-- milestones ultérieurs complétés
-- nouvelle section `Editorial annotations (V1)`
-
-### docs/UI_TK_V1.md
-- annotations ajoutées au périmètre Tkinter
-- onglet `Annotations`
-- menus enrichis
-- services attendus enrichis
-- contrainte UX explicite pour éviter la sélection libre dans le texte source en V1
-- critère de réussite mis à jour
-
-### docs/HTML_OUTPUTS.md
-- prise en compte des notes éditoriales dans la preview
-- prise en compte des notes éditoriales dans l’export
-- nouvelle section `Notes éditoriales (V1)`
-
-## Conseil de dépôt
-
-Ordre recommandé :
-
-1. ajouter `docs/ANNOTATIONS_V1.md`
-2. comparer puis remplacer les fichiers existants si le contenu vous convient
-3. seulement ensuite lancer Codex sur l’implémentation
+Si une ancienne règle est remplacée, l’indiquer clairement plutôt que la laisser coexister avec la nouvelle.
