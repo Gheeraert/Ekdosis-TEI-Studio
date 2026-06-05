@@ -21,6 +21,7 @@ from ets.annotations import save_annotations as _save_annotations
 from ets.core import load_castlist_context, run_pipeline_from_text
 from ets.domain import Character, EditionConfig
 from ets.html import render_html_preview_from_tei
+from ets.latex import tei_to_ekdosis
 from ets.parser import load_config as _load_config
 from ets.parser import save_config as _save_config
 from ets.validation import InputValidationError, ValidationReport, validate_input_text
@@ -172,6 +173,11 @@ def generate_html_preview_from_text(text: str, config: EditionConfig) -> HtmlRes
             message=html_result.message,
         )
     return HtmlResult(ok=True, html=html_result.html, diagnostics=generation.diagnostics, message=html_result.message)
+
+
+def generate_ekdosis_from_tei(tei_xml: str, *, standalone: bool = False) -> str:
+    """Generate minimal LaTeX-Ekdosis from canonical TEI XML."""
+    return tei_to_ekdosis(tei_xml, standalone=standalone)
 
 
 def export_tei(tei_xml: str, output_path: str | Path) -> Path:

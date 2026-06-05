@@ -8,6 +8,7 @@ from ets.application import (
     enrich_tei_with_annotations,
     export_html,
     export_tei,
+    generate_ekdosis_from_tei,
     generate_html_preview_from_tei,
     generate_html_preview_from_text,
     generate_tei_from_text,
@@ -307,6 +308,17 @@ def test_service_generate_html_preview_from_text_success() -> None:
     assert result.ok is True
     assert result.html is not None
     assert "scene-titre" in result.html
+
+
+def test_service_generate_ekdosis_from_tei_uses_latex_converter() -> None:
+    root = _root()
+    fixture_dir = root / "fixtures" / "ekdosis_from_tei" / "01_simple_line"
+    tei_xml = (fixture_dir / "input.xml").read_text(encoding="utf-8")
+    expected = (fixture_dir / "expected.tex").read_text(encoding="utf-8").replace("\r\n", "\n")
+
+    result = generate_ekdosis_from_tei(tei_xml)
+
+    assert result == expected
 
 
 def test_service_export_helpers_write_files() -> None:
