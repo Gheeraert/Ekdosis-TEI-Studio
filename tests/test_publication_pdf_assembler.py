@@ -6,11 +6,14 @@ from ets.application import SitePublicationDialogConfig, SitePublicationDialogPl
 from ets.publication_pdf import build_publication_pdf_master
 
 
-def _write_xml(path: Path, body: str = "<p>Document source.</p>") -> Path:
+def _write_xml(path: Path, body: str = "<p>Document source.</p>", front: str = "") -> Path:
     path.write_text(
         f"""<?xml version="1.0" encoding="utf-8"?>
 <TEI xmlns="http://www.tei-c.org/ns/1.0">
   <text>
+    <front>
+      {front}
+    </front>
     <body>
       {body}
     </body>
@@ -25,11 +28,21 @@ def _write_xml(path: Path, body: str = "<p>Document source.</p>") -> Path:
 def _config(tmp_path: Path) -> SitePublicationDialogConfig:
     home = _write_xml(tmp_path / "home_page.xml", "<p>Texte reserve a la page accueil.</p>")
     intro = _write_xml(tmp_path / "general_intro.xml", "<p>Introduction generale convertie.</p>")
-    play_a = _write_xml(tmp_path / "a_dramatic.xml")
+    play_a = _write_xml(
+        tmp_path / "a_dramatic.xml",
+        front="<castList><castItem><role>Front Andromaque</role></castItem></castList>",
+    )
     notice_a = _write_xml(tmp_path / "a_notice.xml", '<p>Notice avec <hi rend="italic">italique</hi>.</p>')
     preface_a = _write_xml(tmp_path / "a_preface.xml", "<p>Preface convertie.</p>")
-    dramatis_a = _write_xml(tmp_path / "a_dramatis.xml")
-    play_b = _write_xml(tmp_path / "b_dramatic.xml")
+    dramatis_a = _write_xml(
+        tmp_path / "a_dramatis.xml",
+        front="<castList><castItem><role>Dramatis externe Alpha</role></castItem></castList>",
+    )
+    play_b = _write_xml(
+        tmp_path / "b_dramatic.xml",
+        front="<castList><castItem><role>Front Berenice</role></castItem></castList>",
+    )
+    play_c = _write_xml(tmp_path / "c_dramatic.xml")
 
     return SitePublicationDialogConfig(
         author_name="Jean Racine",
@@ -48,6 +61,13 @@ def _config(tmp_path: Path) -> SitePublicationDialogConfig:
             SitePublicationDialogPlayConfig(
                 play_slug="berenice",
                 dramatic_xml_path=play_b,
+                notice_xml_path=None,
+                preface_xml_path=None,
+                dramatis_xml_path=None,
+            ),
+            SitePublicationDialogPlayConfig(
+                play_slug="sans-castlist",
+                dramatic_xml_path=play_c,
                 notice_xml_path=None,
                 preface_xml_path=None,
                 dramatis_xml_path=None,
@@ -91,6 +111,7 @@ def test_master_orders_plays_from_config(tmp_path: Path) -> None:
     master_text = build_publication_pdf_master(_config(tmp_path), tmp_path / "build").read_text(encoding="utf-8")
 
     assert master_text.index("% PLAY: andromaque") < master_text.index("% PLAY: berenice")
+    assert master_text.index("% PLAY: berenice") < master_text.index("% PLAY: sans-castlist")
 
 
 def test_master_orders_play_front_matter_before_dramatic_text(tmp_path: Path) -> None:
@@ -104,6 +125,7 @@ def test_master_orders_play_front_matter_before_dramatic_text(tmp_path: Path) ->
     assert notice < preface < dramatis < dramatic
     assert r"Notice avec \emph{italique}." in master_text[notice:preface]
     assert "Preface convertie." in master_text[preface:dramatis]
+    assert "Dramatis externe Alpha" in master_text[dramatis:dramatic]
 
 
 def test_master_omits_absent_notice_and_preface_placeholders(tmp_path: Path) -> None:
@@ -114,3 +136,29 @@ def test_master_omits_absent_notice_and_preface_placeholders(tmp_path: Path) -> 
     assert "% PREFACE:" not in second_play_text
     assert "% DRAMATIS PERSONAE: front of" in second_play_text
     assert "% DRAMATIC TEXT:" in second_play_text
+
+
+def test_master_uses_external_dramatis_before_dramatic_front(tmp_path: Path) -> None:
+    master_text = build_publication_pdf_master(_config(tmp_path), tmp_path / "build").read_text(encoding="utf-8")
+    play_text = master_text[master_text.index("% PLAY: andromaque") : master_text.index("% PLAY: berenice")]
+
+    assert "% DRAMATIS PERSONAE:" in play_text
+    assert "Dramatis externe Alpha" in play_text
+    assert "Front Andromaque" not in play_text
+
+
+def test_master_uses_dramatic_front_castlist_when_no_external_dramatis(tmp_path: Path) -> None:
+    master_text = build_publication_pdf_master(_config(tmp_path), tmp_path / "build").read_text(encoding="utf-8")
+    play_text = master_text[master_text.index("% PLAY: berenice") : master_text.index("% PLAY: sans-castlist")]
+
+    assert "% DRAMATIS PERSONAE: front of" in play_text
+    assert "\\item[Front Berenice]" in play_text
+
+
+def test_master_keeps_stable_comment_when_no_castlist_is_found(tmp_path: Path) -> None:
+    master_text = build_publication_pdf_master(_config(tmp_path), tmp_path / "build").read_text(encoding="utf-8")
+    play_text = master_text[master_text.index("% PLAY: sans-castlist") :]
+
+    assert "% DRAMATIS PERSONAE: front of" in play_text
+    assert "% DRAMATIS PERSONAE: no castList found." in play_text
+    assert "% DRAMATIC TEXT:" in play_text

@@ -3,6 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from ets.application.site_publication_config import SitePublicationDialogConfig
+from ets.latex.castlist_from_tei import tei_castlist_to_latex
 from ets.latex.escaping import escape_latex_text
 from ets.latex.standard_from_tei import tei_peritext_to_latex
 
@@ -78,8 +79,8 @@ def render_publication_pdf_master(config: SitePublicationDialogConfig) -> str:
             [
                 "",
                 r"\section*{Dramatis personae}",
-                _dramatis_placeholder(play.dramatis_xml_path, play.dramatic_xml_path),
-                r"\emph{Placeholder: conversion dramatis personae vers LaTeX standard a venir.}",
+                _dramatis_comment(play.dramatis_xml_path, play.dramatic_xml_path),
+                _dramatis_fragment(play.dramatis_xml_path, play.dramatic_xml_path),
                 "",
                 r"\section*{Texte dramatique}",
                 f"% DRAMATIC TEXT: {_path_comment(play.dramatic_xml_path)}",
@@ -103,7 +104,12 @@ def _peritext_fragment(path: Path) -> str:
     return tei_peritext_to_latex(path).rstrip()
 
 
-def _dramatis_placeholder(dramatis_xml_path: Path | None, dramatic_xml_path: Path) -> str:
+def _dramatis_comment(dramatis_xml_path: Path | None, dramatic_xml_path: Path) -> str:
     if dramatis_xml_path is not None:
         return f"% DRAMATIS PERSONAE: {_path_comment(dramatis_xml_path)}"
     return f"% DRAMATIS PERSONAE: front of {_path_comment(dramatic_xml_path)}"
+
+
+def _dramatis_fragment(dramatis_xml_path: Path | None, dramatic_xml_path: Path) -> str:
+    source_path = dramatis_xml_path if dramatis_xml_path is not None else dramatic_xml_path
+    return tei_castlist_to_latex(source_path).rstrip()
