@@ -139,6 +139,16 @@ def _coerce_play_order(raw_order: Any) -> tuple[str, ...]:
     return tuple(ordered)
 
 
+def _coerce_optional_relpath(raw_value: Any, *, field_name: str) -> str | None:
+    text = _normalize_text(raw_value, field_name=field_name)
+    if not text:
+        return None
+    path = Path(text)
+    if path.is_absolute() or any(part == ".." for part in path.parts):
+        raise ValueError(f"Invalid site configuration: '{field_name}' must be a relative path inside the site.")
+    return path.as_posix()
+
+
 def _coerce_homepage_sections(raw_sections: Any) -> tuple[HomePageSection, ...]:
     if raw_sections is None:
         return ()
@@ -225,6 +235,15 @@ def site_config_from_dict(payload: dict[str, Any], *, base_dir: Path | None = No
         play_preface_map=_coerce_play_preface_map(payload.get("play_preface_map")),
         play_dramatis_map=_coerce_play_dramatis_map(payload.get("play_dramatis_map")),
         play_order=_coerce_play_order(payload.get("play_order")),
+        pdf_download_source_path=(
+            _resolve_path(payload["pdf_download_source_path"], base_dir=base_dir)
+            if payload.get("pdf_download_source_path")
+            else None
+        ),
+        pdf_download_relpath=_coerce_optional_relpath(
+            payload.get("pdf_download_relpath"),
+            field_name="pdf_download_relpath",
+        ),
     )
     return config
 

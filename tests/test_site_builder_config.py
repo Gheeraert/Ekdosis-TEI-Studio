@@ -46,6 +46,8 @@ def test_site_config_from_dict_normalizes_paths_and_defaults() -> None:
     assert config.homepage_sections == ()
     assert config.general_notice_slug == ""
     assert config.home_page_notice_slug == ""
+    assert config.pdf_download_source_path is None
+    assert config.pdf_download_relpath is None
 
 
 def test_site_config_loads_from_json_and_resolves_relative_paths() -> None:
@@ -75,6 +77,45 @@ def test_site_config_loads_from_json_and_resolves_relative_paths() -> None:
     assert config.assets.logo_files
     assert config.assets.logo_files[0].name == "andromaque.xml"
     assert config.homepage_intro == "Corpus de démonstration."
+
+
+def test_site_config_supports_publication_pdf_download_paths() -> None:
+    base = _runtime_dir("site_builder_config_pdf")
+    config = site_config_from_dict(
+        {
+            "site_title": "ETS Config PDF",
+            "dramatic_xml_dir": "fixtures/site_builder/minimal/dramatic",
+            "output_dir": "out/site",
+            "pdf_download_source_path": "build/edition.pdf",
+            "pdf_download_relpath": "downloads/edition-complete.pdf",
+        },
+        base_dir=base,
+    )
+
+    assert config.pdf_download_source_path == (base / "build" / "edition.pdf").resolve()
+    assert config.pdf_download_relpath == "downloads/edition-complete.pdf"
+
+
+def test_site_config_rejects_invalid_publication_pdf_relpath() -> None:
+    with pytest.raises(ValueError, match="pdf_download_relpath"):
+        site_config_from_dict(
+            {
+                "site_title": "ETS Config PDF",
+                "dramatic_xml_dir": ".",
+                "output_dir": "out/site",
+                "pdf_download_relpath": "../escape.pdf",
+            }
+        )
+
+    with pytest.raises(ValueError, match="pdf_download_relpath"):
+        site_config_from_dict(
+            {
+                "site_title": "ETS Config PDF",
+                "dramatic_xml_dir": ".",
+                "output_dir": "out/site",
+                "pdf_download_relpath": str((ROOT / "escape.pdf").resolve()),
+            }
+        )
 
 
 def test_site_config_supports_explicit_play_notice_mapping() -> None:

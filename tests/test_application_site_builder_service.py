@@ -180,6 +180,38 @@ def test_site_builder_service_build_from_publication_request_single_play_uses_on
     assert copied_xml.read_text(encoding="utf-8") == source_xml.read_text(encoding="utf-8")
 
 
+def test_site_builder_service_publication_request_copies_publication_pdf() -> None:
+    base = _runtime_dir("app_site_builder_service_publication_request_pdf")
+    output_dir = base / "site"
+    source_xml = DRAMATIC_FIXTURES / "andromaque.xml"
+    pdf_source = base / "build" / "edition.pdf"
+    pdf_source.parent.mkdir(parents=True, exist_ok=True)
+    pdf_source.write_bytes(b"%PDF-1.7\n% service test\n")
+
+    request = SitePublicationRequest(
+        identity=SiteIdentityInput(site_title="ETS Publication Request PDF"),
+        output_dir=output_dir,
+        plays=(
+            DramaticPlayInput(
+                play_slug="andromaque",
+                document=DramaticDocumentInput(source_path=source_xml),
+            ),
+        ),
+        publish_notices=False,
+        pdf_download_source_path=pdf_source,
+        pdf_download_relpath="downloads/edition-complete.pdf",
+    )
+
+    result = build_site_from_publication_request(request)
+
+    assert result.ok is True
+    assert (output_dir / "downloads" / "edition-complete.pdf").read_bytes() == pdf_source.read_bytes()
+    home_html = (output_dir / "index.html").read_text(encoding="utf-8")
+    play_html = (output_dir / "plays" / "andromaque.html").read_text(encoding="utf-8")
+    assert 'href="downloads/edition-complete.pdf" download>Télécharger le PDF</a>' in home_html
+    assert 'href="../downloads/edition-complete.pdf" download>Télécharger le PDF</a>' in play_html
+
+
 def test_site_builder_service_build_from_publication_request_supports_multiple_plays_order_and_assets() -> None:
     base = _runtime_dir("app_site_builder_service_publication_request")
     output_dir = base / "site"

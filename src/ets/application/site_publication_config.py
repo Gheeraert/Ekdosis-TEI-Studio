@@ -507,6 +507,7 @@ def site_publication_request_from_dialog_config(config: SitePublicationDialogCon
         play_dramatis_map=tuple(play_dramatis_map),
         general_notice_slug=general_notice_slug,
         home_page_notice_slug=home_page_notice_slug,
+        pdf_download_source_path=None,
     )
 
 

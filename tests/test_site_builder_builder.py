@@ -15,6 +15,7 @@ from ets.site_builder.models import (
     PlayActNavigation,
     PlayNavigation,
     PlaySceneNavigation,
+    SiteConfig,
     SiteManifest,
 )
 from ets.site_builder.render import _nav_item_contains_current, render_play_page
@@ -126,6 +127,144 @@ def test_builder_generates_cross_links_and_home_intro_from_explicit_mapping() ->
     notice_doc = lxml_html.document_fromstring(notice_html)
     assert "Aller a la piece associee" not in notice_html
     assert not notice_doc.xpath("//section//a[starts-with(@href, '../plays/')]")
+
+
+def test_builder_copies_publication_pdf_and_links_it_from_all_page_levels() -> None:
+    base_dir = _runtime_dir("site_builder_pdf_download")
+    output_dir = base_dir / "site_pdf"
+    pdf_source = base_dir / "build" / "edition.pdf"
+    pdf_source.parent.mkdir(parents=True, exist_ok=True)
+    pdf_source.write_bytes(b"%PDF-1.7\n% ETS test\n")
+    source_bytes = pdf_source.read_bytes()
+
+    config = site_config_from_dict(
+        {
+            "site_title": "ETS Demo",
+            "dramatic_xml_dir": str(FIXTURE_ROOT / "dramatic"),
+            "notice_xml_dir": str(FIXTURE_ROOT / "notices"),
+            "output_dir": str(output_dir),
+            "publish_notices": True,
+            "play_notice_map": {"andromaque": "andromaque-notice"},
+            "pdf_download_source_path": str(pdf_source),
+            "pdf_download_relpath": "downloads/edition-complete.pdf",
+        }
+    )
+
+    result = build_static_site(config)
+
+    copied_pdf = output_dir / "downloads" / "edition-complete.pdf"
+    assert copied_pdf.exists()
+    assert copied_pdf.read_bytes() == source_bytes
+    assert pdf_source.read_bytes() == source_bytes
+    assert not result.warnings
+
+    home_html = (output_dir / "index.html").read_text(encoding="utf-8")
+    play_html = (output_dir / "plays" / "andromaque.html").read_text(encoding="utf-8")
+    notice_html = (output_dir / "notices" / "andromaque-notice.html").read_text(encoding="utf-8")
+
+    assert 'href="downloads/edition-complete.pdf" download>Télécharger le PDF</a>' in home_html
+    assert 'href="../downloads/edition-complete.pdf" download>Télécharger le PDF</a>' in play_html
+    assert 'href="../downloads/edition-complete.pdf" download>Télécharger le PDF</a>' in notice_html
+
+
+def test_builder_pdf_download_missing_source_warns_without_broken_link() -> None:
+    base_dir = _runtime_dir("site_builder_pdf_missing")
+    output_dir = base_dir / "site_pdf_missing"
+    missing_pdf = base_dir / "missing" / "edition.pdf"
+
+    config = site_config_from_dict(
+        {
+            "site_title": "ETS Demo",
+            "dramatic_xml_dir": str(FIXTURE_ROOT / "dramatic"),
+            "notice_xml_dir": str(FIXTURE_ROOT / "notices"),
+            "output_dir": str(output_dir),
+            "publish_notices": True,
+            "pdf_download_source_path": str(missing_pdf),
+            "pdf_download_relpath": "downloads/edition-complete.pdf",
+        }
+    )
+
+    result = build_static_site(config)
+
+    assert (output_dir / "index.html").exists()
+    assert not (output_dir / "downloads" / "edition-complete.pdf").exists()
+    assert any("Publication PDF not found" in warning for warning in result.warnings)
+    home_html = (output_dir / "index.html").read_text(encoding="utf-8")
+    assert "Télécharger le PDF" not in home_html
+    assert "downloads/edition-complete.pdf" not in home_html
+
+
+def test_builder_rejects_invalid_pdf_relpath_from_direct_site_config() -> None:
+    base_dir = _runtime_dir("site_builder_pdf_invalid_relpath")
+    output_dir = base_dir / "site_pdf_invalid"
+    pdf_source = base_dir / "build" / "edition.pdf"
+    pdf_source.parent.mkdir(parents=True, exist_ok=True)
+    pdf_source.write_bytes(b"%PDF-1.7\n% invalid relpath test\n")
+    escape_target = output_dir.parent / "escape.pdf"
+    config = SiteConfig(
+        site_title="ETS Demo",
+        dramatic_xml_dir=FIXTURE_ROOT / "dramatic",
+        notice_xml_dir=FIXTURE_ROOT / "notices",
+        output_dir=output_dir,
+        publish_notices=True,
+        pdf_download_source_path=pdf_source,
+        pdf_download_relpath="../escape.pdf",
+    )
+
+    result = build_static_site(config)
+
+    assert (output_dir / "index.html").exists()
+    assert not escape_target.exists()
+    assert not (output_dir / "downloads" / "edition-complete.pdf").exists()
+    assert any("Publication PDF relpath is invalid" in warning for warning in result.warnings)
+    home_html = (output_dir / "index.html").read_text(encoding="utf-8")
+    assert "TÃ©lÃ©charger le PDF" not in home_html
+
+
+def test_builder_uses_default_pdf_relpath_when_source_exists_and_relpath_is_none() -> None:
+    base_dir = _runtime_dir("site_builder_pdf_default_relpath")
+    output_dir = base_dir / "site_pdf_default"
+    pdf_source = base_dir / "build" / "edition.pdf"
+    pdf_source.parent.mkdir(parents=True, exist_ok=True)
+    pdf_source.write_bytes(b"%PDF-1.7\n% default relpath test\n")
+    config = SiteConfig(
+        site_title="ETS Demo",
+        dramatic_xml_dir=FIXTURE_ROOT / "dramatic",
+        notice_xml_dir=FIXTURE_ROOT / "notices",
+        output_dir=output_dir,
+        publish_notices=True,
+        pdf_download_source_path=pdf_source,
+        pdf_download_relpath=None,
+    )
+
+    result = build_static_site(config)
+
+    assert not result.warnings
+    assert (output_dir / "downloads" / "edition-complete.pdf").read_bytes() == pdf_source.read_bytes()
+    home_html = (output_dir / "index.html").read_text(encoding="utf-8")
+    assert 'href="downloads/edition-complete.pdf" download>' in home_html
+    assert "PDF" in home_html
+
+
+def test_builder_omits_pdf_download_link_when_no_pdf_is_configured() -> None:
+    base_dir = _runtime_dir("site_builder_no_pdf")
+    output_dir = base_dir / "site_no_pdf"
+    config = site_config_from_dict(
+        {
+            "site_title": "ETS Demo",
+            "dramatic_xml_dir": str(FIXTURE_ROOT / "dramatic"),
+            "notice_xml_dir": str(FIXTURE_ROOT / "notices"),
+            "output_dir": str(output_dir),
+            "publish_notices": True,
+        }
+    )
+
+    build_static_site(config)
+
+    home_html = (output_dir / "index.html").read_text(encoding="utf-8")
+    play_html = (output_dir / "plays" / "andromaque.html").read_text(encoding="utf-8")
+    assert "Télécharger le PDF" not in home_html
+    assert "Télécharger le PDF" not in play_html
 
 
 def test_builder_copies_branding_assets_and_references_logos() -> None:

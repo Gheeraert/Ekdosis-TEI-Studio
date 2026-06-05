@@ -182,6 +182,8 @@ def test_site_publication_request_mapping_supports_intro_notice_preface_and_dram
     assert request.play_dramatis_map == (("andromaque", "andromaque-dramatis"),)
     assert request.home_page_notice_slug == "accueil"
     assert len(request.notices) == 4
+    assert request.pdf_download_source_path is None
+    assert request.pdf_download_relpath == "downloads/edition-complete.pdf"
 
 
 @pytest.mark.parametrize(

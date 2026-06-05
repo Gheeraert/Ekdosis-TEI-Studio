@@ -383,6 +383,12 @@ def _normalize_publication_request(
             "logos": [str(path) for path in request.assets.logo_files],
             "directories": [str(path) for path in request.assets.asset_directories],
         },
+        "pdf_download_source_path": (
+            str(request.pdf_download_source_path.resolve())
+            if request.pdf_download_source_path is not None
+            else None
+        ),
+        "pdf_download_relpath": request.pdf_download_relpath,
     }
     return payload, tuple(warnings)
 

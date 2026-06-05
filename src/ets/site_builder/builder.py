@@ -12,6 +12,7 @@ from .render import render_home_page, render_notice_page, render_play_page
 
 _SUPPORTED_AUTO_LOGO_EXTENSIONS = {".png", ".jpg", ".jpeg", ".svg", ".webp"}
 _AFFILIATION_BANNER_FILENAME = "banniere_affiliation.png"
+_DEFAULT_PDF_DOWNLOAD_RELPATH = "downloads/edition-complete.pdf"
 
 def _banner_search_roots(config: SiteConfig) -> tuple[Path, ...]:
     roots: list[Path] = []
@@ -173,6 +174,40 @@ def _copy_xml_sources(
         shutil.copy2(notice.source_path, target)
 
 
+def _copy_pdf_download(config: SiteConfig, output_root: Path, warnings: list[str]) -> str | None:
+    source = config.pdf_download_source_path
+    if source is None:
+        return None
+
+    source = source.resolve()
+    if not source.exists() or not source.is_file():
+        warnings.append(f"Publication PDF not found: {source}")
+        return None
+
+    raw_relpath = config.pdf_download_relpath or _DEFAULT_PDF_DOWNLOAD_RELPATH
+    relpath_path = Path(raw_relpath)
+    if not raw_relpath.strip() or relpath_path.is_absolute() or any(part == ".." for part in relpath_path.parts):
+        warnings.append(f"Publication PDF relpath is invalid: {raw_relpath}")
+        return None
+
+    relpath = relpath_path.as_posix()
+    output_root = output_root.resolve()
+    target = (output_root / relpath).resolve()
+    try:
+        target.relative_to(output_root)
+    except ValueError:
+        warnings.append(f"Publication PDF relpath is invalid: {raw_relpath}")
+        return None
+
+    try:
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(source, target)
+    except OSError as exc:
+        warnings.append(f"Publication PDF could not be copied: {exc}")
+        return None
+    return relpath
+
+
 def build_static_site(config: SiteConfig) -> BuildResult:
     normalized_config = load_site_config(config)
     resolved_logos = _resolve_logo_files(normalized_config)
@@ -187,6 +222,14 @@ def build_static_site(config: SiteConfig) -> BuildResult:
     _prepare_output_dir(output_root)
 
     warnings = list(manifest.warnings)
+    pdf_download_relpath = _copy_pdf_download(normalized_config, output_root, warnings)
+    if pdf_download_relpath is not None:
+        normalized_config = replace(normalized_config, pdf_download_relpath=pdf_download_relpath)
+        manifest = replace(manifest, config=normalized_config)
+    elif normalized_config.pdf_download_relpath is not None:
+        normalized_config = replace(normalized_config, pdf_download_relpath=None)
+        manifest = replace(manifest, config=normalized_config)
+
     generated_pages: list[Path] = []
 
     play_by_slug = {play.slug: play for play in manifest.plays}

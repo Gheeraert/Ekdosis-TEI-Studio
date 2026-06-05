@@ -147,6 +147,18 @@ def _site_sidebar_html(current_href: str) -> str:
     )
 
 
+def _pdf_download_html(manifest: SiteManifest, current_href: str) -> str:
+    relpath = manifest.config.pdf_download_relpath
+    if not relpath:
+        return ""
+    href = f"{_asset_prefix(current_href)}{relpath}"
+    return (
+        '<section class="site-pdf-download" aria-label="PDF de publication">'
+        f'<a href="{html.escape(href, quote=True)}" download>Télécharger le PDF</a>'
+        "</section>"
+    )
+
+
 def _site_footer_html(current_href: str) -> str:
     return (
         '<footer class="site-footer">'
@@ -907,7 +919,7 @@ def _layout(
     </div>
   </header>
   <main>
-    <nav aria-label=\"Navigation principale\">{_nav_html(manifest, current_href=current_href)}{_site_sidebar_html(current_href)}</nav>
+    <nav aria-label=\"Navigation principale\">{_nav_html(manifest, current_href=current_href)}{_pdf_download_html(manifest, current_href)}{_site_sidebar_html(current_href)}</nav>
     <section class="{html.escape(section_class, quote=True)}">{content_html}</section>
   </main>
   {_site_footer_html(current_href)}

@@ -72,6 +72,8 @@ class SitePublicationRequest:
     play_dramatis_map: tuple[tuple[str, str], ...] = ()
     general_notice_slug: str = ""
     home_page_notice_slug: str = ""
+    pdf_download_source_path: Path | None = None
+    pdf_download_relpath: str = "downloads/edition-complete.pdf"
 
 
 @dataclass(frozen=True)
