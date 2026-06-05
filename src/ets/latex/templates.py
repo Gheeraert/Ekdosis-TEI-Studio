@@ -7,7 +7,11 @@ MINIMAL_PREAMBLE = r"""\documentclass{book}
 \usepackage{csquotes}
 \usepackage[teiexport, divs=ekdosis, poetry=verse]{ekdosis}
 
-\SetLineation{lineation=none}
+\SetLineation{
+  lineation=none,
+  modulo,
+  vmodulo=0
+}
 
 \newcommand{\stage}[1]{\par\begin{center}\textsc{#1}\end{center}\par}
 \newenvironment{speech}{\par}{\par}

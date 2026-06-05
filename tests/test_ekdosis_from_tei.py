@@ -80,6 +80,7 @@ def test_tei_to_ekdosis_can_wrap_standalone_document() -> None:
     assert "\\usepackage[teiexport, divs=ekdosis, poetry=verse]{ekdosis}" in actual
     assert "\\newcommand{\\stage}[1]" in actual
     assert "\\SetLineation{lineation=none}" in actual
+    assert "\\renewcommand\\makeLineNumber{}" in actual
     assert "\\begin{document}\n\\begin{ekdosis}\n" in actual
     assert _read(fixture_dir / "expected.tex").strip() in actual
     assert actual.endswith("\\end{ekdosis}\n\\end{document}\n")
