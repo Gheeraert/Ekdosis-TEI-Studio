@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import shutil
 from pathlib import Path
@@ -218,7 +218,35 @@ def test_builder_rejects_invalid_pdf_relpath_from_direct_site_config() -> None:
     assert not (output_dir / "downloads" / "edition-complete.pdf").exists()
     assert any("Publication PDF relpath is invalid" in warning for warning in result.warnings)
     home_html = (output_dir / "index.html").read_text(encoding="utf-8")
-    assert "TÃ©lÃ©charger le PDF" not in home_html
+    assert "Télécharger le PDF" not in home_html
+    assert "downloads/edition-complete.pdf" not in home_html
+    assert "../escape.pdf" not in home_html
+
+
+def test_builder_rejects_empty_pdf_relpath_from_direct_site_config() -> None:
+    base_dir = _runtime_dir("site_builder_pdf_empty_relpath")
+    output_dir = base_dir / "site_pdf_empty"
+    pdf_source = base_dir / "build" / "edition.pdf"
+    pdf_source.parent.mkdir(parents=True, exist_ok=True)
+    pdf_source.write_bytes(b"%PDF-1.7\n% empty relpath test\n")
+    config = SiteConfig(
+        site_title="ETS Demo",
+        dramatic_xml_dir=FIXTURE_ROOT / "dramatic",
+        notice_xml_dir=FIXTURE_ROOT / "notices",
+        output_dir=output_dir,
+        publish_notices=True,
+        pdf_download_source_path=pdf_source,
+        pdf_download_relpath="",
+    )
+
+    result = build_static_site(config)
+
+    assert (output_dir / "index.html").exists()
+    assert not (output_dir / "downloads" / "edition-complete.pdf").exists()
+    assert any("Publication PDF relpath is invalid" in warning for warning in result.warnings)
+    home_html = (output_dir / "index.html").read_text(encoding="utf-8")
+    assert "Télécharger le PDF" not in home_html
+    assert "downloads/edition-complete.pdf" not in home_html
 
 
 def test_builder_uses_default_pdf_relpath_when_source_exists_and_relpath_is_none() -> None:
@@ -675,7 +703,7 @@ def test_play_page_shows_scientific_editor_and_transcriber_instead_of_document_t
         <div type="scene" n="1">
           <sp>
             <speaker>AGRIPPINE</speaker>
-            <l>Tout m'afflige et me nuit, et conspire à me nuire.</l>
+            <l>Tout m'afflige et me nuit, et conspire Ã  me nuire.</l>
           </sp>
         </div>
       </div>
@@ -730,12 +758,12 @@ def test_play_anchor_injection_prefers_outer_title_wrappers_and_keeps_scene_alig
                 start_speech_index=0,
                 scenes=(
                     PlaySceneNavigation(
-                        label="Scène 1",
+                        label="ScÃ¨ne 1",
                         anchor_id="ets-nav-andromaque-scene-1",
                         start_speech_index=0,
                     ),
                     PlaySceneNavigation(
-                        label="Scène 2",
+                        label="ScÃ¨ne 2",
                         anchor_id="ets-nav-andromaque-scene-2",
                         start_speech_index=1,
                     ),
@@ -749,7 +777,7 @@ def test_play_anchor_injection_prefers_outer_title_wrappers_and_keeps_scene_alig
         play_navigation=(play_navigation,),
         navigation=(
             NavigationItem(
-                label="Pièces",
+                label="PiÃ¨ces",
                 href="",
                 kind="plays_group",
                 children=(
@@ -764,12 +792,12 @@ def test_play_anchor_injection_prefers_outer_title_wrappers_and_keeps_scene_alig
                                 kind="act",
                                 children=(
                                     NavigationItem(
-                                        label="Scène 1",
+                                        label="ScÃ¨ne 1",
                                         href=f"plays/{play.slug}.html#ets-nav-andromaque-scene-1",
                                         kind="scene",
                                     ),
                                     NavigationItem(
-                                        label="Scène 2",
+                                        label="ScÃ¨ne 2",
                                         href=f"plays/{play.slug}.html#ets-nav-andromaque-scene-2",
                                         kind="scene",
                                     ),
@@ -823,13 +851,13 @@ def test_nav_item_contains_current_keeps_play_group_open_without_auto_opening_al
         label="Acte 1",
         href="plays/andromaque.html#acte-1",
         kind="act",
-        children=(NavigationItem(label="Scène 1", href="plays/andromaque.html#scene-1", kind="scene"),),
+        children=(NavigationItem(label="ScÃ¨ne 1", href="plays/andromaque.html#scene-1", kind="scene"),),
     )
     act_two = NavigationItem(
         label="Acte 2",
         href="plays/andromaque.html#acte-2",
         kind="act",
-        children=(NavigationItem(label="Scène 1", href="plays/andromaque.html#scene-2-1", kind="scene"),),
+        children=(NavigationItem(label="ScÃ¨ne 1", href="plays/andromaque.html#scene-2-1", kind="scene"),),
     )
     play_group = NavigationItem(
         label="Andromaque",
@@ -971,4 +999,5 @@ def test_builder_uses_external_dramatis_when_configured() -> None:
     doc = lxml_html.document_fromstring(play_html)
     assert doc.xpath("//section[contains(@class, 'dramatis-personae-block')]//li[text()='Personnage externe Alpha']")
     assert doc.xpath("//section[contains(@class, 'dramatis-personae-block')]//li[text()='Personnage externe Beta']")
+
 

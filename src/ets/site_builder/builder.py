@@ -184,7 +184,11 @@ def _copy_pdf_download(config: SiteConfig, output_root: Path, warnings: list[str
         warnings.append(f"Publication PDF not found: {source}")
         return None
 
-    raw_relpath = config.pdf_download_relpath or _DEFAULT_PDF_DOWNLOAD_RELPATH
+    raw_relpath = (
+        _DEFAULT_PDF_DOWNLOAD_RELPATH
+        if config.pdf_download_relpath is None
+        else config.pdf_download_relpath
+    )
     relpath_path = Path(raw_relpath)
     if not raw_relpath.strip() or relpath_path.is_absolute() or any(part == ".." for part in relpath_path.parts):
         warnings.append(f"Publication PDF relpath is invalid: {raw_relpath}")
