@@ -703,7 +703,7 @@ def test_play_page_shows_scientific_editor_and_transcriber_instead_of_document_t
         <div type="scene" n="1">
           <sp>
             <speaker>AGRIPPINE</speaker>
-            <l>Tout m'afflige et me nuit, et conspire Ã  me nuire.</l>
+            <l>Tout m'afflige et me nuit, et conspire à me nuire.</l>
           </sp>
         </div>
       </div>
@@ -758,12 +758,12 @@ def test_play_anchor_injection_prefers_outer_title_wrappers_and_keeps_scene_alig
                 start_speech_index=0,
                 scenes=(
                     PlaySceneNavigation(
-                        label="ScÃ¨ne 1",
+                        label="Scène 1",
                         anchor_id="ets-nav-andromaque-scene-1",
                         start_speech_index=0,
                     ),
                     PlaySceneNavigation(
-                        label="ScÃ¨ne 2",
+                        label="Scène 2",
                         anchor_id="ets-nav-andromaque-scene-2",
                         start_speech_index=1,
                     ),
@@ -777,7 +777,7 @@ def test_play_anchor_injection_prefers_outer_title_wrappers_and_keeps_scene_alig
         play_navigation=(play_navigation,),
         navigation=(
             NavigationItem(
-                label="PiÃ¨ces",
+                label="Pièces",
                 href="",
                 kind="plays_group",
                 children=(
@@ -792,12 +792,12 @@ def test_play_anchor_injection_prefers_outer_title_wrappers_and_keeps_scene_alig
                                 kind="act",
                                 children=(
                                     NavigationItem(
-                                        label="ScÃ¨ne 1",
+                                        label="Scène 1",
                                         href=f"plays/{play.slug}.html#ets-nav-andromaque-scene-1",
                                         kind="scene",
                                     ),
                                     NavigationItem(
-                                        label="ScÃ¨ne 2",
+                                        label="Scène 2",
                                         href=f"plays/{play.slug}.html#ets-nav-andromaque-scene-2",
                                         kind="scene",
                                     ),
@@ -851,13 +851,13 @@ def test_nav_item_contains_current_keeps_play_group_open_without_auto_opening_al
         label="Acte 1",
         href="plays/andromaque.html#acte-1",
         kind="act",
-        children=(NavigationItem(label="ScÃ¨ne 1", href="plays/andromaque.html#scene-1", kind="scene"),),
+        children=(NavigationItem(label="Scène 1", href="plays/andromaque.html#scene-1", kind="scene"),),
     )
     act_two = NavigationItem(
         label="Acte 2",
         href="plays/andromaque.html#acte-2",
         kind="act",
-        children=(NavigationItem(label="ScÃ¨ne 1", href="plays/andromaque.html#scene-2-1", kind="scene"),),
+        children=(NavigationItem(label="Scène 1", href="plays/andromaque.html#scene-2-1", kind="scene"),),
     )
     play_group = NavigationItem(
         label="Andromaque",

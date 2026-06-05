@@ -42,6 +42,7 @@ from ets.parser import save_config as save_edition_config
 from ets.ui.tk.helpers import diagnostic_line_numbers, format_config_status
 from ets.ui.tk.main_window import MainWindow, suggest_next_annotation_id
 from ets.ui.tk.dialogs.publication_dialog import PublicationDialog, PublicationDialogResult
+from ets.publication_pdf import PublicationPdfBuildResult, PublicationPdfCompileResult, PublicationPdfMasterBuildResult
 
 
 RUNTIME_DIR = Path(__file__).resolve().parents[1] / "tests" / "_runtime"
@@ -87,6 +88,43 @@ def _publication_dramatic_body() -> str:
         </div>
       </div>
     """
+
+
+def _fake_pdf_build_result(
+    *,
+    master_path: Path,
+    prepared_config: SitePublicationDialogConfig,
+    ok: bool,
+    pdf_path: Path | None,
+    message: str = "Compilation PDF simulee.",
+    error_detail: str | None = None,
+    warnings: tuple[str, ...] = (),
+) -> PublicationPdfBuildResult:
+    master_result = PublicationPdfMasterBuildResult(
+        master_path=master_path,
+        prepared_config=prepared_config,
+        warnings=warnings,
+    )
+    compile_result = PublicationPdfCompileResult(
+        ok=ok,
+        master_path=master_path,
+        pdf_path=pdf_path,
+        engine="xelatex",
+        command=("xelatex", "master.tex"),
+        returncode=0 if ok else 1,
+        stdout="",
+        stderr="",
+        log_path=None,
+        message=message,
+        error_detail=error_detail,
+    )
+    return PublicationPdfBuildResult(
+        master_result=master_result,
+        compile_result=compile_result,
+        ok=ok,
+        pdf_path=pdf_path if ok else None,
+        warnings=warnings,
+    )
 
 
 def _collection_with_ids(*ids: str) -> AnnotationCollection:
@@ -1070,7 +1108,7 @@ def test_publication_dialog_builds_rich_request_object(monkeypatch: pytest.Monke
         root.destroy()
 
 
-def test_publication_dialog_generates_pdf_master_from_prepared_config_once() -> None:
+def test_publication_dialog_compiles_pdf_from_prepared_config_once(monkeypatch: pytest.MonkeyPatch) -> None:
     root = _make_root()
     try:
         runtime = RUNTIME_DIR / f"publication_dialog_pdf_master_{uuid4().hex}"
@@ -1099,6 +1137,28 @@ def test_publication_dialog_generates_pdf_master_from_prepared_config_once() -> 
             ),
         )
         fake_service = _FakePreparedPublicationService(prepared_config, warnings=("Warning prepare.",))
+        build_calls: list[tuple[SitePublicationDialogConfig, Path, tuple[str, ...]]] = []
+
+        def _fake_build_and_compile(prepared_payload, build_dir, *, warnings=(), **_kwargs):
+            build_dir = Path(build_dir)
+            build_dir.mkdir(parents=True, exist_ok=True)
+            master_path = build_dir / "master.tex"
+            pdf_path = build_dir / "master.pdf"
+            master_path.write_text("% fake master\nIntro preparee PDF.\n", encoding="utf-8")
+            pdf_path.write_bytes(b"%PDF-1.7\n% fake dialog pdf\n")
+            build_calls.append((prepared_payload, build_dir, tuple(warnings)))
+            return _fake_pdf_build_result(
+                master_path=master_path,
+                prepared_config=prepared_payload,
+                ok=True,
+                pdf_path=pdf_path,
+                warnings=tuple(warnings),
+            )
+
+        monkeypatch.setattr(
+            "ets.ui.tk.dialogs.publication_dialog.build_and_compile_publication_pdf_from_prepared_config",
+            _fake_build_and_compile,
+        )
 
         dialog = PublicationDialog(root)
         dialog._editorial_import_service = fake_service
@@ -1111,19 +1171,26 @@ def test_publication_dialog_generates_pdf_master_from_prepared_config_once() -> 
         request = dialog._build_request()
 
         assert len(fake_service.calls) == 1
+        assert len(build_calls) == 1
+        build_config, build_dir, build_warnings = build_calls[0]
+        assert build_config == prepared_config
+        assert build_warnings == ("Warning prepare.",)
         assert request.identity.site_title == "Theatre complet"
         assert request.plays[0].document.source_path == prepared_dramatic
+        assert request.pdf_download_source_path == build_dir / "master.pdf"
+        assert request.pdf_download_relpath == "downloads/edition-complete.pdf"
         assert dialog._last_pdf_master_result is not None
         assert dialog._last_pdf_master_result.prepared_config == prepared_config
         assert dialog._last_pdf_master_result.warnings == ("Warning prepare.",)
+        assert dialog._last_pdf_build_result is not None
+        assert dialog._last_pdf_build_result.ok is True
         master_path = dialog._last_pdf_master_result.master_path
         assert master_path.exists()
         assert master_path.parent.parent == runtime
         assert master_path.parent.name.startswith("ets_publication_pdf_")
-        assert not list(master_path.parent.glob("*.pdf"))
+        assert (master_path.parent / "master.pdf").exists()
         master_text = master_path.read_text(encoding="utf-8")
         assert "Intro preparee PDF." in master_text
-        assert r"\speaker{ALPHA}" in master_text
         assert dialog._last_prepare_warnings == ("Warning prepare.",)
         dialog.destroy()
     finally:
@@ -1158,7 +1225,7 @@ def test_publication_dialog_pdf_master_lxml_error_is_non_blocking(monkeypatch: p
             raise etree.LxmlError("bad XML")
 
         monkeypatch.setattr(
-            "ets.ui.tk.dialogs.publication_dialog.build_publication_pdf_master_from_prepared_config",
+            "ets.ui.tk.dialogs.publication_dialog.build_and_compile_publication_pdf_from_prepared_config",
             _raise_lxml_error,
         )
 
@@ -1174,13 +1241,157 @@ def test_publication_dialog_pdf_master_lxml_error_is_non_blocking(monkeypatch: p
         assert len(fake_service.calls) == 1
         assert request.identity.site_title == "Theatre complet"
         assert request.plays[0].document.source_path == prepared_dramatic
+        assert request.pdf_download_source_path is None
         assert dialog._last_pdf_master_result is None
+        assert dialog._last_pdf_build_result is None
         assert len(dialog._last_prepare_warnings) == 1
-        assert dialog._last_prepare_warnings[0].startswith("Master LaTeX PDF non genere:")
+        assert dialog._last_prepare_warnings[0].startswith("PDF de publication non genere:")
         assert "bad XML" in dialog._last_prepare_warnings[0]
         dialog.destroy()
     finally:
         root.destroy()
+
+
+def test_publication_dialog_pdf_compile_failure_is_non_blocking(monkeypatch: pytest.MonkeyPatch) -> None:
+    root = _make_root()
+    try:
+        runtime = RUNTIME_DIR / f"publication_dialog_pdf_compile_failure_{uuid4().hex}"
+        runtime.mkdir(parents=True, exist_ok=True)
+        raw_piece = runtime / "raw_piece.xml"
+        raw_piece.write_text("<xml/>", encoding="utf-8")
+        prepared_dramatic = _write_publication_tei(
+            runtime / "prepared_piece.xml",
+            body=_publication_dramatic_body(),
+            front="<castList><castItem><role>ALPHA</role></castItem></castList>",
+        )
+        prepared_config = SitePublicationDialogConfig(
+            corpus_title="Theatre complet",
+            output_dir=runtime / "site_out",
+            plays=(
+                SitePublicationDialogPlayConfig(
+                    play_slug="piece",
+                    dramatic_xml_path=prepared_dramatic,
+                ),
+            ),
+        )
+        fake_service = _FakePreparedPublicationService(prepared_config, warnings=("Warning prepare.",))
+        build_calls: list[SitePublicationDialogConfig] = []
+
+        def _fake_failed_compile(prepared_payload, build_dir, *, warnings=(), **_kwargs):
+            build_dir = Path(build_dir)
+            build_dir.mkdir(parents=True, exist_ok=True)
+            master_path = build_dir / "master.tex"
+            master_path.write_text("% fake master\n", encoding="utf-8")
+            build_calls.append(prepared_payload)
+            return _fake_pdf_build_result(
+                master_path=master_path,
+                prepared_config=prepared_payload,
+                ok=False,
+                pdf_path=None,
+                message="Moteur LaTeX introuvable: xelatex.",
+                error_detail="L'executable 'xelatex' est introuvable dans le PATH.",
+                warnings=tuple(warnings),
+            )
+
+        monkeypatch.setattr(
+            "ets.ui.tk.dialogs.publication_dialog.build_and_compile_publication_pdf_from_prepared_config",
+            _fake_failed_compile,
+        )
+
+        dialog = PublicationDialog(root)
+        dialog._editorial_import_service = fake_service
+        dialog.vars.corpus_title.set("Theatre complet brut")
+        dialog.vars.output_dir.set(str(runtime / "site_out"))
+        dialog._append_play_from_path(raw_piece)
+        dialog._sync_play_order_from_entries()
+
+        request = dialog._build_request()
+
+        assert len(fake_service.calls) == 1
+        assert build_calls == [prepared_config]
+        assert request.identity.site_title == "Theatre complet"
+        assert request.plays[0].document.source_path == prepared_dramatic
+        assert request.pdf_download_source_path is None
+        assert dialog._last_pdf_master_result is not None
+        assert dialog._last_pdf_build_result is not None
+        assert dialog._last_pdf_build_result.ok is False
+        assert len(dialog._last_prepare_warnings) == 2
+        assert dialog._last_prepare_warnings[0] == "Warning prepare."
+        assert dialog._last_prepare_warnings[1].startswith("PDF de publication non genere:")
+        assert "xelatex" in dialog._last_prepare_warnings[1]
+        dialog.destroy()
+    finally:
+        root.destroy()
+
+
+def test_publication_dialog_pdf_compile_failure_does_not_show_modal(monkeypatch: pytest.MonkeyPatch) -> None:
+    root = _make_root()
+    try:
+        runtime = RUNTIME_DIR / f"publication_dialog_pdf_compile_failure_silent_{uuid4().hex}"
+        runtime.mkdir(parents=True, exist_ok=True)
+        raw_piece = runtime / "raw_piece.xml"
+        raw_piece.write_text("<xml/>", encoding="utf-8")
+        prepared_dramatic = _write_publication_tei(
+            runtime / "prepared_piece.xml",
+            body=_publication_dramatic_body(),
+            front="<castList><castItem><role>ALPHA</role></castItem></castList>",
+        )
+        prepared_config = SitePublicationDialogConfig(
+            corpus_title="Theatre complet",
+            output_dir=runtime / "site_out",
+            plays=(
+                SitePublicationDialogPlayConfig(
+                    play_slug="piece",
+                    dramatic_xml_path=prepared_dramatic,
+                ),
+            ),
+        )
+        fake_service = _FakePreparedPublicationService(prepared_config)
+
+        def _fake_failed_compile(prepared_payload, build_dir, *, warnings=(), **_kwargs):
+            build_dir = Path(build_dir)
+            build_dir.mkdir(parents=True, exist_ok=True)
+            master_path = build_dir / "master.tex"
+            master_path.write_text("% fake master\n", encoding="utf-8")
+            return _fake_pdf_build_result(
+                master_path=master_path,
+                prepared_config=prepared_payload,
+                ok=False,
+                pdf_path=None,
+                message="Compilation LaTeX echouee.",
+                error_detail="xelatex a retourne le code 1.",
+                warnings=tuple(warnings),
+            )
+
+        def _unexpected_warning(*_args, **_kwargs):
+            raise AssertionError("messagebox.showwarning should not be called for PDF compilation failure")
+
+        monkeypatch.setattr(
+            "ets.ui.tk.dialogs.publication_dialog.build_and_compile_publication_pdf_from_prepared_config",
+            _fake_failed_compile,
+        )
+        monkeypatch.setattr(
+            "ets.ui.tk.dialogs.publication_dialog.messagebox.showwarning",
+            _unexpected_warning,
+        )
+
+        dialog = PublicationDialog(root)
+        dialog._editorial_import_service = fake_service
+        dialog.vars.corpus_title.set("Theatre complet brut")
+        dialog.vars.output_dir.set(str(runtime / "site_out"))
+        dialog._append_play_from_path(raw_piece)
+        dialog._sync_play_order_from_entries()
+
+        dialog._on_validate()
+
+        assert len(fake_service.calls) == 1
+        assert dialog.result is not None
+        assert dialog.result.site_request.pdf_download_source_path is None
+        assert dialog._last_prepare_warnings
+        assert dialog._last_prepare_warnings[0].startswith("PDF de publication non genere:")
+    finally:
+        if root.winfo_exists():
+            root.destroy()
 
 
 def test_publication_dialog_publish_ftp_returns_structured_result(monkeypatch: pytest.MonkeyPatch) -> None:
