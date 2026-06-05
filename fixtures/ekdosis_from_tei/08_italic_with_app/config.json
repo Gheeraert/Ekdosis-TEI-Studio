@@ -1,0 +1,20 @@
+{
+  "Prénom de l'auteur": "Jean",
+  "Nom de l'auteur": "Racine",
+  "Titre de la pièce": "Fixture Ekdosis",
+  "Prénom de l'éditeur scientifique": "Test",
+  "Nom de l'éditeur scientifique": "Editor",
+  "Temoins": [
+    {
+      "abbr": "A",
+      "year": "1670",
+      "desc": "Temoin A"
+    },
+    {
+      "abbr": "B",
+      "year": "1671",
+      "desc": "Temoin B"
+    }
+  ],
+  "reference_witness": 0
+}

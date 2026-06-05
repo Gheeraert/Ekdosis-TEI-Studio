@@ -1,0 +1,20 @@
+####ACTE I####
+####ACTE I####
+
+###SCENE I###
+###SCENE I###
+
+#CHOEUR#
+#CHOEUR#
+
+%%strophe subtype=distique rhyme=aa%%
+%%strophe subtype=distique rhyme=aa%%
+
+=12=Je chante ici.
+=12=Je chante ici.
+
+=10=Je reponds.
+=10=Je reponds.
+
+%%fin_strophe%%
+%%fin_strophe%%
