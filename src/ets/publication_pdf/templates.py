@@ -4,6 +4,7 @@ from pathlib import Path
 
 from ets.application.site_publication_config import SitePublicationDialogConfig
 from ets.latex.castlist_from_tei import tei_castlist_to_latex
+from ets.latex.ekdosis_from_tei import tei_to_ekdosis
 from ets.latex.escaping import escape_latex_text
 from ets.latex.standard_from_tei import tei_peritext_to_latex
 
@@ -84,7 +85,7 @@ def render_publication_pdf_master(config: SitePublicationDialogConfig) -> str:
                 "",
                 r"\section*{Texte dramatique}",
                 f"% DRAMATIC TEXT: {_path_comment(play.dramatic_xml_path)}",
-                r"\emph{Placeholder: conversion TEI dramatique vers LaTeX-Ekdosis a venir.}",
+                _dramatic_fragment(play.dramatic_xml_path),
             ]
         )
 
@@ -113,3 +114,7 @@ def _dramatis_comment(dramatis_xml_path: Path | None, dramatic_xml_path: Path) -
 def _dramatis_fragment(dramatis_xml_path: Path | None, dramatic_xml_path: Path) -> str:
     source_path = dramatis_xml_path if dramatis_xml_path is not None else dramatic_xml_path
     return tei_castlist_to_latex(source_path).rstrip()
+
+
+def _dramatic_fragment(dramatic_xml_path: Path) -> str:
+    return tei_to_ekdosis(dramatic_xml_path, standalone=False).rstrip()

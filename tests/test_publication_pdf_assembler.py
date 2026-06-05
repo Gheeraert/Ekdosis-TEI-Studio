@@ -25,11 +25,27 @@ def _write_xml(path: Path, body: str = "<p>Document source.</p>", front: str = "
     return path
 
 
+def _dramatic_body(speaker: str, line: str) -> str:
+    return f"""
+      <div type="act" n="1">
+        <head>ACTE I</head>
+        <div type="scene" n="1">
+          <head>SCENE I</head>
+          <sp>
+            <speaker>{speaker}</speaker>
+            <l n="1">{line}</l>
+          </sp>
+        </div>
+      </div>
+    """
+
+
 def _config(tmp_path: Path) -> SitePublicationDialogConfig:
     home = _write_xml(tmp_path / "home_page.xml", "<p>Texte reserve a la page accueil.</p>")
     intro = _write_xml(tmp_path / "general_intro.xml", "<p>Introduction generale convertie.</p>")
     play_a = _write_xml(
         tmp_path / "a_dramatic.xml",
+        body=_dramatic_body("ORESTE", "Je parle pour Andromaque."),
         front="<castList><castItem><role>Front Andromaque</role></castItem></castList>",
     )
     notice_a = _write_xml(tmp_path / "a_notice.xml", '<p>Notice avec <hi rend="italic">italique</hi>.</p>')
@@ -40,9 +56,10 @@ def _config(tmp_path: Path) -> SitePublicationDialogConfig:
     )
     play_b = _write_xml(
         tmp_path / "b_dramatic.xml",
+        body=_dramatic_body("BERENICE", "Je parle pour Berenice."),
         front="<castList><castItem><role>Front Berenice</role></castItem></castList>",
     )
-    play_c = _write_xml(tmp_path / "c_dramatic.xml")
+    play_c = _write_xml(tmp_path / "c_dramatic.xml", body=_dramatic_body("TITUS", "Je parle sans castList."))
 
     return SitePublicationDialogConfig(
         author_name="Jean Racine",
@@ -126,6 +143,7 @@ def test_master_orders_play_front_matter_before_dramatic_text(tmp_path: Path) ->
     assert r"Notice avec \emph{italique}." in master_text[notice:preface]
     assert "Preface convertie." in master_text[preface:dramatis]
     assert "Dramatis externe Alpha" in master_text[dramatis:dramatic]
+    assert "\\begin{speech}" in master_text[dramatic:]
 
 
 def test_master_omits_absent_notice_and_preface_placeholders(tmp_path: Path) -> None:
@@ -162,3 +180,22 @@ def test_master_keeps_stable_comment_when_no_castlist_is_found(tmp_path: Path) -
     assert "% DRAMATIS PERSONAE: front of" in play_text
     assert "% DRAMATIS PERSONAE: no castList found." in play_text
     assert "% DRAMATIC TEXT:" in play_text
+
+
+def test_master_inserts_dramatic_ekdosis_fragment_and_removes_placeholder(tmp_path: Path) -> None:
+    master_text = build_publication_pdf_master(_config(tmp_path), tmp_path / "build").read_text(encoding="utf-8")
+
+    assert "% DRAMATIC TEXT:" in master_text
+    assert r"\speaker{ORESTE}" in master_text
+    assert r"\vnum{1}{Je parle pour Andromaque.\\}" in master_text
+    assert "Placeholder: conversion TEI dramatique vers LaTeX-Ekdosis a venir." not in master_text
+
+
+def test_master_does_not_duplicate_front_castlist_in_dramatic_text_section(tmp_path: Path) -> None:
+    master_text = build_publication_pdf_master(_config(tmp_path), tmp_path / "build").read_text(encoding="utf-8")
+    play_text = master_text[master_text.index("% PLAY: berenice") : master_text.index("% PLAY: sans-castlist")]
+    dramatic_text = play_text[play_text.index("% DRAMATIC TEXT:") :]
+
+    assert "Front Berenice" in play_text
+    assert "Front Berenice" not in dramatic_text
+    assert r"\speaker{BERENICE}" in dramatic_text
