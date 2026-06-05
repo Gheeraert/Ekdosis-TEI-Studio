@@ -79,8 +79,9 @@ def test_tei_to_ekdosis_can_wrap_standalone_document() -> None:
     assert actual.startswith("\\documentclass{book}\n")
     assert "\\usepackage[teiexport, divs=ekdosis, poetry=verse]{ekdosis}" in actual
     assert "\\newcommand{\\stage}[1]" in actual
-    assert "\\SetLineation{lineation=none}" in actual
-    assert "\\renewcommand\\makeLineNumber{}" in actual
+    assert "\\SetLineation{" in actual
+    assert "lineation=none" in actual
+    assert "vmodulo=0" in actual
     assert "\\begin{document}\n\\begin{ekdosis}\n" in actual
     assert _read(fixture_dir / "expected.tex").strip() in actual
     assert actual.endswith("\\end{ekdosis}\n\\end{document}\n")
@@ -89,7 +90,9 @@ def test_tei_to_ekdosis_can_wrap_standalone_document() -> None:
 def test_standalone_lineation_does_not_number_stage_or_speaker_automatically() -> None:
     actual = tei_to_ekdosis(_tei_with_lines([("1", "Premier vers.")]), standalone=True)
 
-    assert "\\SetLineation{lineation=none}" in actual
+    assert "\\SetLineation{" in actual
+    assert "lineation=none" in actual
+    assert "vmodulo=0" in actual
     assert "\\stage{ACTE I}" in actual
     assert "\\stage{SCENE I}" in actual
     assert "\\stage{ALPHA, BETA.}" in actual
