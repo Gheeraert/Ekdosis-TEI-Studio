@@ -6,17 +6,28 @@ from ets.application import SitePublicationDialogConfig, SitePublicationDialogPl
 from ets.publication_pdf import build_publication_pdf_master
 
 
-def _write_xml(path: Path) -> Path:
-    path.write_text("<TEI/>", encoding="utf-8")
+def _write_xml(path: Path, body: str = "<p>Document source.</p>") -> Path:
+    path.write_text(
+        f"""<?xml version="1.0" encoding="utf-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0">
+  <text>
+    <body>
+      {body}
+    </body>
+  </text>
+</TEI>
+""",
+        encoding="utf-8",
+    )
     return path
 
 
 def _config(tmp_path: Path) -> SitePublicationDialogConfig:
-    home = _write_xml(tmp_path / "home_page.xml")
-    intro = _write_xml(tmp_path / "general_intro.xml")
+    home = _write_xml(tmp_path / "home_page.xml", "<p>Texte reserve a la page accueil.</p>")
+    intro = _write_xml(tmp_path / "general_intro.xml", "<p>Introduction generale convertie.</p>")
     play_a = _write_xml(tmp_path / "a_dramatic.xml")
-    notice_a = _write_xml(tmp_path / "a_notice.xml")
-    preface_a = _write_xml(tmp_path / "a_preface.xml")
+    notice_a = _write_xml(tmp_path / "a_notice.xml", '<p>Notice avec <hi rend="italic">italique</hi>.</p>')
+    preface_a = _write_xml(tmp_path / "a_preface.xml", "<p>Preface convertie.</p>")
     dramatis_a = _write_xml(tmp_path / "a_dramatis.xml")
     play_b = _write_xml(tmp_path / "b_dramatic.xml")
 
@@ -61,8 +72,19 @@ def test_master_excludes_home_page_and_includes_general_intro(tmp_path: Path) ->
     master_text = build_publication_pdf_master(config, tmp_path / "build").read_text(encoding="utf-8")
 
     assert str(config.home_page_tei.resolve()) not in master_text  # type: ignore[union-attr]
+    assert "Texte reserve a la page accueil." not in master_text
     assert "% GENERAL INTRO:" in master_text
     assert str(config.general_intro_tei.resolve()) in master_text  # type: ignore[union-attr]
+    assert "Introduction generale convertie." in master_text
+
+
+def test_master_inserts_notice_and_preface_latex_fragments(tmp_path: Path) -> None:
+    master_text = build_publication_pdf_master(_config(tmp_path), tmp_path / "build").read_text(encoding="utf-8")
+
+    assert "% NOTICE:" in master_text
+    assert r"Notice avec \emph{italique}." in master_text
+    assert "% PREFACE:" in master_text
+    assert "Preface convertie." in master_text
 
 
 def test_master_orders_plays_from_config(tmp_path: Path) -> None:
@@ -80,6 +102,8 @@ def test_master_orders_play_front_matter_before_dramatic_text(tmp_path: Path) ->
     dramatic = master_text.index("% DRAMATIC TEXT:")
 
     assert notice < preface < dramatis < dramatic
+    assert r"Notice avec \emph{italique}." in master_text[notice:preface]
+    assert "Preface convertie." in master_text[preface:dramatis]
 
 
 def test_master_omits_absent_notice_and_preface_placeholders(tmp_path: Path) -> None:
