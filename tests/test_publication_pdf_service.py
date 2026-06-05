@@ -4,8 +4,12 @@ from pathlib import Path
 
 from ets.application import SitePublicationDialogConfig, SitePublicationDialogPlayConfig
 from ets.application.editorial_notice_import import PreparedPublicationConfig
+from ets.publication_pdf.compiler import PublicationPdfCompileResult
 from ets.publication_pdf import (
+    PublicationPdfBuildResult,
     PublicationPdfMasterBuildResult,
+    build_and_compile_publication_pdf_from_dialog_config,
+    build_and_compile_publication_pdf_from_prepared_config,
     build_publication_pdf_master_from_dialog_config,
     build_publication_pdf_master_from_prepared_config,
 )
@@ -143,3 +147,110 @@ def test_service_builds_master_from_prepared_config_without_preparing_again(tmp_
     assert result.master_path.exists()
     assert result.prepared_config == prepared_config
     assert result.warnings == ("Warning deja prepare.",)
+
+
+def _compile_result(
+    *,
+    master_path: Path,
+    ok: bool,
+    pdf_path: Path | None = None,
+    engine: str = "xelatex",
+    returncode: int | None = 0,
+) -> PublicationPdfCompileResult:
+    return PublicationPdfCompileResult(
+        ok=ok,
+        master_path=master_path,
+        pdf_path=pdf_path,
+        engine=engine,
+        command=(engine, "master.tex"),
+        returncode=returncode,
+        stdout="stdout",
+        stderr="stderr",
+        log_path=None,
+        message="compile message",
+    )
+
+
+def test_build_and_compile_from_prepared_config_succeeds(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    prepared_config = _prepared_xml_config(tmp_path)
+    calls: list[tuple[Path, str, int, int]] = []
+
+    def _fake_compile(master_path, *, engine, runs, timeout_seconds):
+        resolved = Path(master_path).resolve()
+        calls.append((resolved, engine, runs, timeout_seconds))
+        pdf_path = resolved.with_suffix(".pdf")
+        pdf_path.write_text("pdf", encoding="utf-8")
+        return _compile_result(master_path=resolved, ok=True, pdf_path=pdf_path, engine=engine)
+
+    monkeypatch.setattr("ets.publication_pdf.service.compile_publication_pdf", _fake_compile)
+
+    result = build_and_compile_publication_pdf_from_prepared_config(
+        prepared_config,
+        tmp_path / "compiled-build",
+        warnings=("Warning transmis.",),
+        engine="lualatex",
+        runs=3,
+        timeout_seconds=30,
+    )
+
+    assert isinstance(result, PublicationPdfBuildResult)
+    assert result.ok is True
+    assert result.master_result.master_path.exists()
+    assert result.pdf_path == (tmp_path / "compiled-build" / "master.pdf").resolve()
+    assert result.compile_result.pdf_path == result.pdf_path
+    assert result.warnings == ("Warning transmis.",)
+    assert calls == [(result.master_result.master_path, "lualatex", 3, 30)]
+    assert not (prepared_config.output_dir or Path()).exists()
+
+
+def test_build_and_compile_from_prepared_config_preserves_failed_compile(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    prepared_config = _prepared_xml_config(tmp_path)
+
+    def _fake_compile(master_path, *, engine, runs, timeout_seconds):
+        return _compile_result(master_path=Path(master_path).resolve(), ok=False, pdf_path=None, returncode=1)
+
+    monkeypatch.setattr("ets.publication_pdf.service.compile_publication_pdf", _fake_compile)
+
+    result = build_and_compile_publication_pdf_from_prepared_config(prepared_config, tmp_path / "failed-build")
+
+    assert result.ok is False
+    assert result.pdf_path is None
+    assert result.master_result.master_path.exists()
+    assert result.compile_result.returncode == 1
+
+
+def test_build_and_compile_from_dialog_config_prepares_once(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    raw_config = SitePublicationDialogConfig(corpus_title="Brut", output_dir=tmp_path / "site")
+    prepared_config = _prepared_xml_config(tmp_path)
+    fake_service = _FakeEditorialImportService(
+        PreparedPublicationConfig(config=prepared_config, warnings=("Warning prepare.",))
+    )
+
+    def _fake_compile(master_path, *, engine, runs, timeout_seconds):
+        resolved = Path(master_path).resolve()
+        pdf_path = resolved.with_suffix(".pdf")
+        pdf_path.write_text("pdf", encoding="utf-8")
+        return _compile_result(master_path=resolved, ok=True, pdf_path=pdf_path, engine=engine)
+
+    monkeypatch.setattr("ets.publication_pdf.service.compile_publication_pdf", _fake_compile)
+
+    result = build_and_compile_publication_pdf_from_dialog_config(
+        raw_config,
+        tmp_path / "dialog-build",
+        editorial_import_service=fake_service,
+        engine="pdflatex",
+    )
+
+    assert fake_service.calls == [raw_config]
+    assert result.ok is True
+    assert result.master_result.prepared_config == prepared_config
+    assert result.warnings == ("Warning prepare.",)
