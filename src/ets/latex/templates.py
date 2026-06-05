@@ -1,11 +1,6 @@
 from __future__ import annotations
 
-MINIMAL_PREAMBLE = r"""\documentclass{book}
-\usepackage[main=french,spanish,latin]{babel}
-\usepackage[T1]{fontenc}
-\usepackage{fontspec}
-\usepackage{csquotes}
-\usepackage[teiexport, divs=ekdosis, poetry=verse]{ekdosis}
+EKDOSIS_SUPPORT_PREAMBLE = r"""\usepackage[teiexport, divs=ekdosis, poetry=verse]{ekdosis}
 
 \SetLineation{
   lineation=none,
@@ -50,6 +45,20 @@ MINIMAL_PREAMBLE = r"""\documentclass{book}
   }
 \ExplSyntaxOff
 """
+
+
+def render_ekdosis_support_preamble() -> str:
+    return EKDOSIS_SUPPORT_PREAMBLE
+
+
+MINIMAL_PREAMBLE = (
+    "\\documentclass{book}\n"
+    "\\usepackage[main=french,spanish,latin]{babel}\n"
+    "\\usepackage[T1]{fontenc}\n"
+    "\\usepackage{fontspec}\n"
+    "\\usepackage{csquotes}\n"
+    f"{render_ekdosis_support_preamble()}"
+)
 
 
 def wrap_standalone(fragment: str) -> str:

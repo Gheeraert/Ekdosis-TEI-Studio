@@ -103,6 +103,20 @@ def test_build_publication_pdf_master_creates_master_and_returns_resolved_path(t
     assert "\\documentclass{book}" in master_path.read_text(encoding="utf-8")
 
 
+def test_master_contains_ekdosis_support_preamble(tmp_path: Path) -> None:
+    master_text = build_publication_pdf_master(_config(tmp_path), tmp_path / "build").read_text(encoding="utf-8")
+
+    assert r"\usepackage[teiexport, divs=ekdosis, poetry=verse]{ekdosis}" in master_text
+    assert r"\SetLineation{" in master_text
+    assert "lineation=none" in master_text
+    assert "modulo" in master_text
+    assert "vmodulo=0" in master_text
+    assert r"\newcommand{\stage}" in master_text
+    assert r"\newenvironment{speech}" in master_text
+    assert r"\newcommand{\speaker}" in master_text
+    assert r"\cs_new_protected:Npn \vnum" in master_text
+
+
 def test_master_excludes_home_page_and_includes_general_intro(tmp_path: Path) -> None:
     config = _config(tmp_path)
 
@@ -186,9 +200,19 @@ def test_master_inserts_dramatic_ekdosis_fragment_and_removes_placeholder(tmp_pa
     master_text = build_publication_pdf_master(_config(tmp_path), tmp_path / "build").read_text(encoding="utf-8")
 
     assert "% DRAMATIC TEXT:" in master_text
+    assert r"\begin{ekdosis}" in master_text
+    assert r"\end{ekdosis}" in master_text
     assert r"\speaker{ORESTE}" in master_text
     assert r"\vnum{1}{Je parle pour Andromaque.\\}" in master_text
     assert "Placeholder: conversion TEI dramatique vers LaTeX-Ekdosis a venir." not in master_text
+
+
+def test_master_does_not_embed_standalone_latex_documents(tmp_path: Path) -> None:
+    master_text = build_publication_pdf_master(_config(tmp_path), tmp_path / "build").read_text(encoding="utf-8")
+
+    assert master_text.count(r"\documentclass") == 1
+    assert master_text.count(r"\begin{document}") == 1
+    assert master_text.count(r"\end{document}") == 1
 
 
 def test_master_does_not_duplicate_front_castlist_in_dramatic_text_section(tmp_path: Path) -> None:
