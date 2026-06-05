@@ -8,6 +8,7 @@ from uuid import uuid4
 import xml.etree.ElementTree as ET
 
 import pytest
+from lxml import etree
 
 from ets.annotations import Annotation, AnnotationAnchor, AnnotationCollection
 from ets.application import (
@@ -18,6 +19,8 @@ from ets.application import (
     DramaticPlayInput,
     GenerationResult,
     SiteIdentityInput,
+    SitePublicationDialogConfig,
+    SitePublicationDialogPlayConfig,
     SitePublicationRequest,
     TextTranscriptionMergeRequest,
     TextTranscriptionMergeServiceResult,
@@ -25,6 +28,7 @@ from ets.application import (
     load_config,
 )
 from ets.ftp_publish import FTPPublicationConfig
+from ets.application.editorial_notice_import import PreparedPublicationConfig
 from ets.application.editorial_notice_import.models import (
     EditorialImportResult,
     ValidationMessage,
@@ -42,6 +46,47 @@ from ets.ui.tk.dialogs.publication_dialog import PublicationDialog, PublicationD
 
 RUNTIME_DIR = Path(__file__).resolve().parents[1] / "tests" / "_runtime"
 RUNTIME_DIR.mkdir(exist_ok=True)
+
+
+class _FakePreparedPublicationService:
+    def __init__(self, prepared_config, warnings=()):
+        self.prepared_config = prepared_config
+        self.warnings = tuple(warnings)
+        self.calls = []
+
+    def prepare_dialog_config_for_publication(self, config):
+        self.calls.append(config)
+        return PreparedPublicationConfig(config=self.prepared_config, warnings=self.warnings)
+
+
+def _write_publication_tei(path: Path, *, body: str = "<p>Texte.</p>", front: str = "") -> Path:
+    path.write_text(
+        f"""<?xml version="1.0" encoding="utf-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0">
+  <text>
+    <front>{front}</front>
+    <body>{body}</body>
+  </text>
+</TEI>
+""",
+        encoding="utf-8",
+    )
+    return path
+
+
+def _publication_dramatic_body() -> str:
+    return """
+      <div type="act" n="1">
+        <head>ACTE I</head>
+        <div type="scene" n="1">
+          <head>SCENE I</head>
+          <sp>
+            <speaker>ALPHA</speaker>
+            <l n="1">Vers de test.</l>
+          </sp>
+        </div>
+      </div>
+    """
 
 
 def _collection_with_ids(*ids: str) -> AnnotationCollection:
@@ -1021,6 +1066,119 @@ def test_publication_dialog_builds_rich_request_object(monkeypatch: pytest.Monke
         assert request.play_dramatis_map
         assert request.publish_notices is True
         assert request.publish_prefaces is True
+    finally:
+        root.destroy()
+
+
+def test_publication_dialog_generates_pdf_master_from_prepared_config_once() -> None:
+    root = _make_root()
+    try:
+        runtime = RUNTIME_DIR / f"publication_dialog_pdf_master_{uuid4().hex}"
+        runtime.mkdir(parents=True, exist_ok=True)
+        raw_intro_docx = runtime / "intro.docx"
+        raw_intro_docx.write_text("placeholder", encoding="utf-8")
+        raw_dramatic_docx = runtime / "raw_piece.xml"
+        raw_dramatic_docx.write_text("<xml/>", encoding="utf-8")
+
+        prepared_intro = _write_publication_tei(runtime / "prepared_intro.xml", body="<p>Intro preparee PDF.</p>")
+        prepared_dramatic = _write_publication_tei(
+            runtime / "prepared_piece.xml",
+            body=_publication_dramatic_body(),
+            front="<castList><castItem><role>ALPHA</role></castItem></castList>",
+        )
+        prepared_config = SitePublicationDialogConfig(
+            author_name="Jean Racine",
+            corpus_title="Theatre complet",
+            output_dir=runtime / "site_out",
+            general_intro_tei=prepared_intro,
+            plays=(
+                SitePublicationDialogPlayConfig(
+                    play_slug="piece",
+                    dramatic_xml_path=prepared_dramatic,
+                ),
+            ),
+        )
+        fake_service = _FakePreparedPublicationService(prepared_config, warnings=("Warning prepare.",))
+
+        dialog = PublicationDialog(root)
+        dialog._editorial_import_service = fake_service
+        dialog.vars.corpus_title.set("Theatre complet brut")
+        dialog.vars.output_dir.set(str(runtime / "site_out"))
+        dialog.vars.general_intro_tei.set(str(raw_intro_docx))
+        dialog._append_play_from_path(raw_dramatic_docx)
+        dialog._sync_play_order_from_entries()
+
+        request = dialog._build_request()
+
+        assert len(fake_service.calls) == 1
+        assert request.identity.site_title == "Theatre complet"
+        assert request.plays[0].document.source_path == prepared_dramatic
+        assert dialog._last_pdf_master_result is not None
+        assert dialog._last_pdf_master_result.prepared_config == prepared_config
+        assert dialog._last_pdf_master_result.warnings == ("Warning prepare.",)
+        master_path = dialog._last_pdf_master_result.master_path
+        assert master_path.exists()
+        assert master_path.parent.parent == runtime
+        assert master_path.parent.name.startswith("ets_publication_pdf_")
+        assert not list(master_path.parent.glob("*.pdf"))
+        master_text = master_path.read_text(encoding="utf-8")
+        assert "Intro preparee PDF." in master_text
+        assert r"\speaker{ALPHA}" in master_text
+        assert dialog._last_prepare_warnings == ("Warning prepare.",)
+        dialog.destroy()
+    finally:
+        root.destroy()
+
+
+def test_publication_dialog_pdf_master_lxml_error_is_non_blocking(monkeypatch: pytest.MonkeyPatch) -> None:
+    root = _make_root()
+    try:
+        runtime = RUNTIME_DIR / f"publication_dialog_pdf_lxml_{uuid4().hex}"
+        runtime.mkdir(parents=True, exist_ok=True)
+        raw_piece = runtime / "raw_piece.xml"
+        raw_piece.write_text("<xml/>", encoding="utf-8")
+        prepared_dramatic = _write_publication_tei(
+            runtime / "prepared_piece.xml",
+            body=_publication_dramatic_body(),
+            front="<castList><castItem><role>ALPHA</role></castItem></castList>",
+        )
+        prepared_config = SitePublicationDialogConfig(
+            corpus_title="Theatre complet",
+            output_dir=runtime / "site_out",
+            plays=(
+                SitePublicationDialogPlayConfig(
+                    play_slug="piece",
+                    dramatic_xml_path=prepared_dramatic,
+                ),
+            ),
+        )
+        fake_service = _FakePreparedPublicationService(prepared_config)
+
+        def _raise_lxml_error(*_args, **_kwargs):
+            raise etree.LxmlError("bad XML")
+
+        monkeypatch.setattr(
+            "ets.ui.tk.dialogs.publication_dialog.build_publication_pdf_master_from_prepared_config",
+            _raise_lxml_error,
+        )
+
+        dialog = PublicationDialog(root)
+        dialog._editorial_import_service = fake_service
+        dialog.vars.corpus_title.set("Theatre complet brut")
+        dialog.vars.output_dir.set(str(runtime / "site_out"))
+        dialog._append_play_from_path(raw_piece)
+        dialog._sync_play_order_from_entries()
+
+        request = dialog._build_request()
+
+        assert len(fake_service.calls) == 1
+        assert request.identity.site_title == "Theatre complet"
+        assert request.plays[0].document.source_path == prepared_dramatic
+        assert dialog._last_pdf_master_result is None
+        assert len(dialog._last_prepare_warnings) == 1
+        assert dialog._last_prepare_warnings[0].startswith("Master LaTeX PDF non genere:")
+        assert "bad XML" in dialog._last_prepare_warnings[0]
+        dialog.destroy()
     finally:
         root.destroy()
 

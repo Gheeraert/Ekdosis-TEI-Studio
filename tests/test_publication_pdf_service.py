@@ -7,6 +7,7 @@ from ets.application.editorial_notice_import import PreparedPublicationConfig
 from ets.publication_pdf import (
     PublicationPdfMasterBuildResult,
     build_publication_pdf_master_from_dialog_config,
+    build_publication_pdf_master_from_prepared_config,
 )
 
 
@@ -127,3 +128,18 @@ def test_service_does_not_compile_latex_or_create_pdf(tmp_path: Path) -> None:
 
     assert result.master_path.name == "master.tex"
     assert not list((tmp_path / "build").glob("*.pdf"))
+
+
+def test_service_builds_master_from_prepared_config_without_preparing_again(tmp_path: Path) -> None:
+    prepared_config = _prepared_xml_config(tmp_path)
+
+    result = build_publication_pdf_master_from_prepared_config(
+        prepared_config,
+        tmp_path / "prepared-build",
+        warnings=("Warning deja prepare.",),
+    )
+
+    assert result.master_path == (tmp_path / "prepared-build" / "master.tex").resolve()
+    assert result.master_path.exists()
+    assert result.prepared_config == prepared_config
+    assert result.warnings == ("Warning deja prepare.",)

@@ -1,8 +1,13 @@
 from .assembler import build_publication_pdf_master
-from .service import PublicationPdfMasterBuildResult, build_publication_pdf_master_from_dialog_config
+from .service import (
+    PublicationPdfMasterBuildResult,
+    build_publication_pdf_master_from_dialog_config,
+    build_publication_pdf_master_from_prepared_config,
+)
 
 __all__ = [
     "PublicationPdfMasterBuildResult",
     "build_publication_pdf_master",
     "build_publication_pdf_master_from_dialog_config",
+    "build_publication_pdf_master_from_prepared_config",
 ]

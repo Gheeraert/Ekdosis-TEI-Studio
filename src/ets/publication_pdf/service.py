@@ -36,3 +36,17 @@ def build_publication_pdf_master_from_dialog_config(
         prepared_config=prepared.config,
         warnings=prepared.warnings,
     )
+
+
+def build_publication_pdf_master_from_prepared_config(
+    prepared_config: SitePublicationDialogConfig,
+    build_dir: str | Path,
+    *,
+    warnings: tuple[str, ...] = (),
+) -> PublicationPdfMasterBuildResult:
+    master_path = build_publication_pdf_master(prepared_config, build_dir)
+    return PublicationPdfMasterBuildResult(
+        master_path=master_path,
+        prepared_config=prepared_config,
+        warnings=warnings,
+    )

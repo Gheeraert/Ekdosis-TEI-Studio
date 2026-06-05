@@ -2,8 +2,12 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
+import tempfile
 import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
+from uuid import uuid4
+
+from lxml import etree
 
 from ets.application import (
     EditorialNoticeImportService,
@@ -19,6 +23,7 @@ from ets.application import (
     site_publication_request_from_dialog_config,
 )
 from ets.ftp_publish import FTPPublicationConfig
+from ets.publication_pdf import PublicationPdfMasterBuildResult, build_publication_pdf_master_from_prepared_config
 
 from .ftp_publication_dialog import open_ftp_publication_dialog
 
@@ -54,6 +59,7 @@ class PublicationDialogResult:
     action: str
     site_request: SitePublicationRequest
     ftp_config: FTPPublicationConfig | None = None
+    pdf_master_result: PublicationPdfMasterBuildResult | None = None
 
 
 class PublicationDialog(tk.Toplevel):
@@ -88,6 +94,7 @@ class PublicationDialog(tk.Toplevel):
         self._config_path: Path | None = None
         self._editorial_import_service = EditorialNoticeImportService()
         self._last_prepare_warnings: tuple[str, ...] = ()
+        self._last_pdf_master_result: PublicationPdfMasterBuildResult | None = None
         self._ftp_config: FTPPublicationConfig | None = None
 
         self.vars.author_name.trace_add("write", self._on_corpus_identity_changed)
@@ -733,7 +740,18 @@ class PublicationDialog(tk.Toplevel):
     def _build_request(self) -> SitePublicationRequest:
         config = self._collect_dialog_config()
         prepared = self._editorial_import_service.prepare_dialog_config_for_publication(config)
-        self._last_prepare_warnings = prepared.warnings
+        warnings = list(prepared.warnings)
+        self._last_pdf_master_result = None
+        try:
+            build_dir = _publication_pdf_build_dir(prepared.config)
+            self._last_pdf_master_result = build_publication_pdf_master_from_prepared_config(
+                prepared.config,
+                build_dir,
+                warnings=prepared.warnings,
+            )
+        except (OSError, ValueError, etree.LxmlError) as exc:
+            warnings.append(f"Master LaTeX PDF non genere: {exc}")
+        self._last_prepare_warnings = tuple(warnings)
         return site_publication_request_from_dialog_config(prepared.config)
 
     def _on_validate(self) -> None:
@@ -748,7 +766,11 @@ class PublicationDialog(tk.Toplevel):
                 "\n\n".join(self._last_prepare_warnings),
                 parent=self,
             )
-        self.result = PublicationDialogResult(action="build", site_request=request)
+        self.result = PublicationDialogResult(
+            action="build",
+            site_request=request,
+            pdf_master_result=self._last_pdf_master_result,
+        )
         self.destroy()
 
     def _on_publish_ftp(self) -> None:
@@ -770,7 +792,12 @@ class PublicationDialog(tk.Toplevel):
             return
 
         self._ftp_config = ftp_config
-        self.result = PublicationDialogResult(action="publish_ftp", site_request=request, ftp_config=ftp_config)
+        self.result = PublicationDialogResult(
+            action="publish_ftp",
+            site_request=request,
+            ftp_config=ftp_config,
+            pdf_master_result=self._last_pdf_master_result,
+        )
         self.destroy()
 
     def _on_cancel(self) -> None:
@@ -782,3 +809,11 @@ def open_publication_dialog(parent: tk.Misc) -> PublicationDialogResult | None:
     dialog = PublicationDialog(parent)
     parent.wait_window(dialog)
     return dialog.result
+
+
+def _publication_pdf_build_dir(config: SitePublicationDialogConfig) -> Path:
+    if config.output_dir is not None:
+        base = config.output_dir.resolve().parent
+    else:
+        base = Path(tempfile.gettempdir()).resolve()
+    return (base / f"ets_publication_pdf_{uuid4().hex}").resolve()
