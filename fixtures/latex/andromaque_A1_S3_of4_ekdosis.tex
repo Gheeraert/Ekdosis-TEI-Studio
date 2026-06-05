@@ -1,0 +1,185 @@
+\documentclass{book}
+\usepackage[main=french,spanish,latin]{babel}
+\usepackage[T1]{fontenc}
+\usepackage{fontspec}
+\usepackage{csquotes}
+\usepackage[teiexport, divs=ekdosis, poetry=verse]{ekdosis}
+\usepackage{setspace}
+\usepackage{lettrine}
+\usepackage{hyperref}
+\usepackage{zref-user,zref-abspage}
+% ... autres commandes utiles (optionnel)
+
+\DeclareWitness{A}{1667}{Edition princeps}
+\DeclareWitness{B}{1671}{Réédition de 1671}
+\DeclareWitness{C}{1676}{Collective de 1676}
+\DeclareWitness{D}{1687}{Collective de 1687}
+\DeclareWitness{E}{1697}{Dernière du vivant de l'auteur}
+\DeclareWitness{F}{2025}{Régularisée}
+\begin{document}
+\begin{ekdosis}
+\begin{titlepage}
+    \centering
+    {\Huge \textbf{\MakeUppercase{Andromaque}} \par}
+    \vspace{1.5cm}
+    {\LARGE Jean Racine \par}
+    \vspace{2cm}
+    {\Large \textit{Édition critique par Clémentine Gheeraert} \par}
+    \vspace{2cm}
+    {\large \today}
+    \vfill
+\end{titlepage}
+\ekddiv{type=scene, n=3, depth=3}
+\stage{\app{
+        \lem[wit={A, B, D, E, F}]{SCENE III.}
+        \rdg[wit={C}]{SCENE. III.}
+      }}
+\stage{\app{
+        \lem[wit={C, D, E, F}]{PYRRHUS, PHŒNIX.}
+        \rdg[wit={A, B}]{PYRRHVS, PHŒNIX.}
+      }}
+    \begin{speech}
+      \speaker{PHŒNIX.}
+      \begin{ekdverse}
+        \vnum{249}{
+AInsi vous  
+      \app{
+        \lem[wit={C, D, E, F}]{l'envoyez}
+        \rdg[wit={A}]{l’enuoyez}
+        \rdg[wit={B}]{l'enuoyez}
+      } aux pieds de sa  
+      \app{
+        \lem[wit={A, B, C, D, F}]{Maistresse~?}
+        \rdg[wit={E}]{Maîtresse~?}
+      }  \\    
+        }
+      \end{ekdverse}
+    \end{speech}
+    \begin{speech}
+      \speaker{\app{
+        \lem[wit={C, D, E, F}]{PYRRHUS.}
+        \rdg[wit={A, B}]{PYRRHVS.}
+      }}
+      \begin{ekdverse}
+        \vnum{250}{
+On dit qu'il a long-temps brûlé pour la Princesse.  \\    
+        }
+      \end{ekdverse}
+    \end{speech}
+    \begin{speech}
+      \speaker{PHŒNIX.}
+      \begin{ekdverse}
+        \vnum{251}{
+Mais si ce feu, Seigneur, vient à se rallumer,  \\    
+        }
+        \vnum{252}{
+S'il  
+      \app{
+        \lem[wit={A, B, C, E, F}]{luy}
+        \rdg[wit={D}]{lui}
+      } rendoit son  
+      \app{
+        \lem[wit={A, B, C, F}]{Cœur,}
+        \rdg[wit={D, E}]{cœur,}
+      } s'il s'en faisoit  
+      \app{
+        \lem[wit={A, B, F}]{aimer~?}
+        \rdg[wit={C, D, E}]{aimer~!}
+      }  \\    
+        }
+      \end{ekdverse}
+    \end{speech}
+    \begin{speech}
+      \speaker{\app{
+        \lem[wit={C, D, E, F}]{PYRRHUS.}
+        \rdg[wit={A, B}]{PYRRHVS.}
+      }}
+      \begin{ekdverse}
+        \vnum{253}{
+Ah~! qu'ils s'aiment, Phœnix,  
+      \app{
+        \lem[wit={C, D, E, F}]{j'y}
+        \rdg[wit={A, B}]{i'y}
+      } consens. Qu'elle parte.  \\    
+        }
+        \vnum{254}{
+Que  
+      \app{
+        \lem[wit={A, B, C, E, F}]{charmez}
+        \rdg[wit={D}]{charmés}
+      }  
+      \app{
+        \lem[wit={C, D, E, F}]{l'un}
+        \rdg[wit={A, B}]{l'vn}
+      } de l'autre, ils  
+      \app{
+        \lem[wit={B, C, D, E, F}]{retournent}
+        \rdg[wit={A}]{retournẽt}
+      } à Sparte.  \\    
+        }
+        \vnum{255}{
+Tous nos Ports sont  
+      \app{
+        \lem[wit={C, D, E, F}]{ouverts}
+        \rdg[wit={A, B}]{ouuerts}
+      } \& pour elle \& pour  
+      \app{
+        \lem[wit={A, B, C, E, F}]{luy.}
+        \rdg[wit={D}]{lui.}
+      }  \\    
+        }
+        \vnum{256}{
+Qu'elle m'épargneroit de contrainte \&  
+      \app{
+        \lem[wit={A, B, C, F}]{d'ennuy~!}
+        \rdg[wit={D, E}]{d'ennui~!}
+      }  \\    
+        }
+      \end{ekdverse}
+    \end{speech}
+    \begin{speech}
+      \speaker{PHŒNIX.}
+      \begin{ekdverse}
+        \vnum{257.1}{
+Seigneur....\\    
+         }
+      \end{ekdverse}
+    \end{speech}
+    \begin{speech}
+      \speaker{\app{
+        \lem[wit={C, D, E, F}]{PYRRHUS.}
+        \rdg[wit={A, B}]{PYRRHVS.}
+      }}
+      \begin{ekdverse}
+        \SetLineation{
+                                lineation=none,
+                                modulo,
+                                vmodulo=0
+                            }
+        \vnum{257.2}{
+\hspace*{5em}\app{
+        \lem[wit={C, D, E, F}]{Une}
+        \rdg[wit={A, B}]{Vne}
+      } autre fois \app{
+        \lem[wit={C, D, E, F}]{je}
+        \rdg[wit={A, B}]{ie}
+      } \app{
+        \lem[wit={C, E, F}]{t'ouvriray}
+        \rdg[wit={A, B}]{t'ouuriray}
+        \rdg[wit={D}]{t'ouvrirai}
+      } mon Ame,\\    
+         }
+        \resetvlinenumber[258]
+        \SetLineation{vmodulo=5}
+        \vnum{258.1}{
+Andromaque \app{
+        \lem[wit={A, B, C, F}]{paroist.}
+        \rdg[wit={D}]{paroît.}
+        \rdg[wit={E}]{paroist}
+      }\\    
+         }
+      \end{ekdverse}
+    \end{speech}
+
+\end{ekdosis}
+\end{document}

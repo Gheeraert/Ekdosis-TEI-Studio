@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0">
+  <teiHeader>
+    <fileDesc>
+      <titleStmt>
+        <title>Andromaque</title>
+        <author>Jean Racine</author>
+        <editor>Clémentine Gheeraert</editor>
+      </titleStmt>
+      <publicationStmt>
+        <publisher>Presses de l'Université de Rouen et du Havre</publisher>
+        <pubPlace>Rouen</pubPlace>
+       <date>19 juillet 2025</date>
+      </publicationStmt>
+      <sourceDesc>
+        <p>généré par Ekdosis-TEI Studio – Acte 1, Scène 3</p>
+      </sourceDesc>
+    </fileDesc>
+  </teiHeader>
+  <text>
+    <body>
+  <div type="scene" n="3">
+    <head><app>
+        <lem wit="#A #B #D #E #F">SCENE III. </lem>
+        <rdg wit="#C">SCENE. III. </rdg>
+      </app></head>
+    <stage type='personnages'><app>
+        <lem wit="#C #D #E #F">PYRRHUS, PHŒNIX. </lem>
+        <rdg wit="#A #B">PYRRHVS, PHŒNIX. </rdg>
+      </app></stage>
+    <sp>
+      <speaker>PHŒNIX.</speaker>
+<l n="249">
+AInsi vous 
+      <app>
+        <lem wit="#C #D #E #F">l'envoyez </lem>
+        <rdg wit="#A">l’enuoyez </rdg>
+        <rdg wit="#B">l'enuoyez </rdg>
+      </app>
+aux pieds de sa 
+      <app>
+        <lem wit="#A #B #C #D #F">Maistresse&#160;? </lem>
+        <rdg wit="#E">Maîtresse&#160;? </rdg>
+      </app>
+</l>
+
+    </sp>
+    <sp>
+      <speaker><app>
+        <lem wit="#C #D #E #F">PYRRHUS. </lem>
+        <rdg wit="#A #B">PYRRHVS. </rdg>
+      </app></speaker>
+<l n="250">
+On dit qu'il a long-temps brûlé pour la Princesse. </l>
+
+    </sp>
+    <sp>
+      <speaker>PHŒNIX.</speaker>
+<l n="251">
+Mais si ce feu, Seigneur, vient à se rallumer, </l>
+
+<l n="252">
+S'il 
+      <app>
+        <lem wit="#A #B #C #E #F">luy </lem>
+        <rdg wit="#D">lui </rdg>
+      </app>
+rendoit son 
+      <app>
+        <lem wit="#A #B #C #F">Cœur, </lem>
+        <rdg wit="#D #E">cœur, </rdg>
+      </app>
+s'il s'en faisoit 
+      <app>
+        <lem wit="#A #B #F">aimer&#160;? </lem>
+        <rdg wit="#C #D #E">aimer&#160;! </rdg>
+      </app>
+</l>
+
+    </sp>
+    <sp>
+      <speaker><app>
+        <lem wit="#C #D #E #F">PYRRHUS. </lem>
+        <rdg wit="#A #B">PYRRHVS. </rdg>
+      </app></speaker>
+<l n="253">
+Ah&#160;! qu'ils s'aiment, Phœnix, 
+      <app>
+        <lem wit="#C #D #E #F">j'y </lem>
+        <rdg wit="#A #B">i'y </rdg>
+      </app>
+consens. Qu'elle parte. </l>
+
+<l n="254">
+Que 
+      <app>
+        <lem wit="#A #B #C #E #F">charmez </lem>
+        <rdg wit="#D">charmés </rdg>
+      </app>
+
+      <app>
+        <lem wit="#C #D #E #F">l'un </lem>
+        <rdg wit="#A #B">l'vn </rdg>
+      </app>
+de l'autre, ils 
+      <app>
+        <lem wit="#B #C #D #E #F">retournent </lem>
+        <rdg wit="#A">retournẽt </rdg>
+      </app>
+à Sparte. </l>
+
+<l n="255">
+Tous nos Ports sont 
+      <app>
+        <lem wit="#C #D #E #F">ouverts </lem>
+        <rdg wit="#A #B">ouuerts </rdg>
+      </app>
+&amp; pour elle &amp; pour 
+      <app>
+        <lem wit="#A #B #C #E #F">luy. </lem>
+        <rdg wit="#D">lui. </rdg>
+      </app>
+</l>
+
+<l n="256">
+Qu'elle m'épargneroit de contrainte &amp; 
+      <app>
+        <lem wit="#A #B #C #F">d'ennuy&#160;! </lem>
+        <rdg wit="#D #E">d'ennui&#160;! </rdg>
+      </app>
+</l>
+
+    </sp>
+    <sp>
+      <speaker>PHŒNIX.</speaker>
+<l n="257.1">
+Seigneur.... </l>
+    </sp>
+    <sp>
+      <speaker><app>
+        <lem wit="#C #D #E #F">PYRRHUS. </lem>
+        <rdg wit="#A #B">PYRRHVS. </rdg>
+      </app></speaker>
+<l n="257.2">
+
+      <app>
+        <lem wit="#C #D #E #F">Une </lem>
+        <rdg wit="#A #B">Vne </rdg>
+      </app>
+autre fois 
+      <app>
+        <lem wit="#C #D #E #F">je </lem>
+        <rdg wit="#A #B">ie </rdg>
+      </app>
+
+      <app>
+        <lem wit="#C #E #F">t'ouvriray </lem>
+        <rdg wit="#A #B">t'ouuriray </rdg>
+        <rdg wit="#D">t'ouvrirai </rdg>
+      </app>
+mon Ame, </l>
+<l n="258.1">
+Andromaque 
+      <app>
+        <lem wit="#A #B #C #F">paroist. </lem>
+        <rdg wit="#D">paroît. </rdg>
+        <rdg wit="#E">paroist </rdg>
+      </app>
+</l>
+</sp>
+</div>
+</body></text>
+</TEI>
