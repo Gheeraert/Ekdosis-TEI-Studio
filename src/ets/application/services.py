@@ -180,6 +180,20 @@ def generate_ekdosis_from_tei(tei_xml: str, *, standalone: bool = False) -> str:
     return tei_to_ekdosis(tei_xml, standalone=standalone)
 
 
+def export_ekdosis_from_tei(
+    tei_xml: str,
+    output_path: str | Path,
+    *,
+    standalone: bool = False,
+) -> Path:
+    """Generate LaTeX-Ekdosis from TEI XML, write it to disk, and return the resolved path."""
+    content = generate_ekdosis_from_tei(tei_xml, standalone=standalone)
+    path = Path(output_path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(content, encoding="utf-8")
+    return path.resolve()
+
+
 def export_tei(tei_xml: str, output_path: str | Path) -> Path:
     """Write TEI XML to disk and return the resolved path."""
     path = Path(output_path)

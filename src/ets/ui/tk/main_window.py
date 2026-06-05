@@ -7,6 +7,8 @@ from tkinter import filedialog, messagebox, ttk
 from typing import Callable
 import webbrowser
 
+from lxml import etree
+
 from ets.ui.tk.welcome_dialog import show_welcome_dialog
 from ets.annotations import Annotation, AnnotationCollection, AnnotationValidationError
 from ets.markdown_editor import MarkdownEditorWidget
@@ -21,6 +23,7 @@ from ets.application import (
     delete_annotation,
     enrich_tei_with_annotations,
     parse_annotation,
+    export_ekdosis_from_tei,
     export_html,
     export_tei,
     generate_html_preview_from_tei,
@@ -368,6 +371,7 @@ class MainWindow(ttk.Frame):
                 preview_html=self.action_preview_html,
                 export_tei=self.action_export_tei,
                 export_html=self.action_export_html,
+                export_ekdosis=self.action_export_ekdosis,
                 merge_text_transcriptions=self.action_merge_text_transcriptions,
                 merge_dramatic_tei=self.action_merge_dramatic_tei,
                 build_publication_site=self.action_build_publication_site,
@@ -1668,6 +1672,40 @@ class MainWindow(ttk.Frame):
             initialfile=self._default_filename(".html"),
             exporter=export_html,
         )
+
+    def action_export_ekdosis(self) -> None:
+        current_tei = self._current_tei_text()
+        if current_tei.strip():
+            self.state.tei_xml = current_tei
+        elif self.state.tei_xml is None:
+            if not self._apply_tei_generation(show_error=False):
+                messagebox.showerror("Exporter LaTeX-Ekdosis", "Échec de génération TEI.", parent=self.master)
+                return
+        if self.state.tei_xml is None:
+            messagebox.showwarning("Exporter LaTeX-Ekdosis", "Générez d'abord un TEI.", parent=self.master)
+            return
+
+        chosen = filedialog.asksaveasfilename(
+            parent=self.master,
+            title="Exporter LaTeX-Ekdosis",
+            defaultextension=".tex",
+            filetypes=[("LaTeX files", "*.tex"), ("All files", "*.*")],
+            initialfile=self._default_filename(".tex"),
+        )
+        if not chosen:
+            return
+
+        try:
+            target = export_ekdosis_from_tei(self.state.tei_xml, chosen, standalone=True)
+        except (ValueError, OSError, etree.LxmlError) as exc:
+            messagebox.showerror(
+                "Exporter LaTeX-Ekdosis",
+                f"Impossible d'exporter LaTeX-Ekdosis depuis la TEI courante.\n\n{exc}",
+                parent=self.master,
+            )
+            return
+
+        messagebox.showinfo("Exporter LaTeX-Ekdosis", f"Fichier exporté:\n{target}", parent=self.master)
 
     def action_build_publication_site(self) -> None:
         dialog_result = open_publication_dialog(self.master)

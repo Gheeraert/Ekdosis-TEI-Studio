@@ -314,6 +314,69 @@ def test_export_tei_uses_visible_edited_tei(monkeypatch: pytest.MonkeyPatch) -> 
         root.destroy()
 
 
+def test_export_ekdosis_uses_visible_edited_tei_and_standalone_mode(monkeypatch: pytest.MonkeyPatch) -> None:
+    root = _make_root()
+    try:
+        window = MainWindow(root)
+        window.outputs.set_tei("<TEI>edited</TEI>")
+        window.state.tei_xml = "<TEI>old</TEI>"
+
+        out_path = RUNTIME_DIR / f"export_ekdosis_{uuid4().hex}.tex"
+        monkeypatch.setattr("tkinter.filedialog.asksaveasfilename", lambda **kwargs: str(out_path))
+        monkeypatch.setattr("tkinter.messagebox.showinfo", lambda *args, **kwargs: None)
+        captured: list[tuple[str, bool]] = []
+
+        def _fake_export(content: str, output_path: str | Path, *, standalone: bool = False) -> Path:
+            captured.append((content, standalone))
+            path = Path(output_path)
+            path.write_text("% ekdosis", encoding="utf-8")
+            return path
+
+        monkeypatch.setattr("ets.ui.tk.main_window.export_ekdosis_from_tei", _fake_export)
+        window.action_export_ekdosis()
+
+        assert captured == [("<TEI>edited</TEI>", True)]
+    finally:
+        root.destroy()
+
+
+def test_export_ekdosis_shows_error_when_visible_tei_is_not_convertible(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    root = _make_root()
+    try:
+        window = MainWindow(root)
+        window.outputs.set_tei("<TEI>edited</TEI>")
+        window.state.tei_xml = "<TEI>old</TEI>"
+
+        out_path = RUNTIME_DIR / f"export_ekdosis_bad_{uuid4().hex}.tex"
+        monkeypatch.setattr("tkinter.filedialog.asksaveasfilename", lambda **kwargs: str(out_path))
+
+        errors: list[tuple[str, str]] = []
+        infos: list[tuple[object, ...]] = []
+        monkeypatch.setattr(
+            "tkinter.messagebox.showerror",
+            lambda title, message, **kwargs: errors.append((title, message)),
+        )
+        monkeypatch.setattr("tkinter.messagebox.showinfo", lambda *args, **kwargs: infos.append(args))
+
+        def _bad_export(content: str, output_path: str | Path, *, standalone: bool = False) -> Path:
+            raise ValueError("bad TEI")
+
+        monkeypatch.setattr("ets.ui.tk.main_window.export_ekdosis_from_tei", _bad_export)
+
+        window.action_export_ekdosis()
+
+        assert len(errors) == 1
+        assert errors[0][0] == "Exporter LaTeX-Ekdosis"
+        assert "Impossible d'exporter LaTeX-Ekdosis depuis la TEI courante." in errors[0][1]
+        assert "bad TEI" in errors[0][1]
+        assert infos == []
+        assert not out_path.exists()
+    finally:
+        root.destroy()
+
+
 def test_validate_generated_tei_uses_visible_edited_tei(monkeypatch: pytest.MonkeyPatch) -> None:
     root = _make_root()
     try:

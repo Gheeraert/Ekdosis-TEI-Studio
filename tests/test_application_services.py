@@ -6,6 +6,7 @@ from unittest.mock import patch
 
 from ets.application import (
     enrich_tei_with_annotations,
+    export_ekdosis_from_tei,
     export_html,
     export_tei,
     generate_ekdosis_from_tei,
@@ -319,6 +320,20 @@ def test_service_generate_ekdosis_from_tei_uses_latex_converter() -> None:
     result = generate_ekdosis_from_tei(tei_xml)
 
     assert result == expected
+
+
+def test_service_export_ekdosis_from_tei_writes_file() -> None:
+    root = _root()
+    fixture_dir = root / "fixtures" / "ekdosis_from_tei" / "01_simple_line"
+    tei_xml = (fixture_dir / "input.xml").read_text(encoding="utf-8")
+    expected = (fixture_dir / "expected.tex").read_text(encoding="utf-8").replace("\r\n", "\n")
+    output_path = root / "tests" / "_runtime" / "ekdosis_export" / "simple_line.tex"
+
+    written = export_ekdosis_from_tei(tei_xml, output_path)
+
+    assert written == output_path.resolve()
+    assert written.exists()
+    assert written.read_text(encoding="utf-8").replace("\r\n", "\n") == expected
 
 
 def test_service_export_helpers_write_files() -> None:
