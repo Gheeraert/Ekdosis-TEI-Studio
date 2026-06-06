@@ -27,7 +27,7 @@ class PublicationPdfCompileResult:
 def compile_publication_pdf(
     master_path: str | Path,
     *,
-    engine: str = "xelatex",
+    engine: str = "lualatex",
     runs: int = 2,
     timeout_seconds: int = 120,
 ) -> PublicationPdfCompileResult:
