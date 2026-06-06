@@ -146,16 +146,50 @@ def _site_sidebar_html(current_href: str) -> str:
         "</section>"
     )
 
+def _latex_relpath_from_pdf_relpath(relpath: str) -> str:
+    last_slash = relpath.rfind("/")
+    last_dot = relpath.rfind(".")
+    if last_dot > last_slash:
+        return relpath[:last_dot] + ".tex"
+    return relpath + ".tex"
 
-def _pdf_download_html(manifest: SiteManifest, current_href: str) -> str:
-    relpath = manifest.config.pdf_download_relpath
-    if not relpath:
+
+def _play_download_buttons_html(manifest: SiteManifest, play: PlayEntry, current_href: str) -> str:
+    buttons: list[str] = []
+    prefix = _asset_prefix(current_href)
+
+    # if manifest.config.show_xml_download and play.xml_download_relpath:
+    if play.xml_download_relpath:
+        xml_href = f"{prefix}{play.xml_download_relpath}"
+        buttons.append(
+            f'<a class="download-button download-button-xml" href="{html.escape(xml_href, quote=True)}" download>'
+            "Télécharger le XML</a>"
+        )
+
+    pdf_relpath = manifest.config.pdf_download_relpath
+    latex_source = manifest.config.latex_download_source_path
+
+    if pdf_relpath and latex_source is not None and latex_source.exists():
+        latex_href = f"{prefix}{_latex_relpath_from_pdf_relpath(pdf_relpath)}"
+        buttons.append(
+            f'<a class="download-button download-button-latex" href="{html.escape(latex_href, quote=True)}" download>'
+            "Télécharger LaTeX-Ekdosis</a>"
+        )
+
+    if pdf_relpath:
+        pdf_href = f"{prefix}{pdf_relpath}"
+        buttons.append(
+            f'<a class="download-button download-button-pdf" href="{html.escape(pdf_href, quote=True)}" download>'
+            "Télécharger PDF</a>"
+        )
+
+    if not buttons:
         return ""
-    href = f"{_asset_prefix(current_href)}{relpath}"
+
     return (
-        '<section class="site-pdf-download" aria-label="PDF de publication">'
-        f'<a href="{html.escape(href, quote=True)}" download>Télécharger le PDF</a>'
-        "</section>"
+        '<div class="download-buttons" aria-label="Téléchargements">'
+        + "".join(buttons)
+        + "</div>"
     )
 
 
@@ -419,6 +453,50 @@ def _layout(
 
     .content-shell-play > h2 {{ margin: 0.05rem 0 0.6rem; }}
     .content-shell-play .meta {{ margin: 0.2rem 0 0.35rem; }}
+    .download-buttons {{
+      margin: 1rem 0 1.25rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.55rem;
+      align-items: center;
+    }}
+    
+    .download-button {{
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 2.1rem;
+      padding: 0.38rem 0.78rem;
+      border: 1px solid color-mix(in oklab, var(--accent) 62%, var(--line));
+      border-radius: 999px;
+      background: linear-gradient(180deg, var(--bg-panel), var(--bg-soft));
+      color: var(--accent);
+      font-family: var(--font-ui);
+      font-size: 0.88rem;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+      text-decoration: none;
+      box-shadow: 0 1px 0 rgba(46, 34, 24, 0.05), 0 4px 12px rgba(46, 34, 24, 0.08);
+      transition: transform 120ms ease, border-color 120ms ease, box-shadow 120ms ease, background 120ms ease;
+    }}
+    
+    .download-button:hover {{
+      color: var(--accent-soft);
+      border-color: var(--accent);
+      background: var(--bg-panel);
+      text-decoration: none;
+      transform: translateY(-1px);
+      box-shadow: 0 2px 0 rgba(46, 34, 24, 0.05), 0 7px 18px rgba(46, 34, 24, 0.11);
+    }}
+    
+    .download-button:active {{
+      transform: translateY(0);
+      box-shadow: 0 1px 0 rgba(46, 34, 24, 0.05), 0 3px 8px rgba(46, 34, 24, 0.08);
+    }}
+    
+    .download-button-pdf {{
+      background: color-mix(in oklab, var(--accent) 12%, var(--bg-panel));
+    }}
     .dramatic-content {{
       min-width: 0;
       max-width: none;
@@ -919,7 +997,7 @@ def _layout(
     </div>
   </header>
   <main>
-    <nav aria-label=\"Navigation principale\">{_nav_html(manifest, current_href=current_href)}{_pdf_download_html(manifest, current_href)}{_site_sidebar_html(current_href)}</nav>
+    <nav aria-label=\"Navigation principale\">{_nav_html(manifest, current_href=current_href)}{_site_sidebar_html(current_href)}</nav>
     <section class="{html.escape(section_class, quote=True)}">{content_html}</section>
   </main>
   {_site_footer_html(current_href)}
@@ -1575,10 +1653,9 @@ def render_play_page(manifest: SiteManifest, play: PlayEntry) -> str:
             lines.append(f'<p class="meta">Editeur scientifique: {html.escape(play.scientific_editor)}</p>')
         if play.transcriber:
             lines.append(f'<p class="meta">Transcripteur: {html.escape(play.transcriber)}</p>')
-    if manifest.config.show_xml_download and play.xml_download_relpath:
-        lines.append(
-            f'<p><a href="../{html.escape(play.xml_download_relpath, quote=True)}" download>Telecharger le XML</a></p>'
-        )
+    download_buttons = _play_download_buttons_html(manifest, play, current_href=f"plays/{play.slug}.html")
+    if download_buttons:
+        lines.append(download_buttons)
     if manifest.config.credits:
         lines.append(f'<p class="meta">{html.escape(manifest.config.credits)}</p>')
 

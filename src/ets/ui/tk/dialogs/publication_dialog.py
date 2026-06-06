@@ -205,9 +205,9 @@ class PublicationDialog(tk.Toplevel):
         ttk.Checkbutton(options, text="Publier les prefaces", variable=self.vars.publish_prefaces).grid(
             row=0, column=1, sticky="w", padx=(12, 0)
         )
-        ttk.Checkbutton(options, text="Activer les telechargements XML", variable=self.vars.show_xml_download).grid(
-            row=0, column=2, sticky="w", padx=(12, 0)
-        )
+        # ttk.Checkbutton(options, text="Activer les telechargements XML", variable=self.vars.show_xml_download).grid(
+        #    row=0, column=2, sticky="w", padx=(12, 0)
+        # )
         ttk.Checkbutton(options, text="Inclure les metadonnees", variable=self.vars.include_metadata).grid(
             row=1, column=0, sticky="w"
         )
@@ -647,7 +647,8 @@ class PublicationDialog(tk.Toplevel):
             play_order=tuple(self._play_order_items()),
             logo_paths=tuple(self._logo_paths),
             asset_directories=(Path(asset_directory).resolve(),) if asset_directory else (),
-            show_xml_download=bool(self.vars.show_xml_download.get()),
+            # show_xml_download=bool(self.vars.show_xml_download.get()),
+            show_xml_download=True,
             publish_notices=bool(self.vars.publish_notices.get()),
             publish_prefaces=bool(self.vars.publish_prefaces.get()),
             include_metadata=bool(self.vars.include_metadata.get()),
@@ -790,14 +791,40 @@ class PublicationDialog(tk.Toplevel):
             if not warning.startswith("PDF de publication non genere:")
         )
 
-    def _on_validate(self) -> None:
-        messagebox.showinfo(
-            "Génération du site",
-            (
-                "Génération en cours, patientez SVP..."
+    def _show_generation_notice(self) -> tk.Toplevel:
+        notice = tk.Toplevel(self)
+        notice.title("Génération")
+        notice.transient(self)
+        notice.resizable(False, False)
+
+        ttk.Label(
+            notice,
+            text=(
+                "La génération du site commence.\n\n"
+                "L'interface peut sembler figée pendant le traitement,\n"
+                "notamment pendant la compilation du PDF.\n\n"
+                "Veuillez patienter."
             ),
-            parent=self,
-        )
+            padding=18,
+            justify="left",
+        ).pack()
+
+        notice.update_idletasks()
+        notice.geometry(f"+{self.winfo_rootx() + 80}+{self.winfo_rooty() + 80}")
+        notice.update()
+        return notice
+
+    def _on_validate(self) -> None:
+        notice = self._show_generation_notice()
+        self.update_idletasks()
+
+        try:
+            request = self._build_request()
+        except ValueError as exc:
+            notice.destroy()
+            messagebox.showerror("Publication", str(exc), parent=self)
+            return
+
         self.update_idletasks()
 
         try:
