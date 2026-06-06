@@ -1650,9 +1650,9 @@ def render_play_page(manifest: SiteManifest, play: PlayEntry) -> str:
 
     if manifest.config.include_metadata:
         if play.scientific_editor:
-            lines.append(f'<p class="meta">Editeur scientifique: {html.escape(play.scientific_editor)}</p>')
+            lines.append(f'<p class="meta">Éditeur scientifique&nbsp;: {html.escape(play.scientific_editor)}</p>')
         if play.transcriber:
-            lines.append(f'<p class="meta">Transcripteur: {html.escape(play.transcriber)}</p>')
+            lines.append(f'<p class="meta">Transcripteur&nbsp;: {html.escape(play.transcriber)}</p>')
     download_buttons = _play_download_buttons_html(manifest, play, current_href=f"plays/{play.slug}.html")
     if download_buttons:
         lines.append(download_buttons)
