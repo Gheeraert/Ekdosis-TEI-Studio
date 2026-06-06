@@ -67,7 +67,7 @@ def build_and_compile_publication_pdf_from_prepared_config(
     build_dir: str | Path,
     *,
     warnings: tuple[str, ...] = (),
-    engine: str = "xelatex",
+    engine: str = "lualatex",
     runs: int = 2,
     timeout_seconds: int = 120,
 ) -> PublicationPdfBuildResult:
@@ -96,7 +96,7 @@ def build_and_compile_publication_pdf_from_dialog_config(
     build_dir: str | Path,
     *,
     editorial_import_service: EditorialPublicationConfigPreparer | None = None,
-    engine: str = "xelatex",
+    engine: str = "lualatex",
     runs: int = 2,
     timeout_seconds: int = 120,
 ) -> PublicationPdfBuildResult:

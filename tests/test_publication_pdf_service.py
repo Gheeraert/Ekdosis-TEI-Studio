@@ -154,7 +154,7 @@ def _compile_result(
     master_path: Path,
     ok: bool,
     pdf_path: Path | None = None,
-    engine: str = "xelatex",
+    engine: str = "lualatex",
     returncode: int | None = 0,
 ) -> PublicationPdfCompileResult:
     return PublicationPdfCompileResult(
@@ -211,14 +211,23 @@ def test_build_and_compile_from_prepared_config_preserves_failed_compile(
     monkeypatch,
 ) -> None:
     prepared_config = _prepared_xml_config(tmp_path)
+    calls: list[str] = []
 
     def _fake_compile(master_path, *, engine, runs, timeout_seconds):
-        return _compile_result(master_path=Path(master_path).resolve(), ok=False, pdf_path=None, returncode=1)
+        calls.append(engine)
+        return _compile_result(
+            master_path=Path(master_path).resolve(),
+            ok=False,
+            pdf_path=None,
+            engine=engine,
+            returncode=1,
+        )
 
     monkeypatch.setattr("ets.publication_pdf.service.compile_publication_pdf", _fake_compile)
 
     result = build_and_compile_publication_pdf_from_prepared_config(prepared_config, tmp_path / "failed-build")
 
+    assert calls == ["lualatex"]
     assert result.ok is False
     assert result.pdf_path is None
     assert result.master_result.master_path.exists()

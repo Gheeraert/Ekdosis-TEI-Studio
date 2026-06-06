@@ -3,6 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from ets.application import SitePublicationDialogConfig, SitePublicationDialogPlayConfig
+from ets.latex import tei_to_ekdosis
 from ets.publication_pdf import build_publication_pdf_master
 
 
@@ -38,6 +39,120 @@ def _dramatic_body(speaker: str, line: str) -> str:
         </div>
       </div>
     """
+
+
+def _write_realistic_peritext_xml(path: Path, *, div_type: str, head: str, paragraph: str) -> Path:
+    path.write_text(
+        f"""<?xml version="1.0" encoding="utf-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0">
+  <teiHeader>
+    <fileDesc>
+      <titleStmt><title>{head}</title></titleStmt>
+      <publicationStmt><p>Publication test.</p></publicationStmt>
+      <sourceDesc><p>Source de test.</p></sourceDesc>
+    </fileDesc>
+  </teiHeader>
+  <text>
+    <body>
+      <div type="{div_type}">
+        <head type="main">{head}</head>
+        <p>{paragraph}</p>
+      </div>
+    </body>
+  </text>
+</TEI>
+""",
+        encoding="utf-8",
+    )
+    return path
+
+
+def _write_realistic_dramatic_xml(path: Path) -> Path:
+    path.write_text(
+        """<?xml version="1.0" encoding="utf-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0">
+  <teiHeader>
+    <fileDesc>
+      <titleStmt><title>Andromaque</title></titleStmt>
+      <publicationStmt><p>Publication test.</p></publicationStmt>
+      <sourceDesc><p>Source dramatique de test.</p></sourceDesc>
+    </fileDesc>
+  </teiHeader>
+  <text>
+    <front>
+      <div type="dramatis-personae">
+        <castList>
+          <head>Acteurs</head>
+          <castItem><role>ANDROMAQUE</role><roleDesc>veuve d'Hector</roleDesc></castItem>
+          <castItem><role>PYRRHUS</role><roleDesc>roi d'Epire</roleDesc></castItem>
+        </castList>
+      </div>
+    </front>
+    <body>
+      <div type="act" n="1">
+        <head>ACTE I</head>
+        <div type="scene" n="1">
+          <head>SCENE I</head>
+          <sp>
+            <speaker>ANDROMAQUE</speaker>
+            <l n="1">Je ne viens point ici pour augmenter vos peines.</l>
+            <l n="2">Je viens pour vous parler de mes tristes destins.</l>
+          </sp>
+        </div>
+        <div type="scene" n="2">
+          <head>SCENE II</head>
+          <sp>
+            <speaker>PYRRHUS</speaker>
+            <l n="3">Seigneur, tant de grandeurs ne nous touchent plus guere.</l>
+            <l n="4">Je sais ce que je dois aux malheurs d'une mere.</l>
+          </sp>
+        </div>
+      </div>
+    </body>
+  </text>
+</TEI>
+""",
+        encoding="utf-8",
+    )
+    return path
+
+
+def _realistic_prepared_config(tmp_path: Path) -> SitePublicationDialogConfig:
+    general_intro = _write_realistic_peritext_xml(
+        tmp_path / "general_intro.xml",
+        div_type="introduction-generale",
+        head="Introduction generale",
+        paragraph="Introduction generale du corpus.",
+    )
+    notice = _write_realistic_peritext_xml(
+        tmp_path / "notice.xml",
+        div_type="notice",
+        head="Notice",
+        paragraph="Notice scientifique d'Andromaque.",
+    )
+    preface = _write_realistic_peritext_xml(
+        tmp_path / "preface.xml",
+        div_type="preface",
+        head="Preface",
+        paragraph="Preface de l'auteur.",
+    )
+    dramatic = _write_realistic_dramatic_xml(tmp_path / "dramatic.xml")
+
+    return SitePublicationDialogConfig(
+        author_name="Jean Racine",
+        corpus_title="Theatre complet",
+        scientific_editor="Tony Gheeraert",
+        general_intro_tei=general_intro,
+        plays=(
+            SitePublicationDialogPlayConfig(
+                play_slug="andromaque",
+                dramatic_xml_path=dramatic,
+                notice_xml_path=notice,
+                preface_xml_path=preface,
+                dramatis_xml_path=None,
+            ),
+        ),
+    )
 
 
 def _config(tmp_path: Path) -> SitePublicationDialogConfig:
@@ -101,6 +216,56 @@ def test_build_publication_pdf_master_creates_master_and_returns_resolved_path(t
     assert master_path == (build_dir / "master.tex").resolve()
     assert master_path.exists()
     assert "\\documentclass{book}" in master_path.read_text(encoding="utf-8")
+
+
+def test_realistic_prepared_config_generates_complete_publication_master(tmp_path: Path) -> None:
+    config = _realistic_prepared_config(tmp_path)
+
+    master_text = build_publication_pdf_master(config, tmp_path / "build").read_text(encoding="utf-8")
+
+    assert r"\title{Theatre complet}" in master_text
+    assert r"\author{Jean Racine}" in master_text
+    assert "Tony Gheeraert" in master_text
+
+    assert "% GENERAL INTRO:" in master_text
+    assert "Introduction generale du corpus." in master_text
+    assert "% NOTICE:" in master_text
+    assert "Notice scientifique d'Andromaque." in master_text
+    assert "% PREFACE:" in master_text
+    assert "Preface de l'auteur." in master_text
+
+    assert r"\section*{Dramatis personae}" in master_text
+    assert "% DRAMATIS PERSONAE: front of" in master_text
+    assert r"\subsection*{Acteurs}" in master_text
+    assert r"\item[ANDROMAQUE] veuve d'Hector" in master_text
+    assert r"\item[PYRRHUS] roi d'Epire" in master_text
+    assert "% DRAMATIS PERSONAE: no castList found." not in master_text
+
+    assert r"\begin{ekdosis}" in master_text
+    assert r"\stage{ACTE I}" in master_text
+    assert r"\stage{SCENE I}" in master_text
+    assert r"\stage{SCENE II}" in master_text
+    assert r"\speaker{ANDROMAQUE}" in master_text
+    assert r"\speaker{PYRRHUS}" in master_text
+    assert r"\vnum{1}{Je ne viens point ici pour augmenter vos peines.\\}" in master_text
+    assert r"\vnum{3}{Seigneur, tant de grandeurs ne nous touchent plus guere.\\}" in master_text
+    assert r"\end{ekdosis}" in master_text
+    assert "\\begin{ekdosis}\n\\end{ekdosis}" not in master_text
+
+
+def test_realistic_dramatic_tei_to_ekdosis_contains_scenes_and_verses(tmp_path: Path) -> None:
+    dramatic = _write_realistic_dramatic_xml(tmp_path / "dramatic.xml")
+
+    fragment = tei_to_ekdosis(dramatic, standalone=False)
+
+    assert r"\stage{ACTE I}" in fragment
+    assert r"\stage{SCENE I}" in fragment
+    assert r"\stage{SCENE II}" in fragment
+    assert r"\speaker{ANDROMAQUE}" in fragment
+    assert r"\speaker{PYRRHUS}" in fragment
+    assert r"\vnum{1}{Je ne viens point ici pour augmenter vos peines.\\}" in fragment
+    assert r"\vnum{3}{Seigneur, tant de grandeurs ne nous touchent plus guere.\\}" in fragment
+    assert fragment.strip()
 
 
 def test_master_contains_ekdosis_support_preamble(tmp_path: Path) -> None:

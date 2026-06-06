@@ -89,7 +89,7 @@ def test_compile_publication_pdf_success_runs_in_master_directory(
 ) -> None:
     source = _write_master(tmp_path)
     runner = _RunRecorder(returncodes=[0])
-    monkeypatch.setattr("shutil.which", lambda _engine: "xelatex")
+    monkeypatch.setattr("shutil.which", lambda _engine: "lualatex")
     monkeypatch.setattr("subprocess.run", runner)
 
     result = compile_publication_pdf(source, runs=1)
@@ -97,7 +97,7 @@ def test_compile_publication_pdf_success_runs_in_master_directory(
     assert result.ok is True
     assert result.pdf_path == (tmp_path / "master.pdf").resolve()
     assert result.returncode == 0
-    assert result.command[0] == "xelatex"
+    assert result.command[0] == "lualatex"
     assert len(runner.calls) == 1
     command, kwargs = runner.calls[0]
     assert command == list(result.command)
