@@ -48,7 +48,6 @@ class _PublicationVars:
     include_metadata: tk.BooleanVar
     resolve_notice_xincludes: tk.BooleanVar
 
-
 @dataclass
 class _PlayEntry:
     play_slug: str
@@ -121,7 +120,7 @@ class PublicationDialog(tk.Toplevel):
         buttons = ttk.Frame(self.action_bar)
         buttons.grid(row=0, column=1, sticky="e")
         ttk.Button(buttons, text="Charger config...", command=self._on_load_config).grid(row=0, column=0, padx=(0, 6))
-        ttk.Button(buttons, text="Générer le site", command=self._on_validate).grid(row=0, column=1)
+        ttk.Button(buttons, text="Génération", command=self._on_validate).grid(row=0, column=1)
         ttk.Button(buttons, text="Publier sur FTP...", command=self._on_publish_ftp).grid(row=0, column=2, padx=(12, 6))
         ttk.Button(buttons, text="Enregistrer config...", command=self._on_save_config).grid(row=0, column=3, padx=(0, 6))
         ttk.Button(buttons, text="Annuler", command=self._on_cancel).grid(row=0, column=4, padx=(0, 6))
@@ -792,6 +791,15 @@ class PublicationDialog(tk.Toplevel):
         )
 
     def _on_validate(self) -> None:
+        messagebox.showinfo(
+            "Génération du site",
+            (
+                "Génération en cours, patientez SVP..."
+            ),
+            parent=self,
+        )
+        self.update_idletasks()
+
         try:
             request = self._build_request()
         except ValueError as exc:
