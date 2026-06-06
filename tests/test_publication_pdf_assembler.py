@@ -7,10 +7,20 @@ from ets.latex import tei_to_ekdosis
 from ets.publication_pdf import build_publication_pdf_master
 
 
-def _write_xml(path: Path, body: str = "<p>Document source.</p>", front: str = "") -> Path:
+def _write_xml(path: Path, body: str = "<p>Document source.</p>", front: str = "", title: str | None = None) -> Path:
+    tei_header = ""
+    if title is not None:
+        tei_header = f"""
+  <teiHeader>
+    <fileDesc>
+      <titleStmt><title>{title}</title></titleStmt>
+      <publicationStmt><p>Publication test.</p></publicationStmt>
+      <sourceDesc><p>Source test.</p></sourceDesc>
+    </fileDesc>
+  </teiHeader>"""
     path.write_text(
         f"""<?xml version="1.0" encoding="utf-8"?>
-<TEI xmlns="http://www.tei-c.org/ns/1.0">
+<TEI xmlns="http://www.tei-c.org/ns/1.0">{tei_header}
   <text>
     <front>
       {front}
@@ -41,7 +51,14 @@ def _dramatic_body(speaker: str, line: str) -> str:
     """
 
 
-def _write_realistic_peritext_xml(path: Path, *, div_type: str, head: str, paragraph: str) -> Path:
+def _write_realistic_peritext_xml(
+    path: Path,
+    *,
+    div_type: str,
+    head: str,
+    paragraph: str,
+    extra_body: str = "",
+) -> Path:
     path.write_text(
         f"""<?xml version="1.0" encoding="utf-8"?>
 <TEI xmlns="http://www.tei-c.org/ns/1.0">
@@ -57,6 +74,7 @@ def _write_realistic_peritext_xml(path: Path, *, div_type: str, head: str, parag
       <div type="{div_type}">
         <head type="main">{head}</head>
         <p>{paragraph}</p>
+        {extra_body}
       </div>
     </body>
   </text>
@@ -73,9 +91,14 @@ def _write_realistic_dramatic_xml(path: Path) -> Path:
 <TEI xmlns="http://www.tei-c.org/ns/1.0">
   <teiHeader>
     <fileDesc>
-      <titleStmt><title>Andromaque</title></titleStmt>
+      <titleStmt><title>Britannicus</title></titleStmt>
       <publicationStmt><p>Publication test.</p></publicationStmt>
-      <sourceDesc><p>Source dramatique de test.</p></sourceDesc>
+      <sourceDesc>
+        <listWit>
+          <witness xml:id="A">A (1669) Britannicus, Paris, Claude Barbin.</witness>
+          <witness xml:id="B">B (1676) Oeuvres de Racine, tome premier.</witness>
+        </listWit>
+      </sourceDesc>
     </fileDesc>
   </teiHeader>
   <text>
@@ -95,7 +118,7 @@ def _write_realistic_dramatic_xml(path: Path) -> Path:
           <head>SCENE I</head>
           <sp>
             <speaker>ANDROMAQUE</speaker>
-            <l n="1">Je ne viens point ici pour augmenter vos peines.</l>
+            <l n="1">Je ne viens point ici pour <app><lem wit="#A">augmenter</lem><rdg wit="#B">redoubler</rdg></app> vos peines.</l>
             <l n="2">Je viens pour vous parler de mes tristes destins.</l>
           </sp>
         </div>
@@ -123,6 +146,20 @@ def _realistic_prepared_config(tmp_path: Path) -> SitePublicationDialogConfig:
         div_type="introduction-generale",
         head="Introduction generale",
         paragraph="Introduction generale du corpus.",
+        extra_body="""
+        <table>
+          <row>
+            <cell>Témoin</cell>
+            <cell>Description longue destinée à revenir à la ligne dans le PDF.</cell>
+            <cell>Note</cell>
+          </row>
+          <row>
+            <cell>A</cell>
+            <cell>Tradition imprimée avec <hi rend="italic">variante</hi>.</cell>
+            <cell>Utilisé.</cell>
+          </row>
+        </table>
+        """,
     )
     notice = _write_realistic_peritext_xml(
         tmp_path / "notice.xml",
@@ -145,7 +182,7 @@ def _realistic_prepared_config(tmp_path: Path) -> SitePublicationDialogConfig:
         general_intro_tei=general_intro,
         plays=(
             SitePublicationDialogPlayConfig(
-                play_slug="andromaque",
+                play_slug="acte-fusionne",
                 dramatic_xml_path=dramatic,
                 notice_xml_path=notice,
                 preface_xml_path=preface,
@@ -162,6 +199,7 @@ def _config(tmp_path: Path) -> SitePublicationDialogConfig:
         tmp_path / "a_dramatic.xml",
         body=_dramatic_body("ORESTE", "Je parle pour Andromaque."),
         front="<castList><castItem><role>Front Andromaque</role></castItem></castList>",
+        title="Andromaque",
     )
     notice_a = _write_xml(tmp_path / "a_notice.xml", '<p>Notice avec <hi rend="italic">italique</hi>.</p>')
     preface_a = _write_xml(tmp_path / "a_preface.xml", "<p>Preface convertie.</p>")
@@ -173,8 +211,13 @@ def _config(tmp_path: Path) -> SitePublicationDialogConfig:
         tmp_path / "b_dramatic.xml",
         body=_dramatic_body("BERENICE", "Je parle pour Berenice."),
         front="<castList><castItem><role>Front Berenice</role></castItem></castList>",
+        title="Berenice",
     )
-    play_c = _write_xml(tmp_path / "c_dramatic.xml", body=_dramatic_body("TITUS", "Je parle sans castList."))
+    play_c = _write_xml(
+        tmp_path / "c_dramatic.xml",
+        body=_dramatic_body("TITUS", "Je parle sans castList."),
+        title="Sans castList",
+    )
 
     return SitePublicationDialogConfig(
         author_name="Jean Racine",
@@ -215,7 +258,7 @@ def test_build_publication_pdf_master_creates_master_and_returns_resolved_path(t
 
     assert master_path == (build_dir / "master.tex").resolve()
     assert master_path.exists()
-    assert "\\documentclass{book}" in master_path.read_text(encoding="utf-8")
+    assert "\\documentclass[12pt,titlepage]{book}" in master_path.read_text(encoding="utf-8")
 
 
 def test_realistic_prepared_config_generates_complete_publication_master(tmp_path: Path) -> None:
@@ -225,32 +268,55 @@ def test_realistic_prepared_config_generates_complete_publication_master(tmp_pat
 
     assert r"\title{Theatre complet}" in master_text
     assert r"\author{Jean Racine}" in master_text
-    assert "Tony Gheeraert" in master_text
+    assert r"\playtitlepage{Britannicus}{Jean Racine}{Texte édité par Tony Gheeraert.}{}" in master_text
+    assert "Transcription :" not in master_text
+    assert "acte-fusionne" not in master_text
+    assert r"\DeclareWitness{A}{1669}{Britannicus, Paris, Claude Barbin.}" in master_text
+    assert r"\DeclareWitness{B}{1676}{Oeuvres de Racine, tome premier.}" in master_text
+    assert master_text.index(r"\DeclareWitness{A}{1669}") < master_text.index(r"\begin{document}")
+    assert master_text.index(r"\DeclareWitness{B}{1676}") < master_text.index(r"\begin{document}")
 
     assert "% GENERAL INTRO:" in master_text
     assert "Introduction generale du corpus." in master_text
+    assert r"\begin{tabularx}{\linewidth}{@{}*{3}{Y}@{}}" in master_text
+    assert r"\setlength{\tabcolsep}{3pt}" in master_text
+    assert r"Tradition imprimée avec \emph{variante}." in master_text
+    assert r"\begin{tabular}{" not in master_text
     assert "% NOTICE:" in master_text
     assert "Notice scientifique d'Andromaque." in master_text
     assert "% PREFACE:" in master_text
     assert "Preface de l'auteur." in master_text
 
-    assert r"\section*{Dramatis personae}" in master_text
+    assert r"\dramatissection{Britannicus}" in master_text
     assert "% DRAMATIS PERSONAE: front of" in master_text
     assert r"\subsection*{Acteurs}" in master_text
     assert r"\item[ANDROMAQUE] veuve d'Hector" in master_text
     assert r"\item[PYRRHUS] roi d'Epire" in master_text
     assert "% DRAMATIS PERSONAE: no castList found." not in master_text
 
+    assert r"\dramatictextsection{Britannicus}" in master_text
+    assert "{Texte dramatique}" not in master_text
     assert r"\begin{ekdosis}" in master_text
+    assert r"\PURHDramaticTextSize" in master_text
     assert r"\stage{ACTE I}" in master_text
     assert r"\stage{SCENE I}" in master_text
     assert r"\stage{SCENE II}" in master_text
     assert r"\speaker{ANDROMAQUE}" in master_text
     assert r"\speaker{PYRRHUS}" in master_text
-    assert r"\vnum{1}{Je ne viens point ici pour augmenter vos peines.\\}" in master_text
+    assert r"\app{" in master_text
+    assert r"\lem[wit={A}]" in master_text
+    assert r"\rdg[wit={B}]" in master_text
+    assert r"\vnum{1}{Je ne viens point ici pour \app{\lem[wit={A}]{augmenter}\rdg[wit={B}]{redoubler}} vos peines.\\}" in master_text
     assert r"\vnum{3}{Seigneur, tant de grandeurs ne nous touchent plus guere.\\}" in master_text
     assert r"\end{ekdosis}" in master_text
+    assert r"\normalsize" in master_text
+    assert r"\begin{PURHDramaticText}" not in master_text
+    assert r"\end{PURHDramaticText}" not in master_text
     assert "\\begin{ekdosis}\n\\end{ekdosis}" not in master_text
+    assert r"\chapter" not in master_text
+    assert "Chapitre 1" not in master_text
+    assert "CHAPITRE" not in master_text
+    assert "Responsable scientifique : Tony Gheeraert" not in master_text
 
 
 def test_realistic_dramatic_tei_to_ekdosis_contains_scenes_and_verses(tmp_path: Path) -> None:
@@ -263,14 +329,93 @@ def test_realistic_dramatic_tei_to_ekdosis_contains_scenes_and_verses(tmp_path: 
     assert r"\stage{SCENE II}" in fragment
     assert r"\speaker{ANDROMAQUE}" in fragment
     assert r"\speaker{PYRRHUS}" in fragment
-    assert r"\vnum{1}{Je ne viens point ici pour augmenter vos peines.\\}" in fragment
+    assert r"\vnum{1}{Je ne viens point ici pour \app{\lem[wit={A}]{augmenter}\rdg[wit={B}]{redoubler}} vos peines.\\}" in fragment
     assert r"\vnum{3}{Seigneur, tant de grandeurs ne nous touchent plus guere.\\}" in fragment
     assert fragment.strip()
+
+
+def test_master_contains_purh_publication_preamble(tmp_path: Path) -> None:
+    master_text = build_publication_pdf_master(_config(tmp_path), tmp_path / "build").read_text(encoding="utf-8")
+
+    assert r"\documentclass[12pt,titlepage]{book}" in master_text
+    assert r"\usepackage[" in master_text
+    assert "paperwidth=155mm" in master_text
+    assert "paperheight=230mm" in master_text
+    assert "top=30mm" in master_text
+    assert "bottom=19mm" in master_text
+    assert "inner=23mm" in master_text
+    assert "outer=23mm" in master_text
+    assert "headheight=14pt" in master_text
+    assert "headsep=8mm" in master_text
+    assert "footskip=10mm" in master_text
+    assert r"]{geometry}" in master_text
+    assert r"\usepackage{fontspec}" in master_text
+    assert r"\IfFontExistsTF{Chaparral Pro}" in master_text
+    assert r"\IfFontExistsTF{Josefin Sans}" in master_text
+    assert r"\usepackage[french]{babel}" in master_text
+    assert r"\usepackage{csquotes}" in master_text
+    assert r"\usepackage{indentfirst}" in master_text
+    assert r"\usepackage{array}" in master_text
+    assert r"\usepackage{tabularx}" in master_text
+    assert r"\usepackage{ragged2e}" in master_text
+    assert r"\newcolumntype{Y}{>{\RaggedRight\arraybackslash\hspace{0pt}}X}" in master_text
+    assert r"\renewcommand{\arraystretch}{1.15}" in master_text
+    assert r"\usepackage[nobottomtitles*]{titlesec}" in master_text
+    assert r"\usepackage{titletoc}" in master_text
+    assert r"\usepackage{fancyhdr}" in master_text
+    assert r"\pagestyle{fancy}" in master_text
+    assert r"\fancyhead[L]{\small\itshape\PURHRunningAuthor}" in master_text
+    assert r"\fancyhead[R]{\small\itshape\PURHRunningTitle}" in master_text
+    assert r"\fancyfoot[C]{\thepage}" in master_text
+    assert r"\setcounter{secnumdepth}{0}" in master_text
+    assert r"\clubpenalty=10000" in master_text
+    assert r"\widowpenalty=10000" in master_text
+    assert r"\displaywidowpenalty=10000" in master_text
+    assert r"\renewcommand{\bibname}{Bibliographie}" in master_text
+    assert r"\renewcommand{\contentsname}{Table des mati\`eres}" in master_text
+    assert r"\newcommand{\setpurhrunningauthor}" in master_text
+    assert r"\newcommand{\setpurhrunningtitle}" in master_text
+    assert r"\newcommand{\cleartorecto}" in master_text
+    assert r"\newcommand{\cleartoverso}" in master_text
+    assert r"\newcommand{\publicationsection}" in master_text
+    assert r"\newcommand{\playtitlepage}" in master_text
+    assert r"\newcommand{\dramatissection}" in master_text
+    assert r"\newcommand{\dramatictextsection}" in master_text
+    assert r"\newcommand{\PURHDramaticTextSize}{\fontsize{10}{12}\selectfont}" in master_text
+
+
+def test_master_running_title_uses_escaped_corpus_title(tmp_path: Path) -> None:
+    config = SitePublicationDialogConfig(corpus_title="Theatre & apparat", output_dir=tmp_path / "site")
+
+    master_text = build_publication_pdf_master(config, tmp_path / "build").read_text(encoding="utf-8")
+
+    assert r"\newcommand{\PURHRunningTitle}{Theatre \& apparat}" in master_text
+
+
+def test_master_uses_editorial_play_title_and_running_marks(tmp_path: Path) -> None:
+    config = _realistic_prepared_config(tmp_path)
+
+    master_text = build_publication_pdf_master(config, tmp_path / "build").read_text(encoding="utf-8")
+
+    assert r"\setpurhrunningauthor{Jean Racine}" in master_text
+    assert r"\setpurhrunningtitle{Introduction générale}" in master_text
+    assert r"\setpurhrunningtitle{Britannicus}" in master_text
+    assert r"\publicationsection{Introduction générale}{Introduction générale}" in master_text
+    assert r"\playtitlepage{Britannicus}{Jean Racine}{Texte édité par Tony Gheeraert.}{}" in master_text
+    assert r"\publicationsection{Notice}{Britannicus}" in master_text
+    assert r"\publicationsection{Preface}{Britannicus}" in master_text
+    assert r"\dramatissection{Britannicus}" in master_text
+    assert r"\dramatictextsection{Britannicus}" in master_text
+    assert "acte-fusionne" not in master_text
+    assert r"\chapter{" not in master_text
+    assert r"\chapter*" not in master_text
+    assert "CHAPITRE" not in master_text
 
 
 def test_master_contains_ekdosis_support_preamble(tmp_path: Path) -> None:
     master_text = build_publication_pdf_master(_config(tmp_path), tmp_path / "build").read_text(encoding="utf-8")
 
+    assert master_text.count(r"\usepackage[teiexport, divs=ekdosis, poetry=verse]{ekdosis}") == 1
     assert r"\usepackage[teiexport, divs=ekdosis, poetry=verse]{ekdosis}" in master_text
     assert r"\SetLineation{" in master_text
     assert "lineation=none" in master_text
@@ -306,8 +451,8 @@ def test_master_inserts_notice_and_preface_latex_fragments(tmp_path: Path) -> No
 def test_master_orders_plays_from_config(tmp_path: Path) -> None:
     master_text = build_publication_pdf_master(_config(tmp_path), tmp_path / "build").read_text(encoding="utf-8")
 
-    assert master_text.index("% PLAY: andromaque") < master_text.index("% PLAY: berenice")
-    assert master_text.index("% PLAY: berenice") < master_text.index("% PLAY: sans-castlist")
+    assert master_text.index("% PLAY: Andromaque") < master_text.index("% PLAY: Berenice")
+    assert master_text.index("% PLAY: Berenice") < master_text.index("% PLAY: Sans castList")
 
 
 def test_master_orders_play_front_matter_before_dramatic_text(tmp_path: Path) -> None:
@@ -327,7 +472,7 @@ def test_master_orders_play_front_matter_before_dramatic_text(tmp_path: Path) ->
 
 def test_master_omits_absent_notice_and_preface_placeholders(tmp_path: Path) -> None:
     master_text = build_publication_pdf_master(_config(tmp_path), tmp_path / "build").read_text(encoding="utf-8")
-    second_play_text = master_text[master_text.index("% PLAY: berenice") :]
+    second_play_text = master_text[master_text.index("% PLAY: Berenice") :]
 
     assert "% NOTICE:" not in second_play_text
     assert "% PREFACE:" not in second_play_text
@@ -337,7 +482,7 @@ def test_master_omits_absent_notice_and_preface_placeholders(tmp_path: Path) -> 
 
 def test_master_uses_external_dramatis_before_dramatic_front(tmp_path: Path) -> None:
     master_text = build_publication_pdf_master(_config(tmp_path), tmp_path / "build").read_text(encoding="utf-8")
-    play_text = master_text[master_text.index("% PLAY: andromaque") : master_text.index("% PLAY: berenice")]
+    play_text = master_text[master_text.index("% PLAY: Andromaque") : master_text.index("% PLAY: Berenice")]
 
     assert "% DRAMATIS PERSONAE:" in play_text
     assert "Dramatis externe Alpha" in play_text
@@ -346,7 +491,7 @@ def test_master_uses_external_dramatis_before_dramatic_front(tmp_path: Path) -> 
 
 def test_master_uses_dramatic_front_castlist_when_no_external_dramatis(tmp_path: Path) -> None:
     master_text = build_publication_pdf_master(_config(tmp_path), tmp_path / "build").read_text(encoding="utf-8")
-    play_text = master_text[master_text.index("% PLAY: berenice") : master_text.index("% PLAY: sans-castlist")]
+    play_text = master_text[master_text.index("% PLAY: Berenice") : master_text.index("% PLAY: Sans castList")]
 
     assert "% DRAMATIS PERSONAE: front of" in play_text
     assert "\\item[Front Berenice]" in play_text
@@ -354,7 +499,7 @@ def test_master_uses_dramatic_front_castlist_when_no_external_dramatis(tmp_path:
 
 def test_master_keeps_stable_comment_when_no_castlist_is_found(tmp_path: Path) -> None:
     master_text = build_publication_pdf_master(_config(tmp_path), tmp_path / "build").read_text(encoding="utf-8")
-    play_text = master_text[master_text.index("% PLAY: sans-castlist") :]
+    play_text = master_text[master_text.index("% PLAY: Sans castList") :]
 
     assert "% DRAMATIS PERSONAE: front of" in play_text
     assert "% DRAMATIS PERSONAE: no castList found." in play_text
@@ -382,7 +527,7 @@ def test_master_does_not_embed_standalone_latex_documents(tmp_path: Path) -> Non
 
 def test_master_does_not_duplicate_front_castlist_in_dramatic_text_section(tmp_path: Path) -> None:
     master_text = build_publication_pdf_master(_config(tmp_path), tmp_path / "build").read_text(encoding="utf-8")
-    play_text = master_text[master_text.index("% PLAY: berenice") : master_text.index("% PLAY: sans-castlist")]
+    play_text = master_text[master_text.index("% PLAY: Berenice") : master_text.index("% PLAY: Sans castList")]
     dramatic_text = play_text[play_text.index("% DRAMATIC TEXT:") :]
 
     assert "Front Berenice" in play_text

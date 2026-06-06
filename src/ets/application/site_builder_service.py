@@ -388,6 +388,11 @@ def _normalize_publication_request(
             if request.pdf_download_source_path is not None
             else None
         ),
+        "latex_download_source_path": (
+            str(request.latex_download_source_path.resolve())
+            if request.latex_download_source_path is not None
+            else None
+        ),
         "pdf_download_relpath": request.pdf_download_relpath,
     }
     return payload, tuple(warnings)

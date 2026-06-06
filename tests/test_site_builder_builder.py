@@ -135,7 +135,16 @@ def test_builder_copies_publication_pdf_and_links_it_from_all_page_levels() -> N
     pdf_source = base_dir / "build" / "edition.pdf"
     pdf_source.parent.mkdir(parents=True, exist_ok=True)
     pdf_source.write_bytes(b"%PDF-1.7\n% ETS test\n")
+    fake_neighbor_master = pdf_source.with_suffix(".tex")
+    fake_neighbor_master.write_text("FAUX MASTER A NE PAS COPIER\n", encoding="utf-8")
+    master_source = base_dir / "real" / "master.tex"
+    master_source.parent.mkdir(parents=True, exist_ok=True)
+    master_source.write_text(
+        r"\app{\lem[wit={A}]{texte}\rdg[wit={B}]{variante}}" + "\n",
+        encoding="utf-8",
+    )
     source_bytes = pdf_source.read_bytes()
+    source_master_text = master_source.read_text(encoding="utf-8")
 
     config = site_config_from_dict(
         {
@@ -146,6 +155,7 @@ def test_builder_copies_publication_pdf_and_links_it_from_all_page_levels() -> N
             "publish_notices": True,
             "play_notice_map": {"andromaque": "andromaque-notice"},
             "pdf_download_source_path": str(pdf_source),
+            "latex_download_source_path": str(master_source),
             "pdf_download_relpath": "downloads/edition-complete.pdf",
         }
     )
@@ -153,8 +163,15 @@ def test_builder_copies_publication_pdf_and_links_it_from_all_page_levels() -> N
     result = build_static_site(config)
 
     copied_pdf = output_dir / "downloads" / "edition-complete.pdf"
+    copied_master = output_dir / "downloads" / "edition-complete.tex"
     assert copied_pdf.exists()
     assert copied_pdf.read_bytes() == source_bytes
+    assert copied_master.exists()
+    assert copied_master.read_text(encoding="utf-8") == source_master_text
+    assert "FAUX MASTER" not in copied_master.read_text(encoding="utf-8")
+    assert r"\app{" in copied_master.read_text(encoding="utf-8")
+    assert r"\lem[wit={A}]" in copied_master.read_text(encoding="utf-8")
+    assert r"\rdg[wit={B}]" in copied_master.read_text(encoding="utf-8")
     assert pdf_source.read_bytes() == source_bytes
     assert not result.warnings
 
@@ -165,6 +182,35 @@ def test_builder_copies_publication_pdf_and_links_it_from_all_page_levels() -> N
     assert 'href="downloads/edition-complete.pdf" download>Télécharger le PDF</a>' in home_html
     assert 'href="../downloads/edition-complete.pdf" download>Télécharger le PDF</a>' in play_html
     assert 'href="../downloads/edition-complete.pdf" download>Télécharger le PDF</a>' in notice_html
+
+
+def test_builder_warns_when_publication_pdf_master_is_missing() -> None:
+    base_dir = _runtime_dir("site_builder_pdf_missing_master")
+    output_dir = base_dir / "site_pdf_missing_master"
+    pdf_source = base_dir / "build" / "master.pdf"
+    pdf_source.parent.mkdir(parents=True, exist_ok=True)
+    pdf_source.write_bytes(b"%PDF-1.7\n% missing master test\n")
+    missing_master = base_dir / "real" / "master.tex"
+
+    config = site_config_from_dict(
+        {
+            "site_title": "ETS Demo",
+            "dramatic_xml_dir": str(FIXTURE_ROOT / "dramatic"),
+            "notice_xml_dir": str(FIXTURE_ROOT / "notices"),
+            "output_dir": str(output_dir),
+            "publish_notices": True,
+            "pdf_download_source_path": str(pdf_source),
+            "latex_download_source_path": str(missing_master),
+            "pdf_download_relpath": "downloads/edition-complete.pdf",
+        }
+    )
+
+    result = build_static_site(config)
+
+    assert (output_dir / "index.html").exists()
+    assert (output_dir / "downloads" / "edition-complete.pdf").exists()
+    assert not (output_dir / "downloads" / "edition-complete.tex").exists()
+    assert any("Publication PDF master not found" in warning for warning in result.warnings)
 
 
 def test_builder_pdf_download_missing_source_warns_without_broken_link() -> None:
@@ -255,6 +301,9 @@ def test_builder_uses_default_pdf_relpath_when_source_exists_and_relpath_is_none
     pdf_source = base_dir / "build" / "edition.pdf"
     pdf_source.parent.mkdir(parents=True, exist_ok=True)
     pdf_source.write_bytes(b"%PDF-1.7\n% default relpath test\n")
+    master_source = base_dir / "real" / "master.tex"
+    master_source.parent.mkdir(parents=True, exist_ok=True)
+    master_source.write_text("% default relpath master\n", encoding="utf-8")
     config = SiteConfig(
         site_title="ETS Demo",
         dramatic_xml_dir=FIXTURE_ROOT / "dramatic",
@@ -262,6 +311,7 @@ def test_builder_uses_default_pdf_relpath_when_source_exists_and_relpath_is_none
         output_dir=output_dir,
         publish_notices=True,
         pdf_download_source_path=pdf_source,
+        latex_download_source_path=master_source,
         pdf_download_relpath=None,
     )
 
@@ -269,6 +319,9 @@ def test_builder_uses_default_pdf_relpath_when_source_exists_and_relpath_is_none
 
     assert not result.warnings
     assert (output_dir / "downloads" / "edition-complete.pdf").read_bytes() == pdf_source.read_bytes()
+    assert (output_dir / "downloads" / "edition-complete.tex").read_text(encoding="utf-8") == master_source.read_text(
+        encoding="utf-8"
+    )
     home_html = (output_dir / "index.html").read_text(encoding="utf-8")
     assert 'href="downloads/edition-complete.pdf" download>' in home_html
     assert "PDF" in home_html

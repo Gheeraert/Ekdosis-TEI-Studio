@@ -211,10 +211,10 @@ def test_build_and_compile_from_prepared_config_preserves_failed_compile(
     monkeypatch,
 ) -> None:
     prepared_config = _prepared_xml_config(tmp_path)
-    calls: list[str] = []
+    calls: list[tuple[str, int]] = []
 
     def _fake_compile(master_path, *, engine, runs, timeout_seconds):
-        calls.append(engine)
+        calls.append((engine, runs))
         return _compile_result(
             master_path=Path(master_path).resolve(),
             ok=False,
@@ -227,7 +227,7 @@ def test_build_and_compile_from_prepared_config_preserves_failed_compile(
 
     result = build_and_compile_publication_pdf_from_prepared_config(prepared_config, tmp_path / "failed-build")
 
-    assert calls == ["lualatex"]
+    assert calls == [("lualatex", 3)]
     assert result.ok is False
     assert result.pdf_path is None
     assert result.master_result.master_path.exists()
@@ -243,9 +243,11 @@ def test_build_and_compile_from_dialog_config_prepares_once(
     fake_service = _FakeEditorialImportService(
         PreparedPublicationConfig(config=prepared_config, warnings=("Warning prepare.",))
     )
+    calls: list[tuple[str, int]] = []
 
     def _fake_compile(master_path, *, engine, runs, timeout_seconds):
         resolved = Path(master_path).resolve()
+        calls.append((engine, runs))
         pdf_path = resolved.with_suffix(".pdf")
         pdf_path.write_text("pdf", encoding="utf-8")
         return _compile_result(master_path=resolved, ok=True, pdf_path=pdf_path, engine=engine)
@@ -263,3 +265,4 @@ def test_build_and_compile_from_dialog_config_prepares_once(
     assert result.ok is True
     assert result.master_result.prepared_config == prepared_config
     assert result.warnings == ("Warning prepare.",)
+    assert calls == [("pdflatex", 3)]

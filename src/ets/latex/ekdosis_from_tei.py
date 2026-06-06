@@ -13,6 +13,7 @@ TEI_NS = "http://www.tei-c.org/ns/1.0"
 NS = {"tei": TEI_NS}
 
 _TRAILING_SPACE = "\uE000ETS_TRAILING_SPACE\uE000"
+XML_ID = "{http://www.w3.org/XML/1998/namespace}id"
 
 
 def tei_to_ekdosis(xml_input: str | PathLike[str], *, standalone: bool = False) -> str:
@@ -29,8 +30,68 @@ def tei_to_ekdosis(xml_input: str | PathLike[str], *, standalone: bool = False) 
         fragment = "\n".join(line for child in body for line in _render_block(child))
     fragment = _finalize_spacing(fragment).rstrip() + ("\n" if fragment else "")
     if standalone:
-        return wrap_standalone(fragment)
+        return wrap_standalone(fragment, witness_declarations=render_ekdosis_witness_declarations_from_root(root))
     return fragment
+
+
+def render_ekdosis_witness_declarations(xml_input: str | PathLike[str]) -> str:
+    root = _parse_xml_input(xml_input)
+    return render_ekdosis_witness_declarations_from_root(root)
+
+
+def render_ekdosis_witness_declarations_from_root(root: etree._Element) -> str:
+    witnesses = root.findall(".//tei:teiHeader//tei:listWit//tei:witness", namespaces=NS)
+    used_witness_ids = _used_witness_ids(root)
+    if used_witness_ids and not witnesses:
+        raise ValueError("Apparat critique present, mais aucun listWit n'est declare dans le teiHeader.")
+
+    declarations: list[str] = []
+    declared: dict[str, str] = {}
+    for witness in witnesses:
+        witness_id = (witness.get(XML_ID) or "").strip()
+        if not witness_id:
+            raise ValueError("Temoin sans xml:id dans le teiHeader/listWit.")
+        text = " ".join("".join(witness.itertext()).split())
+        short, description = _parse_witness_label(witness_id, text)
+        declaration = (
+            rf"\DeclareWitness{{{witness_id}}}"
+            rf"{{{escape_latex_text(short)}}}"
+            rf"{{{escape_latex_text(description)}}}"
+        )
+        declared[witness_id] = declaration
+        declarations.append(declaration)
+
+    missing = sorted(used_witness_ids - set(declared))
+    if missing:
+        missing_text = ", ".join(missing)
+        raise ValueError(f"Temoin(s) utilise(s) dans l'apparat mais absent(s) du teiHeader/listWit: {missing_text}.")
+    return "\n".join(declarations)
+
+
+def _parse_witness_label(witness_id: str, text: str) -> tuple[str, str]:
+    pattern = rf"^\s*{re.escape(witness_id)}\s*\(([^)]+)\)\s*(.*)$"
+    match = re.match(pattern, text)
+    if match is None:
+        match = re.match(r"^\s*\S+\s+\(([^)]+)\)\s*(.*)$", text)
+    if match is None:
+        raise ValueError(f"Temoin '{witness_id}' impossible a convertir en DeclareWitness: {text}")
+    short = match.group(1).strip()
+    description = match.group(2).strip()
+    return short, description
+
+
+def _used_witness_ids(root: etree._Element) -> set[str]:
+    used: set[str] = set()
+    for reading in root.findall(".//tei:app//tei:lem", namespaces=NS) + root.findall(
+        ".//tei:app//tei:rdg",
+        namespaces=NS,
+    ):
+        used.update(_witness_ids_from_wit(reading.get("wit", "")))
+    return used
+
+
+def _witness_ids_from_wit(value: str) -> set[str]:
+    return {item.lstrip("#") for item in value.split() if item.strip()}
 
 
 def _parse_xml_input(xml_input: str | PathLike[str]) -> etree._Element:

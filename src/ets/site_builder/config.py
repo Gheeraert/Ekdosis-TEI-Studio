@@ -240,6 +240,11 @@ def site_config_from_dict(payload: dict[str, Any], *, base_dir: Path | None = No
             if payload.get("pdf_download_source_path")
             else None
         ),
+        latex_download_source_path=(
+            _resolve_path(payload["latex_download_source_path"], base_dir=base_dir)
+            if payload.get("latex_download_source_path")
+            else None
+        ),
         pdf_download_relpath=_coerce_optional_relpath(
             payload.get("pdf_download_relpath"),
             field_name="pdf_download_relpath",

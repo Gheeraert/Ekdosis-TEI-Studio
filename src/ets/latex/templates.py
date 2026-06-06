@@ -61,6 +61,9 @@ MINIMAL_PREAMBLE = (
 )
 
 
-def wrap_standalone(fragment: str) -> str:
+def wrap_standalone(fragment: str, *, witness_declarations: str = "") -> str:
     body = fragment.rstrip()
-    return f"{MINIMAL_PREAMBLE}\n\\begin{{document}}\n\\begin{{ekdosis}}\n{body}\n\\end{{ekdosis}}\n\\end{{document}}\n"
+    declarations = witness_declarations.rstrip()
+    if declarations:
+        declarations = f"\n{declarations}"
+    return f"{MINIMAL_PREAMBLE}{declarations}\n\\begin{{document}}\n\\begin{{ekdosis}}\n{body}\n\\end{{ekdosis}}\n\\end{{document}}\n"

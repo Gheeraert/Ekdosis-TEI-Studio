@@ -28,7 +28,7 @@ def compile_publication_pdf(
     master_path: str | Path,
     *,
     engine: str = "lualatex",
-    runs: int = 2,
+    runs: int = 3,
     timeout_seconds: int = 120,
 ) -> PublicationPdfCompileResult:
     resolved_master = Path(master_path).resolve()

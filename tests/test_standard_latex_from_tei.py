@@ -139,4 +139,45 @@ def test_peritext_simple_table() -> None:
         )
     )
 
-    assert actual == "\\begin{tabular}{|l|l|}\n\\hline\nA & B \\\\\n\\hline\n1 & 2 \\\\\n\\hline\n\\end{tabular}\n"
+    assert actual == (
+        "\\noindent\n"
+        "\\begingroup\n"
+        "\\small\n"
+        "\\setlength{\\tabcolsep}{3pt}\n"
+        "\\begin{tabularx}{\\linewidth}{@{}*{2}{Y}@{}}\n"
+        "A & B \\\\\n"
+        "1 & 2 \\\\\n"
+        "\\end{tabularx}\n"
+        "\\endgroup\n"
+    )
+
+
+def test_peritext_table_uses_tabularx_columns_and_preserves_cell_content() -> None:
+    actual = tei_peritext_to_latex(
+        _tei(
+            """
+            <table>
+              <row>
+                <cell>Colonne longue A avec un texte qui doit pouvoir revenir a la ligne.</cell>
+                <cell>Texte avec <hi rend="italic">italique</hi>.</cell>
+                <cell>A &amp; B % $ # _ { }</cell>
+              </row>
+              <row>
+                <cell>Deuxieme ligne.</cell>
+                <cell>Cellule manquante ensuite.</cell>
+              </row>
+            </table>
+            """
+        )
+    )
+
+    assert "\\noindent" in actual
+    assert "\\begingroup" in actual
+    assert "\\small" in actual
+    assert "\\setlength{\\tabcolsep}{3pt}" in actual
+    assert "\\begin{tabularx}{\\linewidth}{@{}*{3}{Y}@{}}" in actual
+    assert "\\begin{tabular}{" not in actual
+    assert "Colonne longue A avec un texte qui doit pouvoir revenir a la ligne." in actual
+    assert r"Texte avec \emph{italique}." in actual
+    assert r"A \& B \% \$ \# \_ \{ \}" in actual
+    assert "Cellule manquante ensuite. &  \\\\" in actual

@@ -149,6 +149,25 @@ def test_compile_publication_pdf_runs_twice_when_first_pass_succeeds(
     assert "stdout pass 2" in result.stdout
 
 
+def test_compile_publication_pdf_runs_three_times_by_default(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    source = _write_master(tmp_path)
+    runner = _RunRecorder(returncodes=[0, 0, 0])
+    monkeypatch.setattr("shutil.which", lambda _engine: "lualatex")
+    monkeypatch.setattr("subprocess.run", runner)
+
+    result = compile_publication_pdf(source)
+
+    assert result.ok is True
+    assert result.command[0] == "lualatex"
+    assert len(runner.calls) == 3
+    assert "stdout pass 1" in result.stdout
+    assert "stdout pass 2" in result.stdout
+    assert "stdout pass 3" in result.stdout
+
+
 def test_compile_publication_pdf_does_not_run_second_pass_after_first_failure(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,

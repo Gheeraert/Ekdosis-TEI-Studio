@@ -201,13 +201,19 @@ def _render_table(element: etree._Element) -> str:
     if column_count == 0:
         return "% TABLE: unsupported table without cells omitted."
 
-    spec = "|" + "|".join("l" for _ in range(column_count)) + "|"
-    lines = [rf"\begin{{tabular}}{{{spec}}}", r"\hline"]
+    spec = f"@{{}}*{{{column_count}}}{{Y}}@{{}}"
+    lines = [
+        r"\noindent",
+        r"\begingroup",
+        r"\small",
+        r"\setlength{\tabcolsep}{3pt}",
+        rf"\begin{{tabularx}}{{\linewidth}}{{{spec}}}",
+    ]
     for cells in rendered_rows:
         padded = cells + [""] * (column_count - len(cells))
         lines.append(" & ".join(padded) + r" \\")
-        lines.append(r"\hline")
-    lines.append(r"\end{tabular}")
+    lines.append(r"\end{tabularx}")
+    lines.append(r"\endgroup")
     return "\n".join(lines)
 
 

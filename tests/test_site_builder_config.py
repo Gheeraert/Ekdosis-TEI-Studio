@@ -47,6 +47,7 @@ def test_site_config_from_dict_normalizes_paths_and_defaults() -> None:
     assert config.general_notice_slug == ""
     assert config.home_page_notice_slug == ""
     assert config.pdf_download_source_path is None
+    assert config.latex_download_source_path is None
     assert config.pdf_download_relpath is None
 
 
@@ -87,12 +88,14 @@ def test_site_config_supports_publication_pdf_download_paths() -> None:
             "dramatic_xml_dir": "fixtures/site_builder/minimal/dramatic",
             "output_dir": "out/site",
             "pdf_download_source_path": "build/edition.pdf",
+            "latex_download_source_path": "build/master.tex",
             "pdf_download_relpath": "downloads/edition-complete.pdf",
         },
         base_dir=base,
     )
 
     assert config.pdf_download_source_path == (base / "build" / "edition.pdf").resolve()
+    assert config.latex_download_source_path == (base / "build" / "master.tex").resolve()
     assert config.pdf_download_relpath == "downloads/edition-complete.pdf"
 
 

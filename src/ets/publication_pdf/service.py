@@ -68,7 +68,7 @@ def build_and_compile_publication_pdf_from_prepared_config(
     *,
     warnings: tuple[str, ...] = (),
     engine: str = "lualatex",
-    runs: int = 2,
+    runs: int = 3,
     timeout_seconds: int = 120,
 ) -> PublicationPdfBuildResult:
     master_result = build_publication_pdf_master_from_prepared_config(
@@ -97,7 +97,7 @@ def build_and_compile_publication_pdf_from_dialog_config(
     *,
     editorial_import_service: EditorialPublicationConfigPreparer | None = None,
     engine: str = "lualatex",
-    runs: int = 2,
+    runs: int = 3,
     timeout_seconds: int = 120,
 ) -> PublicationPdfBuildResult:
     service = editorial_import_service or EditorialNoticeImportService()

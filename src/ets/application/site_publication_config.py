@@ -508,6 +508,7 @@ def site_publication_request_from_dialog_config(config: SitePublicationDialogCon
         general_notice_slug=general_notice_slug,
         home_page_notice_slug=home_page_notice_slug,
         pdf_download_source_path=None,
+        latex_download_source_path=None,
     )
 
 

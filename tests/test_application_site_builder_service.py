@@ -187,6 +187,10 @@ def test_site_builder_service_publication_request_copies_publication_pdf() -> No
     pdf_source = base / "build" / "edition.pdf"
     pdf_source.parent.mkdir(parents=True, exist_ok=True)
     pdf_source.write_bytes(b"%PDF-1.7\n% service test\n")
+    (pdf_source.with_suffix(".tex")).write_text("FAUX MASTER A NE PAS COPIER\n", encoding="utf-8")
+    master_source = base / "real" / "master.tex"
+    master_source.parent.mkdir(parents=True, exist_ok=True)
+    master_source.write_text("% service publication master\n", encoding="utf-8")
 
     request = SitePublicationRequest(
         identity=SiteIdentityInput(site_title="ETS Publication Request PDF"),
@@ -199,6 +203,7 @@ def test_site_builder_service_publication_request_copies_publication_pdf() -> No
         ),
         publish_notices=False,
         pdf_download_source_path=pdf_source,
+        latex_download_source_path=master_source,
         pdf_download_relpath="downloads/edition-complete.pdf",
     )
 
@@ -206,6 +211,10 @@ def test_site_builder_service_publication_request_copies_publication_pdf() -> No
 
     assert result.ok is True
     assert (output_dir / "downloads" / "edition-complete.pdf").read_bytes() == pdf_source.read_bytes()
+    assert (output_dir / "downloads" / "edition-complete.tex").read_text(encoding="utf-8") == master_source.read_text(
+        encoding="utf-8"
+    )
+    assert "FAUX MASTER" not in (output_dir / "downloads" / "edition-complete.tex").read_text(encoding="utf-8")
     home_html = (output_dir / "index.html").read_text(encoding="utf-8")
     play_html = (output_dir / "plays" / "andromaque.html").read_text(encoding="utf-8")
     assert 'href="downloads/edition-complete.pdf" download>Télécharger le PDF</a>' in home_html

@@ -42,6 +42,7 @@ class SiteConfig:
     play_dramatis_map: tuple[tuple[str, str], ...] = ()
     play_order: tuple[str, ...] = ()
     pdf_download_source_path: Path | None = None
+    latex_download_source_path: Path | None = None
     pdf_download_relpath: str | None = None
 
 

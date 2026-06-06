@@ -73,6 +73,7 @@ class SitePublicationRequest:
     general_notice_slug: str = ""
     home_page_notice_slug: str = ""
     pdf_download_source_path: Path | None = None
+    latex_download_source_path: Path | None = None
     pdf_download_relpath: str = "downloads/edition-complete.pdf"
 
 

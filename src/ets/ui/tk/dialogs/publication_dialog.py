@@ -764,7 +764,15 @@ class PublicationDialog(tk.Toplevel):
         if self._last_pdf_build_result is not None:
             pdf_path = self._last_pdf_build_result.pdf_path
             if self._last_pdf_build_result.ok and pdf_path is not None and pdf_path.exists():
-                request = replace(request, pdf_download_source_path=pdf_path)
+                master_path = self._last_pdf_build_result.master_result.master_path
+                if master_path.exists():
+                    request = replace(
+                        request,
+                        pdf_download_source_path=pdf_path,
+                        latex_download_source_path=master_path,
+                    )
+                else:
+                    warnings.append(f"PDF de publication non genere: master LaTeX introuvable: {master_path}")
             else:
                 compile_result = self._last_pdf_build_result.compile_result
                 detail = compile_result.error_detail or compile_result.stderr.strip() or compile_result.stdout.strip()

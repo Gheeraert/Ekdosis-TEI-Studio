@@ -209,6 +209,20 @@ def _copy_pdf_download(config: SiteConfig, output_root: Path, warnings: list[str
     except OSError as exc:
         warnings.append(f"Publication PDF could not be copied: {exc}")
         return None
+
+    source_master = config.latex_download_source_path
+    if source_master is None:
+        return relpath
+
+    source_master = source_master.resolve()
+    target_master = target.with_suffix(".tex")
+    if source_master.exists() and source_master.is_file():
+        try:
+            shutil.copy2(source_master, target_master)
+        except OSError as exc:
+            warnings.append(f"Publication PDF master could not be copied: {exc}")
+    else:
+        warnings.append(f"Publication PDF master not found: {source_master}")
     return relpath
 
 
