@@ -1,0 +1,91 @@
+--- src/ets/collation/minor_variants.py	2026-06-07 20:34:36.131724088 +0000
++++ src/ets/collation/minor_variants.py	2026-06-07 21:03:41.336443614 +0000
+@@ -178,6 +178,25 @@
+         current = replaced
+ 
+     replaced = current
++    # Ultra-conservative v8 additions: only recurrent, well-identified
++    # classical/typographical spellings observed in the readable apparatus.
++    # Keep these replacements narrow: they are classification keys only and
++    # never rewrite the edited text.
++    exact_historic_spellings = {
++        "bientost": "bientot",
++        "tems": "temps",
++        "longtems": "longtemps",
++        "doi": "dois",
++        "piez": "pieds",
++        "espoux": "epoux",
++        "fai": "fais",
++        "ponr": "pour",
++        "scache": "sache",
++        "sceut": "scut",
++    }
++    if replaced in exact_historic_spellings:
++        replaced = exact_historic_spellings[replaced]
++
+     replaced = replaced.replace("soust", "sout")
+     replaced = replaced.replace("mesmes", "memes")
+     replaced = replaced.replace("mesme", "meme")
+@@ -198,6 +217,11 @@
+     replaced = replaced.replace("traisn", "train")
+     replaced = replaced.replace("experiance", "experience")
+     replaced = replaced.replace("audiance", "audience")
++    replaced = replaced.replace("condann", "condamn")
++    replaced = replaced.replace("avouerez", "avourez").replace("avoueres", "avourez")
++    replaced = replaced.replace("auouerez", "auourez").replace("auoueres", "auourez")
++    replaced = replaced.replace("asseur", "assur")
++    replaced = replaced.replace("estois", "etois")
+     replaced = replaced.replace("tousiours", "toujours").replace("tousjours", "toujours")
+     replaced = replaced.replace("gaigner", "gagner")
+     replaced = replaced.replace("dounant", "donnant")
+--- tests/test_minor_variants.py	2026-06-07 20:34:36.432484226 +0000
++++ tests/test_minor_variants.py	2026-06-07 21:03:03.631384275 +0000
+@@ -179,3 +179,48 @@
+         classification = classify_apparatus(lemma, readings)
+         assert classification.candidate_class == "minor_graphic_safe", (lemma, readings, classification)
+         assert classification.visibility_policy == "hide_safe", (lemma, readings, classification)
++
++def test_classifies_ultra_prudent_v8_spellings_as_hide_safe_minor() -> None:
++    examples = [
++        ("bien-tost,", ["bien-tôt,"]),
++        ("temps", ["tems"]),
++        ("doy", ["doi", "dois"]),
++        ("sceût", ["sçût"]),
++        ("pieds", ["piez"]),
++        ("condamnée,", ["condannée,"]),
++        ("Espoux", ["Epoux"]),
++        ("avoürez", ["avoüerez", "avoüerés", "avoûrez"]),
++        ("s’assure", ["s’asseure"]),
++        ("j’étois", ["j’estois"]),
++        ("fay", ["fai", "fais"]),
++        ("Sache", ["Sçache"]),
++        ("pour", ["ponr"]),
++        ("SCENE", ["SCENE."]),
++    ]
++
++    for lemma, readings in examples:
++        classification = classify_apparatus(lemma, readings)
++        assert classification.visibility_policy == "hide_safe", (lemma, readings, classification)
++        assert classification.candidate_class in {
++            "minor_graphic_safe",
++            "minor_punctuation",
++            "minor_mixed",
++        }, (lemma, readings, classification)
++
++
++def test_keeps_v8_forbidden_substantive_examples_visible() -> None:
++    examples = [
++        ("portast", ["porta", "portât"]),
++        ("Allez", ["Daignés", "Daignez"]),
++        ("ses", ["ces"]),
++        ("sa", ["ma"]),
++        ("Tant que l’on", ["Tandis qu’on"]),
++        ("aux grandeurs,", ["à l’Empire,"]),
++        ("qu’écarte", ["que glace"]),
++        ("éloigne", ["écarte"]),
++    ]
++
++    for lemma, readings in examples:
++        classification = classify_apparatus(lemma, readings)
++        assert classification.visibility_policy == "visible", (lemma, readings, classification)
++

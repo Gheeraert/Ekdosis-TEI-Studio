@@ -203,6 +203,23 @@ def apply_historic_graphic_rules(token: str) -> tuple[str, tuple[str, ...]]:
     replaced = replaced.replace("dounant", "donnant")
     replaced = replaced.replace("esteindre", "eteindre")
     replaced = replaced.replace("entraisn", "entrain")
+    # V8 ultra-prudente : résidus graphiques validés sur Britannicus.
+    replaced = replaced.replace("bientost", "bientot")
+    replaced = replaced.replace("tems", "temps")
+    replaced = replaced.replace("doi", "dois")
+    replaced = replaced.replace("sceu", "su")
+    replaced = replaced.replace("scau", "sau")
+    replaced = replaced.replace("piez", "pieds")
+    replaced = replaced.replace("condanne", "condamne")
+    replaced = replaced.replace("espoux", "epoux")
+    replaced = replaced.replace("auouerez", "auoures")
+    replaced = replaced.replace("auoueres", "auoures")
+    replaced = replaced.replace("auourez", "auoures")
+    replaced = replaced.replace("asseure", "assure")
+    replaced = replaced.replace("estois", "etois")
+    replaced = replaced.replace("fai", "fais")
+    replaced = replaced.replace("sçache", "sache")
+    replaced = replaced.replace("ponr", "pour")
     if replaced != current:
         rules.append("historic_spelling")
         current = replaced
