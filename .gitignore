@@ -11,3 +11,15 @@ tests/_runtime/
 ftp_config*.json
 *.ftp.json
 *.ftp.local.json
+
+# Local experimental archives
+_patches_juin/
+_tools_experimentaux/
+
+# Local generated test outputs
+_minor_variants_real_check/
+_minor_variants_scene1/
+ets_notice_import_*/
+out/
+baseline_main.txt
+after_minor_variants.txt
