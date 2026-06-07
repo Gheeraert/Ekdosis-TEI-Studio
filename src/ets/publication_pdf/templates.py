@@ -364,6 +364,7 @@ def _dramatic_fragment(dramatic_xml_path: Path, *, hide_minor_variants: bool = F
         dramatic_xml_path,
         standalone=False,
         apparatus_policy=apparatus_policy,
+        apparatus_numbering_policy="editorial",
     ).rstrip()
     if not fragment:
         return "\n".join(
