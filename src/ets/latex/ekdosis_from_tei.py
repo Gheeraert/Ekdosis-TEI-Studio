@@ -16,7 +16,12 @@ _TRAILING_SPACE = "\uE000ETS_TRAILING_SPACE\uE000"
 XML_ID = "{http://www.w3.org/XML/1998/namespace}id"
 
 
-def tei_to_ekdosis(xml_input: str | PathLike[str], *, standalone: bool = False) -> str:
+def tei_to_ekdosis(
+    xml_input: str | PathLike[str],
+    *,
+    standalone: bool = False,
+    apparatus_policy: str = "full",
+) -> str:
     """Convert canonical ETS TEI XML to a minimal LaTeX-Ekdosis fragment.
 
     ``xml_input`` may be an XML string or a filesystem path. A string that starts
@@ -27,7 +32,7 @@ def tei_to_ekdosis(xml_input: str | PathLike[str], *, standalone: bool = False) 
     if body is None:
         fragment = ""
     else:
-        fragment = "\n".join(line for child in body for line in _render_block(child))
+        fragment = "\n".join(line for child in body for line in _render_block(child, apparatus_policy=apparatus_policy))
     fragment = _finalize_spacing(fragment).rstrip() + ("\n" if fragment else "")
     if standalone:
         return wrap_standalone(fragment, witness_declarations=render_ekdosis_witness_declarations_from_root(root))
@@ -112,28 +117,28 @@ def _local_name(element: etree._Element) -> str:
     return etree.QName(element).localname
 
 
-def _render_block(element: etree._Element) -> list[str]:
+def _render_block(element: etree._Element, *, apparatus_policy: str = "full") -> list[str]:
     tag = _local_name(element)
     if tag == "div":
-        return _render_div(element)
+        return _render_div(element, apparatus_policy=apparatus_policy)
     if tag == "sp":
-        return _render_speech(element)
+        return _render_speech(element, apparatus_policy=apparatus_policy)
     if tag == "stage":
-        return [_render_stage(element)]
+        return [_render_stage(element, apparatus_policy=apparatus_policy)]
     if tag == "head":
         return [f"\\stage{{{_render_inline(element).strip()}}}"]
     if tag == "l":
-        return [_render_line(element)]
+        return [_render_line(element, apparatus_policy=apparatus_policy)]
     if tag == "lg":
-        return _render_lg(element)
+        return _render_lg(element, apparatus_policy=apparatus_policy)
     if tag == "note":
         return []
     if tag == "front":
         return []
-    return [line for child in element for line in _render_block(child)]
+    return [line for child in element for line in _render_block(child, apparatus_policy=apparatus_policy)]
 
 
-def _render_div(element: etree._Element) -> list[str]:
+def _render_div(element: etree._Element, *, apparatus_policy: str = "full") -> list[str]:
     div_type = element.get("type", "")
     lines: list[str] = []
     if div_type in {"act", "scene"}:
@@ -142,13 +147,13 @@ def _render_div(element: etree._Element) -> list[str]:
         lines.append(f"\\ekddiv{{type={div_type}, n={number}, depth={depth}}}")
 
     for child in element:
-        lines.extend(_render_block(child))
+        lines.extend(_render_block(child, apparatus_policy=apparatus_policy))
     return lines
 
 
-def _render_speech(element: etree._Element) -> list[str]:
+def _render_speech(element: etree._Element, *, apparatus_policy: str = "full") -> list[str]:
     speaker = element.find("./tei:speaker", namespaces=NS)
-    speaker_text = _render_inline(speaker).strip() if speaker is not None else ""
+    speaker_text = _render_inline(speaker, apparatus_policy=apparatus_policy).strip() if speaker is not None else ""
     lines = [
         r"\begin{speech}",
         f"  \\speaker{{{speaker_text}}}",
@@ -158,21 +163,21 @@ def _render_speech(element: etree._Element) -> list[str]:
     for child in element:
         if _local_name(child) == "speaker":
             continue
-        for rendered in _render_block(child):
+        for rendered in _render_block(child, apparatus_policy=apparatus_policy):
             lines.append(f"    {rendered}")
 
     lines.extend([r"  \end{ekdverse}", r"\end{speech}"])
     return lines
 
 
-def _render_stage(element: etree._Element) -> str:
-    rendered = _render_inline(element).strip()
+def _render_stage(element: etree._Element, *, apparatus_policy: str = "full") -> str:
+    rendered = _render_inline(element, apparatus_policy=apparatus_policy).strip()
     if element.get("type") == "personnages":
         return f"\\stage{{{rendered}}}"
     return f"\\didas{{{rendered}}}"
 
 
-def _render_lg(element: etree._Element) -> list[str]:
+def _render_lg(element: etree._Element, *, apparatus_policy: str = "full") -> list[str]:
     lines: list[str] = []
     if element.get("type") == "stanza":
         attrs = ["type=stanza"]
@@ -184,42 +189,42 @@ def _render_lg(element: etree._Element) -> list[str]:
 
     for child in element:
         if _local_name(child) == "l":
-            lines.append(_render_line(child))
+            lines.append(_render_line(child, apparatus_policy=apparatus_policy))
         else:
-            lines.extend(_render_block(child))
+            lines.extend(_render_block(child, apparatus_policy=apparatus_policy))
     return lines
 
 
-def _render_line(element: etree._Element) -> str:
+def _render_line(element: etree._Element, *, apparatus_policy: str = "full") -> str:
     number = element.get("n", "")
-    content = _render_inline(element).strip()
+    content = _render_inline(element, apparatus_policy=apparatus_policy).strip()
     return f"\\vnum{{{number}}}{{{content}\\\\}}"
 
 
-def _render_inline(element: etree._Element | None) -> str:
+def _render_inline(element: etree._Element | None, *, apparatus_policy: str = "full") -> str:
     if element is None:
         return ""
 
     output: list[str] = [_render_text_chunk(element.text)]
     for child in element:
-        output.append(_render_inline_child(child))
+        output.append(_render_inline_child(child, apparatus_policy=apparatus_policy))
         output.append(_render_text_chunk(child.tail))
     return "".join(output)
 
 
-def _render_inline_child(element: etree._Element) -> str:
+def _render_inline_child(element: etree._Element, *, apparatus_policy: str = "full") -> str:
     tag = _local_name(element)
     if tag == "app":
-        return _render_app(element)
+        return _render_app(element, apparatus_policy=apparatus_policy)
     if tag == "hi" and element.get("rend") == "italic":
-        return _render_italic(element)
+        return _render_italic(element, apparatus_policy=apparatus_policy)
     if tag == "note":
         return ""
-    return _render_inline(element)
+    return _render_inline(element, apparatus_policy=apparatus_policy)
 
 
-def _render_italic(element: etree._Element) -> str:
-    content = _render_inline(element)
+def _render_italic(element: etree._Element, *, apparatus_policy: str = "full") -> str:
+    content = _render_inline(element, apparatus_policy=apparatus_policy)
     trailing = ""
     while content.endswith(_TRAILING_SPACE):
         content = content[: -len(_TRAILING_SPACE)]
@@ -227,14 +232,27 @@ def _render_italic(element: etree._Element) -> str:
     return f"\\emph{{{content.strip()}}}{trailing}"
 
 
-def _render_app(element: etree._Element) -> str:
+def _should_hide_app(element: etree._Element, apparatus_policy: str) -> bool:
+    if apparatus_policy != "hide_minor":
+        return False
+    if element.get("type") != "minor":
+        return False
+    # ``cert=low`` marks inspect/probable cases: keep them visible.
+    return element.get("cert") != "low"
+
+
+def _render_app(element: etree._Element, *, apparatus_policy: str = "full") -> str:
+    if _should_hide_app(element, apparatus_policy):
+        lemma = element.find("./tei:lem", namespaces=NS)
+        return _render_inline(lemma, apparatus_policy=apparatus_policy) if lemma is not None else ""
+
     pieces: list[str] = [r"\app{"]
     has_trailing_space = False
     for child in element:
         tag = _local_name(child)
         if tag not in {"lem", "rdg"}:
             continue
-        content, trailing_space = _render_reading(child)
+        content, trailing_space = _render_reading(child, apparatus_policy=apparatus_policy)
         has_trailing_space = has_trailing_space or trailing_space
         wit = _format_wit(child.get("wit", ""))
         pieces.append(f"\\{tag}[wit={{{wit}}}]{{{content}}}")
@@ -244,8 +262,8 @@ def _render_app(element: etree._Element) -> str:
     return "".join(pieces)
 
 
-def _render_reading(element: etree._Element) -> tuple[str, bool]:
-    rendered = _render_inline(element)
+def _render_reading(element: etree._Element, *, apparatus_policy: str = "full") -> tuple[str, bool]:
+    rendered = _render_inline(element, apparatus_policy=apparatus_policy)
     trailing_space = bool(rendered) and rendered[-1].isspace()
     return rendered.strip(), trailing_space
 

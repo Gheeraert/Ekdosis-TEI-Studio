@@ -138,7 +138,18 @@ def _append_collated_text(parent: ET.Element, text: CollatedText) -> None:
                 italic_last_child = None
 
             app_parent = italic_element if italic_open and italic_element is not None else parent
-            app = ET.SubElement(app_parent, _tei("app"))
+            app_attrs: dict[str, str] = {}
+            if getattr(segment, "visibility_policy", "visible") in {"hide_safe", "inspect"}:
+                app_attrs["type"] = "minor"
+                candidate_class = getattr(segment, "candidate_class", "minor")
+                subtype = candidate_class.removeprefix("minor_").removesuffix("_safe").replace("_", "-")
+                app_attrs["subtype"] = subtype
+                rule_code = getattr(segment, "rule_code", "")
+                if rule_code:
+                    app_attrs["ana"] = f"#{rule_code}"
+                if getattr(segment, "visibility_policy", "visible") == "inspect":
+                    app_attrs["cert"] = "low"
+            app = ET.SubElement(app_parent, _tei("app"), app_attrs)
             _append_reading(app, "lem", segment.lemma)
             for rdg in segment.readings:
                 _append_reading(app, "rdg", rdg)

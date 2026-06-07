@@ -146,6 +146,9 @@ class LiteralTokenSegment:
 class ApparatusTokenSegment:
     lemma: CollatedReading
     readings: list[CollatedReading]
+    candidate_class: str = "substantive"
+    visibility_policy: str = "visible"
+    rule_code: str = "substantive_default"
 
 
 CollatedTokenSegment = LiteralTokenSegment | ApparatusTokenSegment

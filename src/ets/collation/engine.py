@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from collections import defaultdict
 
+from ets.collation.minor_variants import classify_apparatus, whole_line_classification
 from ets.collation.tokenizer import tokenize_parallel_readings
 from ets.domain import (
     ApparatusTokenSegment,
@@ -98,13 +99,18 @@ def build_apparatus_from_alignment(alignment: list[tuple[CollatedReading, list[C
         if is_literal:
             segments.append(LiteralTokenSegment(text=lemma.text + suffix))
         else:
+            classified_readings = [
+                CollatedReading(text=reading.text + suffix, witness_sigla=reading.witness_sigla)
+                for reading in readings
+            ]
+            classification = classify_apparatus(lemma.text, [reading.text for reading in readings])
             segments.append(
                 ApparatusTokenSegment(
                     lemma=CollatedReading(text=lemma.text + suffix, witness_sigla=lemma.witness_sigla),
-                    readings=[
-                        CollatedReading(text=reading.text + suffix, witness_sigla=reading.witness_sigla)
-                        for reading in readings
-                    ],
+                    readings=classified_readings,
+                    candidate_class=classification.candidate_class,
+                    visibility_policy=classification.visibility_policy,
+                    rule_code=classification.rule_code,
                 )
             )
     return CollatedText(segments=segments)
@@ -129,7 +135,18 @@ def collate_parallel_text(
         lemma_text = readings[ref_index]
         lemma = next(item for item in grouped if item.text == lemma_text)
         rdgs = [item for item in grouped if item.text != lemma_text]
-        return CollatedText(segments=[ApparatusTokenSegment(lemma=lemma, readings=rdgs)])
+        classification = whole_line_classification()
+        return CollatedText(
+            segments=[
+                ApparatusTokenSegment(
+                    lemma=lemma,
+                    readings=rdgs,
+                    candidate_class=classification.candidate_class,
+                    visibility_policy=classification.visibility_policy,
+                    rule_code=classification.rule_code,
+                )
+            ]
+        )
 
     token_matrix = tokenize_parallel_readings(readings)
     validate_token_matrix(

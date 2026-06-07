@@ -1,0 +1,225 @@
+--- ui_base/src/ets/application/site_publication_config.py	2026-06-07 19:15:22.255279845 +0000
++++ ets7/src/ets/application/site_publication_config.py	2026-06-07 19:13:57.346778395 +0000
+@@ -20,7 +20,7 @@
+ 
+ 
+ PUBLICATION_DIALOG_CONFIG_SCHEMA = "ets.site_publication_dialog_config"
+-PUBLICATION_DIALOG_CONFIG_VERSION = 3
++PUBLICATION_DIALOG_CONFIG_VERSION = 4
+ 
+ 
+ @dataclass(frozen=True)
+@@ -46,6 +46,7 @@
+     asset_directories: tuple[Path, ...] = ()
+     show_xml_download: bool = True
+     build_latex_pdf: bool = False
++    hide_minor_variants_in_pdf: bool = False
+     publish_notices: bool = True
+     publish_prefaces: bool = True
+     include_metadata: bool = True
+@@ -250,6 +251,7 @@
+         "options": {
+             "show_xml_download": True,
+             "build_latex_pdf": config.build_latex_pdf,
++            "hide_minor_variants_in_pdf": config.hide_minor_variants_in_pdf,
+             "publish_notices": config.publish_notices,
+             "publish_prefaces": config.publish_prefaces,
+             "include_metadata": config.include_metadata,
+@@ -272,7 +274,7 @@
+             f"Expected '{PUBLICATION_DIALOG_CONFIG_SCHEMA}'."
+         )
+     version = payload.get("version")
+-    if version not in {1, 2, PUBLICATION_DIALOG_CONFIG_VERSION}:
++    if version not in {1, 2, 3, PUBLICATION_DIALOG_CONFIG_VERSION}:
+         raise ValueError(
+             "Invalid publication dialog config: unsupported version. "
+             f"Expected {PUBLICATION_DIALOG_CONFIG_VERSION}."
+@@ -342,6 +344,11 @@
+             field_name="options.build_latex_pdf",
+             default=False,
+         ),
++        hide_minor_variants_in_pdf=_expect_bool(
++            options.get("hide_minor_variants_in_pdf"),
++            field_name="options.hide_minor_variants_in_pdf",
++            default=False,
++        ),
+         publish_notices=_expect_bool(
+             options.get("publish_notices"),
+             field_name="options.publish_notices",
+--- ui_base/src/ets/publication_pdf/templates.py	2026-06-07 19:15:22.256546788 +0000
++++ ets7/src/ets/publication_pdf/templates.py	2026-06-07 19:13:57.347756096 +0000
+@@ -124,7 +124,7 @@
+                 "",
+                 rf"\dramatictextsection{{{_latex_text(play_title)}}}",
+                 f"% DRAMATIC TEXT: {_path_comment(play.dramatic_xml_path)}",
+-                _dramatic_fragment(play.dramatic_xml_path),
++                _dramatic_fragment(play.dramatic_xml_path, config=config),
+             ]
+         )
+ 
+@@ -355,8 +355,9 @@
+     return bool(fragment.strip()) and "% DRAMATIS PERSONAE: no castList found." not in fragment
+ 
+ 
+-def _dramatic_fragment(dramatic_xml_path: Path) -> str:
+-    fragment = tei_to_ekdosis(dramatic_xml_path, standalone=False).rstrip()
++def _dramatic_fragment(dramatic_xml_path: Path, *, config: SitePublicationDialogConfig) -> str:
++    apparatus_policy = "hide_minor" if config.hide_minor_variants_in_pdf else "full"
++    fragment = tei_to_ekdosis(dramatic_xml_path, standalone=False, apparatus_policy=apparatus_policy).rstrip()
+     if not fragment:
+         return "\n".join(
+             [
+--- ui_base/src/ets/ui/tk/dialogs/publication_dialog.py	2026-06-07 19:15:22.258529465 +0000
++++ ets7/src/ets/ui/tk/dialogs/publication_dialog.py	2026-06-07 19:13:57.348988091 +0000
+@@ -43,6 +43,7 @@
+     asset_directory: tk.StringVar
+     output_dir: tk.StringVar
+     build_latex_pdf: tk.BooleanVar
++    hide_minor_variants_in_pdf: tk.BooleanVar
+     publish_notices: tk.BooleanVar
+     publish_prefaces: tk.BooleanVar
+     include_metadata: tk.BooleanVar
+@@ -87,6 +88,7 @@
+             asset_directory=tk.StringVar(value=""),
+             output_dir=tk.StringVar(value=""),
+             build_latex_pdf=tk.BooleanVar(value=False),
++            hide_minor_variants_in_pdf=tk.BooleanVar(value=False),
+             publish_notices=tk.BooleanVar(value=True),
+             publish_prefaces=tk.BooleanVar(value=True),
+             include_metadata=tk.BooleanVar(value=True),
+@@ -211,6 +213,11 @@
+         ttk.Checkbutton(options, text="Générer LaTeX-Ekdosis et PDF", variable=self.vars.build_latex_pdf).grid(
+             row=0, column=2, sticky="w", padx=(12, 0)
+         )
++        ttk.Checkbutton(
++            options,
++            text="PDF lisible : masquer les variantes mineures",
++            variable=self.vars.hide_minor_variants_in_pdf,
++        ).grid(row=0, column=3, sticky="w", padx=(12, 0))
+         ttk.Checkbutton(options, text="Inclure les metadonnees", variable=self.vars.include_metadata).grid(
+             row=1, column=0, sticky="w"
+         )
+@@ -653,6 +660,7 @@
+             # show_xml_download=bool(self.vars.show_xml_download.get()),
+             show_xml_download=True,
+             build_latex_pdf=bool(self.vars.build_latex_pdf.get()),
++            hide_minor_variants_in_pdf=bool(self.vars.hide_minor_variants_in_pdf.get()),
+             publish_notices=bool(self.vars.publish_notices.get()),
+             publish_prefaces=bool(self.vars.publish_prefaces.get()),
+             include_metadata=bool(self.vars.include_metadata.get()),
+@@ -696,6 +704,7 @@
+         asset_directory = config.asset_directories[0] if config.asset_directories else None
+         self.vars.asset_directory.set(str(asset_directory) if asset_directory is not None else "")
+         self.vars.build_latex_pdf.set(config.build_latex_pdf)
++        self.vars.hide_minor_variants_in_pdf.set(config.hide_minor_variants_in_pdf)
+         self.vars.publish_notices.set(config.publish_notices)
+         self.vars.publish_prefaces.set(config.publish_prefaces)
+         self.vars.include_metadata.set(config.include_metadata)
+--- ui_base/tests/test_minor_variants.py	2026-06-07 19:15:22.251794227 +0000
++++ ets7/tests/test_minor_variants.py	2026-06-07 19:14:56.126262918 +0000
+@@ -157,3 +157,105 @@
+     readable = tei_to_ekdosis(xml, apparatus_policy="hide_minor")
+ 
+     assert "\\app{" in readable
++
++from ets.application import (
++    SitePublicationDialogConfig,
++    SitePublicationDialogPlayConfig,
++    load_site_publication_dialog_config,
++    save_site_publication_dialog_config,
++)
++from ets.publication_pdf import build_publication_pdf_master
++
++
++def _write_publication_dramatic_xml(path):
++    path.write_text(
++        '''<?xml version="1.0" encoding="UTF-8"?>
++<TEI xmlns="http://www.tei-c.org/ns/1.0">
++  <teiHeader>
++    <fileDesc>
++      <titleStmt><title>Pièce test</title><author>Jean Racine</author></titleStmt>
++      <publicationStmt><p>Test</p></publicationStmt>
++      <sourceDesc><p>Test</p></sourceDesc>
++    </fileDesc>
++    <encodingDesc>
++      <listWit>
++        <witness xml:id="A"><bibl>A (1664) A</bibl></witness>
++        <witness xml:id="B"><bibl>B (1676) B</bibl></witness>
++      </listWit>
++    </encodingDesc>
++  </teiHeader>
++  <text>
++    <body>
++      <div type="act" n="1">
++        <div type="scene" n="1">
++          <sp>
++            <speaker>ORESTE</speaker>
++            <l n="1"><app type="minor" subtype="graphic" ana="#i_j"><lem wit="#A">Ie </lem><rdg wit="#B">Je </rdg></app>viens.</l>
++            <l n="2">Il faut <app><lem wit="#A">partir.</lem><rdg wit="#B">mourir.</rdg></app></l>
++          </sp>
++        </div>
++      </div>
++    </body>
++  </text>
++</TEI>
++''',
++        encoding="utf-8",
++    )
++    return path
++
++
++def test_publication_pdf_master_can_hide_minor_variants(tmp_path) -> None:
++    dramatic = _write_publication_dramatic_xml(tmp_path / "piece.xml")
++    config = SitePublicationDialogConfig(
++        author_name="Jean Racine",
++        corpus_title="Corpus test",
++        output_dir=tmp_path / "site",
++        hide_minor_variants_in_pdf=True,
++        plays=(
++            SitePublicationDialogPlayConfig(
++                play_slug="piece",
++                dramatic_xml_path=dramatic,
++            ),
++        ),
++    )
++
++    master_text = build_publication_pdf_master(config, tmp_path / "build").read_text(encoding="utf-8")
++
++    assert r"\app{\lem[wit={A}]{Ie}\rdg[wit={B}]{Je}}" not in master_text
++    assert "Ie viens." in master_text
++    assert r"\app{\lem[wit={A}]{partir.}\rdg[wit={B}]{mourir.}}" in master_text
++
++
++def test_publication_pdf_master_keeps_minor_variants_by_default(tmp_path) -> None:
++    dramatic = _write_publication_dramatic_xml(tmp_path / "piece.xml")
++    config = SitePublicationDialogConfig(
++        author_name="Jean Racine",
++        corpus_title="Corpus test",
++        output_dir=tmp_path / "site",
++        plays=(
++            SitePublicationDialogPlayConfig(
++                play_slug="piece",
++                dramatic_xml_path=dramatic,
++            ),
++        ),
++    )
++
++    master_text = build_publication_pdf_master(config, tmp_path / "build").read_text(encoding="utf-8")
++
++    assert r"\app{\lem[wit={A}]{Ie}\rdg[wit={B}]{Je}}" in master_text
++    assert r"\app{\lem[wit={A}]{partir.}\rdg[wit={B}]{mourir.}}" in master_text
++
++
++def test_publication_dialog_config_preserves_hide_minor_pdf_option(tmp_path) -> None:
++    config_path = tmp_path / "publication_config.json"
++    config = SitePublicationDialogConfig(
++        author_name="Jean Racine",
++        corpus_title="Corpus test",
++        output_dir=tmp_path / "site",
++        hide_minor_variants_in_pdf=True,
++    )
++
++    save_site_publication_dialog_config(config, config_path)
++    loaded = load_site_publication_dialog_config(config_path)
++
++    assert loaded.hide_minor_variants_in_pdf is True
