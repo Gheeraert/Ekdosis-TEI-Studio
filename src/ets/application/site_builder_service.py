@@ -210,6 +210,12 @@ def _normalize_publication_request(
 
         play_output = dramatic_dir / f"{play_slug}.xml"
         shutil.copy2(dramatic_source, play_output)
+        transcription_source = dramatic_source.with_suffix(".txt")
+        if transcription_source.exists() and transcription_source.is_file():
+            shutil.copy2(transcription_source, dramatic_dir / f"{play_slug}.txt")
+        # A changer quand les conventions de nommage auront été précisées. Actuellement,
+        # si Britannicus.txt existe à côté de Britannicus.xml,
+        # il est embarqué dans la génération du site.
 
         if play.related_notice_slug:
             notice_mapping_pairs.append((play_slug, play.related_notice_slug))

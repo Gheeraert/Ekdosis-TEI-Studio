@@ -42,7 +42,7 @@ class _PublicationVars:
     general_intro_tei: tk.StringVar
     asset_directory: tk.StringVar
     output_dir: tk.StringVar
-    show_xml_download: tk.BooleanVar
+    build_latex_pdf: tk.BooleanVar
     publish_notices: tk.BooleanVar
     publish_prefaces: tk.BooleanVar
     include_metadata: tk.BooleanVar
@@ -86,7 +86,7 @@ class PublicationDialog(tk.Toplevel):
             general_intro_tei=tk.StringVar(value=""),
             asset_directory=tk.StringVar(value=""),
             output_dir=tk.StringVar(value=""),
-            show_xml_download=tk.BooleanVar(value=False),
+            build_latex_pdf=tk.BooleanVar(value=False),
             publish_notices=tk.BooleanVar(value=True),
             publish_prefaces=tk.BooleanVar(value=True),
             include_metadata=tk.BooleanVar(value=True),
@@ -208,6 +208,9 @@ class PublicationDialog(tk.Toplevel):
         # ttk.Checkbutton(options, text="Activer les telechargements XML", variable=self.vars.show_xml_download).grid(
         #    row=0, column=2, sticky="w", padx=(12, 0)
         # )
+        ttk.Checkbutton(options, text="Générer LaTeX-Ekdosis et PDF", variable=self.vars.build_latex_pdf).grid(
+            row=0, column=2, sticky="w", padx=(12, 0)
+        )
         ttk.Checkbutton(options, text="Inclure les metadonnees", variable=self.vars.include_metadata).grid(
             row=1, column=0, sticky="w"
         )
@@ -649,6 +652,7 @@ class PublicationDialog(tk.Toplevel):
             asset_directories=(Path(asset_directory).resolve(),) if asset_directory else (),
             # show_xml_download=bool(self.vars.show_xml_download.get()),
             show_xml_download=True,
+            build_latex_pdf=bool(self.vars.build_latex_pdf.get()),
             publish_notices=bool(self.vars.publish_notices.get()),
             publish_prefaces=bool(self.vars.publish_prefaces.get()),
             include_metadata=bool(self.vars.include_metadata.get()),
@@ -691,7 +695,7 @@ class PublicationDialog(tk.Toplevel):
 
         asset_directory = config.asset_directories[0] if config.asset_directories else None
         self.vars.asset_directory.set(str(asset_directory) if asset_directory is not None else "")
-        self.vars.show_xml_download.set(config.show_xml_download)
+        self.vars.build_latex_pdf.set(config.build_latex_pdf)
         self.vars.publish_notices.set(config.publish_notices)
         self.vars.publish_prefaces.set(config.publish_prefaces)
         self.vars.include_metadata.set(config.include_metadata)
@@ -747,39 +751,44 @@ class PublicationDialog(tk.Toplevel):
         config = self._collect_dialog_config()
         prepared = self._editorial_import_service.prepare_dialog_config_for_publication(config)
         warnings = list(prepared.warnings)
+
         self._last_pdf_master_result = None
         self._last_pdf_build_result = None
-        try:
-            build_dir = _publication_pdf_build_dir(prepared.config)
-            self._last_pdf_build_result = build_and_compile_publication_pdf_from_prepared_config(
-                prepared.config,
-                build_dir,
-                warnings=prepared.warnings,
-            )
-            self._last_pdf_master_result = self._last_pdf_build_result.master_result
-        except (OSError, ValueError, etree.LxmlError) as exc:
-            warnings.append(f"PDF de publication non genere: {exc}")
 
         request = site_publication_request_from_dialog_config(prepared.config)
-        if self._last_pdf_build_result is not None:
-            pdf_path = self._last_pdf_build_result.pdf_path
-            if self._last_pdf_build_result.ok and pdf_path is not None and pdf_path.exists():
-                master_path = self._last_pdf_build_result.master_result.master_path
-                if master_path.exists():
-                    request = replace(
-                        request,
-                        pdf_download_source_path=pdf_path,
-                        latex_download_source_path=master_path,
-                    )
+
+        if prepared.config.build_latex_pdf:
+            try:
+                build_dir = _publication_pdf_build_dir(prepared.config)
+                self._last_pdf_build_result = build_and_compile_publication_pdf_from_prepared_config(
+                    prepared.config,
+                    build_dir,
+                    warnings=prepared.warnings,
+                )
+                self._last_pdf_master_result = self._last_pdf_build_result.master_result
+            except (OSError, ValueError, etree.LxmlError) as exc:
+                warnings.append(f"PDF de publication non genere: {exc}")
+
+            if self._last_pdf_build_result is not None:
+                pdf_path = self._last_pdf_build_result.pdf_path
+                if self._last_pdf_build_result.ok and pdf_path is not None and pdf_path.exists():
+                    master_path = self._last_pdf_build_result.master_result.master_path
+                    if master_path.exists():
+                        request = replace(
+                            request,
+                            pdf_download_source_path=pdf_path,
+                            latex_download_source_path=master_path,
+                        )
+                    else:
+                        warnings.append(f"PDF de publication non genere: master LaTeX introuvable: {master_path}")
                 else:
-                    warnings.append(f"PDF de publication non genere: master LaTeX introuvable: {master_path}")
-            else:
-                compile_result = self._last_pdf_build_result.compile_result
-                detail = compile_result.error_detail or compile_result.stderr.strip() or compile_result.stdout.strip()
-                message = compile_result.message
-                if detail:
-                    message = f"{message} {detail}"
-                warnings.append(f"PDF de publication non genere: {message}")
+                    compile_result = self._last_pdf_build_result.compile_result
+                    detail = compile_result.error_detail or compile_result.stderr.strip() or compile_result.stdout.strip()
+                    message = compile_result.message
+                    if detail:
+                        message = f"{message} {detail}"
+                    warnings.append(f"PDF de publication non genere: {message}")
+
         self._last_prepare_warnings = tuple(warnings)
         return request
 
@@ -825,13 +834,8 @@ class PublicationDialog(tk.Toplevel):
             messagebox.showerror("Publication", str(exc), parent=self)
             return
 
-        self.update_idletasks()
+        notice.destroy()
 
-        try:
-            request = self._build_request()
-        except ValueError as exc:
-            messagebox.showerror("Publication", str(exc), parent=self)
-            return
         modal_warnings = self._modal_prepare_warnings(self._last_prepare_warnings)
         if modal_warnings:
             messagebox.showwarning(
@@ -839,6 +843,7 @@ class PublicationDialog(tk.Toplevel):
                 "\n\n".join(modal_warnings),
                 parent=self,
             )
+
         self.result = PublicationDialogResult(
             action="build",
             site_request=request,

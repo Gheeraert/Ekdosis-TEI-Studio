@@ -44,7 +44,8 @@ class SitePublicationDialogConfig:
     play_order: tuple[str, ...] = ()
     logo_paths: tuple[Path, ...] = ()
     asset_directories: tuple[Path, ...] = ()
-    show_xml_download: bool = False
+    show_xml_download: bool = True
+    build_latex_pdf: bool = False
     publish_notices: bool = True
     publish_prefaces: bool = True
     include_metadata: bool = True
@@ -247,7 +248,8 @@ def site_publication_dialog_config_to_dict(config: SitePublicationDialogConfig) 
             "asset_directories": [str(path.resolve()) for path in config.asset_directories],
         },
         "options": {
-            "show_xml_download": config.show_xml_download,
+            "show_xml_download": True,
+            "build_latex_pdf": config.build_latex_pdf,
             "publish_notices": config.publish_notices,
             "publish_prefaces": config.publish_prefaces,
             "include_metadata": config.include_metadata,
@@ -334,9 +336,10 @@ def site_publication_dialog_config_from_dict(
         play_order=play_order,
         logo_paths=_resolve_path_list(assets.get("logo_paths", []), field_name="assets.logo_paths", base_dir=base),
         asset_directories=asset_directories,
-        show_xml_download=_expect_bool(
-            options.get("show_xml_download"),
-            field_name="options.show_xml_download",
+        show_xml_download=True,
+        build_latex_pdf=_expect_bool(
+            options.get("build_latex_pdf"),
+            field_name="options.build_latex_pdf",
             default=False,
         ),
         publish_notices=_expect_bool(
@@ -497,7 +500,7 @@ def site_publication_request_from_dialog_config(config: SitePublicationDialogCon
         play_order=play_order,
         notices=tuple(notices),
         assets=assets,
-        show_xml_download=config.show_xml_download,
+        show_xml_download=True,
         publish_notices=config.publish_notices,
         publish_prefaces=config.publish_prefaces,
         include_metadata=config.include_metadata,

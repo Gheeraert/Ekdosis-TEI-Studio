@@ -166,6 +166,13 @@ def _copy_xml_sources(
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(play.source_path, target)
 
+        if play.txt_download_relpath:
+            transcription_source = play.source_path.with_suffix(".txt")
+            if transcription_source.exists() and transcription_source.is_file():
+                txt_target = output_root / play.txt_download_relpath
+                txt_target.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(transcription_source, txt_target)
+
     for notice in notices:
         if not notice.xml_download_relpath:
             continue

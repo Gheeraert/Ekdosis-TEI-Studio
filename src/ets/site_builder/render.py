@@ -153,17 +153,22 @@ def _latex_relpath_from_pdf_relpath(relpath: str) -> str:
         return relpath[:last_dot] + ".tex"
     return relpath + ".tex"
 
-
 def _play_download_buttons_html(manifest: SiteManifest, play: PlayEntry, current_href: str) -> str:
     buttons: list[str] = []
     prefix = _asset_prefix(current_href)
 
-    # if manifest.config.show_xml_download and play.xml_download_relpath:
+    if play.txt_download_relpath:
+        txt_href = f"{prefix}{play.txt_download_relpath}"
+        buttons.append(
+            f'<a class="download-button download-button-txt" href="{html.escape(txt_href, quote=True)}" '
+            'download title="TXT">Transcription TXT</a>'
+        )
+
     if play.xml_download_relpath:
         xml_href = f"{prefix}{play.xml_download_relpath}"
         buttons.append(
-            f'<a class="download-button download-button-xml" href="{html.escape(xml_href, quote=True)}" download>'
-            "Télécharger le XML</a>"
+            f'<a class="download-button download-button-xml" href="{html.escape(xml_href, quote=True)}" '
+            'download title="XML-TEI">XML-TEI</a>'
         )
 
     pdf_relpath = manifest.config.pdf_download_relpath
@@ -172,15 +177,15 @@ def _play_download_buttons_html(manifest: SiteManifest, play: PlayEntry, current
     if pdf_relpath and latex_source is not None and latex_source.exists():
         latex_href = f"{prefix}{_latex_relpath_from_pdf_relpath(pdf_relpath)}"
         buttons.append(
-            f'<a class="download-button download-button-latex" href="{html.escape(latex_href, quote=True)}" download>'
-            "Télécharger LaTeX-Ekdosis</a>"
+            f'<a class="download-button download-button-latex" href="{html.escape(latex_href, quote=True)}" '
+            'download title="Ekdosis">LaTeX-Ekdosis</a>'
         )
 
     if pdf_relpath:
         pdf_href = f"{prefix}{pdf_relpath}"
         buttons.append(
-            f'<a class="download-button download-button-pdf" href="{html.escape(pdf_href, quote=True)}" download>'
-            "Télécharger PDF</a>"
+            f'<a class="download-button download-button-pdf" href="{html.escape(pdf_href, quote=True)}" '
+            'download title="PDF">PDF</a>'
         )
 
     if not buttons:
@@ -191,7 +196,6 @@ def _play_download_buttons_html(manifest: SiteManifest, play: PlayEntry, current
         + "".join(buttons)
         + "</div>"
     )
-
 
 def _site_footer_html(current_href: str) -> str:
     return (
@@ -454,45 +458,46 @@ def _layout(
     .content-shell-play > h2 {{ margin: 0.05rem 0 0.6rem; }}
     .content-shell-play .meta {{ margin: 0.2rem 0 0.35rem; }}
     .download-buttons {{
-      margin: 1rem 0 1.25rem;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.55rem;
-      align-items: center;
-    }}
-    
-    .download-button {{
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 2.1rem;
-      padding: 0.38rem 0.78rem;
-      border: 1px solid color-mix(in oklab, var(--accent) 62%, var(--line));
-      border-radius: 999px;
-      background: linear-gradient(180deg, var(--bg-panel), var(--bg-soft));
-      color: var(--accent);
-      font-family: var(--font-ui);
-      font-size: 0.88rem;
-      font-weight: 600;
-      letter-spacing: 0.01em;
-      text-decoration: none;
-      box-shadow: 0 1px 0 rgba(46, 34, 24, 0.05), 0 4px 12px rgba(46, 34, 24, 0.08);
-      transition: transform 120ms ease, border-color 120ms ease, box-shadow 120ms ease, background 120ms ease;
-    }}
-    
-    .download-button:hover {{
-      color: var(--accent-soft);
-      border-color: var(--accent);
-      background: var(--bg-panel);
-      text-decoration: none;
-      transform: translateY(-1px);
-      box-shadow: 0 2px 0 rgba(46, 34, 24, 0.05), 0 7px 18px rgba(46, 34, 24, 0.11);
-    }}
-    
-    .download-button:active {{
-      transform: translateY(0);
-      box-shadow: 0 1px 0 rgba(46, 34, 24, 0.05), 0 3px 8px rgba(46, 34, 24, 0.08);
-    }}
+  margin: 0.75rem 0 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  align-items: center;
+}}
+
+.download-button {{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 1.55rem;
+  padding: 0.18rem 0.5rem;
+  border: 1px solid color-mix(in oklab, var(--accent) 55%, var(--line));
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--accent) 5%, var(--bg-panel));
+  color: var(--accent);
+  font-family: var(--font-ui);
+  font-size: 0.76rem;
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: 0.005em;
+  text-decoration: none;
+  box-shadow: 0 1px 4px rgba(46, 34, 24, 0.06);
+  transition: transform 120ms ease, border-color 120ms ease, box-shadow 120ms ease, background 120ms ease;
+}}
+
+.download-button:hover {{
+  color: var(--accent-soft);
+  border-color: var(--accent);
+  background: var(--bg-panel);
+  text-decoration: none;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 9px rgba(46, 34, 24, 0.10);
+}}
+
+.download-button:active {{
+  transform: translateY(0);
+  box-shadow: 0 1px 4px rgba(46, 34, 24, 0.06);
+}}
     
     .download-button-pdf {{
       background: color-mix(in oklab, var(--accent) 12%, var(--bg-panel));

@@ -24,19 +24,35 @@ def _discover_xml_files(directory: Path) -> list[Path]:
         return []
     return sorted((path for path in directory.rglob("*.xml") if path.is_file()), key=lambda item: item.as_posix())
 
-
 def _with_download_paths(
     config: SiteConfig,
     plays: list[PlayEntry],
     notices: list[NoticeEntry],
 ) -> tuple[list[PlayEntry], list[NoticeEntry]]:
-    if not config.show_xml_download:
-        return plays, notices
+    mapped_plays = []
 
-    mapped_plays = [replace(play, xml_download_relpath=f"xml/dramatic/{play.slug}.xml") for play in plays]
-    mapped_notices = [replace(notice, xml_download_relpath=f"xml/notices/{notice.slug}.xml") for notice in notices]
+    for play in plays:
+        transcription_path = play.source_path.with_suffix(".txt")
+        txt_relpath = (
+            f"txt/{play.slug}.txt"
+            if transcription_path.exists() and transcription_path.is_file()
+            else None
+        )
+
+        mapped_plays.append(
+            replace(
+                play,
+                xml_download_relpath=f"xml/dramatic/{play.slug}.xml",
+                txt_download_relpath=txt_relpath,
+            )
+        )
+
+    mapped_notices = [
+        replace(notice, xml_download_relpath=f"xml/notices/{notice.slug}.xml")
+        for notice in notices
+    ]
+
     return mapped_plays, mapped_notices
-
 
 def _normalize_identifier(value: str) -> str:
     normalized = unicodedata.normalize("NFKD", value.strip())
