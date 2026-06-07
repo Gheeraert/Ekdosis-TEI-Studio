@@ -157,3 +157,25 @@ def test_ekdosis_keeps_inspect_minor_apparatus_visible() -> None:
     readable = tei_to_ekdosis(xml, apparatus_policy="hide_minor")
 
     assert "\\app{" in readable
+
+
+def test_classifies_common_classical_spellings_from_pdf_as_hide_safe_minor() -> None:
+    examples = [
+        ("vostre", ["vôtre"]),
+        ("plûtost", ["plûtôt"]),
+        ("presté", ["prêté"]),
+        ("peut-estre.", ["peut-être."]),
+        ("Maistres,", ["Maîtres,"]),
+        ("reconnoistre", ["reconnoître"]),
+        ("connoissance", ["connaissance"]),
+        ("traisnée.", ["traînée."]),
+        ("d’experiance", ["d’experience"]),
+        ("audiance.", ["audience."]),
+        ("d’Estat ?", ["d’Etat ?"]),
+        ("eust", ["eût"]),
+    ]
+
+    for lemma, readings in examples:
+        classification = classify_apparatus(lemma, readings)
+        assert classification.candidate_class == "minor_graphic_safe", (lemma, readings, classification)
+        assert classification.visibility_policy == "hide_safe", (lemma, readings, classification)

@@ -1,0 +1,219 @@
+diff -ruN -x __pycache__ -x .pytest_cache -x _runtime a/src/ets/application/site_publication_config.py b/src/ets/application/site_publication_config.py
+--- a/src/ets/application/site_publication_config.py	2026-06-07 20:17:58.000000000 +0000
++++ b/src/ets/application/site_publication_config.py	2026-06-07 19:37:58.101342322 +0000
+@@ -46,6 +46,7 @@
+     asset_directories: tuple[Path, ...] = ()
+     show_xml_download: bool = True
+     build_latex_pdf: bool = False
++    hide_minor_variants_in_pdf: bool = False
+     publish_notices: bool = True
+     publish_prefaces: bool = True
+     include_metadata: bool = True
+@@ -250,6 +251,7 @@
+         "options": {
+             "show_xml_download": True,
+             "build_latex_pdf": config.build_latex_pdf,
++            "hide_minor_variants_in_pdf": config.hide_minor_variants_in_pdf,
+             "publish_notices": config.publish_notices,
+             "publish_prefaces": config.publish_prefaces,
+             "include_metadata": config.include_metadata,
+@@ -342,6 +344,11 @@
+             field_name="options.build_latex_pdf",
+             default=False,
+         ),
++        hide_minor_variants_in_pdf=_expect_bool(
++            options.get("hide_minor_variants_in_pdf"),
++            field_name="options.hide_minor_variants_in_pdf",
++            default=False,
++        ),
+         publish_notices=_expect_bool(
+             options.get("publish_notices"),
+             field_name="options.publish_notices",
+diff -ruN -x __pycache__ -x .pytest_cache -x _runtime a/src/ets/publication_pdf/templates.py b/src/ets/publication_pdf/templates.py
+--- a/src/ets/publication_pdf/templates.py	2026-06-07 20:17:58.000000000 +0000
++++ b/src/ets/publication_pdf/templates.py	2026-06-07 19:37:58.102643099 +0000
+@@ -124,7 +124,10 @@
+                 "",
+                 rf"\dramatictextsection{{{_latex_text(play_title)}}}",
+                 f"% DRAMATIC TEXT: {_path_comment(play.dramatic_xml_path)}",
+-                _dramatic_fragment(play.dramatic_xml_path),
++                _dramatic_fragment(
++                    play.dramatic_xml_path,
++                    hide_minor_variants=config.hide_minor_variants_in_pdf,
++                ),
+             ]
+         )
+ 
+@@ -355,8 +358,13 @@
+     return bool(fragment.strip()) and "% DRAMATIS PERSONAE: no castList found." not in fragment
+ 
+ 
+-def _dramatic_fragment(dramatic_xml_path: Path) -> str:
+-    fragment = tei_to_ekdosis(dramatic_xml_path, standalone=False).rstrip()
++def _dramatic_fragment(dramatic_xml_path: Path, *, hide_minor_variants: bool = False) -> str:
++    apparatus_policy = "hide_minor" if hide_minor_variants else "full"
++    fragment = tei_to_ekdosis(
++        dramatic_xml_path,
++        standalone=False,
++        apparatus_policy=apparatus_policy,
++    ).rstrip()
+     if not fragment:
+         return "\n".join(
+             [
+diff -ruN -x __pycache__ -x .pytest_cache -x _runtime a/src/ets/ui/tk/dialogs/publication_dialog.py b/src/ets/ui/tk/dialogs/publication_dialog.py
+--- a/src/ets/ui/tk/dialogs/publication_dialog.py	2026-06-07 20:17:58.000000000 +0000
++++ b/src/ets/ui/tk/dialogs/publication_dialog.py	2026-06-07 19:37:58.103935386 +0000
+@@ -43,6 +43,7 @@
+     asset_directory: tk.StringVar
+     output_dir: tk.StringVar
+     build_latex_pdf: tk.BooleanVar
++    hide_minor_variants_in_pdf: tk.BooleanVar
+     publish_notices: tk.BooleanVar
+     publish_prefaces: tk.BooleanVar
+     include_metadata: tk.BooleanVar
+@@ -87,6 +88,7 @@
+             asset_directory=tk.StringVar(value=""),
+             output_dir=tk.StringVar(value=""),
+             build_latex_pdf=tk.BooleanVar(value=False),
++            hide_minor_variants_in_pdf=tk.BooleanVar(value=False),
+             publish_notices=tk.BooleanVar(value=True),
+             publish_prefaces=tk.BooleanVar(value=True),
+             include_metadata=tk.BooleanVar(value=True),
+@@ -211,12 +213,15 @@
+         ttk.Checkbutton(options, text="Générer LaTeX-Ekdosis et PDF", variable=self.vars.build_latex_pdf).grid(
+             row=0, column=2, sticky="w", padx=(12, 0)
+         )
+-        ttk.Checkbutton(options, text="Inclure les metadonnees", variable=self.vars.include_metadata).grid(
++        ttk.Checkbutton(options, text="PDF lisible : masquer les variantes mineures", variable=self.vars.hide_minor_variants_in_pdf).grid(
+             row=1, column=0, sticky="w"
+         )
+-        ttk.Checkbutton(options, text="Resoudre les xi:include locaux", variable=self.vars.resolve_notice_xincludes).grid(
++        ttk.Checkbutton(options, text="Inclure les metadonnees", variable=self.vars.include_metadata).grid(
+             row=1, column=1, sticky="w", padx=(12, 0)
+         )
++        ttk.Checkbutton(options, text="Resoudre les xi:include locaux", variable=self.vars.resolve_notice_xincludes).grid(
++            row=1, column=2, sticky="w", padx=(12, 0)
++        )
+ 
+     def _build_intro_section(self, parent: ttk.Frame, *, row: int) -> None:
+         box = ttk.LabelFrame(parent, text="Introduction generale")
+@@ -653,6 +658,7 @@
+             # show_xml_download=bool(self.vars.show_xml_download.get()),
+             show_xml_download=True,
+             build_latex_pdf=bool(self.vars.build_latex_pdf.get()),
++            hide_minor_variants_in_pdf=bool(self.vars.hide_minor_variants_in_pdf.get()),
+             publish_notices=bool(self.vars.publish_notices.get()),
+             publish_prefaces=bool(self.vars.publish_prefaces.get()),
+             include_metadata=bool(self.vars.include_metadata.get()),
+@@ -696,6 +702,7 @@
+         asset_directory = config.asset_directories[0] if config.asset_directories else None
+         self.vars.asset_directory.set(str(asset_directory) if asset_directory is not None else "")
+         self.vars.build_latex_pdf.set(config.build_latex_pdf)
++        self.vars.hide_minor_variants_in_pdf.set(config.hide_minor_variants_in_pdf)
+         self.vars.publish_notices.set(config.publish_notices)
+         self.vars.publish_prefaces.set(config.publish_prefaces)
+         self.vars.include_metadata.set(config.include_metadata)
+diff -ruN -x __pycache__ -x .pytest_cache -x _runtime a/tests/test_application_site_publication_config.py b/tests/test_application_site_publication_config.py
+--- a/tests/test_application_site_publication_config.py	2026-06-07 20:17:58.000000000 +0000
++++ b/tests/test_application_site_publication_config.py	2026-06-07 19:37:58.104603280 +0000
+@@ -57,6 +57,7 @@
+         logo_paths=((runtime / "logo.png").resolve(),),
+         asset_directories=((runtime / "assets").resolve(),),
+         show_xml_download=True,
++        hide_minor_variants_in_pdf=True,
+         publish_notices=True,
+         publish_prefaces=True,
+         include_metadata=True,
+@@ -78,6 +79,7 @@
+     assert payload["plays"][0]["preface_xml_path"].endswith("andromaque-preface.xml")
+     assert payload["plays"][0]["dramatis_xml_path"].endswith("andromaque-dramatis.xml")
+     assert payload["options"]["publish_prefaces"] is True
++    assert payload["options"]["hide_minor_variants_in_pdf"] is True
+ 
+ 
+ def test_site_publication_dialog_config_invalid_json_fails_cleanly() -> None:
+diff -ruN -x __pycache__ -x .pytest_cache -x _runtime a/tests/test_publication_pdf_assembler.py b/tests/test_publication_pdf_assembler.py
+--- a/tests/test_publication_pdf_assembler.py	2026-06-07 20:17:58.000000000 +0000
++++ b/tests/test_publication_pdf_assembler.py	2026-06-07 19:39:57.058358827 +0000
+@@ -533,3 +533,81 @@
+     assert "Front Berenice" in play_text
+     assert "Front Berenice" not in dramatic_text
+     assert r"\speaker{BERENICE}" in dramatic_text
++
++
++def _write_minor_variant_dramatic_xml(path: Path, line: str) -> Path:
++    xml = f"""<?xml version=\"1.0\" encoding=\"utf-8\"?>
++<TEI xmlns=\"http://www.tei-c.org/ns/1.0\">
++  <teiHeader>
++    <fileDesc>
++      <titleStmt><title>Piece test</title></titleStmt>
++      <publicationStmt><p>Publication test.</p></publicationStmt>
++      <sourceDesc>
++        <listWit>
++          <witness xml:id=\"A\">A (1664) Premiere edition.</witness>
++          <witness xml:id=\"B\">B (1676) Edition collective.</witness>
++        </listWit>
++      </sourceDesc>
++    </fileDesc>
++  </teiHeader>
++  <text>
++    <body>
++      <div type=\"act\" n=\"1\">
++        <div type=\"scene\" n=\"1\">
++          <sp>
++            <speaker>ORESTE</speaker>
++            <l n=\"1\">{line}</l>
++          </sp>
++        </div>
++      </div>
++    </body>
++  </text>
++</TEI>
++"""
++    path.write_text(xml, encoding="utf-8")
++    return path
++
++
++def test_publication_pdf_master_can_hide_minor_variants(tmp_path: Path) -> None:
++    dramatic = _write_minor_variant_dramatic_xml(
++        tmp_path / "minor_dramatic.xml",
++        'Ie <app type="minor" subtype="punctuation"><lem wit="#A">viens, </lem><rdg wit="#B">viens </rdg></app>'
++        'mais <app><lem wit="#A">partir</lem><rdg wit="#B">mourir</rdg></app>.',
++    )
++    config = SitePublicationDialogConfig(
++        author_name="Jean Racine",
++        corpus_title="Theatre complet",
++        plays=(
++            SitePublicationDialogPlayConfig(
++                play_slug="piece-test",
++                dramatic_xml_path=dramatic,
++            ),
++        ),
++        hide_minor_variants_in_pdf=True,
++    )
++
++    master_text = build_publication_pdf_master(config, tmp_path / "build").read_text(encoding="utf-8")
++
++    assert r"\app{\lem[wit={A}]{viens,}" not in master_text
++    assert r"\app{\lem[wit={A}]{partir}" in master_text
++
++
++def test_publication_pdf_master_keeps_minor_variants_by_default(tmp_path: Path) -> None:
++    dramatic = _write_minor_variant_dramatic_xml(
++        tmp_path / "minor_dramatic_default.xml",
++        '<app type="minor" subtype="punctuation"><lem wit="#A">Seigneur, </lem><rdg wit="#B">Seigneur </rdg></app>',
++    )
++    config = SitePublicationDialogConfig(
++        author_name="Jean Racine",
++        corpus_title="Theatre complet",
++        plays=(
++            SitePublicationDialogPlayConfig(
++                play_slug="piece-test",
++                dramatic_xml_path=dramatic,
++            ),
++        ),
++    )
++
++    master_text = build_publication_pdf_master(config, tmp_path / "build").read_text(encoding="utf-8")
++
++    assert r"\app{\lem[wit={A}]{Seigneur,}" in master_text

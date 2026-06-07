@@ -57,6 +57,7 @@ def test_site_publication_dialog_config_round_trip_json() -> None:
         logo_paths=((runtime / "logo.png").resolve(),),
         asset_directories=((runtime / "assets").resolve(),),
         show_xml_download=True,
+        hide_minor_variants_in_pdf=True,
         publish_notices=True,
         publish_prefaces=True,
         include_metadata=True,
@@ -78,6 +79,7 @@ def test_site_publication_dialog_config_round_trip_json() -> None:
     assert payload["plays"][0]["preface_xml_path"].endswith("andromaque-preface.xml")
     assert payload["plays"][0]["dramatis_xml_path"].endswith("andromaque-dramatis.xml")
     assert payload["options"]["publish_prefaces"] is True
+    assert payload["options"]["hide_minor_variants_in_pdf"] is True
 
 
 def test_site_publication_dialog_config_invalid_json_fails_cleanly() -> None:

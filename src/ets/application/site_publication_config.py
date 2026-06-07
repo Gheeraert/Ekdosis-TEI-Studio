@@ -46,6 +46,7 @@ class SitePublicationDialogConfig:
     asset_directories: tuple[Path, ...] = ()
     show_xml_download: bool = True
     build_latex_pdf: bool = False
+    hide_minor_variants_in_pdf: bool = False
     publish_notices: bool = True
     publish_prefaces: bool = True
     include_metadata: bool = True
@@ -250,6 +251,7 @@ def site_publication_dialog_config_to_dict(config: SitePublicationDialogConfig) 
         "options": {
             "show_xml_download": True,
             "build_latex_pdf": config.build_latex_pdf,
+            "hide_minor_variants_in_pdf": config.hide_minor_variants_in_pdf,
             "publish_notices": config.publish_notices,
             "publish_prefaces": config.publish_prefaces,
             "include_metadata": config.include_metadata,
@@ -340,6 +342,11 @@ def site_publication_dialog_config_from_dict(
         build_latex_pdf=_expect_bool(
             options.get("build_latex_pdf"),
             field_name="options.build_latex_pdf",
+            default=False,
+        ),
+        hide_minor_variants_in_pdf=_expect_bool(
+            options.get("hide_minor_variants_in_pdf"),
+            field_name="options.hide_minor_variants_in_pdf",
             default=False,
         ),
         publish_notices=_expect_bool(

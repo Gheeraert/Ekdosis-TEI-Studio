@@ -533,3 +533,81 @@ def test_master_does_not_duplicate_front_castlist_in_dramatic_text_section(tmp_p
     assert "Front Berenice" in play_text
     assert "Front Berenice" not in dramatic_text
     assert r"\speaker{BERENICE}" in dramatic_text
+
+
+def _write_minor_variant_dramatic_xml(path: Path, line: str) -> Path:
+    xml = f"""<?xml version=\"1.0\" encoding=\"utf-8\"?>
+<TEI xmlns=\"http://www.tei-c.org/ns/1.0\">
+  <teiHeader>
+    <fileDesc>
+      <titleStmt><title>Piece test</title></titleStmt>
+      <publicationStmt><p>Publication test.</p></publicationStmt>
+      <sourceDesc>
+        <listWit>
+          <witness xml:id=\"A\">A (1664) Premiere edition.</witness>
+          <witness xml:id=\"B\">B (1676) Edition collective.</witness>
+        </listWit>
+      </sourceDesc>
+    </fileDesc>
+  </teiHeader>
+  <text>
+    <body>
+      <div type=\"act\" n=\"1\">
+        <div type=\"scene\" n=\"1\">
+          <sp>
+            <speaker>ORESTE</speaker>
+            <l n=\"1\">{line}</l>
+          </sp>
+        </div>
+      </div>
+    </body>
+  </text>
+</TEI>
+"""
+    path.write_text(xml, encoding="utf-8")
+    return path
+
+
+def test_publication_pdf_master_can_hide_minor_variants(tmp_path: Path) -> None:
+    dramatic = _write_minor_variant_dramatic_xml(
+        tmp_path / "minor_dramatic.xml",
+        'Ie <app type="minor" subtype="punctuation"><lem wit="#A">viens, </lem><rdg wit="#B">viens </rdg></app>'
+        'mais <app><lem wit="#A">partir</lem><rdg wit="#B">mourir</rdg></app>.',
+    )
+    config = SitePublicationDialogConfig(
+        author_name="Jean Racine",
+        corpus_title="Theatre complet",
+        plays=(
+            SitePublicationDialogPlayConfig(
+                play_slug="piece-test",
+                dramatic_xml_path=dramatic,
+            ),
+        ),
+        hide_minor_variants_in_pdf=True,
+    )
+
+    master_text = build_publication_pdf_master(config, tmp_path / "build").read_text(encoding="utf-8")
+
+    assert r"\app{\lem[wit={A}]{viens,}" not in master_text
+    assert r"\app{\lem[wit={A}]{partir}" in master_text
+
+
+def test_publication_pdf_master_keeps_minor_variants_by_default(tmp_path: Path) -> None:
+    dramatic = _write_minor_variant_dramatic_xml(
+        tmp_path / "minor_dramatic_default.xml",
+        '<app type="minor" subtype="punctuation"><lem wit="#A">Seigneur, </lem><rdg wit="#B">Seigneur </rdg></app>',
+    )
+    config = SitePublicationDialogConfig(
+        author_name="Jean Racine",
+        corpus_title="Theatre complet",
+        plays=(
+            SitePublicationDialogPlayConfig(
+                play_slug="piece-test",
+                dramatic_xml_path=dramatic,
+            ),
+        ),
+    )
+
+    master_text = build_publication_pdf_master(config, tmp_path / "build").read_text(encoding="utf-8")
+
+    assert r"\app{\lem[wit={A}]{Seigneur,}" in master_text

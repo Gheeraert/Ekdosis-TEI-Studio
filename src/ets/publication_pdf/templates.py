@@ -124,7 +124,10 @@ def render_publication_pdf_master(config: SitePublicationDialogConfig) -> str:
                 "",
                 rf"\dramatictextsection{{{_latex_text(play_title)}}}",
                 f"% DRAMATIC TEXT: {_path_comment(play.dramatic_xml_path)}",
-                _dramatic_fragment(play.dramatic_xml_path),
+                _dramatic_fragment(
+                    play.dramatic_xml_path,
+                    hide_minor_variants=config.hide_minor_variants_in_pdf,
+                ),
             ]
         )
 
@@ -355,8 +358,13 @@ def _has_dramatis_content(fragment: str) -> bool:
     return bool(fragment.strip()) and "% DRAMATIS PERSONAE: no castList found." not in fragment
 
 
-def _dramatic_fragment(dramatic_xml_path: Path) -> str:
-    fragment = tei_to_ekdosis(dramatic_xml_path, standalone=False).rstrip()
+def _dramatic_fragment(dramatic_xml_path: Path, *, hide_minor_variants: bool = False) -> str:
+    apparatus_policy = "hide_minor" if hide_minor_variants else "full"
+    fragment = tei_to_ekdosis(
+        dramatic_xml_path,
+        standalone=False,
+        apparatus_policy=apparatus_policy,
+    ).rstrip()
     if not fragment:
         return "\n".join(
             [

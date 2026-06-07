@@ -43,6 +43,7 @@ class _PublicationVars:
     asset_directory: tk.StringVar
     output_dir: tk.StringVar
     build_latex_pdf: tk.BooleanVar
+    hide_minor_variants_in_pdf: tk.BooleanVar
     publish_notices: tk.BooleanVar
     publish_prefaces: tk.BooleanVar
     include_metadata: tk.BooleanVar
@@ -87,6 +88,7 @@ class PublicationDialog(tk.Toplevel):
             asset_directory=tk.StringVar(value=""),
             output_dir=tk.StringVar(value=""),
             build_latex_pdf=tk.BooleanVar(value=False),
+            hide_minor_variants_in_pdf=tk.BooleanVar(value=False),
             publish_notices=tk.BooleanVar(value=True),
             publish_prefaces=tk.BooleanVar(value=True),
             include_metadata=tk.BooleanVar(value=True),
@@ -211,11 +213,14 @@ class PublicationDialog(tk.Toplevel):
         ttk.Checkbutton(options, text="Générer LaTeX-Ekdosis et PDF", variable=self.vars.build_latex_pdf).grid(
             row=0, column=2, sticky="w", padx=(12, 0)
         )
-        ttk.Checkbutton(options, text="Inclure les metadonnees", variable=self.vars.include_metadata).grid(
+        ttk.Checkbutton(options, text="PDF lisible : masquer les variantes mineures", variable=self.vars.hide_minor_variants_in_pdf).grid(
             row=1, column=0, sticky="w"
         )
-        ttk.Checkbutton(options, text="Resoudre les xi:include locaux", variable=self.vars.resolve_notice_xincludes).grid(
+        ttk.Checkbutton(options, text="Inclure les metadonnees", variable=self.vars.include_metadata).grid(
             row=1, column=1, sticky="w", padx=(12, 0)
+        )
+        ttk.Checkbutton(options, text="Resoudre les xi:include locaux", variable=self.vars.resolve_notice_xincludes).grid(
+            row=1, column=2, sticky="w", padx=(12, 0)
         )
 
     def _build_intro_section(self, parent: ttk.Frame, *, row: int) -> None:
@@ -653,6 +658,7 @@ class PublicationDialog(tk.Toplevel):
             # show_xml_download=bool(self.vars.show_xml_download.get()),
             show_xml_download=True,
             build_latex_pdf=bool(self.vars.build_latex_pdf.get()),
+            hide_minor_variants_in_pdf=bool(self.vars.hide_minor_variants_in_pdf.get()),
             publish_notices=bool(self.vars.publish_notices.get()),
             publish_prefaces=bool(self.vars.publish_prefaces.get()),
             include_metadata=bool(self.vars.include_metadata.get()),
@@ -696,6 +702,7 @@ class PublicationDialog(tk.Toplevel):
         asset_directory = config.asset_directories[0] if config.asset_directories else None
         self.vars.asset_directory.set(str(asset_directory) if asset_directory is not None else "")
         self.vars.build_latex_pdf.set(config.build_latex_pdf)
+        self.vars.hide_minor_variants_in_pdf.set(config.hide_minor_variants_in_pdf)
         self.vars.publish_notices.set(config.publish_notices)
         self.vars.publish_prefaces.set(config.publish_prefaces)
         self.vars.include_metadata.set(config.include_metadata)
