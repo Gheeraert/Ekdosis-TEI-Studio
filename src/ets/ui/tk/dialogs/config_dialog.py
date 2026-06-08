@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 import tkinter as tk
-from tkinter import messagebox, ttk
+from tkinter import filedialog, messagebox, ttk
 
 from ets.domain import EditionConfig, Witness
 
@@ -42,6 +42,8 @@ class _ConfigVars:
     editor_last: tk.StringVar
     transcriber_first: tk.StringVar
     transcriber_last: tk.StringVar
+    transcription_path: tk.StringVar
+    castlist_path: tk.StringVar
 
 
 class ConfigDialog(tk.Toplevel):
@@ -52,6 +54,7 @@ class ConfigDialog(tk.Toplevel):
         self.grab_set()
         self.resizable(True, True)
         self.result: EditionConfig | None = None
+        self._initial = initial
 
         author_first, author_last = _split_name(initial.author if initial else "")
         editor_first, editor_last = _split_name(initial.editor if initial else "")
@@ -64,6 +67,8 @@ class ConfigDialog(tk.Toplevel):
             editor_last=tk.StringVar(value=editor_last),
             transcriber_first=tk.StringVar(value=transcriber_first),
             transcriber_last=tk.StringVar(value=transcriber_last),
+            transcription_path=tk.StringVar(value=initial.transcription_path if initial else ""),
+            castlist_path=tk.StringVar(value=initial.castlist_path if initial else ""),
         )
         self._reference_witness = initial.reference_witness if initial else 0
 
@@ -72,7 +77,7 @@ class ConfigDialog(tk.Toplevel):
         self.columnconfigure(0, weight=1)
         self.rowconfigure(0, weight=1)
         body.columnconfigure(1, weight=1)
-        body.rowconfigure(7, weight=1)
+        body.rowconfigure(9, weight=1)
 
         self._add_entry(body, 0, "Prénom de l'auteur", self.vars.author_first)
         self._add_entry(body, 1, "Nom de l'auteur", self.vars.author_last)
@@ -81,14 +86,16 @@ class ConfigDialog(tk.Toplevel):
         self._add_entry(body, 4, "Nom de l'éditeur scientifique", self.vars.editor_last)
         self._add_entry(body, 5, "Prénom du transcripteur", self.vars.transcriber_first)
         self._add_entry(body, 6, "Nom du transcripteur", self.vars.transcriber_last)
+        self._add_path_entry(body, 7, "Fichier de transcription", self.vars.transcription_path)
+        self._add_path_entry(body, 8, "Fichier dramatis personae", self.vars.castlist_path)
 
-        ttk.Label(body, text="Témoins (abbr|year|desc, un par ligne)").grid(row=7, column=0, sticky="nw", padx=(0, 8))
+        ttk.Label(body, text="Témoins (abbr|year|desc, un par ligne)").grid(row=9, column=0, sticky="nw", padx=(0, 8))
         self.witnesses = tk.Text(body, height=8, width=60, font=("Consolas", 10))
-        self.witnesses.grid(row=7, column=1, sticky="nsew")
+        self.witnesses.grid(row=9, column=1, sticky="nsew")
         self.witnesses.insert("1.0", _witnesses_to_lines(initial.witnesses if initial else []))
 
         buttons = ttk.Frame(body)
-        buttons.grid(row=8, column=0, columnspan=2, sticky="e", pady=(10, 0))
+        buttons.grid(row=10, column=0, columnspan=2, sticky="e", pady=(10, 0))
         ttk.Button(buttons, text="Annuler", command=self.destroy).grid(row=0, column=0, padx=4)
         ttk.Button(buttons, text="Valider", command=self._on_validate).grid(row=0, column=1, padx=4)
 
@@ -96,6 +103,27 @@ class ConfigDialog(tk.Toplevel):
     def _add_entry(parent: ttk.Frame, row: int, label: str, var: tk.StringVar) -> None:
         ttk.Label(parent, text=label).grid(row=row, column=0, sticky="w", padx=(0, 8), pady=2)
         ttk.Entry(parent, textvariable=var).grid(row=row, column=1, sticky="ew", pady=2)
+
+    def _add_path_entry(self, parent: ttk.Frame, row: int, label: str, var: tk.StringVar) -> None:
+        ttk.Label(parent, text=label).grid(row=row, column=0, sticky="w", padx=(0, 8), pady=2)
+        field = ttk.Frame(parent)
+        field.grid(row=row, column=1, sticky="ew", pady=2)
+        field.columnconfigure(0, weight=1)
+        ttk.Entry(field, textvariable=var).grid(row=0, column=0, sticky="ew")
+        ttk.Button(field, text="Parcourir...", command=lambda: self._browse_path(var)).grid(
+            row=0,
+            column=1,
+            padx=(6, 0),
+        )
+
+    def _browse_path(self, var: tk.StringVar) -> None:
+        chosen = filedialog.askopenfilename(
+            parent=self,
+            title="Choisir un fichier",
+            filetypes=[("Text files", "*.txt"), ("All files", "*.*")],
+        )
+        if chosen:
+            var.set(chosen)
 
     def _on_validate(self) -> None:
         try:
@@ -108,6 +136,9 @@ class ConfigDialog(tk.Toplevel):
                 witnesses=witnesses,
                 reference_witness=reference,
                 transcriber=f"{self.vars.transcriber_first.get().strip()} {self.vars.transcriber_last.get().strip()}".strip(),
+                characters=list(self._initial.characters) if self._initial else [],
+                transcription_path=self.vars.transcription_path.get().strip(),
+                castlist_path=self.vars.castlist_path.get().strip(),
             )
         except ValueError as exc:
             messagebox.showerror("Configuration invalide", str(exc), parent=self)

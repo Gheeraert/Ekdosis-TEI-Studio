@@ -85,6 +85,7 @@ def test_cli_override_keeps_priority() -> None:
     config = load_config(ROOT / "fixtures" / "stable" / "config.json", reference_override=0)
     assert config.reference_witness == 0
     assert config.castlist_path == ""
+    assert config.transcription_path == ""
 
 
 def test_load_config_without_characters_keeps_legacy_compatibility() -> None:
@@ -150,6 +151,17 @@ def test_load_config_reads_optional_castlist_path() -> None:
     config = load_config(config_path)
 
     assert config.castlist_path == "castlist.txt"
+
+
+def test_load_config_reads_optional_transcription_path() -> None:
+    payload = _config_payload_with_reference("TÃƒÆ’Ã‚Â©moin de rÃƒÆ’Ã‚Â©fÃƒÆ’Ã‚Â©rence", "B")
+    payload["transcription_path"] = "Esther.txt"
+    config_path = RUNTIME_DIR / "config_loader_transcription_path.json"
+    config_path.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
+
+    config = load_config(config_path)
+
+    assert config.transcription_path == "Esther.txt"
 
 
 def _write_character_config(name: str, characters: list[dict[str, object]]) -> Path:
@@ -255,6 +267,7 @@ def test_save_config_writes_canonical_json_without_reference_key() -> None:
 
 
     assert "castlist_path" not in payload
+    assert "transcription_path" not in payload
 
 
 def test_save_config_writes_characters_when_present() -> None:
@@ -287,6 +300,21 @@ def test_save_config_writes_castlist_path_when_present() -> None:
     payload = json.loads(saved_path.read_text(encoding="utf-8"))
 
     assert payload["castlist_path"] == "castlist.txt"
+
+
+def test_save_config_writes_transcription_path_when_present() -> None:
+    config = EditionConfig(
+        title="Esther",
+        author="Jean Racine",
+        editor="Tony Gheeraert",
+        witnesses=[Witness(siglum="A", year="1689", description="A")],
+        reference_witness=0,
+        transcription_path="Esther.txt",
+    )
+    saved_path = save_config(config, RUNTIME_DIR / "canonique_transcription_path.json")
+    payload = json.loads(saved_path.read_text(encoding="utf-8"))
+
+    assert payload["transcription_path"] == "Esther.txt"
 
 
 def test_load_config_after_save_remains_compatible() -> None:

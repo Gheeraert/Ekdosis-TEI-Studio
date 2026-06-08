@@ -809,6 +809,7 @@ class MainWindow(ttk.Frame):
     def _write_current_file(self, target: Path) -> None:
         target.write_text(self._current_text(), encoding="utf-8")
         self.state.current_file_path = target
+        self._associate_transcription_path(target)
         self._refresh_window_title()
 
     def _write_current_castlist_file(self, target: Path) -> None:
@@ -865,20 +866,21 @@ class MainWindow(ttk.Frame):
     def _config_base_dir(self) -> Path | None:
         return self.state.config_path.parent if self.state.config_path is not None else None
 
-    def _resolve_castlist_path(self, raw_path: str) -> Path:
+    def _resolve_configured_path(self, raw_path: str) -> Path:
         path = Path(raw_path)
         if path.is_absolute():
             return path
         base_dir = self._config_base_dir()
         return (base_dir or Path.cwd()) / path
 
-    def _castlist_path_for_config(self, path: Path) -> str:
-        if self.state.config_path is None:
-            return str(path.resolve())
-        return self._castlist_path_relative_to_config_file(path, self.state.config_path)
+    def _resolve_castlist_path(self, raw_path: str) -> Path:
+        return self._resolve_configured_path(raw_path)
+
+    def _resolve_transcription_path(self, raw_path: str) -> Path:
+        return self._resolve_configured_path(raw_path)
 
     @staticmethod
-    def _castlist_path_relative_to_config_file(path: Path, config_path: Path) -> str:
+    def _path_relative_to_config_file(path: Path, config_path: Path) -> str:
         try:
             return str(path.resolve().relative_to(config_path.parent.resolve()))
         except ValueError:
@@ -886,6 +888,35 @@ class MainWindow(ttk.Frame):
                 return str(path.resolve().relative_to(Path.cwd().resolve()))
             except ValueError:
                 return str(path.resolve())
+
+    def _castlist_path_for_config(self, path: Path) -> str:
+        if self.state.config_path is None:
+            return str(path.resolve())
+        return self._path_relative_to_config_file(path, self.state.config_path)
+
+    def _transcription_path_for_config(self, path: Path) -> str:
+        if self.state.config_path is None:
+            return str(path.resolve())
+        return self._path_relative_to_config_file(path, self.state.config_path)
+
+    @staticmethod
+    def _castlist_path_relative_to_config_file(path: Path, config_path: Path) -> str:
+        return MainWindow._path_relative_to_config_file(path, config_path)
+
+    @staticmethod
+    def _transcription_path_relative_to_config_file(path: Path, config_path: Path) -> str:
+        return MainWindow._path_relative_to_config_file(path, config_path)
+
+    def _associate_transcription_path(self, path: Path) -> None:
+        if self.state.config is None:
+            return
+        config_path = self._transcription_path_for_config(path)
+        if self.state.config.transcription_path == config_path:
+            return
+        self.state.config = replace(self.state.config, transcription_path=config_path)
+        self._invalidate_outputs(reason="config_changed")
+        self._refresh_config_ui()
+        self._schedule_autosave()
 
     def _associate_castlist_path(self, path: Path) -> None:
         if self.state.config is None:
@@ -937,7 +968,6 @@ class MainWindow(ttk.Frame):
             return
 
         path = self._resolve_castlist_path(self.state.config.castlist_path)
-        self.state.castlist_file_path = path
         if not path.exists():
             messagebox.showwarning(
                 "Dramatis personae",
@@ -947,8 +977,31 @@ class MainWindow(ttk.Frame):
             return
         try:
             self.castlist_editor.set_text(path.read_text(encoding="utf-8"))
+            self.state.castlist_file_path = path
         except OSError as exc:
             messagebox.showwarning("Dramatis personae", str(exc), parent=self.master)
+
+    def _load_configured_transcription(self) -> None:
+        if self.state.config is None:
+            return
+
+        if not self.state.config.transcription_path.strip():
+            return
+
+        path = self._resolve_transcription_path(self.state.config.transcription_path)
+        if not path.exists():
+            messagebox.showwarning(
+                "Transcription",
+                f"Le fichier de transcription déclaré dans la configuration est introuvable:\n{path}",
+                parent=self.master,
+            )
+            return
+        try:
+            self.editor.set_text(path.read_text(encoding="utf-8"))
+            self.editor_tabs.select(self.transcription_tab)
+            self.state.current_file_path = path
+        except OSError as exc:
+            messagebox.showwarning("Transcription", str(exc), parent=self.master)
 
     def _on_editor_content_changed(self, _event: tk.Event[tk.Misc]) -> None:
         self.after_idle(lambda: self._invalidate_outputs(reason="text_changed"))
@@ -1068,6 +1121,7 @@ class MainWindow(ttk.Frame):
     def _set_current_config(self, config: EditionConfig, config_path: Path | None) -> None:
         self.state.config = config
         self.state.config_path = config_path
+        self._load_configured_transcription()
         self._load_configured_castlist()
         self._invalidate_outputs(reason="config_changed")
         self._refresh_config_ui()
@@ -1117,6 +1171,7 @@ class MainWindow(ttk.Frame):
         self.editor.focus_editor()
         self._invalidate_outputs(reason="open_file")
         self.state.current_file_path = path
+        self._associate_transcription_path(path)
         self._refresh_window_title()
         self._schedule_autosave()
 
@@ -1251,6 +1306,11 @@ class MainWindow(ttk.Frame):
         if not chosen:
             return
         config_to_save = self.state.config
+        if self.state.current_file_path is not None:
+            config_to_save = replace(
+                config_to_save,
+                transcription_path=self._transcription_path_relative_to_config_file(self.state.current_file_path, Path(chosen)),
+            )
         if self.state.castlist_file_path is not None:
             config_to_save = replace(
                 config_to_save,

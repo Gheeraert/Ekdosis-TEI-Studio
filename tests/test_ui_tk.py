@@ -37,10 +37,11 @@ from ets.application.editorial_notice_import.models import (
 )
 from ets.application.site_builder_models import SiteBuildServiceResult
 from ets.infrastructure import AutosavePayload, AutosaveStore
-from ets.domain import EditionConfig, Witness
+from ets.domain import Character, EditionConfig, Witness
 from ets.parser import save_config as save_edition_config
 from ets.ui.tk.helpers import diagnostic_line_numbers, format_config_status
 from ets.ui.tk.main_window import MainWindow, suggest_next_annotation_id
+from ets.ui.tk.dialogs.config_dialog import ConfigDialog
 from ets.ui.tk.dialogs.publication_dialog import PublicationDialog, PublicationDialogResult
 from ets.publication_pdf import PublicationPdfBuildResult, PublicationPdfCompileResult, PublicationPdfMasterBuildResult
 
@@ -2459,6 +2460,92 @@ def test_load_config_action_loads_configured_castlist_relative_to_config(
         root.destroy()
 
 
+def test_load_config_action_loads_configured_transcription_and_castlist_relative_to_config(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    root = _make_root()
+    try:
+        window = MainWindow(root)
+        base_dir = RUNTIME_DIR / f"ui_configured_files_load_{uuid4().hex}"
+        base_dir.mkdir(parents=True, exist_ok=True)
+        transcription_path = base_dir / "Esther.txt"
+        castlist_path = base_dir / "Esther_castlist.txt"
+        transcription_text = "####ACTE I####\n\n###SCENE I###\n"
+        transcription_path.write_text(transcription_text, encoding="utf-8")
+        castlist_path.write_text(_two_witness_castlist_text(), encoding="utf-8")
+        config_path = base_dir / "config.json"
+        save_edition_config(
+            replace(
+                _two_witness_config(),
+                transcription_path="Esther.txt",
+                castlist_path="Esther_castlist.txt",
+            ),
+            config_path,
+        )
+        monkeypatch.setattr("tkinter.filedialog.askopenfilename", lambda **kwargs: str(config_path))
+        monkeypatch.setattr("tkinter.messagebox.showinfo", lambda *args, **kwargs: None)
+
+        window.action_load_config()
+
+        assert window.state.config_path == config_path
+        assert window.state.current_file_path == transcription_path
+        assert window.state.castlist_file_path == castlist_path
+        assert window.editor.get_text() == transcription_text
+        assert "%%castlist%%" in window.castlist_editor.get_text()
+    finally:
+        root.destroy()
+
+
+def test_load_config_action_warns_without_blocking_when_configured_file_is_missing(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    root = _make_root()
+    try:
+        window = MainWindow(root)
+        base_dir = RUNTIME_DIR / f"ui_configured_missing_{uuid4().hex}"
+        base_dir.mkdir(parents=True, exist_ok=True)
+        config_path = base_dir / "config.json"
+        save_edition_config(replace(_two_witness_config(), transcription_path="missing.txt"), config_path)
+        warnings: list[str] = []
+        infos: list[str] = []
+        monkeypatch.setattr("tkinter.filedialog.askopenfilename", lambda **kwargs: str(config_path))
+        monkeypatch.setattr("tkinter.messagebox.showwarning", lambda _title, message, **kwargs: warnings.append(message))
+        monkeypatch.setattr("tkinter.messagebox.showinfo", lambda _title, message, **kwargs: infos.append(message))
+
+        window.action_load_config()
+
+        assert window.state.config_path == config_path
+        assert window.state.config is not None
+        assert window.state.config.transcription_path == "missing.txt"
+        assert window.state.current_file_path is None
+        assert warnings
+        assert "missing.txt" in warnings[-1]
+        assert infos == ["Configuration chargée avec succès."]
+    finally:
+        root.destroy()
+
+
+def test_config_dialog_preserves_non_edited_config_fields() -> None:
+    root = _make_root()
+    try:
+        initial = replace(
+            _two_witness_config(),
+            characters=[Character(id="thesee", label="Thésée", aliases=["THESEE"])],
+            transcription_path="Esther.txt",
+            castlist_path="Esther_castlist.txt",
+        )
+        dialog = ConfigDialog(root, initial)
+
+        dialog._on_validate()
+
+        assert dialog.result is not None
+        assert dialog.result.characters == initial.characters
+        assert dialog.result.transcription_path == "Esther.txt"
+        assert dialog.result.castlist_path == "Esther_castlist.txt"
+    finally:
+        root.destroy()
+
+
 def test_save_castlist_as_updates_config_with_relative_path(monkeypatch: pytest.MonkeyPatch) -> None:
     root = _make_root()
     try:
@@ -2478,6 +2565,58 @@ def test_save_castlist_as_updates_config_with_relative_path(monkeypatch: pytest.
         assert window.state.castlist_file_path == target
         assert window.state.config is not None
         assert window.state.config.castlist_path == "castlist.txt"
+    finally:
+        root.destroy()
+
+
+def test_open_transcription_updates_config_with_relative_path(monkeypatch: pytest.MonkeyPatch) -> None:
+    root = _make_root()
+    try:
+        window = MainWindow(root)
+        base_dir = RUNTIME_DIR / f"ui_transcription_open_{uuid4().hex}"
+        base_dir.mkdir(parents=True, exist_ok=True)
+        config_path = base_dir / "config.json"
+        transcription_path = base_dir / "Esther.txt"
+        transcription_path.write_text("texte", encoding="utf-8")
+        window._set_current_config(_two_witness_config(), config_path)
+        monkeypatch.setattr("tkinter.filedialog.askopenfilename", lambda **kwargs: str(transcription_path))
+
+        window.action_open_file()
+
+        assert window.state.current_file_path == transcription_path
+        assert window.state.config is not None
+        assert window.state.config.transcription_path == "Esther.txt"
+    finally:
+        root.destroy()
+
+
+def test_save_config_as_writes_current_file_paths_relative_to_new_config(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    root = _make_root()
+    try:
+        window = MainWindow(root)
+        base_dir = RUNTIME_DIR / f"ui_config_save_as_{uuid4().hex}"
+        base_dir.mkdir(parents=True, exist_ok=True)
+        transcription_path = base_dir / "Esther.txt"
+        castlist_path = base_dir / "Esther_castlist.txt"
+        config_path = base_dir / "config.json"
+        transcription_path.write_text("texte", encoding="utf-8")
+        castlist_path.write_text(_two_witness_castlist_text(), encoding="utf-8")
+        window._set_current_config(_two_witness_config(), None)
+        window.state.current_file_path = transcription_path
+        window.state.castlist_file_path = castlist_path
+        monkeypatch.setattr("tkinter.filedialog.asksaveasfilename", lambda **kwargs: str(config_path))
+        monkeypatch.setattr("tkinter.messagebox.showinfo", lambda *args, **kwargs: None)
+
+        window.action_save_config_as()
+
+        payload = json.loads(config_path.read_text(encoding="utf-8"))
+        assert payload["transcription_path"] == "Esther.txt"
+        assert payload["castlist_path"] == "Esther_castlist.txt"
+        assert window.state.config is not None
+        assert window.state.config.transcription_path == "Esther.txt"
+        assert window.state.config.castlist_path == "Esther_castlist.txt"
     finally:
         root.destroy()
 
