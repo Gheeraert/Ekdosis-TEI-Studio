@@ -1119,11 +1119,11 @@ class MainWindow(ttk.Frame):
         messagebox.showinfo(title, f"Fichier exporté:\n{target}", parent=self.master)
 
     def _set_current_config(
-        self,
-        config: EditionConfig,
-        config_path: Path | None,
-        *,
-        load_configured_files: bool = False,
+            self,
+            config: EditionConfig,
+            config_path: Path | None,
+            *,
+            load_configured_files: bool = False,
     ) -> None:
         self.state.config = config
         self.state.config_path = config_path
@@ -1132,6 +1132,7 @@ class MainWindow(ttk.Frame):
             self._load_configured_castlist()
         self._invalidate_outputs(reason="config_changed")
         self._refresh_config_ui()
+        self._refresh_window_title()
         self._schedule_autosave()
 
     def action_new_file(self) -> None:
