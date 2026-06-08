@@ -89,6 +89,21 @@ def _mini_config() -> EditionConfig:
     )
 
 
+def _mini_config_four_witnesses() -> EditionConfig:
+    return EditionConfig(
+        title="Mini",
+        author="Auteur",
+        editor="Editeur",
+        witnesses=[
+            Witness(siglum="A", year="1670", description="temoin A"),
+            Witness(siglum="B", year="1671", description="temoin B"),
+            Witness(siglum="C", year="1672", description="temoin C"),
+            Witness(siglum="D", year="1673", description="temoin D"),
+        ],
+        reference_witness=0,
+    )
+
+
 def test_pipeline_emits_tei_hi_for_simple_underscore_italic() -> None:
     text = "\n".join(
         [
@@ -256,3 +271,54 @@ def test_pipeline_keeps_multiword_italic_variant_inline_without_line_rendition()
     assert "rend" not in line.attrib
     assert "_oui" not in xml_text
     assert "temple_" not in xml_text
+
+
+def test_pipeline_pairs_long_italic_variant_boundaries_by_witness() -> None:
+    text = "\n".join(
+        [
+            "####ACTE I####",
+            "####ACTE I####",
+            "####ACTE I####",
+            "####ACTE I####",
+            "",
+            "###SCENE I###",
+            "###SCENE I###",
+            "###SCENE I###",
+            "###SCENE I###",
+            "",
+            "#ORESTE#",
+            "#ORESTE#",
+            "#ORESTE#",
+            "#ORESTE#",
+            "",
+            "_oui je viens en son temple_ adorer l'Eternel",
+            "oui je viens en son temple adorer l'Eternel",
+            "_oui je viens en son autel_ adorer l'Eternel",
+            "oui je viens en son autel adorer l'Eternel",
+        ]
+    )
+    xml_text = run_pipeline_from_text(text, _mini_config_four_witnesses())
+    root = _parse(xml_text)
+    line = _line(root, "1")
+    apps = line.findall("tei:app", NS)
+
+    assert len(apps) == 1
+    assert line.find("tei:hi[@rend='italic']", NS) is None
+    assert "rend" not in line.attrib
+
+    readings = apps[0].findall("*")
+    assert [(reading.tag.rsplit("}", 1)[-1], reading.get("wit")) for reading in readings] == [
+        ("lem", "#A"),
+        ("rdg", "#B"),
+        ("rdg", "#C"),
+        ("rdg", "#D"),
+    ]
+    assert "".join(readings[0].itertext()).strip() == "oui je viens en son temple"
+    assert readings[0].find("tei:hi[@rend='italic']", NS) is not None
+    assert "".join(readings[1].itertext()).strip() == "oui je viens en son temple"
+    assert readings[1].find("tei:hi", NS) is None
+    assert "".join(readings[2].itertext()).strip() == "oui je viens en son autel"
+    assert readings[2].find("tei:hi[@rend='italic']", NS) is not None
+    assert "".join(readings[3].itertext()).strip() == "oui je viens en son autel"
+    assert readings[3].find("tei:hi", NS) is None
+    assert (apps[0].tail or "").startswith("adorer l'Eternel")

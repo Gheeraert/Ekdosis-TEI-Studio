@@ -165,11 +165,22 @@ def _append_collated_text(parent: ET.Element, text: CollatedText) -> None:
     def wrap_italic_if_needed(value: str, italic: bool) -> str:
         return f"_{value}_" if italic else value
 
-    def matching_style_reading(segment: ApparatusTokenSegment, italic: bool) -> CollatedReading | None:
-        readings = [segment.lemma, *segment.readings]
-        for reading in readings:
-            if reading_has_edge_italic(reading) == italic:
-                return reading
+    def compatible_witnesses(opening: CollatedReading, closing: CollatedReading) -> list[str]:
+        closing_sigla = set(closing.witness_sigla)
+        return [siglum for siglum in opening.witness_sigla if siglum in closing_sigla]
+
+    def matching_opening_reading(
+        readings: list[CollatedReading],
+        closing: CollatedReading,
+    ) -> tuple[CollatedReading, list[str]] | None:
+        matches = [
+            (reading, compatible_witnesses(reading, closing))
+            for reading in readings
+            if reading_has_edge_italic(reading) == reading_has_edge_italic(closing)
+        ]
+        matches = [(reading, sigla) for reading, sigla in matches if sigla]
+        if len(matches) == 1:
+            return matches[0]
         return None
 
     def find_grouped_italic_variant_end(start_index: int) -> int | None:
@@ -179,7 +190,7 @@ def _append_collated_text(parent: ET.Element, text: CollatedText) -> None:
                 continue
             if not isinstance(candidate, ApparatusTokenSegment):
                 return None
-            if has_italic_markup_variant(candidate) and markup_variant_closes_italic(candidate):
+            if markup_variant_closes_italic(candidate):
                 return candidate_index
             return None
         return None
@@ -196,34 +207,24 @@ def _append_collated_text(parent: ET.Element, text: CollatedText) -> None:
             for segment in text.segments[start_index + 1 : end_index]
             if isinstance(segment, LiteralTokenSegment)
         )
-        lemma_italic = reading_has_edge_italic(start_segment.lemma)
-        lemma_end = matching_style_reading(end_segment, lemma_italic)
-        if lemma_end is None:
-            return False
-
+        opening_readings = [start_segment.lemma, *start_segment.readings]
+        closing_readings = [end_segment.lemma, *end_segment.readings]
         grouped_readings: list[tuple[str, CollatedReading]] = []
-        lemma_text = start_segment.lemma.text.replace("_", "") + middle + lemma_end.text.replace("_", "")
-        grouped_readings.append(
-            (
-                "lem",
-                CollatedReading(
-                    text=wrap_italic_if_needed(lemma_text, lemma_italic),
-                    witness_sigla=start_segment.lemma.witness_sigla,
-                ),
-            )
-        )
-        for rdg in start_segment.readings:
-            rdg_italic = reading_has_edge_italic(rdg)
-            rdg_end = matching_style_reading(end_segment, rdg_italic)
-            if rdg_end is None:
+        for closing in closing_readings:
+            # Long italic variant boundaries must be witness-aware to avoid hybrid readings.
+            matched = matching_opening_reading(opening_readings, closing)
+            if matched is None:
                 return False
-            rdg_text = rdg.text.replace("_", "") + middle + rdg_end.text.replace("_", "")
+            opening, witness_sigla = matched
+            italic = reading_has_edge_italic(opening)
+            reading_text = opening.text.replace("_", "") + middle + closing.text.replace("_", "")
+            tag = "lem" if not grouped_readings else "rdg"
             grouped_readings.append(
                 (
-                    "rdg",
+                    tag,
                     CollatedReading(
-                        text=wrap_italic_if_needed(rdg_text, rdg_italic),
-                        witness_sigla=rdg.witness_sigla,
+                        text=wrap_italic_if_needed(reading_text, italic),
+                        witness_sigla=witness_sigla,
                     ),
                 )
             )
