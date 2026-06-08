@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import json
 from pathlib import Path
@@ -215,10 +215,9 @@ def test_site_builder_service_publication_request_copies_publication_pdf() -> No
         encoding="utf-8"
     )
     assert "FAUX MASTER" not in (output_dir / "downloads" / "edition-complete.tex").read_text(encoding="utf-8")
-    home_html = (output_dir / "index.html").read_text(encoding="utf-8")
     play_html = (output_dir / "plays" / "andromaque.html").read_text(encoding="utf-8")
-    assert 'href="downloads/edition-complete.pdf" download>Télécharger le PDF</a>' in home_html
-    assert 'href="../downloads/edition-complete.pdf" download>Télécharger le PDF</a>' in play_html
+    assert 'href="../downloads/edition-complete.tex" download title="Ekdosis">LaTeX-Ekdosis</a>' in play_html
+    assert 'href="../downloads/edition-complete.pdf" download title="PDF">PDF</a>' in play_html
 
 
 def test_site_builder_service_build_from_publication_request_supports_multiple_plays_order_and_assets() -> None:
@@ -350,7 +349,7 @@ def test_site_builder_service_publication_request_inlines_home_page_tei_notice_o
     output_dir = base / "site"
     dialog_config = SitePublicationDialogConfig(
         author_name="Jean Racine",
-        corpus_title="Théâtre complet",
+        corpus_title="Theatre complet",
         output_dir=output_dir,
         home_page_tei=REALISTIC_NOTICES / "Ch01_Introduction.xml",
         general_intro_tei=REALISTIC_NOTICES / "Heraldique_et_Papaute_volII.xml",

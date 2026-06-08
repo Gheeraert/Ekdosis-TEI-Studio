@@ -129,7 +129,7 @@ def test_builder_generates_cross_links_and_home_intro_from_explicit_mapping() ->
     assert not notice_doc.xpath("//section//a[starts-with(@href, '../plays/')]")
 
 
-def test_builder_copies_publication_pdf_and_links_it_from_all_page_levels() -> None:
+def test_builder_copies_publication_pdf_and_links_it_from_play_pages() -> None:
     base_dir = _runtime_dir("site_builder_pdf_download")
     output_dir = base_dir / "site_pdf"
     pdf_source = base_dir / "build" / "edition.pdf"
@@ -175,13 +175,10 @@ def test_builder_copies_publication_pdf_and_links_it_from_all_page_levels() -> N
     assert pdf_source.read_bytes() == source_bytes
     assert not result.warnings
 
-    home_html = (output_dir / "index.html").read_text(encoding="utf-8")
     play_html = (output_dir / "plays" / "andromaque.html").read_text(encoding="utf-8")
-    notice_html = (output_dir / "notices" / "andromaque-notice.html").read_text(encoding="utf-8")
 
-    assert 'href="downloads/edition-complete.pdf" download>Télécharger le PDF</a>' in home_html
-    assert 'href="../downloads/edition-complete.pdf" download>Télécharger le PDF</a>' in play_html
-    assert 'href="../downloads/edition-complete.pdf" download>Télécharger le PDF</a>' in notice_html
+    assert 'href="../downloads/edition-complete.tex" download title="Ekdosis">LaTeX-Ekdosis</a>' in play_html
+    assert 'href="../downloads/edition-complete.pdf" download title="PDF">PDF</a>' in play_html
 
 
 def test_builder_warns_when_publication_pdf_master_is_missing() -> None:
@@ -322,9 +319,8 @@ def test_builder_uses_default_pdf_relpath_when_source_exists_and_relpath_is_none
     assert (output_dir / "downloads" / "edition-complete.tex").read_text(encoding="utf-8") == master_source.read_text(
         encoding="utf-8"
     )
-    home_html = (output_dir / "index.html").read_text(encoding="utf-8")
-    assert 'href="downloads/edition-complete.pdf" download>' in home_html
-    assert "PDF" in home_html
+    play_html = (output_dir / "plays" / "andromaque.html").read_text(encoding="utf-8")
+    assert 'href="../downloads/edition-complete.pdf" download title="PDF">PDF</a>' in play_html
 
 
 def test_builder_omits_pdf_download_link_when_no_pdf_is_configured() -> None:
@@ -784,8 +780,8 @@ def test_play_page_shows_scientific_editor_and_transcriber_instead_of_document_t
 
     assert play.scientific_editor == "Caroline Labrune"
     assert play.transcriber == "Jeanne Martin"
-    assert "Editeur scientifique: Caroline Labrune" in meta_texts
-    assert "Transcripteur: Jeanne Martin" in meta_texts
+    assert "Éditeur scientifique\xa0: Caroline Labrune" in meta_texts
+    assert "Transcripteur\xa0: Jeanne Martin" in meta_texts
     assert not any(text.startswith("Type:") for text in meta_texts)
 
 

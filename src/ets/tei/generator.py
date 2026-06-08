@@ -33,7 +33,26 @@ def _wit_attr(sigla: list[str]) -> str:
 
 def _append_reading(parent: ET.Element, tag: str, reading: CollatedReading) -> None:
     element = ET.SubElement(parent, _tei(tag), {"wit": _wit_attr(reading.witness_sigla)})
-    _append_inline_italics(element, None, reading.text.replace("_", ""))
+    reading_text = reading.text
+    if reading_text.count("_") % 2 != 0:
+        stripped = reading_text.strip()
+        if stripped.startswith("_"):
+            leading = reading_text[: reading_text.find("_")]
+            content = reading_text[reading_text.find("_") + 1 :]
+            _append_text(element, None, leading)
+            hi = ET.SubElement(element, _tei("hi"), {"rend": "italic"})
+            hi.text = content
+            return
+        if stripped.endswith("_"):
+            marker = reading_text.rfind("_")
+            content = reading_text[:marker]
+            trailing = reading_text[marker + 1 :]
+            hi = ET.SubElement(element, _tei("hi"), {"rend": "italic"})
+            hi.text = content
+            hi.tail = trailing
+            return
+        reading_text = reading_text.replace("_", "")
+    _append_inline_italics(element, None, reading_text)
 
 
 def _append_text(container: ET.Element, last_child: ET.Element | None, text: str) -> None:
@@ -126,18 +145,123 @@ def _append_collated_text(parent: ET.Element, text: CollatedText) -> None:
         readings = [segment.lemma, *segment.readings]
         return any(item.text.rstrip().endswith("_") for item in readings if item.text)
 
-    for segment in text.segments:
+    def has_italic_markup_variant(segment: ApparatusTokenSegment) -> bool:
+        readings = [segment.lemma, *segment.readings]
+        raw_texts = {item.text for item in readings}
+        plain_texts = {item.text.replace("_", "") for item in readings}
+        return len(raw_texts) > 1 and len(plain_texts) == 1
+
+    def markup_variant_opens_italic(segment: ApparatusTokenSegment) -> bool:
+        readings = [segment.lemma, *segment.readings]
+        return any(item.text.lstrip().startswith("_") for item in readings if item.text)
+
+    def markup_variant_closes_italic(segment: ApparatusTokenSegment) -> bool:
+        readings = [segment.lemma, *segment.readings]
+        return any(item.text.rstrip().endswith("_") for item in readings if item.text)
+
+    def reading_has_edge_italic(reading: CollatedReading) -> bool:
+        return reading.text.lstrip().startswith("_") or reading.text.rstrip().endswith("_")
+
+    def wrap_italic_if_needed(value: str, italic: bool) -> str:
+        return f"_{value}_" if italic else value
+
+    def matching_style_reading(segment: ApparatusTokenSegment, italic: bool) -> CollatedReading | None:
+        readings = [segment.lemma, *segment.readings]
+        for reading in readings:
+            if reading_has_edge_italic(reading) == italic:
+                return reading
+        return None
+
+    def find_grouped_italic_variant_end(start_index: int) -> int | None:
+        for candidate_index in range(start_index + 1, len(text.segments)):
+            candidate = text.segments[candidate_index]
+            if isinstance(candidate, LiteralTokenSegment):
+                continue
+            if not isinstance(candidate, ApparatusTokenSegment):
+                return None
+            if has_italic_markup_variant(candidate) and markup_variant_closes_italic(candidate):
+                return candidate_index
+            return None
+        return None
+
+    def append_grouped_italic_variant(start_index: int, end_index: int) -> bool:
+        nonlocal last_child
+        start_segment = text.segments[start_index]
+        end_segment = text.segments[end_index]
+        if not isinstance(start_segment, ApparatusTokenSegment) or not isinstance(end_segment, ApparatusTokenSegment):
+            raise TypeError("Grouped italic variant boundaries must be apparatus segments.")
+
+        middle = "".join(
+            segment.text
+            for segment in text.segments[start_index + 1 : end_index]
+            if isinstance(segment, LiteralTokenSegment)
+        )
+        lemma_italic = reading_has_edge_italic(start_segment.lemma)
+        lemma_end = matching_style_reading(end_segment, lemma_italic)
+        if lemma_end is None:
+            return False
+
+        grouped_readings: list[tuple[str, CollatedReading]] = []
+        lemma_text = start_segment.lemma.text.replace("_", "") + middle + lemma_end.text.replace("_", "")
+        grouped_readings.append(
+            (
+                "lem",
+                CollatedReading(
+                    text=wrap_italic_if_needed(lemma_text, lemma_italic),
+                    witness_sigla=start_segment.lemma.witness_sigla,
+                ),
+            )
+        )
+        for rdg in start_segment.readings:
+            rdg_italic = reading_has_edge_italic(rdg)
+            rdg_end = matching_style_reading(end_segment, rdg_italic)
+            if rdg_end is None:
+                return False
+            rdg_text = rdg.text.replace("_", "") + middle + rdg_end.text.replace("_", "")
+            grouped_readings.append(
+                (
+                    "rdg",
+                    CollatedReading(
+                        text=wrap_italic_if_needed(rdg_text, rdg_italic),
+                        witness_sigla=rdg.witness_sigla,
+                    ),
+                )
+            )
+
+        app = ET.SubElement(parent, _tei("app"))
+        for tag, reading in grouped_readings:
+            _append_reading(app, tag, reading)
+        last_child = app
+        return True
+
+    index = 0
+    while index < len(text.segments):
+        segment = text.segments[index]
         if isinstance(segment, LiteralTokenSegment):
             append_literal_segment(segment.text)
+            index += 1
             continue
         if isinstance(segment, ApparatusTokenSegment):
-            if not italic_open and has_open_marker_in_apparatus(segment):
+            markup_variant = has_italic_markup_variant(segment)
+            opens_markup_variant = markup_variant and markup_variant_opens_italic(segment)
+            closes_markup_variant = markup_variant and markup_variant_closes_italic(segment)
+            if opens_markup_variant and not closes_markup_variant and not italic_open:
+                grouped_end = find_grouped_italic_variant_end(index)
+                if grouped_end is not None:
+                    if append_grouped_italic_variant(index, grouped_end):
+                        index = grouped_end + 1
+                        continue
+            if markup_variant and closes_markup_variant and italic_open:
+                italic_open = False
+                italic_element = None
+                italic_last_child = None
+            if not markup_variant and not italic_open and has_open_marker_in_apparatus(segment):
                 italic_open = True
                 italic_element = ET.SubElement(parent, _tei("hi"), {"rend": "italic"})
                 last_child = italic_element
                 italic_last_child = None
 
-            app_parent = italic_element if italic_open and italic_element is not None else parent
+            app_parent = italic_element if not markup_variant and italic_open and italic_element is not None else parent
             app_attrs: dict[str, str] = {}
             if getattr(segment, "visibility_policy", "visible") in {"hide_safe", "inspect"}:
                 app_attrs["type"] = "minor"
@@ -153,15 +277,22 @@ def _append_collated_text(parent: ET.Element, text: CollatedText) -> None:
             _append_reading(app, "lem", segment.lemma)
             for rdg in segment.readings:
                 _append_reading(app, "rdg", rdg)
-            if italic_open and italic_element is not None:
+            if not markup_variant and italic_open and italic_element is not None:
                 italic_last_child = app
             else:
                 last_child = app
 
-            if italic_open and has_close_marker_in_apparatus(segment):
+            if opens_markup_variant and not closes_markup_variant and not italic_open:
+                italic_open = True
+                italic_element = ET.SubElement(parent, _tei("hi"), {"rend": "italic"})
+                last_child = italic_element
+                italic_last_child = None
+
+            if not markup_variant and italic_open and has_close_marker_in_apparatus(segment):
                 italic_open = False
                 italic_element = None
                 italic_last_child = None
+        index += 1
 
 
 def _append_collated_line(

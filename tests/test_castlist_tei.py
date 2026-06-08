@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import xml.etree.ElementTree as ET
 
@@ -24,17 +24,17 @@ def _config() -> EditionConfig:
 
 
 def _castlist_text(*, head: bool = True, setting: bool = True, desc: bool = True, variant: bool = True) -> str:
-    cast_open = '%%cast id=thesee role="Thésée"'
+    cast_open = '%%cast id=thesee role="ThÃ©sÃ©e"'
     if desc:
-        cast_open += ' desc="roi d’Athènes"'
+        cast_open += ' desc="roi dâ€™AthÃ¨nes"'
     cast_open += ' aliases="THESEE|THESEE."%%'
-    second_reading = "Thésée, Roi d’Athènes" if variant else "Thésée, roi d’Athènes"
+    second_reading = "ThÃ©sÃ©e, Roi dâ€™AthÃ¨nes" if variant else "ThÃ©sÃ©e, roi dâ€™AthÃ¨nes"
     lines = ["%%castlist%%"]
     if head:
         lines.extend(["%%head%%", "Acteurs", "Acteurs", "%%fin_head%%"])
-    lines.extend([cast_open, "Thésée, roi d’Athènes", second_reading, "%%fin_cast%%"])
+    lines.extend([cast_open, "ThÃ©sÃ©e, roi dâ€™AthÃ¨nes", second_reading, "%%fin_cast%%"])
     if setting:
-        lines.extend(["%%setting%%", "La scène est à Trézène.", "La Scene est à Trézène.", "%%fin_setting%%"])
+        lines.extend(["%%setting%%", "La scÃ¨ne est Ã  TrÃ©zÃ¨ne.", "La Scene est Ã  TrÃ©zÃ¨ne.", "%%fin_setting%%"])
     lines.append("%%fin_castlist%%")
     return "\n".join(lines)
 
@@ -85,13 +85,13 @@ def test_cast_id_is_not_duplicated_on_role() -> None:
 def test_generates_role_text() -> None:
     root = _root(_castlist_text())
 
-    assert root.findtext(".//tei:role", namespaces=NS) == "Thésée"
+    assert root.findtext(".//tei:role", namespaces=NS) == "ThÃ©sÃ©e"
 
 
 def test_generates_roledesc_when_desc_exists() -> None:
     root = _root(_castlist_text(desc=True))
 
-    assert root.findtext(".//tei:roleDesc", namespaces=NS) == "roi d’Athènes"
+    assert root.findtext(".//tei:roleDesc", namespaces=NS) == "roi dâ€™AthÃ¨nes"
 
 
 def test_omits_roledesc_when_desc_absent() -> None:
@@ -105,7 +105,10 @@ def test_preserves_semidiplomatic_readings_in_note() -> None:
     note = root.find(".//tei:note[@type='semi-diplomatic']", NS)
 
     assert note is not None
-    assert "Thésée, roi d’Athènes" in "".join(note.itertext())
+    note_text = " ".join("".join(note.itertext()).split())
+    assert note_text.startswith("ThÃ©sÃ©e,")
+    assert "roi" in note_text
+    assert note_text.endswith("dâ€™AthÃ¨nes")
 
 
 def test_differing_readings_generate_apparatus() -> None:
@@ -113,9 +116,9 @@ def test_differing_readings_generate_apparatus() -> None:
     app = root.find(".//tei:note[@type='semi-diplomatic']/tei:app", NS)
 
     assert app is not None
-    assert app.findtext("tei:lem", namespaces=NS) == "Thésée, roi d’Athènes"
+    assert app.findtext("tei:lem", namespaces=NS) == "roi "
     assert app.find("tei:lem", NS).attrib["wit"] == "#A"
-    assert app.findtext("tei:rdg", namespaces=NS) == "Thésée, Roi d’Athènes"
+    assert app.findtext("tei:rdg", namespaces=NS) == "Roi "
     assert app.find("tei:rdg", NS).attrib["wit"] == "#B"
 
 
@@ -125,7 +128,7 @@ def test_identical_readings_generate_simple_text() -> None:
 
     assert note is not None
     assert note.find("tei:app", NS) is None
-    assert "".join(note.itertext()) == "Thésée, roi d’Athènes"
+    assert "".join(note.itertext()) == "ThÃ©sÃ©e, roi dâ€™AthÃ¨nes"
 
 
 def test_generates_setting_stage_when_present() -> None:

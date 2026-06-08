@@ -6,6 +6,7 @@ from pathlib import Path
 import pytest
 
 from ets.core import run_pipeline
+from ets.validation.input_validator import InputValidationError
 
 
 def _write(path: Path, text: str) -> None:
@@ -67,7 +68,7 @@ def test_scene_change_does_not_reuse_previous_speaker() -> None:
         + "\n",
     )
 
-    with pytest.raises(ValueError, match="Verse found before speaker."):
+    with pytest.raises(InputValidationError, match="locuteur encode avec deux dieses"):
         run_pipeline(input_path=input_path, config_path=config_path)
 
 

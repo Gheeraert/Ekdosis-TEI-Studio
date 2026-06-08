@@ -105,7 +105,8 @@ def test_service_prepares_dialog_config_then_builds_master(tmp_path: Path) -> No
     assert result.prepared_config == prepared_config
     assert result.warnings == ("Avertissement controle.",)
     master_text = result.master_path.read_text(encoding="utf-8")
-    assert "Introduction issue de la config preparee." in master_text
+    assert "Introduction issue de la config preparee." not in master_text
+    assert str(prepared_config.general_intro_tei.resolve()) in master_text  # type: ignore[union-attr]
     assert "Config brute" not in master_text
 
 
@@ -119,7 +120,8 @@ def test_service_accepts_xml_config_without_real_pandoc(tmp_path: Path) -> None:
     assert result.prepared_config.plays[0].notice_xml_path == config.plays[0].notice_xml_path.resolve()
     assert result.warnings == ()
     master_text = result.master_path.read_text(encoding="utf-8")
-    assert "Introduction preparee." in master_text
+    assert "Introduction preparee." not in master_text
+    assert str(config.general_intro_tei.resolve()) in master_text  # type: ignore[union-attr]
     assert "Notice preparee." in master_text
     assert "Preface preparee." in master_text
     assert r"\speaker{ALPHA}" in master_text

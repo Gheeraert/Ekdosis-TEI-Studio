@@ -301,11 +301,12 @@ def test_docx_import_preserves_footnote_div_content_and_inline_styles() -> None:
     source = runtime / "notice_footnote_div.docx"
     source.write_text("placeholder", encoding="utf-8")
     payload = {
-        "meta": {},
+        "meta": {"title": {"t": "MetaInlines", "c": [{"t": "Str", "c": "Notice"}]}},
         "blocks": [
-            {
-                "t": "Para",
-                "c": [
+            {"t": "Header", "c": [1, ["", [], []], [{"t": "Str", "c": "Notice"}]]},
+                {
+                    "t": "Para",
+                    "c": [
                     {"t": "Str", "c": "Texte"},
                     {"t": "Space"},
                     {"t": "Str", "c": "principal"},
@@ -332,11 +333,14 @@ def test_docx_import_preserves_footnote_div_content_and_inline_styles() -> None:
                                 ],
                             }
                         ],
-                    },
-                ],
-            }
-        ],
-    }
+                        },
+                    ],
+                }
+                ,
+                {"t": "Header", "c": [1, ["", [], []], [{"t": "Str", "c": "Bibliographie"}]]},
+                {"t": "Para", "c": [{"t": "Str", "c": "Reference."}]},
+            ],
+        }
     service = EditorialNoticeImportService(pandoc_bridge=_StubBridge({source.name: payload}))
 
     result = service.import_docx(source, source_kind=EditorialSourceKind.PLAY_NOTICE)

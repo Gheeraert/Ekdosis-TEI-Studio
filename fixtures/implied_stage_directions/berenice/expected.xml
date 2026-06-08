@@ -41,7 +41,7 @@
             <speaker>ANTIOCHUS.</speaker>
             <stage xml:id="implicite1" type="DI" ana="#SET">
               <l n="1" xml:id="A1S1L1">ARRESTONS un moment. La pompe de ces Lieux,</l>
-              <l n="2" xml:id="A1S1L2">Je le <app>
+              <l n="2" xml:id="A1S1L2">Je le <app type="minor" subtype="graphic" ana="#u_v+y_i">
                   <lem wit="#A #B #E">voy </lem>
                   <rdg wit="#C #D">voi </rdg>
                 </app>bien, Arsace, est nouvelle à tes yeux.</l>
@@ -50,7 +50,7 @@
                   <rdg wit="#B">é </rdg>
                 </app>solitaire,</l>
               <l n="4" xml:id="A1S1L4">Des secrets de Titus est le dépositaire.</l>
-              <l n="5" xml:id="A1S1L5">C'est <app>
+              <l n="5" xml:id="A1S1L5">C'est <app type="minor" subtype="graphic" ana="#y_i">
                   <lem wit="#A #B #E">icy </lem>
                   <rdg wit="#C #D">ici </rdg>
                 </app>quelquefois qu'il se cache à sa Cour,</l>

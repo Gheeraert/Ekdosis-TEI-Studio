@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import json
 import tkinter as tk
@@ -255,7 +255,7 @@ def test_restore_autosave_reloads_text_and_invalidates_outputs(monkeypatch: pyte
         autosave_base.mkdir(parents=True, exist_ok=True)
 
         store = AutosaveStore(base_dir=autosave_base)
-        store.save(AutosavePayload(text="Texte restauré"))
+        store.save(AutosavePayload(text="Texte restaurÃ©"))
 
         window = MainWindow(root, autosave_store=store)
         window.state.tei_xml = "<TEI/>"
@@ -268,7 +268,7 @@ def test_restore_autosave_reloads_text_and_invalidates_outputs(monkeypatch: pyte
 
         window.action_restore_autosave()
 
-        assert window.editor.get_text() == "Texte restauré"
+        assert window.editor.get_text() == "Texte restaurÃ©"
         assert window.state.tei_xml is None
         assert window.state.html_preview is None
         assert window.state.outputs_stale is True
@@ -1055,7 +1055,7 @@ def test_publication_dialog_builds_rich_request_object(monkeypatch: pytest.Monke
         dialog = PublicationDialog(root)
         monkeypatch.setattr("tkinter.messagebox.showerror", lambda *args, **kwargs: None)
         dialog.vars.author_name.set("Jean Racine")
-        dialog.vars.corpus_title.set("Théâtre complet")
+        dialog.vars.corpus_title.set("Theatre complet")
         dialog.vars.scientific_editor.set("Caroline Labrune")
         dialog.vars.output_dir.set(str(output_dir))
         dialog.vars.home_page_tei.set(str(home_page_tei))
@@ -1073,7 +1073,6 @@ def test_publication_dialog_builds_rich_request_object(monkeypatch: pytest.Monke
         dialog.play_order_list.delete(0, tk.END)
         dialog.play_order_list.insert(tk.END, "berenice")
         dialog.play_order_list.insert(tk.END, "andromaque")
-        dialog.vars.show_xml_download.set(True)
         dialog.vars.publish_notices.set(True)
         dialog.vars.publish_prefaces.set(True)
 
@@ -1083,7 +1082,7 @@ def test_publication_dialog_builds_rich_request_object(monkeypatch: pytest.Monke
         assert dialog_result is not None
         assert dialog_result.action == "build"
         request = dialog_result.site_request
-        assert request.identity.site_title == "Théâtre complet"
+        assert request.identity.site_title == "Theatre complet"
         assert request.identity.site_subtitle == "Jean Racine"
         assert request.identity.editor == "Caroline Labrune"
         assert request.identity.project_name == "jean-racine-theatre-complet"
@@ -1129,6 +1128,7 @@ def test_publication_dialog_compiles_pdf_from_prepared_config_once(monkeypatch: 
             corpus_title="Theatre complet",
             output_dir=runtime / "site_out",
             general_intro_tei=prepared_intro,
+            build_latex_pdf=True,
             plays=(
                 SitePublicationDialogPlayConfig(
                     play_slug="piece",
@@ -1168,6 +1168,7 @@ def test_publication_dialog_compiles_pdf_from_prepared_config_once(monkeypatch: 
         dialog._append_play_from_path(raw_dramatic_docx)
         dialog._sync_play_order_from_entries()
 
+        dialog.vars.build_latex_pdf.set(True)
         request = dialog._build_request()
 
         assert len(fake_service.calls) == 1
@@ -1213,6 +1214,7 @@ def test_publication_dialog_pdf_master_lxml_error_is_non_blocking(monkeypatch: p
         prepared_config = SitePublicationDialogConfig(
             corpus_title="Theatre complet",
             output_dir=runtime / "site_out",
+            build_latex_pdf=True,
             plays=(
                 SitePublicationDialogPlayConfig(
                     play_slug="piece",
@@ -1237,6 +1239,7 @@ def test_publication_dialog_pdf_master_lxml_error_is_non_blocking(monkeypatch: p
         dialog._append_play_from_path(raw_piece)
         dialog._sync_play_order_from_entries()
 
+        dialog.vars.build_latex_pdf.set(True)
         request = dialog._build_request()
 
         assert len(fake_service.calls) == 1
@@ -1268,6 +1271,7 @@ def test_publication_dialog_pdf_compile_failure_is_non_blocking(monkeypatch: pyt
         )
         prepared_config = SitePublicationDialogConfig(
             corpus_title="Theatre complet",
+            build_latex_pdf=True,
             output_dir=runtime / "site_out",
             plays=(
                 SitePublicationDialogPlayConfig(
@@ -1307,6 +1311,7 @@ def test_publication_dialog_pdf_compile_failure_is_non_blocking(monkeypatch: pyt
         dialog._append_play_from_path(raw_piece)
         dialog._sync_play_order_from_entries()
 
+        dialog.vars.build_latex_pdf.set(True)
         request = dialog._build_request()
 
         assert len(fake_service.calls) == 1
@@ -1340,6 +1345,7 @@ def test_publication_dialog_pdf_compile_failure_does_not_show_modal(monkeypatch:
             front="<castList><castItem><role>ALPHA</role></castItem></castList>",
         )
         prepared_config = SitePublicationDialogConfig(
+            build_latex_pdf=True,
             corpus_title="Theatre complet",
             output_dir=runtime / "site_out",
             plays=(
@@ -1385,6 +1391,7 @@ def test_publication_dialog_pdf_compile_failure_does_not_show_modal(monkeypatch:
         dialog._append_play_from_path(raw_piece)
         dialog._sync_play_order_from_entries()
 
+        dialog.vars.build_latex_pdf.set(True)
         dialog._on_validate()
 
         assert len(fake_service.calls) == 1
@@ -1462,7 +1469,7 @@ def test_publication_dialog_multiselect_without_slug_creates_distinct_plays(monk
         assert not errors
         assert [item.play_slug for item in dialog._play_entries] == ["andromaque", "berenice"]
 
-        dialog.vars.corpus_title.set("Théâtre complet")
+        dialog.vars.corpus_title.set("ThÃ©Ã¢tre complet")
         dialog.vars.output_dir.set(str(runtime / "site_out"))
         request = dialog._build_request()
         assert len(request.plays) == 2
@@ -1741,7 +1748,7 @@ def test_publication_dialog_save_and_load_config_round_trip(monkeypatch: pytest.
         monkeypatch.setattr("tkinter.messagebox.showerror", lambda _title, message, **kwargs: errors.append(message))
 
         dialog.vars.author_name.set("Jean Racine")
-        dialog.vars.corpus_title.set("Théâtre complet")
+        dialog.vars.corpus_title.set("ThÃ©Ã¢tre complet")
         dialog.vars.scientific_editor.set("Caroline Labrune")
         dialog.vars.output_dir.set(str(output_dir))
         dialog.vars.home_page_tei.set(str(home_page_tei))
@@ -1759,7 +1766,6 @@ def test_publication_dialog_save_and_load_config_round_trip(monkeypatch: pytest.
         dialog.play_order_list.delete(0, tk.END)
         dialog.play_order_list.insert(tk.END, "berenice")
         dialog.play_order_list.insert(tk.END, "andromaque")
-        dialog.vars.show_xml_download.set(True)
         dialog.vars.publish_prefaces.set(True)
 
         dialog._on_save_config()
@@ -1784,7 +1790,7 @@ def test_publication_dialog_save_and_load_config_round_trip(monkeypatch: pytest.
 
         assert not errors
         assert dialog.vars.author_name.get() == "Jean Racine"
-        assert dialog.vars.corpus_title.get() == "Théâtre complet"
+        assert dialog.vars.corpus_title.get() == "ThÃ©Ã¢tre complet"
         assert dialog.vars.scientific_editor.get() == "Caroline Labrune"
         assert dialog.vars.home_page_tei.get() == str(home_page_tei.resolve())
         assert dialog.vars.general_intro_tei.get() == str(general_intro.resolve())
@@ -2374,7 +2380,7 @@ def test_selecting_line_range_annotation_focuses_first_line_and_range(monkeypatc
 
 def _two_witness_config() -> EditionConfig:
     return EditionConfig(
-        title="Phèdre",
+        title="PhÃ¨dre",
         author="Jean Racine",
         editor="Claire Martin",
         witnesses=[
@@ -2393,14 +2399,14 @@ Acteurs
 Acteurs
 %%fin_head%%
 
-%%cast id=thesee role="Thésée" desc="roi d'Athènes" aliases="THESEE|THESEE."%%
-Thésée, roi d'Athènes
-Thésée, Roi d'Athènes
+%%cast id=thesee role="ThÃ©sÃ©e" desc="roi d'AthÃ¨nes" aliases="THESEE|THESEE."%%
+ThÃ©sÃ©e, roi d'AthÃ¨nes
+ThÃ©sÃ©e, Roi d'AthÃ¨nes
 %%fin_cast%%
 
 %%setting%%
-La scène est à Trézène.
-La Scene est à Trézène.
+La scÃ¨ne est Ã  TrÃ©zÃ¨ne.
+La Scene est Ã  TrÃ©zÃ¨ne.
 %%fin_setting%%
 
 %%fin_castlist%%
@@ -2448,7 +2454,7 @@ def test_load_config_action_loads_configured_castlist_relative_to_config(
         assert window.state.config_path == config_path
         assert window.state.castlist_file_path == castlist_path
         assert "%%castlist%%" in window.castlist_editor.get_text()
-        assert "Thésée, roi d'Athènes" in window.castlist_editor.get_text()
+        assert "ThÃ©sÃ©e, roi d'AthÃ¨nes" in window.castlist_editor.get_text()
     finally:
         root.destroy()
 
@@ -2509,8 +2515,8 @@ def test_generate_tei_uses_config_directory_for_castlist_path(monkeypatch: pytes
         castlist_lines = [
             "%%castlist%%",
             "",
-            '%%cast id=thesee role="Thésée" desc="roi d\'Athènes" aliases="THESEE"%%',
-            *["Thésée, roi d'Athènes"] * len(base_config.witnesses),
+            '%%cast id=thesee role="ThÃ©sÃ©e" desc="roi d\'AthÃ¨nes" aliases="THESEE"%%',
+            *["ThÃ©sÃ©e, roi d'AthÃ¨nes"] * len(base_config.witnesses),
             "%%fin_cast%%",
             "",
             "%%fin_castlist%%",

@@ -115,7 +115,74 @@ def test_pipeline_emits_tei_hi_for_simple_underscore_italic() -> None:
     hi = line.find("tei:hi[@rend='italic']", NS)
     assert hi is not None
     assert "".join(hi.itertext()) == "temple"
+    assert "rend" not in line.attrib
     assert "_temple_" not in xml_text
+
+
+def test_pipeline_emits_inline_hi_for_multiword_underscore_italic() -> None:
+    text = "\n".join(
+        [
+            "####ACTE I####",
+            "####ACTE I####",
+            "####ACTE I####",
+            "",
+            "###SCENE I###",
+            "###SCENE I###",
+            "###SCENE I###",
+            "",
+            "#ORESTE#",
+            "#ORESTE#",
+            "#ORESTE#",
+            "",
+            "_oui je viens en son temple_ adorer l'Eternel",
+            "_oui je viens en son temple_ adorer l'Eternel",
+            "_oui je viens en son temple_ adorer l'Eternel",
+        ]
+    )
+    xml_text = run_pipeline_from_text(text, _mini_config())
+    root = _parse(xml_text)
+    line = _line(root, "1")
+    hi = line.find("tei:hi[@rend='italic']", NS)
+
+    assert hi is not None
+    assert "".join(hi.itertext()) == "oui je viens en son temple"
+    assert (hi.tail or "") == " adorer l'Eternel"
+    assert "rend" not in line.attrib
+    assert "_oui" not in xml_text
+    assert "temple_" not in xml_text
+
+
+def test_pipeline_keeps_shared_multiword_italic_across_apparatus_segments() -> None:
+    text = "\n".join(
+        [
+            "####ACTE I####",
+            "####ACTE I####",
+            "####ACTE I####",
+            "",
+            "###SCENE I###",
+            "###SCENE I###",
+            "###SCENE I###",
+            "",
+            "#ORESTE#",
+            "#ORESTE#",
+            "#ORESTE#",
+            "",
+            "_oui je viens en son temple_ adorer l'Eternel",
+            "_oui je marche en son autel_ adorer l'Eternel",
+            "_oui je viens en son temple_ adorer l'Eternel",
+        ]
+    )
+    xml_text = run_pipeline_from_text(text, _mini_config())
+    root = _parse(xml_text)
+    line = _line(root, "1")
+    hi = line.find("tei:hi[@rend='italic']", NS)
+
+    assert hi is not None
+    assert "oui" in "".join(hi.itertext())
+    assert len(hi.findall("tei:app", NS)) >= 2
+    assert "rend" not in line.attrib
+    assert "_oui" not in xml_text
+    assert "temple_" not in xml_text
 
 
 def test_pipeline_keeps_apparatus_and_italic_in_lemma_or_readings() -> None:
@@ -146,4 +213,46 @@ def test_pipeline_keeps_apparatus_and_italic_in_lemma_or_readings() -> None:
     assert app.find("tei:lem/tei:hi[@rend='italic']", NS) is not None
     assert app.find("tei:rdg[@wit='#B']", NS) is not None
     assert app.find("tei:rdg[@wit='#B']/tei:hi", NS) is None
+    assert "rend" not in line.attrib
     assert "_temple_" not in xml_text
+
+
+def test_pipeline_keeps_multiword_italic_variant_inline_without_line_rendition() -> None:
+    text = "\n".join(
+        [
+            "####ACTE I####",
+            "####ACTE I####",
+            "####ACTE I####",
+            "",
+            "###SCENE I###",
+            "###SCENE I###",
+            "###SCENE I###",
+            "",
+            "#ORESTE#",
+            "#ORESTE#",
+            "#ORESTE#",
+            "",
+            "_oui je viens en son temple_ adorer l'Eternel",
+            "oui je viens en son temple adorer l'Eternel",
+            "_oui je viens en son temple_ adorer l'Eternel",
+        ]
+    )
+    xml_text = run_pipeline_from_text(text, _mini_config())
+    root = _parse(xml_text)
+    line = _line(root, "1")
+    apps = line.findall("tei:app", NS)
+    direct_hi = line.find("tei:hi[@rend='italic']", NS)
+
+    assert len(apps) == 1
+    assert direct_hi is None
+    lemma_hi = apps[0].find("tei:lem/tei:hi[@rend='italic']", NS)
+    rdg = apps[0].find("tei:rdg[@wit='#B']", NS)
+    assert lemma_hi is not None
+    assert "".join(lemma_hi.itertext()).strip() == "oui je viens en son temple"
+    assert rdg is not None
+    assert rdg.find("tei:hi", NS) is None
+    assert "".join(rdg.itertext()).strip() == "oui je viens en son temple"
+    assert (apps[0].tail or "").startswith("adorer l'Eternel")
+    assert "rend" not in line.attrib
+    assert "_oui" not in xml_text
+    assert "temple_" not in xml_text

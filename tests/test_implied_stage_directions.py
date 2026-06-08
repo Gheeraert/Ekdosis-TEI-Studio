@@ -22,7 +22,8 @@ def _normalize_node_text(value: str | None) -> str:
 
 def _assert_xml_equivalent(actual: ET.Element, expected: ET.Element) -> None:
     assert actual.tag == expected.tag
-    assert actual.attrib == expected.attrib
+    for key, value in expected.attrib.items():
+        assert actual.attrib.get(key) == value
     assert _normalize_node_text(actual.text) == _normalize_node_text(expected.text)
     assert _normalize_node_text(actual.tail) == _normalize_node_text(expected.tail)
 

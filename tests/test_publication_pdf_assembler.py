@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 from pathlib import Path
 
@@ -149,14 +149,14 @@ def _realistic_prepared_config(tmp_path: Path) -> SitePublicationDialogConfig:
         extra_body="""
         <table>
           <row>
-            <cell>Témoin</cell>
-            <cell>Description longue destinée à revenir à la ligne dans le PDF.</cell>
+            <cell>TÃ©moin</cell>
+            <cell>Description longue destinÃ©e Ã  revenir Ã  la ligne dans le PDF.</cell>
             <cell>Note</cell>
           </row>
           <row>
             <cell>A</cell>
-            <cell>Tradition imprimée avec <hi rend="italic">variante</hi>.</cell>
-            <cell>Utilisé.</cell>
+            <cell>Tradition imprimÃ©e avec <hi rend="italic">variante</hi>.</cell>
+            <cell>UtilisÃ©.</cell>
           </row>
         </table>
         """,
@@ -261,14 +261,16 @@ def test_build_publication_pdf_master_creates_master_and_returns_resolved_path(t
     assert "\\documentclass[12pt,titlepage]{book}" in master_path.read_text(encoding="utf-8")
 
 
-def test_realistic_prepared_config_generates_complete_publication_master(tmp_path: Path) -> None:
+def test_realistic_prepared_config_generates_per_play_publication_master(tmp_path: Path) -> None:
     config = _realistic_prepared_config(tmp_path)
 
     master_text = build_publication_pdf_master(config, tmp_path / "build").read_text(encoding="utf-8")
 
-    assert r"\title{Theatre complet}" in master_text
-    assert r"\author{Jean Racine}" in master_text
-    assert r"\playtitlepage{Britannicus}{Jean Racine}{Texte édité par Tony Gheeraert.}{}" in master_text
+    assert r"\title{Theatre complet}" not in master_text
+    assert r"\author{Jean Racine}" not in master_text
+    assert "% Corpus-level title page intentionally omitted in per-play PDF." in master_text
+    assert r"\playtitlepage{Britannicus}{Jean Racine}{" in master_text
+    assert "Tony Gheeraert" in master_text
     assert "Transcription :" not in master_text
     assert "acte-fusionne" not in master_text
     assert r"\DeclareWitness{A}{1669}{Britannicus, Paris, Claude Barbin.}" in master_text
@@ -276,11 +278,10 @@ def test_realistic_prepared_config_generates_complete_publication_master(tmp_pat
     assert master_text.index(r"\DeclareWitness{A}{1669}") < master_text.index(r"\begin{document}")
     assert master_text.index(r"\DeclareWitness{B}{1676}") < master_text.index(r"\begin{document}")
 
-    assert "% GENERAL INTRO:" in master_text
-    assert "Introduction generale du corpus." in master_text
-    assert r"\begin{tabularx}{\linewidth}{@{}*{3}{Y}@{}}" in master_text
-    assert r"\setlength{\tabcolsep}{3pt}" in master_text
-    assert r"Tradition imprimée avec \emph{variante}." in master_text
+    assert "% GENERAL INTRO intentionally omitted from per-play PDF." in master_text
+    assert "% GENERAL INTRO source:" in master_text
+    assert "Introduction generale du corpus." not in master_text
+    assert r"Tradition imprimÃ©e avec \emph{variante}." not in master_text
     assert r"\begin{tabular}{" not in master_text
     assert "% NOTICE:" in master_text
     assert "Notice scientifique d'Andromaque." in master_text
@@ -297,21 +298,19 @@ def test_realistic_prepared_config_generates_complete_publication_master(tmp_pat
     assert r"\dramatictextsection{Britannicus}" in master_text
     assert "{Texte dramatique}" not in master_text
     assert r"\begin{ekdosis}" in master_text
-    assert r"\PURHDramaticTextSize" in master_text
+    assert r"\begin{PURHDramaticText}" in master_text
     assert r"\stage{ACTE I}" in master_text
     assert r"\stage{SCENE I}" in master_text
     assert r"\stage{SCENE II}" in master_text
     assert r"\speaker{ANDROMAQUE}" in master_text
     assert r"\speaker{PYRRHUS}" in master_text
     assert r"\app{" in master_text
-    assert r"\lem[wit={A}]" in master_text
+    assert r"\lem[wit={A}" in master_text
     assert r"\rdg[wit={B}]" in master_text
-    assert r"\vnum{1}{Je ne viens point ici pour \app{\lem[wit={A}]{augmenter}\rdg[wit={B}]{redoubler}} vos peines.\\}" in master_text
+    assert r"\vnum{1}{Je ne viens point ici pour \app{\lem[wit={A},nonum,alt={\textbf{1}~augmenter}]{augmenter}\rdg[wit={B}]{redoubler}} vos peines.\\}" in master_text
     assert r"\vnum{3}{Seigneur, tant de grandeurs ne nous touchent plus guere.\\}" in master_text
     assert r"\end{ekdosis}" in master_text
-    assert r"\normalsize" in master_text
-    assert r"\begin{PURHDramaticText}" not in master_text
-    assert r"\end{PURHDramaticText}" not in master_text
+    assert r"\end{PURHDramaticText}" in master_text
     assert "\\begin{ekdosis}\n\\end{ekdosis}" not in master_text
     assert r"\chapter" not in master_text
     assert "Chapitre 1" not in master_text
@@ -364,9 +363,10 @@ def test_master_contains_purh_publication_preamble(tmp_path: Path) -> None:
     assert r"\usepackage{titletoc}" in master_text
     assert r"\usepackage{fancyhdr}" in master_text
     assert r"\pagestyle{fancy}" in master_text
-    assert r"\fancyhead[L]{\small\itshape\PURHRunningAuthor}" in master_text
-    assert r"\fancyhead[R]{\small\itshape\PURHRunningTitle}" in master_text
-    assert r"\fancyfoot[C]{\thepage}" in master_text
+    assert r"\fancyhead[LE]{\thepage}" in master_text
+    assert r"\fancyhead[RE]{\small\itshape\PURHRunningTitle}" in master_text
+    assert r"\fancyhead[LO]{\small\itshape\PURHRunningAuthor}" in master_text
+    assert r"\fancyhead[RO]{\thepage}" in master_text
     assert r"\setcounter{secnumdepth}{0}" in master_text
     assert r"\clubpenalty=10000" in master_text
     assert r"\widowpenalty=10000" in master_text
@@ -381,7 +381,7 @@ def test_master_contains_purh_publication_preamble(tmp_path: Path) -> None:
     assert r"\newcommand{\playtitlepage}" in master_text
     assert r"\newcommand{\dramatissection}" in master_text
     assert r"\newcommand{\dramatictextsection}" in master_text
-    assert r"\newcommand{\PURHDramaticTextSize}{\fontsize{10}{12}\selectfont}" in master_text
+    assert r"\newenvironment{PURHDramaticText}" in master_text
 
 
 def test_master_running_title_uses_escaped_corpus_title(tmp_path: Path) -> None:
@@ -398,10 +398,9 @@ def test_master_uses_editorial_play_title_and_running_marks(tmp_path: Path) -> N
     master_text = build_publication_pdf_master(config, tmp_path / "build").read_text(encoding="utf-8")
 
     assert r"\setpurhrunningauthor{Jean Racine}" in master_text
-    assert r"\setpurhrunningtitle{Introduction générale}" in master_text
     assert r"\setpurhrunningtitle{Britannicus}" in master_text
-    assert r"\publicationsection{Introduction générale}{Introduction générale}" in master_text
-    assert r"\playtitlepage{Britannicus}{Jean Racine}{Texte édité par Tony Gheeraert.}{}" in master_text
+    assert r"\playtitlepage{Britannicus}{Jean Racine}{" in master_text
+    assert "Tony Gheeraert" in master_text
     assert r"\publicationsection{Notice}{Britannicus}" in master_text
     assert r"\publicationsection{Preface}{Britannicus}" in master_text
     assert r"\dramatissection{Britannicus}" in master_text
@@ -427,16 +426,16 @@ def test_master_contains_ekdosis_support_preamble(tmp_path: Path) -> None:
     assert r"\cs_new_protected:Npn \vnum" in master_text
 
 
-def test_master_excludes_home_page_and_includes_general_intro(tmp_path: Path) -> None:
+def test_master_excludes_home_page_and_omits_general_intro_body_for_per_play_pdf(tmp_path: Path) -> None:
     config = _config(tmp_path)
 
     master_text = build_publication_pdf_master(config, tmp_path / "build").read_text(encoding="utf-8")
 
     assert str(config.home_page_tei.resolve()) not in master_text  # type: ignore[union-attr]
     assert "Texte reserve a la page accueil." not in master_text
-    assert "% GENERAL INTRO:" in master_text
+    assert "% GENERAL INTRO intentionally omitted from per-play PDF." in master_text
     assert str(config.general_intro_tei.resolve()) in master_text  # type: ignore[union-attr]
-    assert "Introduction generale convertie." in master_text
+    assert "Introduction generale convertie." not in master_text
 
 
 def test_master_inserts_notice_and_preface_latex_fragments(tmp_path: Path) -> None:
@@ -589,7 +588,7 @@ def test_publication_pdf_master_can_hide_minor_variants(tmp_path: Path) -> None:
     master_text = build_publication_pdf_master(config, tmp_path / "build").read_text(encoding="utf-8")
 
     assert r"\app{\lem[wit={A}]{viens,}" not in master_text
-    assert r"\app{\lem[wit={A}]{partir}" in master_text
+    assert r"\app{\lem[wit={A},nonum,alt={\textbf{1}~partir}]{partir}" in master_text
 
 
 def test_publication_pdf_master_keeps_minor_variants_by_default(tmp_path: Path) -> None:
@@ -610,4 +609,4 @@ def test_publication_pdf_master_keeps_minor_variants_by_default(tmp_path: Path) 
 
     master_text = build_publication_pdf_master(config, tmp_path / "build").read_text(encoding="utf-8")
 
-    assert r"\app{\lem[wit={A}]{Seigneur,}" in master_text
+    assert r"\app{\lem[wit={A},nonum,alt={\textbf{1}~Seigneur,}]{Seigneur,}" in master_text
