@@ -1118,11 +1118,18 @@ class MainWindow(ttk.Frame):
             return
         messagebox.showinfo(title, f"Fichier exporté:\n{target}", parent=self.master)
 
-    def _set_current_config(self, config: EditionConfig, config_path: Path | None) -> None:
+    def _set_current_config(
+        self,
+        config: EditionConfig,
+        config_path: Path | None,
+        *,
+        load_configured_files: bool = False,
+    ) -> None:
         self.state.config = config
         self.state.config_path = config_path
-        self._load_configured_transcription()
-        self._load_configured_castlist()
+        if load_configured_files:
+            self._load_configured_transcription()
+            self._load_configured_castlist()
         self._invalidate_outputs(reason="config_changed")
         self._refresh_config_ui()
         self._schedule_autosave()
@@ -1271,21 +1278,21 @@ class MainWindow(ttk.Frame):
         except ValueError as exc:
             messagebox.showerror("Configuration invalide", str(exc), parent=self.master)
             return
-        self._set_current_config(config, Path(chosen))
+        self._set_current_config(config, Path(chosen), load_configured_files=True)
         messagebox.showinfo("Configuration chargée", "Configuration chargée avec succès.", parent=self.master)
 
     def action_new_config(self) -> None:
         config = open_config_dialog(self.master, None)
         if config is None:
             return
-        self._set_current_config(config, None)
+        self._set_current_config(config, None, load_configured_files=False)
         messagebox.showinfo("Configuration", "Nouvelle configuration appliquée en mémoire.", parent=self.master)
 
     def action_edit_config(self) -> None:
         config = open_config_dialog(self.master, self.state.config)
         if config is None:
             return
-        self._set_current_config(config, self.state.config_path)
+        self._set_current_config(config, self.state.config_path, load_configured_files=False)
         messagebox.showinfo("Configuration", "Configuration modifiée en mémoire.", parent=self.master)
 
     def action_save_config_as(self) -> None:
@@ -1683,7 +1690,7 @@ class MainWindow(ttk.Frame):
                 except ValueError:
                     config = None
                 if config is not None:
-                    self._set_current_config(config, config_path)
+                    self._set_current_config(config, config_path, load_configured_files=False)
 
         self._schedule_autosave()
         messagebox.showinfo("Autosave", "Enregistrement automatique restauré.", parent=self.master)

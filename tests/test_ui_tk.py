@@ -277,6 +277,39 @@ def test_restore_autosave_reloads_text_and_invalidates_outputs(monkeypatch: pyte
         root.destroy()
 
 
+def test_restore_autosave_with_configured_transcription_keeps_autosaved_text(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    root = _make_root()
+    try:
+        base_dir = RUNTIME_DIR / f"ui_autosave_config_{uuid4().hex}"
+        base_dir.mkdir(parents=True, exist_ok=True)
+        configured_transcription = base_dir / "configured.txt"
+        configured_transcription.write_text("Texte du fichier configuré", encoding="utf-8")
+        config_path = base_dir / "config.json"
+        save_edition_config(
+            replace(_two_witness_config(), transcription_path="configured.txt"),
+            config_path,
+        )
+
+        autosave_base = RUNTIME_DIR / f"ui_autosave_config_store_{uuid4().hex}"
+        autosave_base.mkdir(parents=True, exist_ok=True)
+        store = AutosaveStore(base_dir=autosave_base)
+        store.save(AutosavePayload(text="Texte autosauvé", config_path=str(config_path)))
+
+        window = MainWindow(root, autosave_store=store)
+        monkeypatch.setattr("tkinter.messagebox.showinfo", lambda *args, **kwargs: None)
+
+        window.action_restore_autosave()
+
+        assert window.editor.get_text() == "Texte autosauvé"
+        assert window.state.config_path == config_path
+        assert window.state.config is not None
+        assert window.state.config.transcription_path == "configured.txt"
+    finally:
+        root.destroy()
+
+
 def test_restore_autosave_when_missing_is_safe(monkeypatch: pytest.MonkeyPatch) -> None:
     root = _make_root()
     try:
@@ -2542,6 +2575,36 @@ def test_config_dialog_preserves_non_edited_config_fields() -> None:
         assert dialog.result.characters == initial.characters
         assert dialog.result.transcription_path == "Esther.txt"
         assert dialog.result.castlist_path == "Esther_castlist.txt"
+    finally:
+        root.destroy()
+
+
+def test_edit_config_with_transcription_path_does_not_overwrite_unsaved_text(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    root = _make_root()
+    try:
+        window = MainWindow(root)
+        base_dir = RUNTIME_DIR / f"ui_edit_config_transcription_{uuid4().hex}"
+        base_dir.mkdir(parents=True, exist_ok=True)
+        configured_transcription = base_dir / "configured.txt"
+        configured_transcription.write_text("Texte du fichier configuré", encoding="utf-8")
+        config_path = base_dir / "config.json"
+        initial_config = replace(_two_witness_config(), transcription_path="configured.txt")
+        edited_config = replace(initial_config, title="Phèdre corrigée")
+        window.state.config = initial_config
+        window.state.config_path = config_path
+        window.editor.set_text("Texte courant non enregistré")
+
+        monkeypatch.setattr("ets.ui.tk.main_window.open_config_dialog", lambda *_args, **_kwargs: edited_config)
+        monkeypatch.setattr("tkinter.messagebox.showinfo", lambda *args, **kwargs: None)
+
+        window.action_edit_config()
+
+        assert window.editor.get_text() == "Texte courant non enregistré"
+        assert window.state.config is not None
+        assert window.state.config.title == "Phèdre corrigée"
+        assert window.state.config.transcription_path == "configured.txt"
     finally:
         root.destroy()
 
