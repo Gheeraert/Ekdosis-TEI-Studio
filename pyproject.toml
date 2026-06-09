@@ -5,6 +5,7 @@ requires-python = ">=3.10"
 dependencies = [
     "lxml>=5.0.0",
     "rapidfuzz>=3.0.0",
+    "flask>=3.0",
 ]
 
 [tool.pytest.ini_options]

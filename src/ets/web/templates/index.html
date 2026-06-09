@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+{% block title %}ETS Web — Ekdosis-TEI Studio{% endblock %}
+
+{% block content %}
+
+{% if config_error %}
+<p class="msg error"><strong>Erreur de configuration :</strong> {{ config_error }}</p>
+{% endif %}
+
+<form method="post" action="/validate">
+
+  <fieldset>
+    <legend>Configuration</legend>
+
+    <details {% if form.config_json %}open{% endif %}>
+      <summary>Coller un JSON de configuration ETS</summary>
+      <p>Si ce champ est renseigné, il a priorité sur les champs individuels ci-dessous.</p>
+      <textarea name="config_json" rows="12">{{ form.config_json }}</textarea>
+    </details>
+
+    <details {% if not form.config_json %}open{% endif %}>
+      <summary>Saisir les champs individuellement</summary>
+
+      <div class="field">
+        <label>Titre de la pièce *</label>
+        <input type="text" name="titre" value="{{ form.titre }}" size="50">
+      </div>
+
+      <div class="field">
+        <label>Prénom de l'auteur</label>
+        <input type="text" name="auteur_prenom" value="{{ form.auteur_prenom }}" size="20">
+        <label>Nom de l'auteur</label>
+        <input type="text" name="auteur_nom" value="{{ form.auteur_nom }}" size="20">
+      </div>
+
+      <div class="field">
+        <label>Prénom de l'éditeur scientifique</label>
+        <input type="text" name="editeur_prenom" value="{{ form.editeur_prenom }}" size="20">
+        <label>Nom de l'éditeur scientifique</label>
+        <input type="text" name="editeur_nom" value="{{ form.editeur_nom }}" size="20">
+      </div>
+
+      <div class="field">
+        <label>Prénom du transcripteur</label>
+        <input type="text" name="transcripteur_prenom" value="{{ form.transcripteur_prenom }}" size="20">
+        <label>Nom du transcripteur</label>
+        <input type="text" name="transcripteur_nom" value="{{ form.transcripteur_nom }}" size="20">
+      </div>
+
+      <div class="field">
+        <label>Témoins (tableau JSON) *</label>
+        <textarea name="temoins_json" rows="8"
+          placeholder='[{"abbr": "A", "year": "1670", "desc": "Description du témoin"}]'>{{ form.temoins_json }}</textarea>
+      </div>
+
+      <div class="field">
+        <label>Témoin de référence (sigle ou indice 0-based, laisser vide = dernier témoin)</label>
+        <input type="text" name="temoin_reference" value="{{ form.temoin_reference }}" size="10"
+          placeholder="ex. A">
+      </div>
+    </details>
+  </fieldset>
+
+  <fieldset>
+    <legend>Transcription ETS *</legend>
+    <textarea name="transcription" rows="25">{{ form.transcription }}</textarea>
+  </fieldset>
+
+  <div class="actions">
+    <button type="submit">Valider</button>
+    <button type="submit" formaction="/generate">Générer TEI + HTML + LaTeX</button>
+  </div>
+
+</form>
+
+{# ── Résultats de validation ── #}
+{% if validation is defined and validation %}
+<section>
+  <h2>Validation</h2>
+  <p class="msg {{ 'success' if validation.ok else 'error' }}">{{ validation.message }}</p>
+
+  {% if validation.diagnostics %}
+  <table>
+    <thead>
+      <tr><th>Niveau</th><th>Code</th><th>Ligne</th><th>Acte / Scène</th><th>Message</th></tr>
+    </thead>
+    <tbody>
+    {% for d in validation.diagnostics %}
+    <tr class="level-{{ d.level | lower }}">
+      <td>{{ d.level }}</td>
+      <td>{{ d.code }}</td>
+      <td>{{ d.line_number if d.line_number is not none else '' }}</td>
+      <td>{{ (d.act or '') }}{% if d.scene %} / {{ d.scene }}{% endif %}</td>
+      <td>{{ d.message }}{% if d.excerpt %} — <em>{{ d.excerpt }}</em>{% endif %}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+</section>
+{% endif %}
+
+{# ── TEI XML ── #}
+{% if tei_result is defined and tei_result %}
+<section>
+  <h2>TEI XML</h2>
+  {% if tei_result.ok %}
+  <pre>{{ tei_result.tei_xml }}</pre>
+  {% else %}
+  <p class="msg error">{{ tei_result.message }}</p>
+  {% if tei_result.diagnostics %}
+  <table>
+    <thead>
+      <tr><th>Niveau</th><th>Code</th><th>Ligne</th><th>Message</th></tr>
+    </thead>
+    <tbody>
+    {% for d in tei_result.diagnostics %}
+    <tr class="level-{{ d.level | lower }}">
+      <td>{{ d.level }}</td>
+      <td>{{ d.code }}</td>
+      <td>{{ d.line_number if d.line_number is not none else '' }}</td>
+      <td>{{ d.message }}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+  {% endif %}
+</section>
+{% endif %}
+
+{# ── Aperçu HTML ── #}
+{% if html_result is defined and html_result and html_result.ok %}
+<section>
+  <h2>Aperçu HTML</h2>
+  <div class="preview">{{ html_result.html | safe }}</div>
+</section>
+{% endif %}
+
+{# ── LaTeX / Ekdosis ── #}
+{% if ekdosis is defined and ekdosis %}
+<section>
+  <h2>LaTeX / Ekdosis</h2>
+  <pre>{{ ekdosis }}</pre>
+</section>
+{% elif ekdosis_error is defined and ekdosis_error %}
+<section>
+  <h2>LaTeX / Ekdosis</h2>
+  <p class="msg warning">Génération Ekdosis non disponible : {{ ekdosis_error }}</p>
+</section>
+{% endif %}
+
+{% endblock %}
