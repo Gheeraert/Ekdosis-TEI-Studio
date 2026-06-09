@@ -6,8 +6,44 @@
 {% if config_error %}
 <p class="msg error"><strong>Erreur de configuration :</strong> {{ config_error }}</p>
 {% endif %}
+{% if load_error %}
+<p class="msg error"><strong>Erreur d'import :</strong> {{ load_error }}</p>
+{% endif %}
 
-<form method="post" action="/validate">
+<form method="post" action="/validate" enctype="multipart/form-data">
+
+  <fieldset>
+    <legend>Importer / exporter</legend>
+
+    <details>
+      <summary>Importer</summary>
+      <div class="field">
+        <label>Paquet ZIP ETS (recommandé, prioritaire)</label>
+        <input type="file" name="package_file" accept=".zip,application/zip">
+      </div>
+      <div class="field">
+        <label>JSON de configuration seul</label>
+        <input type="file" name="config_file" accept=".json,application/json">
+      </div>
+      <div class="field">
+        <label>Transcription seule</label>
+        <input type="file" name="transcription_file" accept=".txt,.md,text/plain">
+      </div>
+      <div class="field">
+        <label>Castlist seule</label>
+        <input type="file" name="castlist_file" accept=".txt,.md,text/plain">
+      </div>
+      <button type="submit" formaction="/load">Charger</button>
+    </details>
+
+    <details>
+      <summary>Exporter</summary>
+      <button type="submit" formaction="/download/package">Télécharger le paquet ZIP ETS</button>
+      <button type="submit" formaction="/download/config">Télécharger le JSON de configuration</button>
+      <button type="submit" formaction="/download/transcription">Télécharger la transcription</button>
+      <button type="submit" formaction="/download/castlist">Télécharger la castlist</button>
+    </details>
+  </fieldset>
 
   <fieldset>
     <legend>Configuration</legend>

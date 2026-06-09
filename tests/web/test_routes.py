@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import io
 import json
+import zipfile
 from pathlib import Path
 
 import pytest
@@ -304,3 +306,338 @@ def test_web_package_does_not_import_tkinter() -> None:
     for py_file in web_dir.rglob("*.py"):
         content = py_file.read_text(encoding="utf-8")
         assert "tkinter" not in content, f"tkinter trouvé dans {py_file.name}"
+
+
+# ── Helpers ZIP ───────────────────────────────────────────────────────────────
+
+def _make_zip(files: dict[str, str]) -> bytes:
+    """Build an in-memory ZIP from a dict {name: text_content}."""
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w") as zf:
+        for name, content in files.items():
+            zf.writestr(name, content)
+    return buf.getvalue()
+
+
+def _minimal_config_dict(title: str = "Britannicus") -> dict:
+    return {
+        "Prénom de l'auteur": "Jean",
+        "Nom de l'auteur": "Racine",
+        "Titre de la pièce": title,
+        "Prénom de l'éditeur scientifique": "",
+        "Nom de l'éditeur scientifique": "Editeur",
+        "Prénom du transcripteur": "",
+        "Nom du transcripteur": "",
+        "Temoins": [
+            {"abbr": "A", "year": "1670", "desc": "Édition princeps"},
+            {"abbr": "B", "year": "1676", "desc": "Collective"},
+        ],
+    }
+
+
+# ── POST /load — ZIP ──────────────────────────────────────────────────────────
+
+def test_load_zip_fills_all_three_zones(client) -> None:
+    cfg = _minimal_config_dict()
+    cfg["transcription_path"] = "britannicus.txt"
+    cfg["castlist_path"] = "britannicus_castlist.txt"
+    zip_bytes = _make_zip({
+        "britannicus.json": json.dumps(cfg),
+        "britannicus.txt": "Contenu transcription",
+        "britannicus_castlist.txt": "%%castlist%%\n%%fin_castlist%%",
+    })
+    rv = client.post("/load", data={
+        "package_file": (io.BytesIO(zip_bytes), "britannicus.zip"),
+    }, content_type="multipart/form-data")
+    assert rv.status_code == 200
+    html = rv.data.decode()
+    assert "Contenu transcription" in html
+    assert "%%castlist%%" in html
+    assert "Britannicus" in html
+
+
+def test_load_zip_json_only_fills_config(client) -> None:
+    cfg = _minimal_config_dict()
+    zip_bytes = _make_zip({"britannicus.json": json.dumps(cfg)})
+    rv = client.post("/load", data={
+        "package_file": (io.BytesIO(zip_bytes), "britannicus.zip"),
+    }, content_type="multipart/form-data")
+    assert rv.status_code == 200
+    html = rv.data.decode()
+    assert "Britannicus" in html
+
+
+def test_load_zip_uses_transcription_path_from_json(client) -> None:
+    cfg = _minimal_config_dict()
+    cfg["transcription_path"] = "custom_trans.txt"
+    zip_bytes = _make_zip({
+        "britannicus.json": json.dumps(cfg),
+        "custom_trans.txt": "Texte de la pièce",
+    })
+    rv = client.post("/load", data={
+        "package_file": (io.BytesIO(zip_bytes), "britannicus.zip"),
+    }, content_type="multipart/form-data")
+    assert rv.status_code == 200
+    assert "Texte de la pièce" in rv.data.decode()
+
+
+def test_load_zip_uses_castlist_path_from_json(client) -> None:
+    cfg = _minimal_config_dict()
+    cfg["castlist_path"] = "ma_castlist.txt"
+    zip_bytes = _make_zip({
+        "britannicus.json": json.dumps(cfg),
+        "ma_castlist.txt": "%%castlist%%\n%%fin_castlist%%",
+    })
+    rv = client.post("/load", data={
+        "package_file": (io.BytesIO(zip_bytes), "britannicus.zip"),
+    }, content_type="multipart/form-data")
+    assert rv.status_code == 200
+    assert "%%castlist%%" in rv.data.decode()
+
+
+def test_load_zip_fallback_names_when_paths_absent(client) -> None:
+    cfg = _minimal_config_dict()
+    zip_bytes = _make_zip({
+        "britannicus.json": json.dumps(cfg),
+        "britannicus.txt": "Fallback transcription",
+        "britannicus_castlist.txt": "%%castlist%%\n%%fin_castlist%%",
+    })
+    rv = client.post("/load", data={
+        "package_file": (io.BytesIO(zip_bytes), "britannicus.zip"),
+    }, content_type="multipart/form-data")
+    assert rv.status_code == 200
+    html = rv.data.decode()
+    assert "Fallback transcription" in html
+    assert "%%castlist%%" in html
+
+
+def test_load_zip_no_json_returns_error(client) -> None:
+    zip_bytes = _make_zip({"britannicus.txt": "juste du texte"})
+    rv = client.post("/load", data={
+        "package_file": (io.BytesIO(zip_bytes), "britannicus.zip"),
+    }, content_type="multipart/form-data")
+    assert rv.status_code == 200
+    html = rv.data.decode().lower()
+    assert "json" in html and ("aucun" in html or "erreur" in html)
+
+
+def test_load_zip_multiple_json_returns_error(client) -> None:
+    cfg = _minimal_config_dict()
+    zip_bytes = _make_zip({
+        "a.json": json.dumps(cfg),
+        "b.json": json.dumps(cfg),
+    })
+    rv = client.post("/load", data={
+        "package_file": (io.BytesIO(zip_bytes), "britannicus.zip"),
+    }, content_type="multipart/form-data")
+    assert rv.status_code == 200
+    html = rv.data.decode().lower()
+    assert "plusieurs" in html or "erreur" in html
+
+
+def test_load_zip_rejects_absolute_path(client) -> None:
+    cfg = _minimal_config_dict()
+    cfg["transcription_path"] = "/etc/passwd"
+    zip_bytes = _make_zip({
+        "britannicus.json": json.dumps(cfg),
+        "/etc/passwd": "root:x:0:0",
+    })
+    rv = client.post("/load", data={
+        "package_file": (io.BytesIO(zip_bytes), "britannicus.zip"),
+    }, content_type="multipart/form-data")
+    assert rv.status_code == 200
+    assert "root:x:0:0" not in rv.data.decode()
+
+
+def test_load_zip_rejects_path_traversal(client) -> None:
+    cfg = _minimal_config_dict()
+    cfg["transcription_path"] = "../secret.txt"
+    zip_bytes = _make_zip({
+        "britannicus.json": json.dumps(cfg),
+        "../secret.txt": "données secrètes",
+    })
+    rv = client.post("/load", data={
+        "package_file": (io.BytesIO(zip_bytes), "britannicus.zip"),
+    }, content_type="multipart/form-data")
+    assert rv.status_code == 200
+    assert "données secrètes" not in rv.data.decode()
+
+
+# ── POST /load — imports individuels ─────────────────────────────────────────
+
+def test_load_individual_config_file(client) -> None:
+    cfg = _minimal_config_dict()
+    rv = client.post("/load", data={
+        "config_file": (io.BytesIO(json.dumps(cfg).encode()), "test.json"),
+    }, content_type="multipart/form-data")
+    assert rv.status_code == 200
+    assert "Britannicus" in rv.data.decode()
+
+
+def test_load_individual_transcription_file(client) -> None:
+    rv = client.post("/load", data={
+        "transcription_file": (io.BytesIO(b"Mon texte de transcription"), "trans.txt"),
+    }, content_type="multipart/form-data")
+    assert rv.status_code == 200
+    assert "Mon texte de transcription" in rv.data.decode()
+
+
+def test_load_individual_castlist_file(client) -> None:
+    rv = client.post("/load", data={
+        "castlist_file": (io.BytesIO(b"%%castlist%%\n%%fin_castlist%%"), "castlist.txt"),
+    }, content_type="multipart/form-data")
+    assert rv.status_code == 200
+    assert "%%castlist%%" in rv.data.decode()
+
+
+# ── POST /download/package ────────────────────────────────────────────────────
+
+def test_download_package_returns_zip(client) -> None:
+    rv = client.post("/download/package", data={
+        "config_json": _minimal_config_json(),
+        "transcription": _valid_text(n_witnesses=2),
+        "castlist_text": "",
+    })
+    assert rv.status_code == 200
+    assert rv.content_type == "application/zip" or "zip" in rv.content_type
+
+
+def test_download_package_zip_contains_standalone_json(client) -> None:
+    rv = client.post("/download/package", data={
+        "config_json": _minimal_config_json(),
+        "transcription": _valid_text(n_witnesses=2),
+        "castlist_text": "",
+    })
+    assert rv.status_code == 200
+    with zipfile.ZipFile(io.BytesIO(rv.data)) as zf:
+        json_names = [n for n in zf.namelist() if n.endswith(".json")]
+        assert len(json_names) == 1
+        raw = json.loads(zf.read(json_names[0]))
+        assert "Titre de la pièce" in raw
+        assert "Temoins" in raw
+        assert raw.get("Titre de la pièce") == "Test"
+
+
+def test_download_package_zip_contains_transcription(client) -> None:
+    rv = client.post("/download/package", data={
+        "config_json": _minimal_config_json(),
+        "transcription": "Mon texte unique",
+        "castlist_text": "",
+    })
+    assert rv.status_code == 200
+    with zipfile.ZipFile(io.BytesIO(rv.data)) as zf:
+        txt_names = [n for n in zf.namelist() if n.endswith(".txt") and "_castlist" not in n]
+        assert len(txt_names) == 1
+        assert zf.read(txt_names[0]).decode() == "Mon texte unique"
+
+
+def test_download_package_zip_contains_castlist(client) -> None:
+    rv = client.post("/download/package", data={
+        "config_json": _minimal_config_json(),
+        "transcription": "",
+        "castlist_text": "%%castlist%%\n%%fin_castlist%%",
+    })
+    assert rv.status_code == 200
+    with zipfile.ZipFile(io.BytesIO(rv.data)) as zf:
+        castlist_names = [n for n in zf.namelist() if "_castlist" in n]
+        assert len(castlist_names) == 1
+        assert "%%castlist%%" in zf.read(castlist_names[0]).decode()
+
+
+def test_download_package_json_has_relative_paths(client) -> None:
+    rv = client.post("/download/package", data={
+        "config_json": _minimal_config_json(),
+        "transcription": "du texte",
+        "castlist_text": "%%castlist%%\n%%fin_castlist%%",
+    })
+    assert rv.status_code == 200
+    with zipfile.ZipFile(io.BytesIO(rv.data)) as zf:
+        json_names = [n for n in zf.namelist() if n.endswith(".json")]
+        raw = json.loads(zf.read(json_names[0]))
+        assert "transcription_path" in raw
+        assert "castlist_path" in raw
+        assert not raw["transcription_path"].startswith("/")
+        assert not raw["castlist_path"].startswith("/")
+
+
+# ── POST /download/config ─────────────────────────────────────────────────────
+
+def test_download_config_returns_standalone_json(client) -> None:
+    rv = client.post("/download/config", data={
+        "config_json": _minimal_config_json(),
+    })
+    assert rv.status_code == 200
+    raw = json.loads(rv.data)
+    assert "Titre de la pièce" in raw
+    assert "Temoins" in raw
+
+
+def test_download_config_has_french_keys(client) -> None:
+    rv = client.post("/download/config", data={
+        "config_json": _minimal_config_json(),
+    })
+    assert rv.status_code == 200
+    raw = json.loads(rv.data)
+    assert "Prénom de l'auteur" in raw or "Nom de l'auteur" in raw
+
+
+# ── POST /download/transcription ─────────────────────────────────────────────
+
+def test_download_transcription_returns_text(client) -> None:
+    rv = client.post("/download/transcription", data={
+        "config_json": _minimal_config_json(),
+        "transcription": "Contenu de la transcription",
+    })
+    assert rv.status_code == 200
+    assert "Contenu de la transcription" in rv.data.decode()
+
+
+# ── POST /download/castlist ───────────────────────────────────────────────────
+
+def test_download_castlist_returns_text(client) -> None:
+    rv = client.post("/download/castlist", data={
+        "config_json": _minimal_config_json(),
+        "castlist_text": "%%castlist%%\n%%fin_castlist%%",
+    })
+    assert rv.status_code == 200
+    assert "%%castlist%%" in rv.data.decode()
+
+
+# ── Stateless : pas de stockage permanent ─────────────────────────────────────
+
+def test_load_zip_invalid_json_returns_error_not_500(client) -> None:
+    zip_bytes = _make_zip({"britannicus.json": "{ pas du json valide !!!"})
+    rv = client.post("/load", data={
+        "package_file": (io.BytesIO(zip_bytes), "britannicus.zip"),
+    }, content_type="multipart/form-data")
+    assert rv.status_code == 200
+    html = rv.data.decode().lower()
+    assert "invalide" in html or "erreur" in html
+
+
+def test_download_package_removes_stale_paths_when_content_empty(client) -> None:
+    cfg = _minimal_config_dict()
+    cfg["transcription_path"] = "ancien_chemin.txt"
+    cfg["castlist_path"] = "ancienne_castlist.txt"
+    rv = client.post("/download/package", data={
+        "config_json": json.dumps(cfg),
+        "transcription": "",
+        "castlist_text": "",
+    })
+    assert rv.status_code == 200
+    with zipfile.ZipFile(io.BytesIO(rv.data)) as zf:
+        json_names = [n for n in zf.namelist() if n.endswith(".json")]
+        raw = json.loads(zf.read(json_names[0]))
+        assert "transcription_path" not in raw
+        assert "castlist_path" not in raw
+
+
+def test_load_zip_no_permanent_file(client, tmp_path) -> None:
+    import os
+    cfg = _minimal_config_dict()
+    zip_bytes = _make_zip({"test.json": json.dumps(cfg)})
+    before = set(os.listdir(tmp_path))
+    client.post("/load", data={
+        "package_file": (io.BytesIO(zip_bytes), "test.zip"),
+    }, content_type="multipart/form-data")
+    assert set(os.listdir(tmp_path)) == before
