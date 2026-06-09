@@ -186,6 +186,99 @@ def test_generate_with_form_fields_instead_of_json(client) -> None:
     assert "TEI XML" in html
 
 
+# ── castlist_text ─────────────────────────────────────────────────────────────
+
+def _castlist_text_2witnesses() -> str:
+    """Minimal valid castlist for 2 witnesses with speaker THESEE."""
+    return "\n".join([
+        "%%castlist%%",
+        '%%cast id=thesee role="Thésée" aliases="THESEE"%%',
+        "Thésée",
+        "Thésée",
+        "%%fin_cast%%",
+        "%%fin_castlist%%",
+    ])
+
+
+def _text_with_thesee(n_witnesses: int = 2) -> str:
+    """Minimal valid ETS transcription using THESEE as speaker."""
+    lines: list[str] = []
+    lines += ["####ACTE I####"] * n_witnesses
+    lines += [""]
+    lines += ["###SCENE I###"] * n_witnesses
+    lines += [""]
+    lines += ["#THESEE#"] * n_witnesses
+    lines += [""]
+    lines += ["Je parle."] * n_witnesses
+    return "\n".join(lines)
+
+
+def test_index_shows_castlist_text_field(client) -> None:
+    rv = client.get("/")
+    html = rv.data.decode()
+    assert 'name="castlist_text"' in html
+
+
+def test_validate_without_castlist_text_keeps_current_behavior(client) -> None:
+    rv = client.post("/validate", data={
+        "config_json": _minimal_config_json(n_witnesses=2),
+        "transcription": _valid_text(n_witnesses=2),
+        "castlist_text": "",
+    })
+    assert rv.status_code == 200
+    html = rv.data.decode()
+    assert "Validation" in html
+
+
+def test_validate_with_castlist_text_uses_castlist_device(client) -> None:
+    rv = client.post("/validate", data={
+        "config_json": _minimal_config_json(n_witnesses=2),
+        "transcription": _text_with_thesee(n_witnesses=2),
+        "castlist_text": _castlist_text_2witnesses(),
+    })
+    assert rv.status_code == 200
+    html = rv.data.decode()
+    assert "Validation" in html
+    assert "ERROR" not in html
+
+
+def test_generate_with_castlist_text_produces_dramatis_personae(client) -> None:
+    rv = client.post("/generate", data={
+        "config_json": _minimal_config_json(n_witnesses=2),
+        "transcription": _text_with_thesee(n_witnesses=2),
+        "castlist_text": _castlist_text_2witnesses(),
+    })
+    assert rv.status_code == 200
+    html = rv.data.decode()
+    assert "TEI XML" in html
+    assert "dramatis-personae" in html
+
+
+def test_castlist_path_in_json_not_read_as_local_path(client) -> None:
+    config = json.loads(_minimal_config_json(n_witnesses=2))
+    config["castlist_path"] = "/etc/passwd"
+    rv = client.post("/validate", data={
+        "config_json": json.dumps(config),
+        "transcription": _valid_text(n_witnesses=2),
+        "castlist_text": "",
+    })
+    assert rv.status_code == 200
+    html = rv.data.decode()
+    assert "Validation" in html or "vide" not in html.lower()
+
+
+def test_no_permanent_file_created(client, tmp_path) -> None:
+    import os
+    before = set(os.listdir(tmp_path))
+    client.post("/generate", data={
+        "config_json": _minimal_config_json(n_witnesses=2),
+        "transcription": _text_with_thesee(n_witnesses=2),
+        "castlist_text": _castlist_text_2witnesses(),
+    })
+    after = set(os.listdir(tmp_path))
+    assert before == after
+
+
 # ── Isolation ─────────────────────────────────────────────────────────────────
 
 def test_web_package_does_not_import_tkinter() -> None:

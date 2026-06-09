@@ -62,6 +62,16 @@
   </fieldset>
 
   <fieldset>
+    <legend>Dramatis personae (optionnel)</legend>
+    <details {% if form.castlist_text %}open{% endif %}>
+      <summary>Coller le contenu d'un fichier castlist ETS</summary>
+      <p>Si ce champ est renseigné, il remplace le <code>castlist_path</code> éventuellement présent dans le JSON de configuration.</p>
+      <textarea name="castlist_text" rows="10"
+        placeholder="%%castlist%%&#10;%%cast id=… role=&quot;…&quot; aliases=&quot;…&quot;%%&#10;…&#10;%%fin_cast%%&#10;%%fin_castlist%%">{{ form.castlist_text }}</textarea>
+    </details>
+  </fieldset>
+
+  <fieldset>
     <legend>Transcription ETS *</legend>
     <textarea name="transcription" rows="25">{{ form.transcription }}</textarea>
   </fieldset>
