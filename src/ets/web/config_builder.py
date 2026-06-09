@@ -150,9 +150,21 @@ def config_from_form(form: Any) -> EditionConfig:
         else:
             try:
                 idx = int(temoin_reference_raw)
-                reference_witness = idx if 0 <= idx < len(witnesses) else len(witnesses) - 1
             except ValueError:
-                reference_witness = len(witnesses) - 1
+                known = ", ".join(sigla)
+                raise ValueError(
+                    f"Témoin de référence invalide : {temoin_reference_raw!r} "
+                    f"n'est ni un sigle connu ({known}) ni un entier."
+                )
+            if 0 <= idx < len(witnesses):
+                reference_witness = idx
+            elif 1 <= idx <= len(witnesses):
+                reference_witness = idx - 1
+            else:
+                raise ValueError(
+                    f"Index de témoin de référence hors limites : {idx} "
+                    f"(attendu entre 0 et {len(witnesses) - 1})."
+                )
     else:
         reference_witness = len(witnesses) - 1
 

@@ -140,10 +140,21 @@
 {% endif %}
 
 {# ── Aperçu HTML ── #}
-{% if html_result is defined and html_result and html_result.ok %}
+{% if html_result is defined and html_result %}
 <section>
   <h2>Aperçu HTML</h2>
+  {% if html_result.ok %}
   <div class="preview">{{ html_result.html | safe }}</div>
+  {% else %}
+  <p class="msg error">Échec de l'aperçu HTML{% if html_result.message %} : {{ html_result.message }}{% endif %}</p>
+  {% if html_result.diagnostics %}
+  <ul>
+    {% for d in html_result.diagnostics %}
+    <li><strong>{{ d.code }}</strong> — {{ d.message }}</li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+  {% endif %}
 </section>
 {% endif %}
 

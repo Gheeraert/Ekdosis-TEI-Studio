@@ -90,6 +90,24 @@ def test_validate_with_empty_transcription_returns_error(client) -> None:
     assert "vide" in rv.data.decode().lower()
 
 
+def test_validate_with_whitespace_only_transcription_returns_error(client) -> None:
+    rv = client.post("/validate", data={
+        "config_json": _minimal_config_json(),
+        "transcription": "   \n\t  ",
+    })
+    assert rv.status_code == 200
+    assert "vide" in rv.data.decode().lower()
+
+
+def test_generate_with_whitespace_only_transcription_returns_error(client) -> None:
+    rv = client.post("/generate", data={
+        "config_json": _minimal_config_json(),
+        "transcription": "   \n\t  ",
+    })
+    assert rv.status_code == 200
+    assert "vide" in rv.data.decode().lower()
+
+
 def test_validate_with_invalid_config_json_returns_error(client) -> None:
     rv = client.post("/validate", data={
         "config_json": "{ pas du json }",

@@ -6,7 +6,7 @@ import tempfile
 from contextlib import contextmanager
 from pathlib import Path
 
-from flask import Blueprint, render_template, request
+from flask import Blueprint, current_app, render_template, request
 
 from ets.application.services import (
     generate_ekdosis_from_tei,
@@ -81,13 +81,13 @@ def validate():
     except ValueError as exc:
         return render_template("index.html", form=form, config_error=str(exc))
 
-    text = request.form.get("transcription", "").strip()
-    if not text:
+    raw_text = request.form.get("transcription", "")
+    if not raw_text.strip():
         return render_template("index.html", form=form, config_error="La transcription est vide.")
 
     castlist_text = request.form.get("castlist_text", "")
     with _castlist_tempdir(castlist_text, config) as (cfg, base_dir):
-        result = validate_text(text, cfg, castlist_base_dir=base_dir)
+        result = validate_text(raw_text, cfg, castlist_base_dir=base_dir)
     return render_template("index.html", form=form, validation=result)
 
 
@@ -99,13 +99,13 @@ def generate():
     except ValueError as exc:
         return render_template("index.html", form=form, config_error=str(exc))
 
-    text = request.form.get("transcription", "").strip()
-    if not text:
+    raw_text = request.form.get("transcription", "")
+    if not raw_text.strip():
         return render_template("index.html", form=form, config_error="La transcription est vide.")
 
     castlist_text = request.form.get("castlist_text", "")
     with _castlist_tempdir(castlist_text, config) as (cfg, base_dir):
-        tei_result = generate_tei_from_text(text, cfg, castlist_base_dir=base_dir)
+        tei_result = generate_tei_from_text(raw_text, cfg, castlist_base_dir=base_dir)
     html_result = None
     ekdosis = None
     ekdosis_error = None
@@ -115,6 +115,7 @@ def generate():
         try:
             ekdosis = generate_ekdosis_from_tei(tei_result.tei_xml)
         except Exception as exc:
+            current_app.logger.exception("Erreur inattendue lors de la génération Ekdosis")
             ekdosis_error = str(exc)
 
     return render_template(

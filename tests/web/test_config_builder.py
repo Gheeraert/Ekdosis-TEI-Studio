@@ -212,6 +212,40 @@ def test_config_from_form_invalid_json_raises() -> None:
         config_from_form(form)
 
 
+def _form_with_reference(ref: str) -> dict:
+    return {
+        "titre": "Test",
+        "auteur_prenom": "",
+        "auteur_nom": "",
+        "editeur_prenom": "",
+        "editeur_nom": "",
+        "transcripteur_prenom": "",
+        "transcripteur_nom": "",
+        "temoins_json": json.dumps(_TEMOINS_2),
+        "temoin_reference": ref,
+    }
+
+
+def test_config_from_form_reference_by_index_zero_based() -> None:
+    cfg = config_from_form(_form_with_reference("0"))
+    assert cfg.reference_witness == 0
+
+
+def test_config_from_form_reference_unknown_siglum_raises() -> None:
+    with pytest.raises(ValueError, match="[Ss]igle|invalide"):
+        config_from_form(_form_with_reference("Z"))
+
+
+def test_config_from_form_reference_non_numeric_non_siglum_raises() -> None:
+    with pytest.raises(ValueError, match="invalide|entier"):
+        config_from_form(_form_with_reference("pas-un-sigle"))
+
+
+def test_config_from_form_reference_index_out_of_bounds_raises() -> None:
+    with pytest.raises(ValueError, match="[Hh]ors limites|hors|invalide"):
+        config_from_form(_form_with_reference("99"))
+
+
 def test_config_from_form_castlist_path_always_empty() -> None:
     form = {
         "titre": "Test",
