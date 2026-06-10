@@ -149,7 +149,7 @@ def _annotated_source_lines(text: str, diagnostics) -> list[dict]:
 
 @bp.get("/")
 def index():
-    return render_template("index.html", form=_empty_form())
+    return render_template("index.html", form=_empty_form(), active_tab="import")
 
 
 @bp.post("/validate")
@@ -158,17 +158,18 @@ def validate():
     try:
         config = _build_config(request.form)
     except ValueError as exc:
-        return render_template("index.html", form=form, config_error=str(exc))
+        return render_template("index.html", form=form, config_error=str(exc), active_tab="resultats")
 
     raw_text = request.form.get("transcription", "")
     if not raw_text.strip():
-        return render_template("index.html", form=form, config_error="La transcription est vide.")
+        return render_template("index.html", form=form, config_error="La transcription est vide.", active_tab="resultats")
 
     castlist_text = request.form.get("castlist_text", "")
     with _castlist_tempdir(castlist_text, config) as (cfg, base_dir):
         result = validate_text(raw_text, cfg, castlist_base_dir=base_dir)
     annotated_lines = _annotated_source_lines(raw_text, result.diagnostics)
-    return render_template("index.html", form=form, validation=result, annotated_lines=annotated_lines)
+    return render_template("index.html", form=form, validation=result, annotated_lines=annotated_lines,
+                           active_tab="resultats")
 
 
 @bp.post("/generate")
@@ -177,11 +178,11 @@ def generate():
     try:
         config = _build_config(request.form)
     except ValueError as exc:
-        return render_template("index.html", form=form, config_error=str(exc))
+        return render_template("index.html", form=form, config_error=str(exc), active_tab="resultats")
 
     raw_text = request.form.get("transcription", "")
     if not raw_text.strip():
-        return render_template("index.html", form=form, config_error="La transcription est vide.")
+        return render_template("index.html", form=form, config_error="La transcription est vide.", active_tab="resultats")
 
     castlist_text = request.form.get("castlist_text", "")
     with _castlist_tempdir(castlist_text, config) as (cfg, base_dir):
@@ -207,6 +208,7 @@ def generate():
         ekdosis=ekdosis,
         ekdosis_error=ekdosis_error,
         annotated_lines=annotated_lines,
+        active_tab="resultats",
     )
 
 
@@ -238,7 +240,7 @@ def load():
                         raw = json.loads(zf.read(json_name).decode("utf-8"))
                     except (UnicodeDecodeError, json.JSONDecodeError) as exc:
                         load_error = f"Le fichier JSON du ZIP est invalide : {exc}"
-                        return render_template("index.html", form=form, load_error=load_error)
+                        return render_template("index.html", form=form, load_error=load_error, active_tab="import")
                     form["config_json"] = json.dumps(raw, ensure_ascii=False, indent=2)
 
                     stem = json_name.rsplit(".", 1)[0]
@@ -269,7 +271,8 @@ def load():
         if castlist_file and castlist_file.filename:
             form["castlist_text"] = castlist_file.read().decode("utf-8")
 
-    return render_template("index.html", form=form, load_error=load_error)
+    return render_template("index.html", form=form, load_error=load_error,
+                           active_tab="import" if load_error else "saisie")
 
 
 @bp.post("/download/package")

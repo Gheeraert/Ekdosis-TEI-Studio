@@ -724,13 +724,22 @@ def test_form_fields_unchanged(client) -> None:
 
 # ── Interface à onglets ───────────────────────────────────────────────────────
 
-def test_index_has_four_tabs(client) -> None:
+def test_index_has_five_tabs(client) -> None:
     rv = client.get("/")
     html = rv.data.decode()
-    assert "Import / Export" in html
+    assert "Import" in html
     assert "Configuration" in html
     assert "Saisie" in html
     assert "Résultats" in html
+    assert "Export supplémentaire" in html
+
+
+def test_index_old_tab_name_absent(client) -> None:
+    rv = client.get("/")
+    html = rv.data.decode()
+    import re
+    tab_buttons = re.findall(r'<button[^>]+class="tab-button"[^>]*>([^<]+)</button>', html)
+    assert "Import / Export" not in tab_buttons
 
 
 def test_index_tab_buttons_are_not_submit(client) -> None:
@@ -773,3 +782,68 @@ def test_index_single_form(client) -> None:
     rv = client.get("/")
     html = rv.data.decode()
     assert html.count("<form") == 1, "Il doit y avoir exactement un seul <form>"
+
+
+# ── Onglet actif selon le contexte ────────────────────────────────────────────
+
+def test_index_active_tab_is_import(client) -> None:
+    rv = client.get("/")
+    html = rv.data.decode()
+    assert 'data-active-tab="tab-import"' in html
+
+
+def test_load_success_active_tab_saisie(client) -> None:
+    cfg = _minimal_config_dict()
+    zip_bytes = _make_zip({"test.json": json.dumps(cfg)})
+    rv = client.post("/load", data={
+        "package_file": (io.BytesIO(zip_bytes), "test.zip"),
+    }, content_type="multipart/form-data")
+    assert rv.status_code == 200
+    html = rv.data.decode()
+    assert 'data-active-tab="tab-saisie"' in html
+
+
+def test_load_error_active_tab_import(client) -> None:
+    zip_bytes = _make_zip({"no_json.txt": "juste du texte"})
+    rv = client.post("/load", data={
+        "package_file": (io.BytesIO(zip_bytes), "test.zip"),
+    }, content_type="multipart/form-data")
+    assert rv.status_code == 200
+    html = rv.data.decode()
+    assert 'data-active-tab="tab-import"' in html
+
+
+def test_validate_active_tab_resultats(client) -> None:
+    rv = client.post("/validate", data={
+        "config_json": _minimal_config_json(n_witnesses=2),
+        "transcription": _valid_text(n_witnesses=2),
+    })
+    assert rv.status_code == 200
+    assert 'data-active-tab="tab-resultats"' in rv.data.decode()
+
+
+def test_generate_active_tab_resultats(client) -> None:
+    rv = client.post("/generate", data={
+        "config_json": _minimal_config_json(n_witnesses=2),
+        "transcription": _valid_text(n_witnesses=2),
+    })
+    assert rv.status_code == 200
+    assert 'data-active-tab="tab-resultats"' in rv.data.decode()
+
+
+# ── Boutons d'export dans l'onglet Export supplémentaire ─────────────────────
+
+def test_export_tab_has_all_download_buttons(client) -> None:
+    rv = client.get("/")
+    html = rv.data.decode()
+    for route in ["/download/package", "/download/config",
+                  "/download/transcription", "/download/castlist"]:
+        assert route in html, f"formaction manquant : {route}"
+
+
+def test_import_fields_still_present(client) -> None:
+    rv = client.get("/")
+    html = rv.data.decode()
+    for field in ["name=\"package_file\"", "name=\"config_file\"",
+                  "name=\"transcription_file\"", "name=\"castlist_file\""]:
+        assert field in html, f"Champ d'import manquant : {field}"
