@@ -643,6 +643,85 @@ def test_load_zip_no_permanent_file(client, tmp_path) -> None:
     assert set(os.listdir(tmp_path)) == before
 
 
+# ── Transcription annotée ────────────────────────────────────────────────────
+
+def test_validate_invalid_shows_annotated_source_section(client) -> None:
+    rv = client.post("/validate", data={
+        "config_json": _minimal_config_json(n_witnesses=2),
+        "transcription": _invalid_text_single_reading(),
+    })
+    assert rv.status_code == 200
+    html = rv.data.decode()
+    assert "annotated-source" in html
+
+
+def test_validate_annotated_lines_have_stable_ids(client) -> None:
+    rv = client.post("/validate", data={
+        "config_json": _minimal_config_json(n_witnesses=2),
+        "transcription": _invalid_text_single_reading(),
+    })
+    assert rv.status_code == 200
+    html = rv.data.decode()
+    assert 'id="src-line-1"' in html
+    assert 'id="src-line-2"' in html
+
+
+def test_validate_diagnostic_table_links_to_annotated_line(client) -> None:
+    rv = client.post("/validate", data={
+        "config_json": _minimal_config_json(n_witnesses=2),
+        "transcription": _invalid_text_single_reading(),
+    })
+    assert rv.status_code == 200
+    html = rv.data.decode()
+    import re
+    assert re.search(r'href="#src-line-\d+"', html), "Aucun lien vers une ligne annotée"
+
+
+def test_validate_faulty_line_has_error_class(client) -> None:
+    rv = client.post("/validate", data={
+        "config_json": _minimal_config_json(n_witnesses=2),
+        "transcription": _invalid_text_single_reading(),
+    })
+    assert rv.status_code == 200
+    html = rv.data.decode()
+    assert "source-line-error" in html or "source-line-warning" in html
+
+
+def test_generate_valid_shows_annotated_source(client) -> None:
+    rv = client.post("/generate", data={
+        "config_json": _minimal_config_json(n_witnesses=2),
+        "transcription": _valid_text(n_witnesses=2),
+    })
+    assert rv.status_code == 200
+    html = rv.data.decode()
+    assert "annotated-source" in html
+    assert 'id="src-line-1"' in html
+
+
+def test_validate_returns_200(client) -> None:
+    rv = client.post("/validate", data={
+        "config_json": _minimal_config_json(n_witnesses=2),
+        "transcription": _valid_text(n_witnesses=2),
+    })
+    assert rv.status_code == 200
+
+
+def test_generate_returns_200(client) -> None:
+    rv = client.post("/generate", data={
+        "config_json": _minimal_config_json(n_witnesses=2),
+        "transcription": _valid_text(n_witnesses=2),
+    })
+    assert rv.status_code == 200
+
+
+def test_form_fields_unchanged(client) -> None:
+    rv = client.get("/")
+    html = rv.data.decode()
+    assert 'name="transcription"' in html
+    assert 'name="config_json"' in html
+    assert 'name="castlist_text"' in html
+
+
 # ── Interface à onglets ───────────────────────────────────────────────────────
 
 def test_index_has_four_tabs(client) -> None:

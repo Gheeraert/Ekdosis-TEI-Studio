@@ -190,7 +190,7 @@
           <tr class="level-{{ d.level | lower }}">
             <td>{{ d.level }}</td>
             <td>{{ d.code }}</td>
-            <td>{{ d.line_number if d.line_number is not none else '' }}</td>
+            <td>{% if d.line_number is not none %}<a href="#src-line-{{ d.line_number }}">{{ d.line_number }}</a>{% endif %}</td>
             <td>{{ (d.act or '') }}{% if d.scene %} / {{ d.scene }}{% endif %}</td>
             <td>{{ d.message }}{% if d.excerpt %} — <em>{{ d.excerpt }}</em>{% endif %}</td>
           </tr>
@@ -218,7 +218,7 @@
           <tr class="level-{{ d.level | lower }}">
             <td>{{ d.level }}</td>
             <td>{{ d.code }}</td>
-            <td>{{ d.line_number if d.line_number is not none else '' }}</td>
+            <td>{% if d.line_number is not none %}<a href="#src-line-{{ d.line_number }}">{{ d.line_number }}</a>{% endif %}</td>
             <td>{{ d.message }}</td>
           </tr>
           {% endfor %}
@@ -256,6 +256,27 @@
       <section>
         <h2>LaTeX / Ekdosis</h2>
         <p class="msg warning">Génération Ekdosis non disponible : {{ ekdosis_error }}</p>
+      </section>
+      {% endif %}
+
+      {% if annotated_lines is defined and annotated_lines %}
+      <section>
+        <h2>Transcription annotée</h2>
+        <div class="annotated-source">
+          {% for line in annotated_lines %}
+          <div id="src-line-{{ line.number }}" class="source-line{% if line.level %} source-line-{{ line.level }}{% endif %}">
+            <span class="line-number">{{ line.number }}</span>
+            <div>
+              <code class="line-text">{{ line.text }}</code>
+              {% if line.diagnostics %}
+              <div class="line-diagnostics">
+                {% for d in line.diagnostics %}<span class="diag-inline"><strong>{{ d.code }}</strong> {{ d.message }}</span>{% endfor %}
+              </div>
+              {% endif %}
+            </div>
+          </div>
+          {% endfor %}
+        </div>
       </section>
       {% endif %}
 

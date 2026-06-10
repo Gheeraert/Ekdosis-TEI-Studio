@@ -128,6 +128,25 @@ def _castlist_tempdir(castlist_text: str, config: EditionConfig):
         yield dataclasses.replace(config, castlist_path="castlist.txt"), tmpdir
 
 
+def _annotated_source_lines(text: str, diagnostics) -> list[dict]:
+    lines = text.split("\n")
+    diag_by_line: dict[int, list] = {}
+    for d in diagnostics:
+        if d.line_number is not None:
+            diag_by_line.setdefault(d.line_number, []).append(d)
+    result = []
+    for i, line_text in enumerate(lines, start=1):
+        line_diags = diag_by_line.get(i, [])
+        if any(d.level == "ERROR" for d in line_diags):
+            level = "error"
+        elif any(d.level == "WARNING" for d in line_diags):
+            level = "warning"
+        else:
+            level = None
+        result.append({"number": i, "text": line_text, "level": level, "diagnostics": line_diags})
+    return result
+
+
 @bp.get("/")
 def index():
     return render_template("index.html", form=_empty_form())
@@ -148,7 +167,8 @@ def validate():
     castlist_text = request.form.get("castlist_text", "")
     with _castlist_tempdir(castlist_text, config) as (cfg, base_dir):
         result = validate_text(raw_text, cfg, castlist_base_dir=base_dir)
-    return render_template("index.html", form=form, validation=result)
+    annotated_lines = _annotated_source_lines(raw_text, result.diagnostics)
+    return render_template("index.html", form=form, validation=result, annotated_lines=annotated_lines)
 
 
 @bp.post("/generate")
@@ -178,6 +198,7 @@ def generate():
             current_app.logger.exception("Erreur inattendue lors de la génération Ekdosis")
             ekdosis_error = str(exc)
 
+    annotated_lines = _annotated_source_lines(raw_text, tei_result.diagnostics)
     return render_template(
         "index.html",
         form=form,
@@ -185,6 +206,7 @@ def generate():
         html_result=html_result,
         ekdosis=ekdosis,
         ekdosis_error=ekdosis_error,
+        annotated_lines=annotated_lines,
     )
 
 

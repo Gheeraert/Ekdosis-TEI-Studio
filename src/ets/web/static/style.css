@@ -153,3 +153,56 @@ section h2 { border-bottom: 1px solid #ccc; padding-bottom: .2em; }
 
 .tab-panel { display: none; padding-top: 1em; }
 .tab-panel.active { display: block; }
+
+/* ── Transcription annotée ── */
+.annotated-source {
+  margin-top: 1em;
+  border: 1px solid #ddd;
+  background: #fafafa;
+  max-height: 32em;
+  overflow: auto;
+}
+
+.source-line {
+  display: grid;
+  grid-template-columns: 4em 1fr;
+  gap: .8em;
+  padding: .15em .5em;
+  border-left: 4px solid transparent;
+}
+
+.line-number {
+  text-align: right;
+  color: #777;
+  font-family: monospace;
+  user-select: none;
+}
+
+.line-text {
+  font-family: monospace;
+  white-space: pre-wrap;
+}
+
+.source-line-error {
+  background: #fdecec;
+  border-left-color: #b00020;
+}
+
+.source-line-warning {
+  background: #fff8df;
+  border-left-color: #d49a00;
+}
+
+.source-line:target {
+  outline: 2px solid #333;
+}
+
+.line-diagnostics {
+  font-size: .8em;
+  color: #555;
+  margin-top: .1em;
+}
+
+.diag-inline {
+  display: block;
+}
