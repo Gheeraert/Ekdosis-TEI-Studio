@@ -24,6 +24,7 @@
     <button type="button" class="tab-button" data-tab="tab-saisie">Saisie</button>
     <button type="button" class="tab-button" data-tab="tab-resultats">Résultats</button>
     <button type="button" class="tab-button" data-tab="tab-export">Export</button>
+    <button type="button" class="tab-button" data-tab="tab-protocole">Protocole de transcription</button>
     <button type="button" class="tab-button" data-tab="tab-apropos">À propos d'ETS</button>
   </div>
 
@@ -301,13 +302,169 @@
           </div>
         </div>
       </fieldset>
+
+      <section>
+        <h3>Mode d'emploi</h3>
+        <p>Pour consulter un site statique exporté, téléchargez le paquet ZIP, décompressez-le dans un dossier, puis ouvrez le fichier <code>index.html</code> dans votre navigateur.</p>
+        <p>Le fichier <code>index.html</code> est la porte d'entrée du site généré.</p>
+      </section>
     </div>
 
   </form>
 
+  {# ── Onglet 7 : Protocole de transcription ── #}
+  <div id="tab-protocole" class="tab-panel">
+    <h2>Protocole de transcription ETS</h2>
+    <p>Aide-mémoire des marqueurs principaux. Les sections ci-dessous développent chaque point.</p>
+
+    <table>
+      <thead><tr><th>Marqueur</th><th>Rôle</th></tr></thead>
+      <tbody>
+        <tr><td><code>####…####</code></td><td>Acte</td></tr>
+        <tr><td><code>###…###</code></td><td>Scène</td></tr>
+        <tr><td><code>##…##</code></td><td>Personnages présents dans la scène</td></tr>
+        <tr><td><code>#…#</code></td><td>Locuteur</td></tr>
+        <tr><td><code>#####</code></td><td>Ligne entièrement réécrite ou lacune</td></tr>
+        <tr><td><code>***</code></td><td>Coupe dans un vers partagé</td></tr>
+        <tr><td><code>**…**</code></td><td>Didascalie explicite</td></tr>
+        <tr><td><code>$$TYPE$$…$$fin$$</code></td><td>Didascalie implicite</td></tr>
+        <tr><td><code>%%strophe…%%</code> / <code>%%fin_strophe%%</code></td><td>Bloc lyrique</td></tr>
+        <tr><td><code>%%castlist%%</code> / <code>%%fin_castlist%%</code></td><td>Dramatis personae</td></tr>
+      </tbody>
+    </table>
+
+    <details>
+      <summary>Structure dramatique</summary>
+      <p>La transcription reproduit la hiérarchie dramatique au moyen de marqueurs encadrés.</p>
+      <ul>
+        <li><code>####ACTE I####</code> — ouvre un acte.</li>
+        <li><code>###SCENE I###</code> — ouvre une scène.</li>
+        <li><code>##ORESTE, PYLADE##</code> — liste les personnages présents dans la scène.</li>
+        <li><code>#ORESTE#</code> (ou <code>#ORESTE.#</code>) — indique le locuteur.</li>
+      </ul>
+      <p>Chacun de ces blocs contient autant de lignes qu'il y a de témoins dans la configuration.
+      Les lignes sont dans l'ordre des témoins déclarés.</p>
+    </details>
+
+    <details>
+      <summary>Variantes, lacunes et lignes entièrement réécrites</summary>
+      <p>Les variantes ordinaires (graphiques, lexicales) sont calculées automatiquement
+      à partir des différences entre les lignes de chaque témoin : il n'y a rien à marquer.</p>
+      <p>Quand une ligne est entièrement différente d'un témoin à l'autre — au point qu'aucun
+      mot n'est commun — on la précède du marqueur <code>#####</code>.
+      Quand un témoin ne contient pas du tout la ligne, on utilise <code>##### (lacune)</code>.</p>
+      <p>Exemple avec trois témoins, dont le troisième a réécrit la ligne :</p>
+      <pre>##### Accordez quelque trêve à ma douleur amère,
+##### Accordez quelque trêve à ma douleur amère,
+##### Accordez cette grâce aux larmes d'une mère.</pre>
+    </details>
+
+    <details>
+      <summary>Vers partagés</summary>
+      <p>Lorsqu'un vers métrique est réparti entre plusieurs locuteurs, on segmente les répliques
+      avec le marqueur <code>***</code> : la première partie se termine par <code>***</code>,
+      la suivante commence par <code>***</code>.</p>
+      <p>Exemple :</p>
+      <pre>#HERMIONE#
+#HERMIONE#
+
+Vous partez ?***
+Vous partez ?***
+
+#ORESTE#
+#ORESTE#
+
+***Je pars.
+***Je pars.</pre>
+    </details>
+
+    <details>
+      <summary>Didascalies</summary>
+      <p><strong>Didascalies explicites</strong> (présentes dans le texte imprimé) :
+      encadrées par <code>**…**</code>, par exemple <code>**Il sort.**</code></p>
+      <p><strong>Didascalies implicites</strong> (reconstruites par l'éditeur) :
+      encadrées par <code>$$TYPE$$…$$fin$$</code>.</p>
+      <p>Types disponibles :</p>
+      <table>
+        <thead><tr><th>Code</th><th>Signification</th></tr></thead>
+        <tbody>
+          <tr><td><code>SPC</code></td><td>Parole (modalité d'élocution)</td></tr>
+          <tr><td><code>ASP</code></td><td>Aspect (apparence, costume)</td></tr>
+          <tr><td><code>TMP</code></td><td>Temps</td></tr>
+          <tr><td><code>EVT</code></td><td>Événement</td></tr>
+          <tr><td><code>SET</code></td><td>Décor</td></tr>
+          <tr><td><code>PROX</code></td><td>Proxémie (déplacements, positions)</td></tr>
+          <tr><td><code>ATT</code></td><td>Attitude (geste, posture)</td></tr>
+          <tr><td><code>VOI</code></td><td>Voix (ton, registre vocal)</td></tr>
+        </tbody>
+      </table>
+      <p>Exemple : <code>$$ATT$$ Il s'agenouille. $$fin$$</code></p>
+    </details>
+
+    <details>
+      <summary>Chœurs</summary>
+      <p>Les chœurs sont traités comme des locuteurs collectifs ordinaires.
+      On utilise le marqueur habituel du locuteur, par exemple
+      <code>#CHOEUR#</code>, <code>#CHŒUR#</code> ou <code>#LE CHŒUR#</code>.</p>
+      <p>Les graphies propres à chaque témoin doivent être conservées telles quelles,
+      sans normalisation.</p>
+    </details>
+
+    <details>
+      <summary>Strophes et métrique</summary>
+      <p>Dans le cours ordinaire de la tragédie, l'alexandrin n'est pas marqué.
+      Dans les passages lyriques (strophes, odes), chaque vers porte une indication
+      métrique explicite : <code>=12=</code> pour un alexandrin, <code>=10=</code>
+      pour un décasyllabe, etc.</p>
+      <p>Une strophe est délimitée par <code>%%strophe …%%</code> et
+      <code>%%fin_strophe%%</code> :</p>
+      <pre>%%strophe subtype=distique rhyme=aa%%
+=12=Premier vers lyrique
+=10=Second vers lyrique
+%%fin_strophe%%</pre>
+      <p>Dans une variante de ligne entière à l'intérieur d'une strophe,
+      le marqueur <code>#####</code> précède l'indication métrique :</p>
+      <pre>#####=12=Un vers entièrement réécrit
+#####=12=(lacune)</pre>
+    </details>
+
+    <details>
+      <summary>Dramatis personae / castlist</summary>
+      <p>Le dramatis personae est saisi dans un fichier séparé (ou dans le champ
+      <em>Dramatis personae</em> de l'onglet Saisie).
+      Il commence par <code>%%castlist%%</code> et se termine par
+      <code>%%fin_castlist%%</code>.</p>
+      <p>Chaque entrée de personnage utilise :</p>
+      <pre>%%cast id=oreste role="Oreste" desc="Fils d'Agamemnon" aliases="ORESTE"%%</pre>
+      <ul>
+        <li><code>id</code> — identifiant stable (minuscules, sans espaces).</li>
+        <li><code>role</code> — forme régularisée du nom (affichée dans la sortie).</li>
+        <li><code>desc</code> — courte description du personnage.</li>
+        <li><code>aliases</code> — formes reconnues dans le texte transcrit.</li>
+      </ul>
+    </details>
+  </div>
+
   {# ── Onglet 6 : À propos d'ETS ── #}
   <div id="tab-apropos" class="tab-panel">
-    <p class="help">Cette section sera complétée prochainement.</p>
+    <h2>À propos d'Ekdosis-TEI Studio</h2>
+    <p>Ekdosis-TEI Studio est une plate-forme de saisie, d'encodage, de validation, de visualisation et de publication pour l'édition critique du théâtre classique.</p>
+    <p>Elle permet de travailler à partir d'une transcription structurée légère, proche d'un pseudo-markdown, afin de produire une TEI régulière, réutilisable et publiable.</p>
+
+    <h3>Fonctions principales</h3>
+    <ul>
+      <li>Édition critique de textes de théâtre transmis par plusieurs témoins, avec gestion des variantes.</li>
+      <li>Génération de sites statiques destinés à la consultation et à la publication.</li>
+    </ul>
+
+    <h3>Crédits</h3>
+    <p>Ekdosis-TEI Studio a été réalisé par Tony Gheeraert dans le cadre de la chaire d'excellence en édition numérique portée par Marcello Vitali-Rosati, avec l'aide de Clara Matos.</p>
+    <p>Ekdosis est un package LaTeX développé par Robert Alessi pour la composition d'éditions critiques et d'apparats savants.</p>
+
+    <h3>Fonctionnement</h3>
+    <p>Le principe d'ETS est de séparer la saisie, la validation et la publication. L'utilisateur saisit ou importe une transcription ETS ; le validateur signale les erreurs éventuelles ; le logiciel produit ensuite un XML-TEI canonique, un aperçu HTML, du LaTeX/Ekdosis et, selon les cas, un site statique publiable. Le programme est destiné à des éditeurs sans compétences particulières en humanités numériques : la génération du XML, du LaTeX et de l'HTML est entièrement automatique à partir de la transcription.</p>
+    <p>La présente interface web reprend les fonctions essentielles d'Ekdosis-TEI Studio pour la saisie, la validation, la génération TEI, l'aperçu HTML et l'export. Le programme original en Python comporte des fonctionnalités supplémentaires, notamment pour le travail éditorial avancé et l'usage local.</p>
+    <p>Le code source du projet est disponible sur GitHub : <a href="https://github.com/Gheeraert/Ekdosis-TEI-Studio" target="_blank" rel="noopener noreferrer">github.com/Gheeraert/Ekdosis-TEI-Studio</a>.</p>
   </div>
 
 </div>

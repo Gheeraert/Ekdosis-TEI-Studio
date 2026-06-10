@@ -250,3 +250,23 @@ section h2 { border-bottom: 1px solid #c9b47a; padding-bottom: .2em; color: #5a3
   border-color: #c9b47a;
   color: #6b4c11;
 }
+
+/* ── Pied de page ── */
+.site-footer {
+  margin-top: 2.5em;
+  padding: 1.5em 0 1em;
+  text-align: center;
+  border-top: 1px solid rgba(90, 70, 40, .25);
+}
+
+.footer-logos {
+  max-width: 760px;
+  width: 80%;
+  height: auto;
+  opacity: .95;
+}
+
+.powered-by {
+  margin-top: .6em;
+  font-size: .9em;
+}

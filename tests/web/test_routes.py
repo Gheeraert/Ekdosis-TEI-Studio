@@ -978,3 +978,107 @@ def test_index_existing_tabs_still_present(client) -> None:
     html = rv.data.decode()
     for label in ["Import", "Configuration manuelle", "Saisie", "Résultats", "Export"]:
         assert label in html, f"Onglet manquant : {label}"
+
+
+# ── Onglet À propos — contenu éditorial ──────────────────────────────────────
+
+def test_apropos_title(client) -> None:
+    rv = client.get("/")
+    assert "À propos d'Ekdosis-TEI Studio" in rv.data.decode()
+
+
+def test_apropos_tony_gheeraert(client) -> None:
+    rv = client.get("/")
+    assert "Tony Gheeraert" in rv.data.decode()
+
+
+def test_apropos_marcello_vitali_rosati(client) -> None:
+    rv = client.get("/")
+    assert "Marcello Vitali-Rosati" in rv.data.decode()
+
+
+def test_apropos_clara_matos(client) -> None:
+    rv = client.get("/")
+    assert "Clara Matos" in rv.data.decode()
+
+
+def test_apropos_robert_alessi(client) -> None:
+    rv = client.get("/")
+    assert "Robert Alessi" in rv.data.decode()
+
+
+# ── Pied de page ─────────────────────────────────────────────────────────────
+
+def test_footer_github_link(client) -> None:
+    rv = client.get("/")
+    assert "https://github.com/Gheeraert/Ekdosis-TEI-Studio" in rv.data.decode()
+
+
+def test_footer_propulse_par(client) -> None:
+    rv = client.get("/")
+    html = rv.data.decode("utf-8")
+    assert "Propulsé par" in html
+    assert "Ekdosis-TEI Studio" in html
+
+
+# ── Mode d'emploi Export ──────────────────────────────────────────────────────
+
+def test_export_mode_emploi_index_html(client) -> None:
+    rv = client.get("/")
+    assert "index.html" in rv.data.decode()
+
+
+# ── Routes d'export inchangées ────────────────────────────────────────────────
+
+def test_export_routes_unchanged(client) -> None:
+    rv = client.get("/")
+    html = rv.data.decode()
+    for route in ["/download/package", "/download/config",
+                  "/download/transcription", "/download/castlist"]:
+        assert route in html, f"Route d'export manquante : {route}"
+
+
+def test_all_tabs_present(client) -> None:
+    rv = client.get("/")
+    html = rv.data.decode()
+    for label in ["Import", "Configuration manuelle", "Saisie",
+                  "Résultats", "Export", "À propos d'ETS"]:
+        assert label in html, f"Onglet manquant : {label}"
+
+
+# ── Onglet Protocole de transcription ────────────────────────────────────────
+
+def test_protocole_tab_present(client) -> None:
+    rv = client.get("/")
+    assert "Protocole de transcription" in rv.data.decode()
+
+
+def test_protocole_sections_present(client) -> None:
+    rv = client.get("/")
+    html = rv.data.decode()
+    for section in ["Structure dramatique", "Variantes, lacunes",
+                    "Vers partagés", "Didascalies", "Chœurs",
+                    "Strophes et métrique", "Dramatis personae"]:
+        assert section in html, f"Section manquante : {section}"
+
+
+def test_protocole_castlist_markers_present(client) -> None:
+    rv = client.get("/")
+    html = rv.data.decode()
+    assert "%%castlist%%" in html
+    assert "%%fin_castlist%%" in html
+
+
+def test_protocole_didascalie_types_present(client) -> None:
+    rv = client.get("/")
+    html = rv.data.decode()
+    for typ in ["SPC", "ASP", "TMP", "EVT", "SET", "PROX", "ATT", "VOI"]:
+        assert typ in html, f"Type de didascalie manquant : {typ}"
+
+
+def test_protocole_form_fields_unchanged(client) -> None:
+    rv = client.get("/")
+    html = rv.data.decode()
+    assert 'name="transcription"' in html
+    assert 'name="config_json"' in html
+    assert 'name="castlist_text"' in html

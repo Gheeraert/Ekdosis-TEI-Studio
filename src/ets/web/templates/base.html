@@ -14,5 +14,9 @@
   <main>
     {% block content %}{% endblock %}
   </main>
+  <footer class="site-footer">
+    <img src="{{ url_for('static', filename='logos.jpg') }}" alt="Logos institutionnels" class="footer-logos">
+    <p class="powered-by">Propulsé par <a href="https://github.com/Gheeraert/Ekdosis-TEI-Studio">Ekdosis-TEI Studio</a></p>
+  </footer>
 </body>
 </html>
