@@ -951,3 +951,30 @@ def test_export_routes_still_present(client) -> None:
     for route in ["/download/package", "/download/config",
                   "/download/transcription", "/download/castlist"]:
         assert route in html, f"Route d'export manquante : {route}"
+
+
+# ── Sous-titre et onglet À propos d'ETS ──────────────────────────────────────
+
+def test_index_new_subtitle_present(client) -> None:
+    rv = client.get("/")
+    html = rv.data.decode()
+    assert "Plate-forme de saisie, d'encodage et de visualisation pour l'édition critique du théâtre classique" in html
+
+
+def test_index_old_subtitle_absent(client) -> None:
+    rv = client.get("/")
+    html = rv.data.decode()
+    assert "Interface web minimale" not in html
+
+
+def test_index_has_apropos_tab(client) -> None:
+    rv = client.get("/")
+    html = rv.data.decode()
+    assert "À propos d'ETS" in html
+
+
+def test_index_existing_tabs_still_present(client) -> None:
+    rv = client.get("/")
+    html = rv.data.decode()
+    for label in ["Import", "Configuration manuelle", "Saisie", "Résultats", "Export"]:
+        assert label in html, f"Onglet manquant : {label}"
