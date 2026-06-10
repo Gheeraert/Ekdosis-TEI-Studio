@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+{% block title %}Constructeur de site statique — Ekdosis-TEI Studio{% endblock %}
+
+{% block content %}
+<h2>Constructeur de site statique</h2>
+<p><a href="/">← Retour à l'établi</a></p>
+
+<p>
+  Cet outil génère un site statique complet à partir d'une page d'accueil,
+  d'une introduction générale, d'un corpus de pièces XML-TEI et de leurs paratextes
+  (notices et préfaces en DOCX ou XML).
+</p>
+
+<div class="msg warning">
+  <strong>Version 1 — limitations actuelles :</strong>
+  cette version accepte <strong>une seule pièce</strong> à la fois.
+  La génération de PDF, la publication FTP et le mode back/privilège
+  ne sont pas disponibles dans cette interface web.
+</div>
+
+{% if error %}
+<div class="msg error">
+  <strong>Erreur :</strong>
+  <pre style="white-space: pre-wrap; margin: 0.5em 0 0 0;">{{ error }}</pre>
+</div>
+{% endif %}
+
+<form method="post" action="/publish/builder" enctype="multipart/form-data">
+
+  <fieldset>
+    <legend>Métadonnées</legend>
+
+    <div class="field">
+      <label>Prénom de l'auteur</label>
+      <input type="text" name="author_first_name" size="25"
+             value="{{ form.author_first_name if form else '' }}">
+      <label>Nom de l'auteur</label>
+      <input type="text" name="author_last_name" size="25"
+             value="{{ form.author_last_name if form else '' }}">
+    </div>
+
+    <div class="field">
+      <label>Titre de l'œuvre ou du corpus *</label>
+      <input type="text" name="corpus_title" size="50" required
+             value="{{ form.corpus_title if form else '' }}">
+    </div>
+
+    <div class="field">
+      <label>Prénom de l'éditeur scientifique</label>
+      <input type="text" name="editor_first_name" size="25"
+             value="{{ form.editor_first_name if form else '' }}">
+      <label>Nom de l'éditeur scientifique</label>
+      <input type="text" name="editor_last_name" size="25"
+             value="{{ form.editor_last_name if form else '' }}">
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>Textes généraux du site</legend>
+
+    <p class="help">
+      Les fichiers DOCX sont acceptés pour la page d'accueil, l'introduction,
+      les notices et les préfaces. Les pièces dramatiques doivent être en XML.
+    </p>
+
+    <div class="field">
+      <label>Page d'accueil du site * <em>(.docx ou .xml)</em></label>
+      <input type="file" name="home_page_file" accept=".docx,.xml" required>
+    </div>
+
+    <div class="field">
+      <label>Introduction générale <em>(.docx ou .xml, optionnel)</em></label>
+      <input type="file" name="general_intro_file" accept=".docx,.xml">
+    </div>
+
+    <div class="field">
+      <label>Logos <em>(.png, .jpg, .svg, .webp, .gif — plusieurs fichiers possibles)</em></label>
+      <input type="file" name="logos"
+             accept=".png,.jpg,.jpeg,.svg,.webp,.gif"
+             multiple>
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>Pièce dramatique</legend>
+
+    <div class="field">
+      <label>Fichier XML de la pièce * <em>(.xml uniquement)</em></label>
+      <input type="file" name="play_xml" accept=".xml" required>
+    </div>
+
+    <div class="field">
+      <label>Notice <em>(.docx ou .xml, optionnel)</em></label>
+      <input type="file" name="play_notice" accept=".docx,.xml">
+    </div>
+
+    <div class="field">
+      <label>Préface de l'auteur <em>(.docx ou .xml, optionnel)</em></label>
+      <input type="file" name="play_preface" accept=".docx,.xml">
+    </div>
+
+    <div class="field">
+      <label>Dramatis personae <em>(.xml uniquement, optionnel)</em></label>
+      <input type="file" name="play_dramatis" accept=".xml">
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>Options de publication</legend>
+
+    <div class="field">
+      <label>
+        <input type="checkbox" name="publish_notices" value="1" checked>
+        Publier les notices
+      </label>
+    </div>
+
+    <div class="field">
+      <label>
+        <input type="checkbox" name="publish_prefaces" value="1" checked>
+        Publier les préfaces
+      </label>
+    </div>
+
+    <div class="field">
+      <label>
+        <input type="checkbox" name="include_metadata" value="1" checked>
+        Inclure les métadonnées
+      </label>
+    </div>
+
+    <div class="field">
+      <label>
+        <input type="checkbox" name="resolve_notice_xincludes" value="1" checked>
+        Résoudre les <code>xi:include</code> locaux dans les notices
+      </label>
+    </div>
+  </fieldset>
+
+  <div class="actions">
+    <button type="submit" class="primary-action">Générer le site statique</button>
+  </div>
+
+</form>
+
+<section>
+  <h3>Résultat</h3>
+  <p>
+    Si la génération réussit, un fichier ZIP est téléchargé automatiquement.
+    Décompressez-le dans un dossier et ouvrez <code>index.html</code> dans votre navigateur.
+  </p>
+</section>
+
+{% endblock %}

@@ -10,16 +10,23 @@ from dataclasses import replace
 from pathlib import Path
 
 from flask import Blueprint, render_template, request, send_file
+from werkzeug.datastructures import FileStorage
 
 from ets.application import (
     EditorialNoticeImportService,
     SitePublicationDialogConfig,
+    SitePublicationDialogPlayConfig,
     build_site_from_publication_request,
     site_publication_dialog_config_from_dict,
     site_publication_request_from_dialog_config,
 )
 
 pub_bp = Blueprint("publication", __name__)
+
+# Extensions autorisées par type de source éditoriale
+_EDITORIAL_EXTS = {".xml", ".docx"}
+_DRAMATIS_EXTS = {".xml"}
+_LOGO_EXTS = {".png", ".jpg", ".jpeg", ".svg", ".webp", ".gif"}
 
 
 def _is_safe_zip_entry(name: str) -> bool:
@@ -229,6 +236,225 @@ def publish_static_post():
                 "publish_static.html",
                 error=f"Impossible de créer le ZIP de sortie : {exc}",
             )
+
+        slug = _make_output_slug(config)
+        return send_file(
+            zip_buf,
+            mimetype="application/zip",
+            as_attachment=True,
+            download_name=f"{slug}_site.zip",
+        )
+
+
+# ── Constructeur de site — helpers ────────────────────────────────────────────
+
+def _save_upload(file: FileStorage, dest_dir: Path) -> Path:
+    """Écrit un FileStorage dans dest_dir en conservant l'extension d'origine."""
+    filename = Path(file.filename).name if file.filename else "upload"
+    target = dest_dir / filename
+    counter = 2
+    while target.exists():
+        stem = Path(file.filename).stem if file.filename else "upload"
+        suffix = Path(file.filename).suffix if file.filename else ""
+        target = dest_dir / f"{stem}_{counter}{suffix}"
+        counter += 1
+    file.save(str(target))
+    return target
+
+
+def _check_ext(path: Path, allowed: set[str], label: str) -> str | None:
+    """Retourne un message d'erreur si l'extension n'est pas dans allowed."""
+    if path.suffix.lower() not in allowed:
+        exts = ", ".join(sorted(allowed))
+        return (
+            f"Extension refusée pour « {label} » : {path.suffix!r}. "
+            f"Extensions acceptées : {exts}."
+        )
+    return None
+
+
+def _run_builder_pipeline(
+    config: SitePublicationDialogConfig,
+    tmp: Path,
+) -> tuple[io.BytesIO | None, str | None]:
+    """
+    Exécute la chaîne complète : prepare → request → build → zip.
+    Retourne (zip_buf, None) en cas de succès ou (None, message_erreur).
+    """
+    temp_output_dir = tmp / "site_output"
+    config = replace(config, output_dir=temp_output_dir, build_latex_pdf=False)
+
+    service = EditorialNoticeImportService()
+    try:
+        prepared = service.prepare_dialog_config_for_publication(config)
+    except ValueError as exc:
+        msg = str(exc)
+        if "andoc" in msg:
+            return None, (
+                "Pandoc est introuvable ou inaccessible. "
+                "Installer pandoc pour traiter les fichiers DOCX.\n\nDétail : " + msg
+            )
+        return None, f"Échec de la préparation des sources éditoriales : {msg}"
+
+    try:
+        pub_request = site_publication_request_from_dialog_config(prepared.config)
+    except ValueError as exc:
+        return None, f"Configuration de publication incomplète : {exc}"
+
+    result = build_site_from_publication_request(pub_request)
+    if not result.ok:
+        detail = result.error_detail or result.message or "Erreur inconnue."
+        return None, f"Échec de la génération du site statique : {detail}"
+
+    if result.output_dir is None or not result.output_dir.exists():
+        return None, "La génération a réussi mais le dossier de sortie est introuvable."
+
+    try:
+        zip_buf = _zip_directory(result.output_dir)
+    except OSError as exc:
+        return None, f"Impossible de créer le ZIP de sortie : {exc}"
+
+    return zip_buf, None
+
+
+# ── Constructeur de site — routes ─────────────────────────────────────────────
+
+@pub_bp.get("/publish/builder")
+def builder_get():
+    return render_template("builder.html")
+
+
+@pub_bp.post("/publish/builder")
+def builder_post():
+    form = request.form
+    files = request.files
+
+    # ── Métadonnées ──────────────────────────────────────────────────────────
+    author_first = form.get("author_first_name", "").strip()
+    author_last = form.get("author_last_name", "").strip()
+    editor_first = form.get("editor_first_name", "").strip()
+    editor_last = form.get("editor_last_name", "").strip()
+    corpus_title = form.get("corpus_title", "").strip()
+
+    author_name = " ".join(p for p in (author_first, author_last) if p)
+    scientific_editor = " ".join(p for p in (editor_first, editor_last) if p)
+
+    if not corpus_title:
+        return render_template("builder.html", error="Le titre de l'œuvre ou du corpus est requis.")
+
+    # ── Fichier XML dramatique (requis) ───────────────────────────────────────
+    play_xml_file = files.get("play_xml")
+    if not play_xml_file or not play_xml_file.filename:
+        return render_template("builder.html", error="Un fichier XML de pièce dramatique est requis.")
+
+    # ── Page d'accueil (requise) ───────────────────────────────────────────────
+    home_page_file = files.get("home_page_file")
+    if not home_page_file or not home_page_file.filename:
+        return render_template("builder.html", error="La page d'accueil du site est requise.")
+
+    with tempfile.TemporaryDirectory() as tmp_str:
+        tmp = Path(tmp_str)
+        uploads = tmp / "uploads"
+        uploads.mkdir()
+
+        # ── Sauvegarde et validation : page d'accueil ─────────────────────────
+        home_path = _save_upload(home_page_file, uploads)
+        err = _check_ext(home_path, _EDITORIAL_EXTS, "page d'accueil")
+        if err:
+            return render_template("builder.html", error=err)
+
+        # ── Sauvegarde et validation : introduction générale (optionnelle) ────
+        intro_path: Path | None = None
+        intro_file = files.get("general_intro_file")
+        if intro_file and intro_file.filename:
+            intro_path = _save_upload(intro_file, uploads)
+            err = _check_ext(intro_path, _EDITORIAL_EXTS, "introduction générale")
+            if err:
+                return render_template("builder.html", error=err)
+
+        # ── Sauvegarde et validation : logos (optionnels, multiples) ─────────
+        logo_paths: list[Path] = []
+        logo_files = files.getlist("logos")
+        for logo_file in logo_files:
+            if not logo_file or not logo_file.filename:
+                continue
+            logo_path = _save_upload(logo_file, uploads)
+            err = _check_ext(logo_path, _LOGO_EXTS, f"logo {logo_path.name}")
+            if err:
+                return render_template("builder.html", error=err)
+            logo_paths.append(logo_path)
+
+        # ── Sauvegarde et validation : pièce XML ──────────────────────────────
+        play_path = _save_upload(play_xml_file, uploads)
+        err = _check_ext(play_path, {".xml"}, "pièce dramatique XML")
+        if err:
+            return render_template("builder.html", error=err)
+
+        # ── Sauvegarde et validation : notice (optionnelle) ───────────────────
+        notice_path: Path | None = None
+        notice_file = files.get("play_notice")
+        if notice_file and notice_file.filename:
+            notice_path = _save_upload(notice_file, uploads)
+            err = _check_ext(notice_path, _EDITORIAL_EXTS, "notice")
+            if err:
+                return render_template("builder.html", error=err)
+
+        # ── Sauvegarde et validation : préface (optionnelle) ──────────────────
+        preface_path: Path | None = None
+        preface_file = files.get("play_preface")
+        if preface_file and preface_file.filename:
+            preface_path = _save_upload(preface_file, uploads)
+            err = _check_ext(preface_path, _EDITORIAL_EXTS, "préface")
+            if err:
+                return render_template("builder.html", error=err)
+
+        # ── Sauvegarde et validation : dramatis personae XML (optionnel) ──────
+        dramatis_path: Path | None = None
+        dramatis_file = files.get("play_dramatis")
+        if dramatis_file and dramatis_file.filename:
+            dramatis_path = _save_upload(dramatis_file, uploads)
+            err = _check_ext(dramatis_path, _DRAMATIS_EXTS, "dramatis personae")
+            if err:
+                return render_template("builder.html", error=err)
+
+        # ── Options ───────────────────────────────────────────────────────────
+        publish_notices = "publish_notices" in form
+        publish_prefaces = "publish_prefaces" in form
+        include_metadata = "include_metadata" in form
+        resolve_xincludes = "resolve_notice_xincludes" in form
+
+        # ── Construction de SitePublicationDialogConfig ───────────────────────
+        play_config = SitePublicationDialogPlayConfig(
+            play_slug="",
+            dramatic_xml_path=play_path,
+            notice_xml_path=notice_path,
+            preface_xml_path=preface_path,
+            dramatis_xml_path=dramatis_path,
+        )
+        config = SitePublicationDialogConfig(
+            author_name=author_name,
+            corpus_title=corpus_title,
+            scientific_editor=scientific_editor,
+            home_page_tei=home_path,
+            general_intro_tei=intro_path,
+            output_dir=None,
+            plays=(play_config,),
+            play_order=(),
+            logo_paths=tuple(logo_paths),
+            asset_directories=(),
+            show_xml_download=True,
+            build_latex_pdf=False,
+            hide_minor_variants_in_pdf=False,
+            publish_notices=publish_notices,
+            publish_prefaces=publish_prefaces,
+            include_metadata=include_metadata,
+            resolve_notice_xincludes=resolve_xincludes,
+        )
+
+        # ── Pipeline de génération ────────────────────────────────────────────
+        zip_buf, error_msg = _run_builder_pipeline(config, tmp)
+        if error_msg:
+            return render_template("builder.html", error=error_msg)
 
         slug = _make_output_slug(config)
         return send_file(

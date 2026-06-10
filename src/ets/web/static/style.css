@@ -15,7 +15,28 @@ header {
 }
 
 header h1 { margin: 0 0 .2em; }
-header p  { margin: 0 0 .5em; color: #7a6030; }
+header p  { margin: 0 0 .3em; color: #7a6030; }
+
+.main-nav {
+  display: flex;
+  gap: .3em;
+  flex-wrap: wrap;
+  padding: .4em 0 .5em;
+}
+
+.main-nav a {
+  display: inline-block;
+  padding: .35em 1em;
+  border: 1px solid #c9b47a;
+  border-radius: 4px 4px 0 0;
+  background: #f0e2b0;
+  color: #6b4c11;
+  text-decoration: none;
+  font-size: .95em;
+  font-family: Georgia, "Times New Roman", serif;
+}
+
+.main-nav a:hover { background: #e8d49a; color: #4a3c1a; }
 
 fieldset {
   margin-bottom: 1em;
