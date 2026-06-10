@@ -283,8 +283,10 @@
 
     {# ── Onglet 5 : Export ── #}
     <div id="tab-export" class="tab-panel">
+
       <fieldset>
         <legend>Exporter le travail courant</legend>
+        <p class="help">Ces fichiers permettent de reprendre ou de transmettre le travail d'édition : configuration, transcription et dramatis personae.</p>
 
         <div class="option">
           <div class="field export-field">
@@ -301,6 +303,28 @@
             <button type="submit" formaction="/download/castlist">Télécharger seulement la castlist</button>
           </div>
         </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Exporter les fichiers générés</legend>
+        <p class="help">Ces fichiers sont produits à partir de la transcription validée : XML-TEI, aperçu HTML et LaTeX-Ekdosis. La génération est relancée au moment du téléchargement.</p>
+
+        <div class="option">
+          <div class="field export-field">
+            <button type="submit" formaction="/download/generated/package">Télécharger le ZIP des fichiers générés</button>
+            <span class="help">Contient le XML-TEI, l'HTML et le LaTeX-Ekdosis.</span>
+          </div>
+          <div class="field export-field">
+            <button type="submit" formaction="/download/generated/tei">Télécharger le XML-TEI</button>
+          </div>
+          <div class="field export-field">
+            <button type="submit" formaction="/download/generated/html">Télécharger l'HTML</button>
+          </div>
+          <div class="field export-field">
+            <button type="submit" formaction="/download/generated/ekdosis">Télécharger le LaTeX-Ekdosis</button>
+          </div>
+        </div>
+        <p class="help">Pour générer un site statique complet, utiliser l'outil de publication statique dédié.</p>
       </fieldset>
 
       <section>

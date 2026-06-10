@@ -1082,3 +1082,91 @@ def test_protocole_form_fields_unchanged(client) -> None:
     assert 'name="transcription"' in html
     assert 'name="config_json"' in html
     assert 'name="castlist_text"' in html
+
+
+# ── Onglet Export — deux sections ────────────────────────────────────────────
+
+def test_export_tab_has_two_sections(client) -> None:
+    rv = client.get("/")
+    html = rv.data.decode()
+    assert "Exporter le travail courant" in html
+    assert "Exporter les fichiers générés" in html
+
+
+def test_export_tab_old_routes_still_present(client) -> None:
+    rv = client.get("/")
+    html = rv.data.decode()
+    for route in ["/download/package", "/download/config",
+                  "/download/transcription", "/download/castlist"]:
+        assert route in html, f"Ancienne route manquante : {route}"
+
+
+def test_export_tab_new_routes_present(client) -> None:
+    rv = client.get("/")
+    html = rv.data.decode()
+    for route in ["/download/generated/tei", "/download/generated/html",
+                  "/download/generated/ekdosis", "/download/generated/package"]:
+        assert route in html, f"Nouvelle route manquante : {route}"
+
+
+# ── POST /download/generated/* ────────────────────────────────────────────────
+
+def test_download_generated_tei_returns_xml(client) -> None:
+    rv = client.post("/download/generated/tei", data={
+        "config_json": _minimal_config_json(n_witnesses=2),
+        "transcription": _valid_text(n_witnesses=2),
+    })
+    assert rv.status_code == 200
+    content = rv.data.decode("utf-8")
+    assert "<?xml" in content or "<TEI" in content
+
+
+def test_download_generated_html_returns_html(client) -> None:
+    rv = client.post("/download/generated/html", data={
+        "config_json": _minimal_config_json(n_witnesses=2),
+        "transcription": _valid_text(n_witnesses=2),
+    })
+    assert rv.status_code == 200
+    content = rv.data.decode("utf-8")
+    assert "<html" in content.lower() or "<!doctype" in content.lower() or "<body" in content.lower()
+
+
+def test_download_generated_ekdosis_returns_200(client) -> None:
+    rv = client.post("/download/generated/ekdosis", data={
+        "config_json": _minimal_config_json(n_witnesses=2),
+        "transcription": _valid_text(n_witnesses=2),
+    })
+    assert rv.status_code == 200
+
+
+def test_download_generated_package_returns_zip_with_xml(client) -> None:
+    rv = client.post("/download/generated/package", data={
+        "config_json": _minimal_config_json(n_witnesses=2),
+        "transcription": _valid_text(n_witnesses=2),
+    })
+    assert rv.status_code == 200
+    assert "zip" in rv.content_type
+    with zipfile.ZipFile(io.BytesIO(rv.data)) as zf:
+        names = zf.namelist()
+        assert any(n.endswith(".xml") for n in names), f"Pas de .xml dans le ZIP : {names}"
+        assert any(n.endswith(".html") for n in names), f"Pas de .html dans le ZIP : {names}"
+
+
+def test_download_generated_tei_with_empty_transcription_returns_error_page(client) -> None:
+    rv = client.post("/download/generated/tei", data={
+        "config_json": _minimal_config_json(n_witnesses=2),
+        "transcription": "",
+    })
+    assert rv.status_code == 200
+    html = rv.data.decode()
+    assert "vide" in html.lower() or "erreur" in html.lower()
+
+
+def test_download_generated_existing_exports_unchanged(client) -> None:
+    rv = client.post("/download/package", data={
+        "config_json": _minimal_config_json(n_witnesses=2),
+        "transcription": _valid_text(n_witnesses=2),
+        "castlist_text": "",
+    })
+    assert rv.status_code == 200
+    assert "zip" in rv.content_type

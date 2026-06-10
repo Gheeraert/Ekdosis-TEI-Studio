@@ -147,6 +147,30 @@ def _annotated_source_lines(text: str, diagnostics) -> list[dict]:
     return result
 
 
+def _generate_outputs_from_form(form):
+    """Build config, generate TEI/HTML/Ekdosis. Returns (slug, tei_xml, html_content, ekdosis_tex)."""
+    config = _build_config(form)
+    raw = _build_export_json(form)
+    slug = _make_slug(_title_from_raw(raw, form))
+    raw_text = form.get("transcription", "")
+    if not raw_text.strip():
+        raise ValueError("La transcription est vide.")
+    castlist_text = form.get("castlist_text", "")
+    with _castlist_tempdir(castlist_text, config) as (cfg, base_dir):
+        tei_result = generate_tei_from_text(raw_text, cfg, castlist_base_dir=base_dir)
+    if not tei_result.ok or not tei_result.tei_xml:
+        raise ValueError(tei_result.message or "La génération TEI a échoué.")
+    tei_xml = tei_result.tei_xml
+    html_result = generate_html_preview_from_tei(tei_xml)
+    html_content = html_result.html if (html_result.ok and html_result.html) else ""
+    ekdosis_tex = ""
+    try:
+        ekdosis_tex = generate_ekdosis_from_tei(tei_xml) or ""
+    except Exception:
+        pass
+    return slug, tei_xml, html_content, ekdosis_tex
+
+
 @bp.get("/")
 def index():
     return render_template("index.html", form=_empty_form(), active_tab="import")
@@ -350,3 +374,63 @@ def download_castlist():
         as_attachment=True,
         download_name=f"{slug}_castlist.txt",
     )
+
+
+@bp.post("/download/generated/tei")
+def download_generated_tei():
+    form_data = _form_data(request)
+    try:
+        slug, tei_xml, _, _ = _generate_outputs_from_form(request.form)
+    except ValueError as exc:
+        return render_template("index.html", form=form_data, config_error=str(exc), active_tab="export")
+    buf = io.BytesIO(tei_xml.encode("utf-8"))
+    return send_file(buf, mimetype="application/xml", as_attachment=True, download_name=f"{slug}.xml")
+
+
+@bp.post("/download/generated/html")
+def download_generated_html():
+    form_data = _form_data(request)
+    try:
+        slug, _, html_content, _ = _generate_outputs_from_form(request.form)
+    except ValueError as exc:
+        return render_template("index.html", form=form_data, config_error=str(exc), active_tab="export")
+    if not html_content:
+        return render_template("index.html", form=form_data,
+                               config_error="La génération HTML a échoué.", active_tab="export")
+    buf = io.BytesIO(html_content.encode("utf-8"))
+    return send_file(buf, mimetype="text/html; charset=utf-8", as_attachment=True, download_name=f"{slug}.html")
+
+
+@bp.post("/download/generated/ekdosis")
+def download_generated_ekdosis():
+    form_data = _form_data(request)
+    try:
+        slug, _, _, ekdosis_tex = _generate_outputs_from_form(request.form)
+    except ValueError as exc:
+        return render_template("index.html", form=form_data, config_error=str(exc), active_tab="export")
+    if not ekdosis_tex:
+        return render_template("index.html", form=form_data,
+                               config_error="La génération LaTeX-Ekdosis a échoué ou n'est pas disponible.",
+                               active_tab="export")
+    buf = io.BytesIO(ekdosis_tex.encode("utf-8"))
+    return send_file(buf, mimetype="text/plain; charset=utf-8", as_attachment=True,
+                     download_name=f"{slug}_ekdosis.tex")
+
+
+@bp.post("/download/generated/package")
+def download_generated_package():
+    form_data = _form_data(request)
+    try:
+        slug, tei_xml, html_content, ekdosis_tex = _generate_outputs_from_form(request.form)
+    except ValueError as exc:
+        return render_template("index.html", form=form_data, config_error=str(exc), active_tab="export")
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
+        zf.writestr(f"{slug}.xml", tei_xml)
+        if html_content:
+            zf.writestr(f"{slug}.html", html_content)
+        if ekdosis_tex:
+            zf.writestr(f"{slug}_ekdosis.tex", ekdosis_tex)
+    buf.seek(0)
+    return send_file(buf, mimetype="application/zip", as_attachment=True,
+                     download_name=f"{slug}_generated.zip")
