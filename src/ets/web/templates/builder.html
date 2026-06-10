@@ -31,29 +31,29 @@
     <legend>Configuration du constructeur</legend>
 
     <p class="help">
-      Pour des raisons de sécurité, le navigateur ne peut pas recharger automatiquement
-      les fichiers locaux. La configuration JSON restaure les champs textuels, les options
-      et la structure du formulaire ; les fichiers devront être resélectionnés.
+      Pour des raisons de sécurité, le navigateur ne peut pas réimporter automatiquement
+      les fichiers locaux. La configuration JSON permet de restaurer les champs textuels, les options
+      et la structure du formulaire ; les fichiers devront être sélectionnés de nouveau.
     </p>
 
     <div class="field">
-      <label for="builder_config_file">Charger une configuration JSON</label>
+      <label for="builder_config_file">Importer une configuration JSON</label>
       <input type="file" id="builder_config_file" name="builder_config_file" accept=".json">
-      <button type="button" id="load-config-btn">Charger la configuration JSON</button>
+      <button type="button" id="load-config-btn">Charger la configuration dans l'interface</button>
     </div>
 
     <div class="field">
       <button type="submit" formaction="/publish/builder/config" formnovalidate>
-        Télécharger la configuration JSON
+        Exporter la configuration JSON
       </button>
       <button type="submit" formaction="/publish/builder/source-package" formnovalidate>
-        Télécharger le paquet source de publication
+        Exporter le paquet source de publication
       </button>
     </div>
 
     <p class="help">
       Le paquet source ZIP contient la configuration et les fichiers sources.
-      Il peut être réutilisé directement dans l'outil « Publication ZIP ».
+      Il peut être réimporté directement dans l'outil « Publication ZIP ».
     </p>
   </fieldset>
 

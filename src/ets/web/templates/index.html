@@ -25,7 +25,6 @@
     <button type="button" class="tab-button" data-tab="tab-resultats">Résultats</button>
     <button type="button" class="tab-button" data-tab="tab-export">Export</button>
     <button type="button" class="tab-button" data-tab="tab-protocole">Protocole de transcription</button>
-    <button type="button" class="tab-button" data-tab="tab-apropos">À propos d'ETS</button>
   </div>
 
   <form method="post" action="/validate" enctype="multipart/form-data">
@@ -469,27 +468,6 @@ Vous partez ?***
     </details>
   </div>
 
-  {# ── Onglet 6 : À propos d'ETS ── #}
-  <div id="tab-apropos" class="tab-panel">
-    <h2>À propos d'Ekdosis-TEI Studio</h2>
-    <p>Ekdosis-TEI Studio est une plate-forme de saisie, d'encodage, de validation, de visualisation et de publication pour l'édition critique du théâtre classique.</p>
-    <p>Elle permet de travailler à partir d'une transcription structurée légère, proche d'un pseudo-markdown, afin de produire une TEI régulière, réutilisable et publiable.</p>
-
-    <h3>Fonctions principales</h3>
-    <ul>
-      <li>Édition critique de textes de théâtre transmis par plusieurs témoins, avec gestion des variantes.</li>
-      <li>Génération de sites statiques destinés à la consultation et à la publication.</li>
-    </ul>
-
-    <h3>Crédits</h3>
-    <p>Ekdosis-TEI Studio a été réalisé par Tony Gheeraert dans le cadre de la chaire d'excellence en édition numérique portée par Marcello Vitali-Rosati, avec l'aide de Clara Matos.</p>
-    <p>Ekdosis est un package LaTeX développé par Robert Alessi pour la composition d'éditions critiques et d'apparats savants.</p>
-
-    <h3>Fonctionnement</h3>
-    <p>Le principe d'ETS est de séparer la saisie, la validation et la publication. L'utilisateur saisit ou importe une transcription ETS ; le validateur signale les erreurs éventuelles ; le logiciel produit ensuite un XML-TEI canonique, un aperçu HTML, du LaTeX/Ekdosis et, selon les cas, un site statique publiable. Le programme est destiné à des éditeurs sans compétences particulières en humanités numériques : la génération du XML, du LaTeX et de l'HTML est entièrement automatique à partir de la transcription.</p>
-    <p>La présente interface web reprend les fonctions essentielles d'Ekdosis-TEI Studio pour la saisie, la validation, la génération TEI, l'aperçu HTML et l'export. Le programme original en Python comporte des fonctionnalités supplémentaires, notamment pour le travail éditorial avancé et l'usage local.</p>
-    <p>Le code source du projet est disponible sur GitHub : <a href="https://github.com/Gheeraert/Ekdosis-TEI-Studio" target="_blank" rel="noopener noreferrer">github.com/Gheeraert/Ekdosis-TEI-Studio</a>.</p>
-  </div>
 
 </div>
 

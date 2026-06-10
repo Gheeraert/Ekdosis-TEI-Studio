@@ -980,30 +980,30 @@ def test_index_existing_tabs_still_present(client) -> None:
         assert label in html, f"Onglet manquant : {label}"
 
 
-# ── Onglet À propos — contenu éditorial ──────────────────────────────────────
+# ── Page À propos — contenu éditorial ────────────────────────────────────────
 
 def test_apropos_title(client) -> None:
-    rv = client.get("/")
+    rv = client.get("/about")
     assert "À propos d'Ekdosis-TEI Studio" in rv.data.decode()
 
 
 def test_apropos_tony_gheeraert(client) -> None:
-    rv = client.get("/")
+    rv = client.get("/about")
     assert "Tony Gheeraert" in rv.data.decode()
 
 
 def test_apropos_marcello_vitali_rosati(client) -> None:
-    rv = client.get("/")
+    rv = client.get("/about")
     assert "Marcello Vitali-Rosati" in rv.data.decode()
 
 
 def test_apropos_clara_matos(client) -> None:
-    rv = client.get("/")
+    rv = client.get("/about")
     assert "Clara Matos" in rv.data.decode()
 
 
 def test_apropos_robert_alessi(client) -> None:
-    rv = client.get("/")
+    rv = client.get("/about")
     assert "Robert Alessi" in rv.data.decode()
 
 
@@ -1170,3 +1170,41 @@ def test_download_generated_existing_exports_unchanged(client) -> None:
     })
     assert rv.status_code == 200
     assert "zip" in rv.content_type
+
+
+# ── GET /about ────────────────────────────────────────────────────────────────
+
+def test_about_returns_200(client) -> None:
+    rv = client.get("/about")
+    assert rv.status_code == 200
+
+
+def test_main_nav_contains_about_link(client) -> None:
+    rv = client.get("/")
+    html = rv.data.decode()
+    assert 'href="/about"' in html
+    assert "À propos d'ETS" in html
+
+
+def test_about_page_contains_editorial_content(client) -> None:
+    rv = client.get("/about")
+    html = rv.data.decode()
+    assert "Ekdosis-TEI Studio" in html
+    assert "Tony Gheeraert" in html
+
+
+def test_index_does_not_contain_apropos_tab(client) -> None:
+    rv = client.get("/")
+    html = rv.data.decode()
+    assert 'data-tab="tab-apropos"' not in html
+
+
+def test_index_internal_tabs_present(client) -> None:
+    rv = client.get("/")
+    html = rv.data.decode()
+    assert "Import" in html
+    assert "Configuration manuelle" in html
+    assert "Saisie" in html
+    assert "Résultats" in html
+    assert "Export" in html
+    assert "Protocole de transcription" in html

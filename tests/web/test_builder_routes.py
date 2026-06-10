@@ -255,17 +255,17 @@ def test_builder_get_contains_config_section(client) -> None:
 
 def test_builder_get_contains_load_config_json(client) -> None:
     rv = client.get("/publish/builder")
-    assert "Charger une configuration JSON" in rv.data.decode()
+    assert "Importer une configuration JSON" in rv.data.decode()
 
 
 def test_builder_get_contains_download_config_json(client) -> None:
     rv = client.get("/publish/builder")
-    assert "Télécharger la configuration JSON" in rv.data.decode()
+    assert "Exporter la configuration JSON" in rv.data.decode()
 
 
 def test_builder_get_contains_download_source_package(client) -> None:
     rv = client.get("/publish/builder")
-    assert "Télécharger le paquet source de publication" in rv.data.decode()
+    assert "Exporter le paquet source de publication" in rv.data.decode()
 
 
 # ── POST /publish/builder/config ──────────────────────────────────────────────

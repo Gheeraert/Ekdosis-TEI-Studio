@@ -176,6 +176,11 @@ def index():
     return render_template("index.html", form=_empty_form(), active_tab="import")
 
 
+@bp.get("/about")
+def about():
+    return render_template("about.html")
+
+
 @bp.post("/validate")
 def validate():
     form = _form_data(request)
