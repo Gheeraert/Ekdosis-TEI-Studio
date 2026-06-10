@@ -324,6 +324,177 @@ def builder_get():
     return render_template("builder.html")
 
 
+@pub_bp.post("/publish/builder/config")
+def builder_config_download():
+    """Construit et retourne un JSON de configuration du formulaire constructeur."""
+    form = request.form
+    files = request.files
+
+    author_first = form.get("author_first_name", "").strip()
+    author_last = form.get("author_last_name", "").strip()
+    editor_first = form.get("editor_first_name", "").strip()
+    editor_last = form.get("editor_last_name", "").strip()
+    corpus_title = form.get("corpus_title", "").strip()
+
+    publish_notices = "publish_notices" in form
+    publish_prefaces = "publish_prefaces" in form
+    include_metadata = "include_metadata" in form
+    resolve_xincludes = "resolve_notice_xincludes" in form
+
+    play_xml_file = files.get("play_xml")
+    play_filename = (play_xml_file.filename or "") if play_xml_file else ""
+
+    config_data = {
+        "schema": "ets.builder_form_config",
+        "version": 1,
+        "author_first_name": author_first,
+        "author_last_name": author_last,
+        "corpus_title": corpus_title,
+        "editor_first_name": editor_first,
+        "editor_last_name": editor_last,
+        "options": {
+            "publish_notices": publish_notices,
+            "publish_prefaces": publish_prefaces,
+            "include_metadata": include_metadata,
+            "resolve_notice_xincludes": resolve_xincludes,
+        },
+        "plays": [{"label": "", "expected_filename": play_filename}],
+    }
+
+    json_bytes = json.dumps(config_data, ensure_ascii=False, indent=2).encode("utf-8")
+    buf = io.BytesIO(json_bytes)
+    buf.seek(0)
+
+    normalized = unicodedata.normalize("NFD", corpus_title)
+    ascii_str = normalized.encode("ascii", "ignore").decode("ascii")
+    slug = re.sub(r"[^a-z0-9]+", "_", ascii_str.lower()).strip("_") or "configuration"
+
+    return send_file(
+        buf,
+        mimetype="application/json",
+        as_attachment=True,
+        download_name=f"{slug}_builder_config.json",
+    )
+
+
+@pub_bp.post("/publish/builder/source-package")
+def builder_source_package():
+    """Assemble les sources uploadées et la config dans un ZIP compatible /publish/static."""
+    form = request.form
+    files = request.files
+
+    author_first = form.get("author_first_name", "").strip()
+    author_last = form.get("author_last_name", "").strip()
+    editor_first = form.get("editor_first_name", "").strip()
+    editor_last = form.get("editor_last_name", "").strip()
+    corpus_title = form.get("corpus_title", "").strip()
+
+    author_name = " ".join(p for p in (author_first, author_last) if p)
+    scientific_editor = " ".join(p for p in (editor_first, editor_last) if p)
+
+    publish_notices = "publish_notices" in form
+    publish_prefaces = "publish_prefaces" in form
+    include_metadata = "include_metadata" in form
+    resolve_xincludes = "resolve_notice_xincludes" in form
+
+    with tempfile.TemporaryDirectory() as tmp_str:
+        tmp = Path(tmp_str)
+        sources_dir = tmp / "sources"
+        sources_dir.mkdir()
+
+        def _save_rel(key: str) -> str | None:
+            f = files.get(key)
+            if not f or not f.filename:
+                return None
+            saved = _save_upload(f, sources_dir)
+            return saved.relative_to(tmp).as_posix()
+
+        home_page_rel = _save_rel("home_page_file")
+        intro_rel = _save_rel("general_intro_file")
+
+        logo_rels: list[str] = []
+        for logo_file in files.getlist("logos"):
+            if logo_file and logo_file.filename:
+                saved = _save_upload(logo_file, sources_dir)
+                logo_rels.append(saved.relative_to(tmp).as_posix())
+
+        play_xml_file = files.get("play_xml")
+        play_xml_rel: str | None = None
+        play_slug = "piece"
+        if play_xml_file and play_xml_file.filename:
+            saved = _save_upload(play_xml_file, sources_dir)
+            play_xml_rel = saved.relative_to(tmp).as_posix()
+            raw_stem = Path(play_xml_file.filename).stem
+            normalized_stem = unicodedata.normalize("NFD", raw_stem)
+            ascii_stem = normalized_stem.encode("ascii", "ignore").decode("ascii").lower()
+            play_slug = re.sub(r"[^a-z0-9]+", "-", ascii_stem).strip("-") or "piece"
+
+        notice_rel = _save_rel("play_notice")
+        preface_rel = _save_rel("play_preface")
+        dramatis_rel = _save_rel("play_dramatis")
+
+        plays_list = []
+        if play_xml_rel:
+            plays_list.append({
+                "play_slug": play_slug,
+                "dramatic_xml_path": play_xml_rel,
+                "notice_xml_path": notice_rel,
+                "preface_xml_path": preface_rel,
+                "dramatis_xml_path": dramatis_rel,
+            })
+
+        config_dict = {
+            "schema": "ets.site_publication_dialog_config",
+            "version": 3,
+            "metadata": {
+                "author_name": author_name,
+                "corpus_title": corpus_title,
+                "scientific_editor": scientific_editor,
+            },
+            "xml_sources": {
+                "home_page_tei_path": home_page_rel,
+                "general_intro_tei_path": intro_rel,
+            },
+            "plays": plays_list,
+            "play_order": [],
+            "output": {"output_dir": None},
+            "assets": {
+                "logo_paths": logo_rels,
+                "asset_directories": [],
+            },
+            "options": {
+                "show_xml_download": True,
+                "build_latex_pdf": False,
+                "hide_minor_variants_in_pdf": False,
+                "publish_notices": publish_notices,
+                "publish_prefaces": publish_prefaces,
+                "include_metadata": include_metadata,
+                "resolve_notice_xincludes": resolve_xincludes,
+            },
+        }
+
+        config_json = json.dumps(config_dict, ensure_ascii=False, indent=2)
+
+        zip_buf = io.BytesIO()
+        with zipfile.ZipFile(zip_buf, "w", zipfile.ZIP_DEFLATED) as zf:
+            zf.writestr("publication_config.json", config_json.encode("utf-8"))
+            for f in sources_dir.rglob("*"):
+                if f.is_file():
+                    zf.write(f, f.relative_to(tmp).as_posix())
+        zip_buf.seek(0)
+
+        normalized = unicodedata.normalize("NFD", corpus_title)
+        ascii_str = normalized.encode("ascii", "ignore").decode("ascii")
+        slug = re.sub(r"[^a-z0-9]+", "_", ascii_str.lower()).strip("_") or "source"
+
+        return send_file(
+            zip_buf,
+            mimetype="application/zip",
+            as_attachment=True,
+            download_name=f"{slug}_source.zip",
+        )
+
+
 @pub_bp.post("/publish/builder")
 def builder_post():
     form = request.form

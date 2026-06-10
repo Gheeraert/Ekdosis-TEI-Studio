@@ -28,7 +28,37 @@
 <form method="post" action="/publish/builder" enctype="multipart/form-data">
 
   <fieldset>
-    <legend>Métadonnées</legend>
+    <legend>Configuration du constructeur</legend>
+
+    <p class="help">
+      Pour des raisons de sécurité, le navigateur ne peut pas recharger automatiquement
+      les fichiers locaux. La configuration JSON restaure les champs textuels, les options
+      et la structure du formulaire ; les fichiers devront être resélectionnés.
+    </p>
+
+    <div class="field">
+      <label for="builder_config_file">Charger une configuration JSON</label>
+      <input type="file" id="builder_config_file" name="builder_config_file" accept=".json">
+      <button type="button" id="load-config-btn">Charger la configuration JSON</button>
+    </div>
+
+    <div class="field">
+      <button type="submit" formaction="/publish/builder/config" formnovalidate>
+        Télécharger la configuration JSON
+      </button>
+      <button type="submit" formaction="/publish/builder/source-package" formnovalidate>
+        Télécharger le paquet source de publication
+      </button>
+    </div>
+
+    <p class="help">
+      Le paquet source ZIP contient la configuration et les fichiers sources.
+      Il peut être réutilisé directement dans l'outil « Publication ZIP ».
+    </p>
+  </fieldset>
+
+  <fieldset>
+    <legend>Métadonnées générales</legend>
 
     <div class="field">
       <label>Prénom de l'auteur</label>
@@ -56,7 +86,7 @@
   </fieldset>
 
   <fieldset>
-    <legend>Textes généraux du site</legend>
+    <legend>Fichiers généraux</legend>
 
     <p class="help">
       Les fichiers DOCX sont acceptés pour la page d'accueil, l'introduction,
@@ -82,7 +112,7 @@
   </fieldset>
 
   <fieldset>
-    <legend>Pièce dramatique</legend>
+    <legend>Pièce</legend>
 
     <div class="field">
       <label>Fichier XML de la pièce * <em>(.xml uniquement)</em></label>
@@ -106,7 +136,7 @@
   </fieldset>
 
   <fieldset>
-    <legend>Options de publication</legend>
+    <legend>Options</legend>
 
     <div class="field">
       <label>
@@ -137,9 +167,13 @@
     </div>
   </fieldset>
 
-  <div class="actions">
-    <button type="submit" class="primary-action">Générer le site statique</button>
-  </div>
+  <fieldset>
+    <legend>Génération</legend>
+
+    <div class="actions">
+      <button type="submit" class="primary-action">Générer le site statique</button>
+    </div>
+  </fieldset>
 
 </form>
 
@@ -150,5 +184,50 @@
     Décompressez-le dans un dossier et ouvrez <code>index.html</code> dans votre navigateur.
   </p>
 </section>
+
+<script>
+document.getElementById('load-config-btn').addEventListener('click', function () {
+  var input = document.getElementById('builder_config_file');
+  var file = input.files[0];
+  if (!file) {
+    alert('Sélectionnez d\'abord un fichier de configuration JSON.');
+    return;
+  }
+  var reader = new FileReader();
+  reader.onload = function (e) {
+    var data;
+    try {
+      data = JSON.parse(e.target.result);
+    } catch (err) {
+      alert('Fichier JSON invalide : ' + err.message);
+      return;
+    }
+    if (data.schema !== 'ets.builder_form_config') {
+      alert('Ce fichier n\'est pas une configuration du constructeur ETS.');
+      return;
+    }
+    function setField(name, value) {
+      var el = document.querySelector('[name="' + name + '"]');
+      if (el && value !== undefined && value !== null) { el.value = value; }
+    }
+    function setCheck(name, value) {
+      var el = document.querySelector('[name="' + name + '"]');
+      if (el) { el.checked = !!value; }
+    }
+    setField('author_first_name', data.author_first_name);
+    setField('author_last_name', data.author_last_name);
+    setField('corpus_title', data.corpus_title);
+    setField('editor_first_name', data.editor_first_name);
+    setField('editor_last_name', data.editor_last_name);
+    if (data.options) {
+      setCheck('publish_notices', data.options.publish_notices);
+      setCheck('publish_prefaces', data.options.publish_prefaces);
+      setCheck('include_metadata', data.options.include_metadata);
+      setCheck('resolve_notice_xincludes', data.options.resolve_notice_xincludes);
+    }
+  };
+  reader.readAsText(file);
+});
+</script>
 
 {% endblock %}

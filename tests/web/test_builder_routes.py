@@ -3,7 +3,10 @@
 from __future__ import annotations
 
 import io
+import json
+import tempfile
 import zipfile
+from pathlib import Path
 
 import pytest
 
@@ -241,3 +244,169 @@ def test_builder_blueprint_does_not_import_tkinter() -> None:
     for py_file in web_dir.rglob("*.py"):
         content = py_file.read_text(encoding="utf-8")
         assert "tkinter" not in content, f"tkinter importé dans {py_file.name}"
+
+
+# ── GET /publish/builder — nouveaux éléments de configuration ─────────────────
+
+def test_builder_get_contains_config_section(client) -> None:
+    rv = client.get("/publish/builder")
+    assert "Configuration du constructeur" in rv.data.decode()
+
+
+def test_builder_get_contains_load_config_json(client) -> None:
+    rv = client.get("/publish/builder")
+    assert "Charger une configuration JSON" in rv.data.decode()
+
+
+def test_builder_get_contains_download_config_json(client) -> None:
+    rv = client.get("/publish/builder")
+    assert "Télécharger la configuration JSON" in rv.data.decode()
+
+
+def test_builder_get_contains_download_source_package(client) -> None:
+    rv = client.get("/publish/builder")
+    assert "Télécharger le paquet source de publication" in rv.data.decode()
+
+
+# ── POST /publish/builder/config ──────────────────────────────────────────────
+
+def test_builder_config_post_returns_json(client) -> None:
+    rv = client.post(
+        "/publish/builder/config",
+        data={
+            "corpus_title": "Tragédies",
+            "author_first_name": "Jean",
+            "author_last_name": "Racine",
+        },
+        content_type="multipart/form-data",
+    )
+    assert rv.status_code == 200
+    assert "json" in rv.content_type.lower()
+
+
+def test_builder_config_json_contains_metadata_and_options(client) -> None:
+    rv = client.post(
+        "/publish/builder/config",
+        data={
+            "corpus_title": "Tragédies complètes",
+            "author_first_name": "Jean",
+            "author_last_name": "Racine",
+            "editor_first_name": "Dr",
+            "editor_last_name": "Martin",
+            "publish_notices": "1",
+            "include_metadata": "1",
+        },
+        content_type="multipart/form-data",
+    )
+    assert rv.status_code == 200
+    data = json.loads(rv.data)
+    assert data["corpus_title"] == "Tragédies complètes"
+    assert data["author_first_name"] == "Jean"
+    assert data["author_last_name"] == "Racine"
+    assert data["editor_first_name"] == "Dr"
+    assert data["editor_last_name"] == "Martin"
+    assert data["options"]["publish_notices"] is True
+    assert data["options"]["publish_prefaces"] is False
+    assert data["options"]["include_metadata"] is True
+
+
+# ── POST /publish/builder/source-package ──────────────────────────────────────
+
+def test_builder_source_package_returns_zip(client) -> None:
+    rv = client.post(
+        "/publish/builder/source-package",
+        data={
+            "corpus_title": "Tragédies",
+            "home_page_file": (io.BytesIO(_HOME_XML), "accueil.xml"),
+            "play_xml": (io.BytesIO(_PLAY_XML), "britannicus.xml"),
+        },
+        content_type="multipart/form-data",
+    )
+    assert rv.status_code == 200
+    assert "zip" in rv.content_type.lower()
+
+
+def test_builder_source_package_zip_contains_config(client) -> None:
+    rv = client.post(
+        "/publish/builder/source-package",
+        data={
+            "corpus_title": "Tragédies",
+            "home_page_file": (io.BytesIO(_HOME_XML), "accueil.xml"),
+            "play_xml": (io.BytesIO(_PLAY_XML), "britannicus.xml"),
+        },
+        content_type="multipart/form-data",
+    )
+    with zipfile.ZipFile(io.BytesIO(rv.data)) as zf:
+        assert "publication_config.json" in zf.namelist()
+
+
+def test_builder_source_package_zip_contains_sources(client) -> None:
+    rv = client.post(
+        "/publish/builder/source-package",
+        data={
+            "corpus_title": "Tragédies",
+            "home_page_file": (io.BytesIO(_HOME_XML), "accueil.xml"),
+            "play_xml": (io.BytesIO(_PLAY_XML), "britannicus.xml"),
+        },
+        content_type="multipart/form-data",
+    )
+    with zipfile.ZipFile(io.BytesIO(rv.data)) as zf:
+        names = zf.namelist()
+    assert any("accueil.xml" in n for n in names)
+    assert any("britannicus.xml" in n for n in names)
+
+
+def test_builder_source_package_config_uses_relative_paths(client) -> None:
+    rv = client.post(
+        "/publish/builder/source-package",
+        data={
+            "corpus_title": "Tragédies",
+            "home_page_file": (io.BytesIO(_HOME_XML), "accueil.xml"),
+            "play_xml": (io.BytesIO(_PLAY_XML), "britannicus.xml"),
+        },
+        content_type="multipart/form-data",
+    )
+    with zipfile.ZipFile(io.BytesIO(rv.data)) as zf:
+        config_bytes = zf.read("publication_config.json")
+    payload = json.loads(config_bytes.decode("utf-8"))
+    home_path = payload["xml_sources"]["home_page_tei_path"]
+    play_path = payload["plays"][0]["dramatic_xml_path"]
+    assert home_path is not None
+    assert not Path(home_path).is_absolute(), f"chemin non relatif : {home_path}"
+    assert not Path(play_path).is_absolute(), f"chemin non relatif : {play_path}"
+
+
+def test_builder_source_package_compatible_with_publish_static(client) -> None:
+    rv = client.post(
+        "/publish/builder/source-package",
+        data={
+            "corpus_title": "Tragédies",
+            "author_first_name": "Jean",
+            "author_last_name": "Racine",
+            "home_page_file": (io.BytesIO(_HOME_XML), "accueil.xml"),
+            "play_xml": (io.BytesIO(_PLAY_XML), "britannicus.xml"),
+            "publish_notices": "1",
+            "publish_prefaces": "1",
+            "include_metadata": "1",
+            "resolve_notice_xincludes": "1",
+        },
+        content_type="multipart/form-data",
+    )
+    assert rv.status_code == 200
+
+    from ets.application import site_publication_dialog_config_from_dict
+
+    with tempfile.TemporaryDirectory() as tmp_str:
+        tmp = Path(tmp_str)
+        with zipfile.ZipFile(io.BytesIO(rv.data)) as zf:
+            for entry in zf.infolist():
+                if not entry.filename.endswith("/"):
+                    target = tmp / entry.filename
+                    target.parent.mkdir(parents=True, exist_ok=True)
+                    target.write_bytes(zf.read(entry.filename))
+            config_bytes = zf.read("publication_config.json")
+
+        payload = json.loads(config_bytes.decode("utf-8"))
+        config = site_publication_dialog_config_from_dict(payload, base_dir=tmp)
+        assert config.corpus_title == "Tragédies"
+        assert config.author_name == "Jean Racine"
