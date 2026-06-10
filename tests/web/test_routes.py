@@ -728,10 +728,19 @@ def test_index_has_five_tabs(client) -> None:
     rv = client.get("/")
     html = rv.data.decode()
     assert "Import" in html
-    assert "Configuration" in html
+    assert "Configuration manuelle" in html
     assert "Saisie" in html
     assert "Résultats" in html
     assert "Export" in html
+
+
+def test_index_config_tab_is_config_manuelle(client) -> None:
+    rv = client.get("/")
+    html = rv.data.decode()
+    import re
+    tab_buttons = re.findall(r'<button[^>]+class="tab-button"[^>]*>([^<]+)</button>', html)
+    assert "Configuration manuelle" in tab_buttons
+    assert "Configuration" not in [t for t in tab_buttons if t != "Configuration manuelle"]
 
 
 def test_index_old_tab_name_absent(client) -> None:
@@ -905,7 +914,35 @@ def test_generate_ok_no_contextual_action(client) -> None:
     assert rv.status_code == 200
     html = rv.data.decode()
     assert "TEI XML" in html
-    assert 'class="result-actions"' not in html
+    # Après génération, le bouton "Générer" ne réapparaît pas dans result-actions
+    import re
+    result_actions_blocks = re.findall(r'<div class="result-actions">(.*?)</div>', html, re.DOTALL)
+    for block in result_actions_blocks:
+        assert 'formaction="/generate"' not in block
+
+
+def test_generate_ok_shows_export_button(client) -> None:
+    rv = client.post("/generate", data={
+        "config_json": _minimal_config_json(n_witnesses=2),
+        "transcription": _valid_text(n_witnesses=2),
+    })
+    assert rv.status_code == 200
+    html = rv.data.decode()
+    assert "Exporter les résultats" in html
+
+
+def test_generate_ok_export_button_is_not_submit(client) -> None:
+    rv = client.post("/generate", data={
+        "config_json": _minimal_config_json(n_witnesses=2),
+        "transcription": _valid_text(n_witnesses=2),
+    })
+    assert rv.status_code == 200
+    html = rv.data.decode()
+    import re
+    buttons = re.findall(r'<button([^>]*)>Exporter les résultats</button>', html)
+    assert buttons, "Bouton 'Exporter les résultats' non trouvé"
+    for attrs in buttons:
+        assert 'type="submit"' not in attrs
 
 
 def test_export_routes_still_present(client) -> None:

@@ -20,7 +20,7 @@
 
   <div class="tab-list" role="tablist">
     <button type="button" class="tab-button" data-tab="tab-import">Import</button>
-    <button type="button" class="tab-button" data-tab="tab-config">Configuration</button>
+    <button type="button" class="tab-button" data-tab="tab-config">Configuration manuelle</button>
     <button type="button" class="tab-button" data-tab="tab-saisie">Saisie</button>
     <button type="button" class="tab-button" data-tab="tab-resultats">Résultats</button>
     <button type="button" class="tab-button" data-tab="tab-export">Export</button>
@@ -265,6 +265,12 @@
         <h2>LaTeX / Ekdosis</h2>
         <p class="msg warning">Génération Ekdosis non disponible : {{ ekdosis_error }}</p>
       </section>
+      {% endif %}
+
+      {% if tei_result is defined and tei_result %}
+      <div class="result-actions">
+        <button type="button" class="primary-action" onclick="window.etsActivateTab('tab-export')">Exporter les résultats</button>
+      </div>
       {% endif %}
 
       {% if not has_results %}
