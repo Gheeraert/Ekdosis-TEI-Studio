@@ -641,3 +641,56 @@ def test_load_zip_no_permanent_file(client, tmp_path) -> None:
         "package_file": (io.BytesIO(zip_bytes), "test.zip"),
     }, content_type="multipart/form-data")
     assert set(os.listdir(tmp_path)) == before
+
+
+# ── Interface à onglets ───────────────────────────────────────────────────────
+
+def test_index_has_four_tabs(client) -> None:
+    rv = client.get("/")
+    html = rv.data.decode()
+    assert "Import / Export" in html
+    assert "Configuration" in html
+    assert "Saisie" in html
+    assert "Résultats" in html
+
+
+def test_index_tab_buttons_are_not_submit(client) -> None:
+    rv = client.get("/")
+    html = rv.data.decode()
+    # Les boutons d'onglet portent class="tab-button" et type="button"
+    assert 'class="tab-button"' in html
+    # Aucun bouton d'onglet ne doit être type="submit"
+    import re
+    tab_buttons = re.findall(r'<button[^>]+class="tab-button"[^>]*>', html)
+    assert tab_buttons, "Aucun bouton d'onglet trouvé"
+    for btn in tab_buttons:
+        assert 'type="submit"' not in btn, f"Bouton d'onglet submit trouvé : {btn}"
+
+
+def test_index_has_required_fields(client) -> None:
+    rv = client.get("/")
+    html = rv.data.decode()
+    for field in [
+        'name="package_file"',
+        'name="config_file"',
+        'name="transcription_file"',
+        'name="castlist_file"',
+        'name="config_json"',
+        'name="transcription"',
+        'name="castlist_text"',
+    ]:
+        assert field in html, f"Champ manquant : {field}"
+
+
+def test_index_has_required_formactions(client) -> None:
+    rv = client.get("/")
+    html = rv.data.decode()
+    for route in ["/load", "/generate", "/download/package",
+                  "/download/config", "/download/transcription", "/download/castlist"]:
+        assert route in html, f"Route manquante : {route}"
+
+
+def test_index_single_form(client) -> None:
+    rv = client.get("/")
+    html = rv.data.decode()
+    assert html.count("<form") == 1, "Il doit y avoir exactement un seul <form>"

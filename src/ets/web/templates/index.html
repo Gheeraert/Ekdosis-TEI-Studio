@@ -10,232 +10,280 @@
 <p class="msg error"><strong>Erreur d'import :</strong> {{ load_error }}</p>
 {% endif %}
 
-<form method="post" action="/validate" enctype="multipart/form-data">
+{% set has_results = (validation is defined and validation)
+                  or (tei_result is defined and tei_result)
+                  or (html_result is defined and html_result)
+                  or (ekdosis is defined and ekdosis)
+                  or (ekdosis_error is defined and ekdosis_error) %}
 
-  <fieldset>
-    <legend>Importer / exporter</legend>
+<div class="tabs" data-active-tab="{{ 'tab-resultats' if has_results else '' }}">
 
-    <details open>
-      <summary>Importer des fichiers</summary>
-
-      <div class="step">
-        <h3 class="step-title">Étape 1 — Choisir les fichiers à importer</h3>
-
-        <div class="option">
-          <strong>Option A — Paquet complet ZIP <em>(recommandé)</em></strong>
-          <p class="help">Utilisez cette option si vous avez un paquet ETS complet contenant le JSON de configuration, la transcription ETS et éventuellement la castlist / dramatis personae.</p>
-          <div class="field">
-            <label>Paquet ZIP ETS complet</label>
-            <input type="file" name="package_file" accept=".zip,application/zip">
-          </div>
-          <p class="help">Si un paquet ZIP est sélectionné, il est prioritaire sur les fichiers séparés.</p>
-        </div>
-
-        <div class="option">
-          <strong>Option B — Fichiers séparés <em>(en dépannage)</em></strong>
-          <p class="help">Utilisez cette option si vous n'avez pas encore de paquet complet, ou si vous voulez remplacer un seul élément.</p>
-          <div class="field">
-            <label>JSON de configuration ETS</label>
-            <input type="file" name="config_file" accept=".json,application/json">
-          </div>
-          <div class="field">
-            <label>Transcription ETS / texte de la pièce</label>
-            <input type="file" name="transcription_file" accept=".txt,.md,text/plain">
-          </div>
-          <div class="field">
-            <label>Castlist / dramatis personae</label>
-            <input type="file" name="castlist_file" accept=".txt,.md,text/plain">
-          </div>
-        </div>
-      </div>
-
-      <div class="step">
-        <h3 class="step-title">Étape 2 — Importer les fichiers dans l'interface</h3>
-        <button type="submit" formaction="/load">Importer dans l'interface</button>
-      </div>
-    </details>
-
-    <details>
-      <summary>Exporter le travail courant</summary>
-
-      <div class="option">
-        <div class="field export-field">
-          <button type="submit" formaction="/download/package">Télécharger le paquet ZIP ETS complet</button>
-          <span class="help">Recommandé : contient le JSON, la transcription et la castlist si elle existe.</span>
-        </div>
-        <div class="field export-field">
-          <button type="submit" formaction="/download/config">Télécharger seulement le JSON de configuration</button>
-        </div>
-        <div class="field export-field">
-          <button type="submit" formaction="/download/transcription">Télécharger seulement la transcription</button>
-        </div>
-        <div class="field export-field">
-          <button type="submit" formaction="/download/castlist">Télécharger seulement la castlist</button>
-        </div>
-      </div>
-    </details>
-  </fieldset>
-
-  <fieldset>
-    <legend>Configuration</legend>
-
-    <details {% if form.config_json %}open{% endif %}>
-      <summary>Coller un JSON de configuration ETS</summary>
-      <p>Si ce champ est renseigné, il a priorité sur les champs individuels ci-dessous.</p>
-      <textarea name="config_json" rows="12">{{ form.config_json }}</textarea>
-    </details>
-
-    <details {% if not form.config_json %}open{% endif %}>
-      <summary>Saisir les champs individuellement</summary>
-
-      <div class="field">
-        <label>Titre de la pièce *</label>
-        <input type="text" name="titre" value="{{ form.titre }}" size="50">
-      </div>
-
-      <div class="field">
-        <label>Prénom de l'auteur</label>
-        <input type="text" name="auteur_prenom" value="{{ form.auteur_prenom }}" size="20">
-        <label>Nom de l'auteur</label>
-        <input type="text" name="auteur_nom" value="{{ form.auteur_nom }}" size="20">
-      </div>
-
-      <div class="field">
-        <label>Prénom de l'éditeur scientifique</label>
-        <input type="text" name="editeur_prenom" value="{{ form.editeur_prenom }}" size="20">
-        <label>Nom de l'éditeur scientifique</label>
-        <input type="text" name="editeur_nom" value="{{ form.editeur_nom }}" size="20">
-      </div>
-
-      <div class="field">
-        <label>Prénom du transcripteur</label>
-        <input type="text" name="transcripteur_prenom" value="{{ form.transcripteur_prenom }}" size="20">
-        <label>Nom du transcripteur</label>
-        <input type="text" name="transcripteur_nom" value="{{ form.transcripteur_nom }}" size="20">
-      </div>
-
-      <div class="field">
-        <label>Témoins (tableau JSON) *</label>
-        <textarea name="temoins_json" rows="8"
-          placeholder='[{"abbr": "A", "year": "1670", "desc": "Description du témoin"}]'>{{ form.temoins_json }}</textarea>
-      </div>
-
-      <div class="field">
-        <label>Témoin de référence (sigle ou indice 0-based, laisser vide = dernier témoin)</label>
-        <input type="text" name="temoin_reference" value="{{ form.temoin_reference }}" size="10"
-          placeholder="ex. A">
-      </div>
-    </details>
-  </fieldset>
-
-  <fieldset>
-    <legend>Dramatis personae (optionnel)</legend>
-    <details {% if form.castlist_text %}open{% endif %}>
-      <summary>Coller le contenu d'un fichier castlist ETS</summary>
-      <p>Si ce champ est renseigné, il remplace le <code>castlist_path</code> éventuellement présent dans le JSON de configuration.</p>
-      <textarea name="castlist_text" rows="10"
-        placeholder="%%castlist%%&#10;%%cast id=… role=&quot;…&quot; aliases=&quot;…&quot;%%&#10;…&#10;%%fin_cast%%&#10;%%fin_castlist%%">{{ form.castlist_text }}</textarea>
-    </details>
-  </fieldset>
-
-  <fieldset>
-    <legend>Transcription ETS *</legend>
-    <textarea name="transcription" rows="25">{{ form.transcription }}</textarea>
-  </fieldset>
-
-  <div class="actions">
-    <button type="submit">Valider</button>
-    <button type="submit" formaction="/generate">Générer TEI + HTML + LaTeX</button>
+  <div class="tab-list" role="tablist">
+    <button type="button" class="tab-button" data-tab="tab-import">Import / Export</button>
+    <button type="button" class="tab-button" data-tab="tab-config">Configuration</button>
+    <button type="button" class="tab-button" data-tab="tab-saisie">Saisie</button>
+    <button type="button" class="tab-button" data-tab="tab-resultats">Résultats</button>
   </div>
 
-</form>
+  <form method="post" action="/validate" enctype="multipart/form-data">
 
-{# ── Résultats de validation ── #}
-{% if validation is defined and validation %}
-<section>
-  <h2>Validation</h2>
-  <p class="msg {{ 'success' if validation.ok else 'error' }}">{{ validation.message }}</p>
+    {# ── Onglet 1 : Import / Export ── #}
+    <div id="tab-import" class="tab-panel">
+      <fieldset>
+        <legend>Importer / exporter</legend>
 
-  {% if validation.diagnostics %}
-  <table>
-    <thead>
-      <tr><th>Niveau</th><th>Code</th><th>Ligne</th><th>Acte / Scène</th><th>Message</th></tr>
-    </thead>
-    <tbody>
-    {% for d in validation.diagnostics %}
-    <tr class="level-{{ d.level | lower }}">
-      <td>{{ d.level }}</td>
-      <td>{{ d.code }}</td>
-      <td>{{ d.line_number if d.line_number is not none else '' }}</td>
-      <td>{{ (d.act or '') }}{% if d.scene %} / {{ d.scene }}{% endif %}</td>
-      <td>{{ d.message }}{% if d.excerpt %} — <em>{{ d.excerpt }}</em>{% endif %}</td>
-    </tr>
-    {% endfor %}
-    </tbody>
-  </table>
-  {% endif %}
-</section>
-{% endif %}
+        <details open>
+          <summary>Importer des fichiers</summary>
 
-{# ── TEI XML ── #}
-{% if tei_result is defined and tei_result %}
-<section>
-  <h2>TEI XML</h2>
-  {% if tei_result.ok %}
-  <pre>{{ tei_result.tei_xml }}</pre>
-  {% else %}
-  <p class="msg error">{{ tei_result.message }}</p>
-  {% if tei_result.diagnostics %}
-  <table>
-    <thead>
-      <tr><th>Niveau</th><th>Code</th><th>Ligne</th><th>Message</th></tr>
-    </thead>
-    <tbody>
-    {% for d in tei_result.diagnostics %}
-    <tr class="level-{{ d.level | lower }}">
-      <td>{{ d.level }}</td>
-      <td>{{ d.code }}</td>
-      <td>{{ d.line_number if d.line_number is not none else '' }}</td>
-      <td>{{ d.message }}</td>
-    </tr>
-    {% endfor %}
-    </tbody>
-  </table>
-  {% endif %}
-  {% endif %}
-</section>
-{% endif %}
+          <div class="step">
+            <h3 class="step-title">Étape 1 — Choisir les fichiers à importer</h3>
 
-{# ── Aperçu HTML ── #}
-{% if html_result is defined and html_result %}
-<section>
-  <h2>Aperçu HTML</h2>
-  {% if html_result.ok %}
-  <div class="preview">{{ html_result.html | safe }}</div>
-  {% else %}
-  <p class="msg error">Échec de l'aperçu HTML{% if html_result.message %} : {{ html_result.message }}{% endif %}</p>
-  {% if html_result.diagnostics %}
-  <ul>
-    {% for d in html_result.diagnostics %}
-    <li><strong>{{ d.code }}</strong> — {{ d.message }}</li>
-    {% endfor %}
-  </ul>
-  {% endif %}
-  {% endif %}
-</section>
-{% endif %}
+            <div class="option">
+              <strong>Option A — Paquet complet ZIP <em>(recommandé)</em></strong>
+              <p class="help">Utilisez cette option si vous avez un paquet ETS complet contenant le JSON de configuration, la transcription ETS et éventuellement la castlist / dramatis personae.</p>
+              <div class="field">
+                <label>Paquet ZIP ETS complet</label>
+                <input type="file" name="package_file" accept=".zip,application/zip">
+              </div>
+              <p class="help">Si un paquet ZIP est sélectionné, il est prioritaire sur les fichiers séparés.</p>
+            </div>
 
-{# ── LaTeX / Ekdosis ── #}
-{% if ekdosis is defined and ekdosis %}
-<section>
-  <h2>LaTeX / Ekdosis</h2>
-  <pre>{{ ekdosis }}</pre>
-</section>
-{% elif ekdosis_error is defined and ekdosis_error %}
-<section>
-  <h2>LaTeX / Ekdosis</h2>
-  <p class="msg warning">Génération Ekdosis non disponible : {{ ekdosis_error }}</p>
-</section>
-{% endif %}
+            <div class="option">
+              <strong>Option B — Fichiers séparés <em>(en dépannage)</em></strong>
+              <p class="help">Utilisez cette option si vous n'avez pas encore de paquet complet, ou si vous voulez remplacer un seul élément.</p>
+              <div class="field">
+                <label>JSON de configuration ETS</label>
+                <input type="file" name="config_file" accept=".json,application/json">
+              </div>
+              <div class="field">
+                <label>Transcription ETS / texte de la pièce</label>
+                <input type="file" name="transcription_file" accept=".txt,.md,text/plain">
+              </div>
+              <div class="field">
+                <label>Castlist / dramatis personae</label>
+                <input type="file" name="castlist_file" accept=".txt,.md,text/plain">
+              </div>
+            </div>
+          </div>
+
+          <div class="step">
+            <h3 class="step-title">Étape 2 — Importer les fichiers dans l'interface</h3>
+            <button type="submit" formaction="/load">Importer dans l'interface</button>
+          </div>
+        </details>
+
+        <details>
+          <summary>Exporter le travail courant</summary>
+
+          <div class="option">
+            <div class="field export-field">
+              <button type="submit" formaction="/download/package">Télécharger le paquet ZIP ETS complet</button>
+              <span class="help">Recommandé : contient le JSON, la transcription et la castlist si elle existe.</span>
+            </div>
+            <div class="field export-field">
+              <button type="submit" formaction="/download/config">Télécharger seulement le JSON de configuration</button>
+            </div>
+            <div class="field export-field">
+              <button type="submit" formaction="/download/transcription">Télécharger seulement la transcription</button>
+            </div>
+            <div class="field export-field">
+              <button type="submit" formaction="/download/castlist">Télécharger seulement la castlist</button>
+            </div>
+          </div>
+        </details>
+      </fieldset>
+    </div>
+
+    {# ── Onglet 2 : Configuration ── #}
+    <div id="tab-config" class="tab-panel">
+      <fieldset>
+        <legend>Configuration</legend>
+
+        <details {% if form.config_json %}open{% endif %}>
+          <summary>Coller un JSON de configuration ETS</summary>
+          <p>Si ce champ est renseigné, il a priorité sur les champs individuels ci-dessous.</p>
+          <textarea name="config_json" rows="12">{{ form.config_json }}</textarea>
+        </details>
+
+        <details {% if not form.config_json %}open{% endif %}>
+          <summary>Saisir les champs individuellement</summary>
+
+          <div class="field">
+            <label>Titre de la pièce *</label>
+            <input type="text" name="titre" value="{{ form.titre }}" size="50">
+          </div>
+
+          <div class="field">
+            <label>Prénom de l'auteur</label>
+            <input type="text" name="auteur_prenom" value="{{ form.auteur_prenom }}" size="20">
+            <label>Nom de l'auteur</label>
+            <input type="text" name="auteur_nom" value="{{ form.auteur_nom }}" size="20">
+          </div>
+
+          <div class="field">
+            <label>Prénom de l'éditeur scientifique</label>
+            <input type="text" name="editeur_prenom" value="{{ form.editeur_prenom }}" size="20">
+            <label>Nom de l'éditeur scientifique</label>
+            <input type="text" name="editeur_nom" value="{{ form.editeur_nom }}" size="20">
+          </div>
+
+          <div class="field">
+            <label>Prénom du transcripteur</label>
+            <input type="text" name="transcripteur_prenom" value="{{ form.transcripteur_prenom }}" size="20">
+            <label>Nom du transcripteur</label>
+            <input type="text" name="transcripteur_nom" value="{{ form.transcripteur_nom }}" size="20">
+          </div>
+
+          <div class="field">
+            <label>Témoins (tableau JSON) *</label>
+            <textarea name="temoins_json" rows="8"
+              placeholder='[{"abbr": "A", "year": "1670", "desc": "Description du témoin"}]'>{{ form.temoins_json }}</textarea>
+          </div>
+
+          <div class="field">
+            <label>Témoin de référence (sigle ou indice 0-based, laisser vide = dernier témoin)</label>
+            <input type="text" name="temoin_reference" value="{{ form.temoin_reference }}" size="10"
+              placeholder="ex. A">
+          </div>
+        </details>
+      </fieldset>
+    </div>
+
+    {# ── Onglet 3 : Saisie ── #}
+    <div id="tab-saisie" class="tab-panel">
+      <fieldset>
+        <legend>Dramatis personae (optionnel)</legend>
+        <details {% if form.castlist_text %}open{% endif %}>
+          <summary>Coller le contenu d'un fichier castlist ETS</summary>
+          <p>Si ce champ est renseigné, il remplace le <code>castlist_path</code> éventuellement présent dans le JSON de configuration.</p>
+          <textarea name="castlist_text" rows="10"
+            placeholder="%%castlist%%&#10;%%cast id=… role=&quot;…&quot; aliases=&quot;…&quot;%%&#10;…&#10;%%fin_cast%%&#10;%%fin_castlist%%">{{ form.castlist_text }}</textarea>
+        </details>
+      </fieldset>
+
+      <fieldset>
+        <legend>Transcription ETS *</legend>
+        <textarea name="transcription" rows="25">{{ form.transcription }}</textarea>
+      </fieldset>
+
+      <div class="actions">
+        <button type="submit">Valider</button>
+        <button type="submit" formaction="/generate">Générer TEI + HTML + LaTeX</button>
+      </div>
+    </div>
+
+    {# ── Onglet 4 : Résultats ── #}
+    <div id="tab-resultats" class="tab-panel">
+
+      {% if validation is defined and validation %}
+      <section>
+        <h2>Validation</h2>
+        <p class="msg {{ 'success' if validation.ok else 'error' }}">{{ validation.message }}</p>
+
+        {% if validation.diagnostics %}
+        <table>
+          <thead>
+            <tr><th>Niveau</th><th>Code</th><th>Ligne</th><th>Acte / Scène</th><th>Message</th></tr>
+          </thead>
+          <tbody>
+          {% for d in validation.diagnostics %}
+          <tr class="level-{{ d.level | lower }}">
+            <td>{{ d.level }}</td>
+            <td>{{ d.code }}</td>
+            <td>{{ d.line_number if d.line_number is not none else '' }}</td>
+            <td>{{ (d.act or '') }}{% if d.scene %} / {{ d.scene }}{% endif %}</td>
+            <td>{{ d.message }}{% if d.excerpt %} — <em>{{ d.excerpt }}</em>{% endif %}</td>
+          </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+        {% endif %}
+      </section>
+      {% endif %}
+
+      {% if tei_result is defined and tei_result %}
+      <section>
+        <h2>TEI XML</h2>
+        {% if tei_result.ok %}
+        <pre>{{ tei_result.tei_xml }}</pre>
+        {% else %}
+        <p class="msg error">{{ tei_result.message }}</p>
+        {% if tei_result.diagnostics %}
+        <table>
+          <thead>
+            <tr><th>Niveau</th><th>Code</th><th>Ligne</th><th>Message</th></tr>
+          </thead>
+          <tbody>
+          {% for d in tei_result.diagnostics %}
+          <tr class="level-{{ d.level | lower }}">
+            <td>{{ d.level }}</td>
+            <td>{{ d.code }}</td>
+            <td>{{ d.line_number if d.line_number is not none else '' }}</td>
+            <td>{{ d.message }}</td>
+          </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+        {% endif %}
+        {% endif %}
+      </section>
+      {% endif %}
+
+      {% if html_result is defined and html_result %}
+      <section>
+        <h2>Aperçu HTML</h2>
+        {% if html_result.ok %}
+        <div class="preview">{{ html_result.html | safe }}</div>
+        {% else %}
+        <p class="msg error">Échec de l'aperçu HTML{% if html_result.message %} : {{ html_result.message }}{% endif %}</p>
+        {% if html_result.diagnostics %}
+        <ul>
+          {% for d in html_result.diagnostics %}
+          <li><strong>{{ d.code }}</strong> — {{ d.message }}</li>
+          {% endfor %}
+        </ul>
+        {% endif %}
+        {% endif %}
+      </section>
+      {% endif %}
+
+      {% if ekdosis is defined and ekdosis %}
+      <section>
+        <h2>LaTeX / Ekdosis</h2>
+        <pre>{{ ekdosis }}</pre>
+      </section>
+      {% elif ekdosis_error is defined and ekdosis_error %}
+      <section>
+        <h2>LaTeX / Ekdosis</h2>
+        <p class="msg warning">Génération Ekdosis non disponible : {{ ekdosis_error }}</p>
+      </section>
+      {% endif %}
+
+      {% if not has_results %}
+      <p class="help">Aucun résultat pour l'instant. Utilisez l'onglet <em>Saisie</em> pour valider ou générer.</p>
+      {% endif %}
+
+    </div>
+
+  </form>
+</div>
+
+<script>
+(function () {
+  var tabs = document.querySelectorAll('.tab-button');
+  var panels = document.querySelectorAll('.tab-panel');
+  function activate(id) {
+    tabs.forEach(function (b) { b.classList.toggle('active', b.dataset.tab === id); });
+    panels.forEach(function (p) { p.classList.toggle('active', p.id === id); });
+    try { sessionStorage.setItem('ets-tab', id); } catch (e) {}
+  }
+  tabs.forEach(function (b) { b.addEventListener('click', function () { activate(b.dataset.tab); }); });
+  var container = document.querySelector('.tabs');
+  var init = (container && container.dataset.activeTab) ||
+             (function () { try { return sessionStorage.getItem('ets-tab'); } catch (e) { return null; } })() ||
+             'tab-import';
+  activate(init);
+})();
+</script>
 
 {% endblock %}
