@@ -15,33 +15,64 @@
   <fieldset>
     <legend>Importer / exporter</legend>
 
-    <details>
-      <summary>Importer</summary>
-      <div class="field">
-        <label>Paquet ZIP ETS (recommandé, prioritaire)</label>
-        <input type="file" name="package_file" accept=".zip,application/zip">
+    <details open>
+      <summary>Importer des fichiers</summary>
+
+      <div class="step">
+        <h3 class="step-title">Étape 1 — Choisir les fichiers à importer</h3>
+
+        <div class="option">
+          <strong>Option A — Paquet complet ZIP <em>(recommandé)</em></strong>
+          <p class="help">Utilisez cette option si vous avez un paquet ETS complet contenant le JSON de configuration, la transcription ETS et éventuellement la castlist / dramatis personae.</p>
+          <div class="field">
+            <label>Paquet ZIP ETS complet</label>
+            <input type="file" name="package_file" accept=".zip,application/zip">
+          </div>
+          <p class="help">Si un paquet ZIP est sélectionné, il est prioritaire sur les fichiers séparés.</p>
+        </div>
+
+        <div class="option">
+          <strong>Option B — Fichiers séparés <em>(en dépannage)</em></strong>
+          <p class="help">Utilisez cette option si vous n'avez pas encore de paquet complet, ou si vous voulez remplacer un seul élément.</p>
+          <div class="field">
+            <label>JSON de configuration ETS</label>
+            <input type="file" name="config_file" accept=".json,application/json">
+          </div>
+          <div class="field">
+            <label>Transcription ETS / texte de la pièce</label>
+            <input type="file" name="transcription_file" accept=".txt,.md,text/plain">
+          </div>
+          <div class="field">
+            <label>Castlist / dramatis personae</label>
+            <input type="file" name="castlist_file" accept=".txt,.md,text/plain">
+          </div>
+        </div>
       </div>
-      <div class="field">
-        <label>JSON de configuration seul</label>
-        <input type="file" name="config_file" accept=".json,application/json">
+
+      <div class="step">
+        <h3 class="step-title">Étape 2 — Importer les fichiers dans l'interface</h3>
+        <button type="submit" formaction="/load">Importer dans l'interface</button>
       </div>
-      <div class="field">
-        <label>Transcription seule</label>
-        <input type="file" name="transcription_file" accept=".txt,.md,text/plain">
-      </div>
-      <div class="field">
-        <label>Castlist seule</label>
-        <input type="file" name="castlist_file" accept=".txt,.md,text/plain">
-      </div>
-      <button type="submit" formaction="/load">Charger</button>
     </details>
 
     <details>
-      <summary>Exporter</summary>
-      <button type="submit" formaction="/download/package">Télécharger le paquet ZIP ETS</button>
-      <button type="submit" formaction="/download/config">Télécharger le JSON de configuration</button>
-      <button type="submit" formaction="/download/transcription">Télécharger la transcription</button>
-      <button type="submit" formaction="/download/castlist">Télécharger la castlist</button>
+      <summary>Exporter le travail courant</summary>
+
+      <div class="option">
+        <div class="field export-field">
+          <button type="submit" formaction="/download/package">Télécharger le paquet ZIP ETS complet</button>
+          <span class="help">Recommandé : contient le JSON, la transcription et la castlist si elle existe.</span>
+        </div>
+        <div class="field export-field">
+          <button type="submit" formaction="/download/config">Télécharger seulement le JSON de configuration</button>
+        </div>
+        <div class="field export-field">
+          <button type="submit" formaction="/download/transcription">Télécharger seulement la transcription</button>
+        </div>
+        <div class="field export-field">
+          <button type="submit" formaction="/download/castlist">Télécharger seulement la castlist</button>
+        </div>
+      </div>
     </details>
   </fieldset>
 
