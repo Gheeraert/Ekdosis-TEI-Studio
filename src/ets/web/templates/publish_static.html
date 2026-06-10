@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Publication statique — Ekdosis-TEI Studio{% endblock %}
+
+{% block content %}
+<h2>Publication statique</h2>
+<p><a href="/">← Retour à l'établi</a></p>
+
+{% if error %}
+<div class="msg error">
+  <strong>Erreur :</strong>
+  <pre style="white-space: pre-wrap; margin: 0.5em 0 0 0;">{{ error }}</pre>
+</div>
+{% endif %}
+
+<form method="post" action="/publish/static" enctype="multipart/form-data">
+  <fieldset>
+    <legend>Source</legend>
+    <p>
+      Fournir un paquet ZIP contenant exactement un fichier JSON de configuration
+      de publication (<code>publication_config.json</code>) et les fichiers d'entrée
+      (XML dramatiques, notices DOCX ou XML, préfaces, assets).
+      Les chemins du JSON doivent être relatifs à la racine du ZIP.
+    </p>
+    <div class="field">
+      <label>Paquet ZIP source de publication</label>
+      <input type="file" name="source_zip" accept=".zip,application/zip" required>
+    </div>
+  </fieldset>
+  <div class="actions">
+    <button type="submit">Générer le site statique</button>
+  </div>
+</form>
+{% endblock %}

@@ -4,6 +4,7 @@ from pathlib import Path
 
 from flask import Flask
 
+from .publication_routes import pub_bp
 from .routes import bp
 
 
@@ -17,4 +18,5 @@ def create_app(*, testing: bool = False) -> Flask:
     if testing:
         app.config["TESTING"] = True
     app.register_blueprint(bp)
+    app.register_blueprint(pub_bp)
     return app
