@@ -23,7 +23,7 @@
     <button type="button" class="tab-button" data-tab="tab-config">Configuration</button>
     <button type="button" class="tab-button" data-tab="tab-saisie">Saisie</button>
     <button type="button" class="tab-button" data-tab="tab-resultats">Résultats</button>
-    <button type="button" class="tab-button" data-tab="tab-export">Export supplémentaire</button>
+    <button type="button" class="tab-button" data-tab="tab-export">Export</button>
   </div>
 
   <form method="post" action="/validate" enctype="multipart/form-data">
@@ -176,6 +176,37 @@
         </table>
         {% endif %}
       </section>
+
+      {% if not (tei_result is defined and tei_result) %}
+      <div class="result-actions">
+        {% if validation.ok %}
+        <button type="submit" class="primary-action" formaction="/generate">Générer TEI + HTML + LaTeX</button>
+        {% else %}
+        <button type="button" class="secondary-action" onclick="window.etsActivateTab('tab-saisie')">Retour à la saisie</button>
+        {% endif %}
+      </div>
+      {% endif %}
+      {% endif %}
+
+      {% if annotated_lines is defined and annotated_lines %}
+      <section>
+        <h2>Transcription annotée</h2>
+        <div class="annotated-source">
+          {% for line in annotated_lines %}
+          <div id="src-line-{{ line.number }}" class="source-line{% if line.level %} source-line-{{ line.level }}{% endif %}">
+            <span class="line-number">{{ line.number }}</span>
+            <div>
+              <code class="line-text">{{ line.text }}</code>
+              {% if line.diagnostics %}
+              <div class="line-diagnostics">
+                {% for d in line.diagnostics %}<span class="diag-inline"><strong>{{ d.code }}</strong> {{ d.message }}</span>{% endfor %}
+              </div>
+              {% endif %}
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </section>
       {% endif %}
 
       {% if tei_result is defined and tei_result %}
@@ -210,7 +241,7 @@
       <section>
         <h2>Aperçu HTML</h2>
         {% if html_result.ok %}
-        <div class="preview">{{ html_result.html | safe }}</div>
+        <div class="preview"><iframe srcdoc="{{ html_result.html | e }}" sandbox="allow-same-origin" title="Aperçu HTML"></iframe></div>
         {% else %}
         <p class="msg error">Échec de l'aperçu HTML{% if html_result.message %} : {{ html_result.message }}{% endif %}</p>
         {% if html_result.diagnostics %}
@@ -236,34 +267,13 @@
       </section>
       {% endif %}
 
-      {% if annotated_lines is defined and annotated_lines %}
-      <section>
-        <h2>Transcription annotée</h2>
-        <div class="annotated-source">
-          {% for line in annotated_lines %}
-          <div id="src-line-{{ line.number }}" class="source-line{% if line.level %} source-line-{{ line.level }}{% endif %}">
-            <span class="line-number">{{ line.number }}</span>
-            <div>
-              <code class="line-text">{{ line.text }}</code>
-              {% if line.diagnostics %}
-              <div class="line-diagnostics">
-                {% for d in line.diagnostics %}<span class="diag-inline"><strong>{{ d.code }}</strong> {{ d.message }}</span>{% endfor %}
-              </div>
-              {% endif %}
-            </div>
-          </div>
-          {% endfor %}
-        </div>
-      </section>
-      {% endif %}
-
       {% if not has_results %}
       <p class="help">Aucun résultat pour l'instant. Utilisez l'onglet <em>Saisie</em> pour valider ou générer.</p>
       {% endif %}
 
     </div>
 
-    {# ── Onglet 5 : Export supplémentaire ── #}
+    {# ── Onglet 5 : Export ── #}
     <div id="tab-export" class="tab-panel">
       <fieldset>
         <legend>Exporter le travail courant</legend>
@@ -298,6 +308,7 @@
     panels.forEach(function (p) { p.classList.toggle('active', p.id === id); });
     try { sessionStorage.setItem('ets-tab', id); } catch (e) {}
   }
+  window.etsActivateTab = activate;
   tabs.forEach(function (b) { b.addEventListener('click', function () { activate(b.dataset.tab); }); });
   var container = document.querySelector('.tabs');
   var init = (container && container.dataset.activeTab) ||

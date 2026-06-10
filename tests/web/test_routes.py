@@ -731,7 +731,7 @@ def test_index_has_five_tabs(client) -> None:
     assert "Configuration" in html
     assert "Saisie" in html
     assert "Résultats" in html
-    assert "Export supplémentaire" in html
+    assert "Export" in html
 
 
 def test_index_old_tab_name_absent(client) -> None:
@@ -847,3 +847,70 @@ def test_import_fields_still_present(client) -> None:
     for field in ["name=\"package_file\"", "name=\"config_file\"",
                   "name=\"transcription_file\"", "name=\"castlist_file\""]:
         assert field in html, f"Champ d'import manquant : {field}"
+
+
+# ── Onglet Export renommé ─────────────────────────────────────────────────────
+
+def test_index_tab_export_not_supplementaire(client) -> None:
+    rv = client.get("/")
+    html = rv.data.decode()
+    import re
+    tab_buttons = re.findall(r'<button[^>]+class="tab-button"[^>]*>([^<]+)</button>', html)
+    assert "Export" in tab_buttons
+    assert "Export supplémentaire" not in tab_buttons
+
+
+# ── Bouton contextuel dans l'onglet Résultats ─────────────────────────────────
+
+def test_validate_ok_shows_generate_button(client) -> None:
+    rv = client.post("/validate", data={
+        "config_json": _minimal_config_json(n_witnesses=2),
+        "transcription": _valid_text(n_witnesses=2),
+    })
+    assert rv.status_code == 200
+    html = rv.data.decode()
+    assert "Générer TEI + HTML + LaTeX" in html
+    assert 'formaction="/generate"' in html
+
+
+def test_validate_error_shows_back_to_saisie_button(client) -> None:
+    rv = client.post("/validate", data={
+        "config_json": _minimal_config_json(n_witnesses=2),
+        "transcription": _invalid_text_single_reading(),
+    })
+    assert rv.status_code == 200
+    html = rv.data.decode()
+    assert "Retour à la saisie" in html
+
+
+def test_validate_error_back_button_is_not_submit(client) -> None:
+    rv = client.post("/validate", data={
+        "config_json": _minimal_config_json(n_witnesses=2),
+        "transcription": _invalid_text_single_reading(),
+    })
+    assert rv.status_code == 200
+    html = rv.data.decode()
+    import re
+    buttons = re.findall(r'<button([^>]*)>Retour à la saisie</button>', html)
+    assert buttons, "Bouton 'Retour à la saisie' non trouvé"
+    for attrs in buttons:
+        assert 'type="submit"' not in attrs
+
+
+def test_generate_ok_no_contextual_action(client) -> None:
+    rv = client.post("/generate", data={
+        "config_json": _minimal_config_json(n_witnesses=2),
+        "transcription": _valid_text(n_witnesses=2),
+    })
+    assert rv.status_code == 200
+    html = rv.data.decode()
+    assert "TEI XML" in html
+    assert 'class="result-actions"' not in html
+
+
+def test_export_routes_still_present(client) -> None:
+    rv = client.get("/")
+    html = rv.data.decode()
+    for route in ["/download/package", "/download/config",
+                  "/download/transcription", "/download/castlist"]:
+        assert route in html, f"Route d'export manquante : {route}"
