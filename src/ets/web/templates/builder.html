@@ -12,8 +12,8 @@
 </p>
 
 <div class="msg warning">
-  <strong>Version 1 — limitations actuelles :</strong>
-  cette version accepte <strong>une seule pièce</strong> à la fois.
+  <strong>Version 2 — limitations actuelles :</strong>
+  cette version accepte un corpus de plusieurs pièces.
   La génération de PDF, la publication FTP et le mode back/privilège
   ne sont pas disponibles dans cette interface web.
 </div>
@@ -112,26 +112,46 @@
   </fieldset>
 
   <fieldset>
-    <legend>Pièce</legend>
+    <legend>Corpus de pièces</legend>
 
-    <div class="field">
-      <label>Fichier XML de la pièce * <em>(.xml uniquement)</em></label>
-      <input type="file" name="play_xml" accept=".xml" required>
+    <p class="help">
+      Chaque pièce doit être fournie sous forme d'un XML dramatique complet.
+      Les notices et préfaces peuvent être fournies en DOCX ou en XML.
+      Le dramatis personae, s'il est fourni séparément, doit être en XML.
+    </p>
+
+    <div id="plays-container">
+      <div class="play-block" data-play-index="0">
+        <h4>Pièce 1</h4>
+
+        <div class="field">
+          <label>XML de la pièce <em>(.xml uniquement)</em></label>
+          <input type="file" name="play_0_xml" accept=".xml" data-suffix="xml">
+          <span class="filename-hint" style="font-size:0.85em;color:#666;margin-left:0.5em;"></span>
+        </div>
+
+        <div class="field">
+          <label>Notice <em>(.docx ou .xml, optionnel)</em></label>
+          <input type="file" name="play_0_notice" accept=".docx,.xml" data-suffix="notice">
+          <span class="filename-hint" style="font-size:0.85em;color:#666;margin-left:0.5em;"></span>
+        </div>
+
+        <div class="field">
+          <label>Préface <em>(.docx ou .xml, optionnel)</em></label>
+          <input type="file" name="play_0_preface" accept=".docx,.xml" data-suffix="preface">
+          <span class="filename-hint" style="font-size:0.85em;color:#666;margin-left:0.5em;"></span>
+        </div>
+
+        <div class="field">
+          <label>Dramatis personae <em>(.xml uniquement, optionnel)</em></label>
+          <input type="file" name="play_0_dramatis" accept=".xml" data-suffix="dramatis">
+          <span class="filename-hint" style="font-size:0.85em;color:#666;margin-left:0.5em;"></span>
+        </div>
+      </div>
     </div>
 
     <div class="field">
-      <label>Notice <em>(.docx ou .xml, optionnel)</em></label>
-      <input type="file" name="play_notice" accept=".docx,.xml">
-    </div>
-
-    <div class="field">
-      <label>Préface de l'auteur <em>(.docx ou .xml, optionnel)</em></label>
-      <input type="file" name="play_preface" accept=".docx,.xml">
-    </div>
-
-    <div class="field">
-      <label>Dramatis personae <em>(.xml uniquement, optionnel)</em></label>
-      <input type="file" name="play_dramatis" accept=".xml">
+      <button type="button" id="add-play-btn">Ajouter une pièce</button>
     </div>
   </fieldset>
 
@@ -185,49 +205,5 @@
   </p>
 </section>
 
-<script>
-document.getElementById('load-config-btn').addEventListener('click', function () {
-  var input = document.getElementById('builder_config_file');
-  var file = input.files[0];
-  if (!file) {
-    alert('Sélectionnez d\'abord un fichier de configuration JSON.');
-    return;
-  }
-  var reader = new FileReader();
-  reader.onload = function (e) {
-    var data;
-    try {
-      data = JSON.parse(e.target.result);
-    } catch (err) {
-      alert('Fichier JSON invalide : ' + err.message);
-      return;
-    }
-    if (data.schema !== 'ets.builder_form_config') {
-      alert('Ce fichier n\'est pas une configuration du constructeur ETS.');
-      return;
-    }
-    function setField(name, value) {
-      var el = document.querySelector('[name="' + name + '"]');
-      if (el && value !== undefined && value !== null) { el.value = value; }
-    }
-    function setCheck(name, value) {
-      var el = document.querySelector('[name="' + name + '"]');
-      if (el) { el.checked = !!value; }
-    }
-    setField('author_first_name', data.author_first_name);
-    setField('author_last_name', data.author_last_name);
-    setField('corpus_title', data.corpus_title);
-    setField('editor_first_name', data.editor_first_name);
-    setField('editor_last_name', data.editor_last_name);
-    if (data.options) {
-      setCheck('publish_notices', data.options.publish_notices);
-      setCheck('publish_prefaces', data.options.publish_prefaces);
-      setCheck('include_metadata', data.options.include_metadata);
-      setCheck('resolve_notice_xincludes', data.options.resolve_notice_xincludes);
-    }
-  };
-  reader.readAsText(file);
-});
-</script>
-
+<script src="{{ url_for('static', filename='builder.js') }}"></script>
 {% endblock %}

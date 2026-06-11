@@ -341,12 +341,38 @@ def builder_config_download():
     include_metadata = "include_metadata" in form
     resolve_xincludes = "resolve_notice_xincludes" in form
 
-    play_xml_file = files.get("play_xml")
-    play_filename = (play_xml_file.filename or "") if play_xml_file else ""
+    # Collect indexed play blocks
+    indices: set[int] = set()
+    for key in list(files.keys()):
+        m = re.match(r"^play_(\d+)_(xml|notice|preface|dramatis)$", key)
+        if m:
+            indices.add(int(m.group(1)))
+
+    plays_list = []
+    for i in sorted(indices):
+        def _fn(key: str) -> str:
+            f = files.get(key)
+            return (f.filename or "") if f else ""
+        plays_list.append({
+            "label": "",
+            "expected_xml_filename": _fn(f"play_{i}_xml"),
+            "expected_notice_filename": _fn(f"play_{i}_notice"),
+            "expected_preface_filename": _fn(f"play_{i}_preface"),
+            "expected_dramatis_filename": _fn(f"play_{i}_dramatis"),
+        })
+
+    if not plays_list:
+        plays_list = [{
+            "label": "",
+            "expected_xml_filename": "",
+            "expected_notice_filename": "",
+            "expected_preface_filename": "",
+            "expected_dramatis_filename": "",
+        }]
 
     config_data = {
         "schema": "ets.builder_form_config",
-        "version": 1,
+        "version": 2,
         "author_first_name": author_first,
         "author_last_name": author_last,
         "corpus_title": corpus_title,
@@ -358,7 +384,7 @@ def builder_config_download():
             "include_metadata": include_metadata,
             "resolve_notice_xincludes": resolve_xincludes,
         },
-        "plays": [{"label": "", "expected_filename": play_filename}],
+        "plays": plays_list,
     }
 
     json_bytes = json.dumps(config_data, ensure_ascii=False, indent=2).encode("utf-8")
@@ -418,29 +444,51 @@ def builder_source_package():
                 saved = _save_upload(logo_file, sources_dir)
                 logo_rels.append(saved.relative_to(tmp).as_posix())
 
-        play_xml_file = files.get("play_xml")
-        play_xml_rel: str | None = None
-        play_slug = "piece"
-        if play_xml_file and play_xml_file.filename:
-            saved = _save_upload(play_xml_file, sources_dir)
-            play_xml_rel = saved.relative_to(tmp).as_posix()
-            raw_stem = Path(play_xml_file.filename).stem
-            normalized_stem = unicodedata.normalize("NFD", raw_stem)
-            ascii_stem = normalized_stem.encode("ascii", "ignore").decode("ascii").lower()
-            play_slug = re.sub(r"[^a-z0-9]+", "-", ascii_stem).strip("-") or "piece"
-
-        notice_rel = _save_rel("play_notice")
-        preface_rel = _save_rel("play_preface")
-        dramatis_rel = _save_rel("play_dramatis")
+        # Collect indexed play blocks
+        indices: set[int] = set()
+        for key in list(files.keys()):
+            m = re.match(r"^play_(\d+)_(xml|notice|preface|dramatis)$", key)
+            if m:
+                indices.add(int(m.group(1)))
 
         plays_list = []
-        if play_xml_rel:
+        for i in sorted(indices):
+            xml_file = files.get(f"play_{i}_xml")
+            notice_file = files.get(f"play_{i}_notice")
+            preface_file = files.get(f"play_{i}_preface")
+            dramatis_file = files.get(f"play_{i}_dramatis")
+
+            has_xml = bool(xml_file and xml_file.filename)
+            has_any = has_xml or any(
+                bool(f and f.filename) for f in [notice_file, preface_file, dramatis_file]
+            )
+            if not has_any:
+                continue
+
+            xml_rel: str | None = None
+            if has_xml:
+                saved = _save_upload(xml_file, sources_dir)  # type: ignore[arg-type]
+                xml_rel = saved.relative_to(tmp).as_posix()
+                raw_stem = Path(xml_file.filename).stem  # type: ignore[union-attr]
+                normalized_stem = unicodedata.normalize("NFD", raw_stem)
+                ascii_stem = normalized_stem.encode("ascii", "ignore").decode("ascii").lower()
+                play_slug = re.sub(r"[^a-z0-9]+", "-", ascii_stem).strip("-") or "piece"
+            else:
+                play_slug = "piece"
+
+            def _save_rel_opt(key: str) -> str | None:
+                f = files.get(key)
+                if not f or not f.filename:
+                    return None
+                saved = _save_upload(f, sources_dir)
+                return saved.relative_to(tmp).as_posix()
+
             plays_list.append({
                 "play_slug": play_slug,
-                "dramatic_xml_path": play_xml_rel,
-                "notice_xml_path": notice_rel,
-                "preface_xml_path": preface_rel,
-                "dramatis_xml_path": dramatis_rel,
+                "dramatic_xml_path": xml_rel,
+                "notice_xml_path": _save_rel_opt(f"play_{i}_notice"),
+                "preface_xml_path": _save_rel_opt(f"play_{i}_preface"),
+                "dramatis_xml_path": _save_rel_opt(f"play_{i}_dramatis"),
             })
 
         config_dict = {
@@ -513,11 +561,6 @@ def builder_post():
     if not corpus_title:
         return render_template("builder.html", error="Le titre de l'œuvre ou du corpus est requis.")
 
-    # ── Fichier XML dramatique (requis) ───────────────────────────────────────
-    play_xml_file = files.get("play_xml")
-    if not play_xml_file or not play_xml_file.filename:
-        return render_template("builder.html", error="Un fichier XML de pièce dramatique est requis.")
-
     # ── Page d'accueil (requise) ───────────────────────────────────────────────
     home_page_file = files.get("home_page_file")
     if not home_page_file or not home_page_file.filename:
@@ -555,38 +598,77 @@ def builder_post():
                 return render_template("builder.html", error=err)
             logo_paths.append(logo_path)
 
-        # ── Sauvegarde et validation : pièce XML ──────────────────────────────
-        play_path = _save_upload(play_xml_file, uploads)
-        err = _check_ext(play_path, {".xml"}, "pièce dramatique XML")
-        if err:
-            return render_template("builder.html", error=err)
+        # ── Collecte et validation des pièces (indexées) ──────────────────────
+        indices: set[int] = set()
+        for key in list(files.keys()):
+            m = re.match(r"^play_(\d+)_(xml|notice|preface|dramatis)$", key)
+            if m:
+                indices.add(int(m.group(1)))
 
-        # ── Sauvegarde et validation : notice (optionnelle) ───────────────────
-        notice_path: Path | None = None
-        notice_file = files.get("play_notice")
-        if notice_file and notice_file.filename:
-            notice_path = _save_upload(notice_file, uploads)
-            err = _check_ext(notice_path, _EDITORIAL_EXTS, "notice")
+        play_configs: list[SitePublicationDialogPlayConfig] = []
+        for i in sorted(indices):
+            xml_file = files.get(f"play_{i}_xml")
+            notice_file = files.get(f"play_{i}_notice")
+            preface_file = files.get(f"play_{i}_preface")
+            dramatis_file = files.get(f"play_{i}_dramatis")
+
+            has_xml = bool(xml_file and xml_file.filename)
+            has_notice = bool(notice_file and notice_file.filename)
+            has_preface = bool(preface_file and preface_file.filename)
+            has_dramatis = bool(dramatis_file and dramatis_file.filename)
+            has_any = has_xml or has_notice or has_preface or has_dramatis
+
+            if not has_any:
+                continue
+
+            if not has_xml:
+                return render_template(
+                    "builder.html",
+                    error=(
+                        f"La pièce {i + 1} contient des fichiers annexes (notice, préface ou "
+                        f"dramatis personae) mais aucun XML de pièce dramatique."
+                    ),
+                )
+
+            play_path = _save_upload(xml_file, uploads)  # type: ignore[arg-type]
+            err = _check_ext(play_path, {".xml"}, f"pièce {i + 1} XML")
             if err:
                 return render_template("builder.html", error=err)
 
-        # ── Sauvegarde et validation : préface (optionnelle) ──────────────────
-        preface_path: Path | None = None
-        preface_file = files.get("play_preface")
-        if preface_file and preface_file.filename:
-            preface_path = _save_upload(preface_file, uploads)
-            err = _check_ext(preface_path, _EDITORIAL_EXTS, "préface")
-            if err:
-                return render_template("builder.html", error=err)
+            notice_path: Path | None = None
+            if has_notice:
+                notice_path = _save_upload(notice_file, uploads)  # type: ignore[arg-type]
+                err = _check_ext(notice_path, _EDITORIAL_EXTS, f"notice pièce {i + 1}")
+                if err:
+                    return render_template("builder.html", error=err)
 
-        # ── Sauvegarde et validation : dramatis personae XML (optionnel) ──────
-        dramatis_path: Path | None = None
-        dramatis_file = files.get("play_dramatis")
-        if dramatis_file and dramatis_file.filename:
-            dramatis_path = _save_upload(dramatis_file, uploads)
-            err = _check_ext(dramatis_path, _DRAMATIS_EXTS, "dramatis personae")
-            if err:
-                return render_template("builder.html", error=err)
+            preface_path: Path | None = None
+            if has_preface:
+                preface_path = _save_upload(preface_file, uploads)  # type: ignore[arg-type]
+                err = _check_ext(preface_path, _EDITORIAL_EXTS, f"préface pièce {i + 1}")
+                if err:
+                    return render_template("builder.html", error=err)
+
+            dramatis_path: Path | None = None
+            if has_dramatis:
+                dramatis_path = _save_upload(dramatis_file, uploads)  # type: ignore[arg-type]
+                err = _check_ext(dramatis_path, _DRAMATIS_EXTS, f"dramatis personae pièce {i + 1}")
+                if err:
+                    return render_template("builder.html", error=err)
+
+            play_configs.append(SitePublicationDialogPlayConfig(
+                play_slug="",
+                dramatic_xml_path=play_path,
+                notice_xml_path=notice_path,
+                preface_xml_path=preface_path,
+                dramatis_xml_path=dramatis_path,
+            ))
+
+        if not play_configs:
+            return render_template(
+                "builder.html",
+                error="Au moins une pièce XML est requise.",
+            )
 
         # ── Options ───────────────────────────────────────────────────────────
         publish_notices = "publish_notices" in form
@@ -595,13 +677,6 @@ def builder_post():
         resolve_xincludes = "resolve_notice_xincludes" in form
 
         # ── Construction de SitePublicationDialogConfig ───────────────────────
-        play_config = SitePublicationDialogPlayConfig(
-            play_slug="",
-            dramatic_xml_path=play_path,
-            notice_xml_path=notice_path,
-            preface_xml_path=preface_path,
-            dramatis_xml_path=dramatis_path,
-        )
         config = SitePublicationDialogConfig(
             author_name=author_name,
             corpus_title=corpus_title,
@@ -609,7 +684,7 @@ def builder_post():
             home_page_tei=home_path,
             general_intro_tei=intro_path,
             output_dir=None,
-            plays=(play_config,),
+            plays=tuple(play_configs),
             play_order=(),
             logo_paths=tuple(logo_paths),
             asset_directories=(),

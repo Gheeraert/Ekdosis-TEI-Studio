@@ -44,7 +44,7 @@ def test_builder_get_contains_form(client) -> None:
     rv = client.get("/publish/builder")
     html = rv.data.decode()
     assert "<form" in html
-    assert 'name="play_xml"' in html
+    assert 'name="play_0_xml"' in html
     assert 'name="home_page_file"' in html
 
 
@@ -55,6 +55,45 @@ def test_builder_get_does_not_expose_pdf_options(client) -> None:
     assert "latex" not in html or "LaTeX" not in rv.data.decode()
 
 
+# ── V2 — nouveaux éléments d'interface ───────────────────────────────────────
+
+def test_builder_get_contains_corpus_de_pieces(client) -> None:
+    rv = client.get("/publish/builder")
+    assert "Corpus de pièces" in rv.data.decode()
+
+
+def test_builder_get_contains_ajouter_une_piece(client) -> None:
+    rv = client.get("/publish/builder")
+    assert "Ajouter une pièce" in rv.data.decode()
+
+
+def test_builder_get_contains_version_2(client) -> None:
+    rv = client.get("/publish/builder")
+    assert "Version 2" in rv.data.decode()
+
+
+def test_builder_get_does_not_contain_une_seule_piece(client) -> None:
+    rv = client.get("/publish/builder")
+    assert "une seule pièce à la fois" not in rv.data.decode()
+
+
+def test_builder_get_does_not_expose_ftp_options(client) -> None:
+    rv = client.get("/publish/builder")
+    html = rv.data.decode()
+    # Le mot "FTP" peut figurer dans le bandeau d'avertissement, mais aucun champ de formulaire FTP.
+    assert 'name="ftp' not in html.lower()
+    assert 'type="text" name="ftp' not in html.lower()
+
+
+def test_builder_get_does_not_expose_back_privilege_fields(client) -> None:
+    rv = client.get("/publish/builder")
+    html = rv.data.decode()
+    # Aucun champ de saisie pour back ou privilège.
+    assert 'name="back' not in html.lower()
+    assert 'name="privilege' not in html.lower()
+    assert 'name="privileg' not in html.lower()
+
+
 # ── POST sans page d'accueil ──────────────────────────────────────────────────
 
 def test_builder_post_without_home_page_returns_error(client) -> None:
@@ -62,7 +101,7 @@ def test_builder_post_without_home_page_returns_error(client) -> None:
         "/publish/builder",
         data={
             "corpus_title": "Tragédies",
-            "play_xml": (io.BytesIO(_PLAY_XML), "britannicus.xml"),
+            "play_0_xml": (io.BytesIO(_PLAY_XML), "britannicus.xml"),
         },
         content_type="multipart/form-data",
     )
@@ -94,7 +133,7 @@ def test_builder_post_without_corpus_title_returns_error(client) -> None:
         "/publish/builder",
         data={
             "home_page_file": (io.BytesIO(_HOME_XML), "accueil.xml"),
-            "play_xml": (io.BytesIO(_PLAY_XML), "britannicus.xml"),
+            "play_0_xml": (io.BytesIO(_PLAY_XML), "britannicus.xml"),
         },
         content_type="multipart/form-data",
     )
@@ -111,7 +150,7 @@ def test_builder_post_play_with_bad_extension_returns_error(client) -> None:
         data={
             "corpus_title": "Tragédies",
             "home_page_file": (io.BytesIO(_HOME_XML), "accueil.xml"),
-            "play_xml": (io.BytesIO(b"not xml"), "britannicus.docx"),
+            "play_0_xml": (io.BytesIO(b"not xml"), "britannicus.docx"),
         },
         content_type="multipart/form-data",
     )
@@ -128,14 +167,67 @@ def test_builder_post_dramatis_docx_is_refused(client) -> None:
         data={
             "corpus_title": "Tragédies",
             "home_page_file": (io.BytesIO(_HOME_XML), "accueil.xml"),
-            "play_xml": (io.BytesIO(_PLAY_XML), "britannicus.xml"),
-            "play_dramatis": (io.BytesIO(b"docx content"), "dramatis.docx"),
+            "play_0_xml": (io.BytesIO(_PLAY_XML), "britannicus.xml"),
+            "play_0_dramatis": (io.BytesIO(b"docx content"), "dramatis.docx"),
         },
         content_type="multipart/form-data",
     )
     assert rv.status_code == 200
     html = rv.data.decode().lower()
     assert "extension" in html or "erreur" in html
+
+
+# ── POST avec notice mais sans XML de pièce → erreur lisible ─────────────────
+
+def test_builder_post_notice_without_play_xml_returns_error(client) -> None:
+    rv = client.post(
+        "/publish/builder",
+        data={
+            "corpus_title": "Tragédies",
+            "home_page_file": (io.BytesIO(_HOME_XML), "accueil.xml"),
+            "play_0_xml": (io.BytesIO(_PLAY_XML), "britannicus.xml"),
+            # play_1 a une notice mais pas de XML
+            "play_1_notice": (io.BytesIO(b"<notice/>"), "notice.xml"),
+        },
+        content_type="multipart/form-data",
+    )
+    assert rv.status_code == 200
+    html = rv.data.decode()
+    assert "xml" in html.lower() or "erreur" in html.lower() or "pièce" in html.lower()
+
+
+# ── POST avec un bloc vide en trop → le bloc est ignoré ──────────────────────
+
+def test_builder_post_empty_extra_block_is_ignored(client, monkeypatch, tmp_path) -> None:
+    captured: dict = {}
+
+    class _FakeService:
+        def prepare_dialog_config_for_publication(self, config):
+            from ets.application.editorial_notice_import.service import PreparedPublicationConfig
+            captured["plays"] = config.plays
+            return PreparedPublicationConfig(config=config)
+
+    def _fake_request_from_config(config):
+        raise ValueError("arrêt anticipé")
+
+    monkeypatch.setattr("ets.web.publication_routes.EditorialNoticeImportService", _FakeService)
+    monkeypatch.setattr(
+        "ets.web.publication_routes.site_publication_request_from_dialog_config",
+        _fake_request_from_config,
+    )
+
+    client.post(
+        "/publish/builder",
+        data={
+            "corpus_title": "Tragédies",
+            "home_page_file": (io.BytesIO(_HOME_XML), "accueil.xml"),
+            "play_0_xml": (io.BytesIO(_PLAY_XML), "britannicus.xml"),
+            # play_1 est totalement absent → ignoré
+        },
+        content_type="multipart/form-data",
+    )
+
+    assert len(captured.get("plays", ())) == 1
 
 
 # ── build_latex_pdf toujours forcé à False ────────────────────────────────────
@@ -163,12 +255,104 @@ def test_builder_build_latex_pdf_forced_to_false(client, monkeypatch) -> None:
         data={
             "corpus_title": "Tragédies",
             "home_page_file": (io.BytesIO(_HOME_XML), "accueil.xml"),
-            "play_xml": (io.BytesIO(_PLAY_XML), "britannicus.xml"),
+            "play_0_xml": (io.BytesIO(_PLAY_XML), "britannicus.xml"),
         },
         content_type="multipart/form-data",
     )
 
     assert captured.get("build_latex_pdf") is False
+
+
+# ── POST deux pièces → config contient deux SitePublicationDialogPlayConfig ───
+
+def test_builder_post_two_plays_builds_config_with_two_plays(client, monkeypatch) -> None:
+    captured: dict = {}
+
+    class _FakeService:
+        def prepare_dialog_config_for_publication(self, config):
+            from ets.application.editorial_notice_import.service import PreparedPublicationConfig
+            captured["plays"] = config.plays
+            return PreparedPublicationConfig(config=config)
+
+    def _fake_request_from_config(config):
+        raise ValueError("arrêt anticipé")
+
+    monkeypatch.setattr("ets.web.publication_routes.EditorialNoticeImportService", _FakeService)
+    monkeypatch.setattr(
+        "ets.web.publication_routes.site_publication_request_from_dialog_config",
+        _fake_request_from_config,
+    )
+
+    client.post(
+        "/publish/builder",
+        data={
+            "corpus_title": "Tragédies",
+            "home_page_file": (io.BytesIO(_HOME_XML), "accueil.xml"),
+            "play_0_xml": (io.BytesIO(_PLAY_XML), "britannicus.xml"),
+            "play_1_xml": (io.BytesIO(_PLAY_XML), "berenice.xml"),
+        },
+        content_type="multipart/form-data",
+    )
+
+    assert len(captured.get("plays", ())) == 2
+
+
+# ── POST deux pièces → retourne un ZIP ───────────────────────────────────────
+
+def test_builder_post_two_plays_returns_zip(client, monkeypatch, tmp_path) -> None:
+    calls: list[str] = []
+
+    class _FakeService:
+        def prepare_dialog_config_for_publication(self, config):
+            from ets.application.editorial_notice_import.service import PreparedPublicationConfig
+            calls.append("prepare")
+            return PreparedPublicationConfig(config=config)
+
+    site_dir = tmp_path / "site_output"
+
+    def _fake_request_from_config(config):
+        calls.append("request_from_config")
+        from unittest.mock import MagicMock
+        req = MagicMock()
+        req.output_dir = site_dir
+        return req
+
+    def _fake_build(pub_request):
+        from ets.application import SiteBuildServiceResult
+        calls.append("build")
+        site_dir.mkdir(exist_ok=True)
+        (site_dir / "index.html").write_text("<html>site</html>", encoding="utf-8")
+        return SiteBuildServiceResult(ok=True, output_dir=site_dir, message="ok")
+
+    monkeypatch.setattr("ets.web.publication_routes.EditorialNoticeImportService", _FakeService)
+    monkeypatch.setattr(
+        "ets.web.publication_routes.site_publication_request_from_dialog_config",
+        _fake_request_from_config,
+    )
+    monkeypatch.setattr(
+        "ets.web.publication_routes.build_site_from_publication_request",
+        _fake_build,
+    )
+
+    rv = client.post(
+        "/publish/builder",
+        data={
+            "corpus_title": "Tragédies",
+            "home_page_file": (io.BytesIO(_HOME_XML), "accueil.xml"),
+            "play_0_xml": (io.BytesIO(_PLAY_XML), "britannicus.xml"),
+            "play_1_xml": (io.BytesIO(_PLAY_XML), "berenice.xml"),
+        },
+        content_type="multipart/form-data",
+    )
+
+    assert rv.status_code == 200
+    assert "zip" in rv.content_type.lower()
+    assert "prepare" in calls
+    assert "request_from_config" in calls
+    assert "build" in calls
+
+    with zipfile.ZipFile(io.BytesIO(rv.data)) as zf:
+        assert "index.html" in zf.namelist()
 
 
 # ── Pipeline complet avec mocks → retourne un ZIP contenant index.html ────────
@@ -217,7 +401,7 @@ def test_builder_post_valid_input_returns_zip_with_index(client, monkeypatch, tm
             "editor_first_name": "Dr",
             "editor_last_name": "Martin",
             "home_page_file": (io.BytesIO(_HOME_XML), "accueil.xml"),
-            "play_xml": (io.BytesIO(_PLAY_XML), "britannicus.xml"),
+            "play_0_xml": (io.BytesIO(_PLAY_XML), "britannicus.xml"),
             "publish_notices": "1",
             "publish_prefaces": "1",
             "include_metadata": "1",
@@ -246,7 +430,7 @@ def test_builder_blueprint_does_not_import_tkinter() -> None:
         assert "tkinter" not in content, f"tkinter importé dans {py_file.name}"
 
 
-# ── GET /publish/builder — nouveaux éléments de configuration ─────────────────
+# ── GET /publish/builder — éléments de configuration ─────────────────────────
 
 def test_builder_get_contains_config_section(client) -> None:
     rv = client.get("/publish/builder")
@@ -310,6 +494,23 @@ def test_builder_config_json_contains_metadata_and_options(client) -> None:
     assert data["options"]["include_metadata"] is True
 
 
+def test_builder_config_export_two_plays(client) -> None:
+    rv = client.post(
+        "/publish/builder/config",
+        data={
+            "corpus_title": "Tragédies",
+            "play_0_xml": (io.BytesIO(_PLAY_XML), "britannicus.xml"),
+            "play_1_xml": (io.BytesIO(_PLAY_XML), "berenice.xml"),
+        },
+        content_type="multipart/form-data",
+    )
+    assert rv.status_code == 200
+    data = json.loads(rv.data)
+    assert len(data["plays"]) == 2
+    assert data["plays"][0]["expected_xml_filename"] == "britannicus.xml"
+    assert data["plays"][1]["expected_xml_filename"] == "berenice.xml"
+
+
 # ── POST /publish/builder/source-package ──────────────────────────────────────
 
 def test_builder_source_package_returns_zip(client) -> None:
@@ -318,7 +519,7 @@ def test_builder_source_package_returns_zip(client) -> None:
         data={
             "corpus_title": "Tragédies",
             "home_page_file": (io.BytesIO(_HOME_XML), "accueil.xml"),
-            "play_xml": (io.BytesIO(_PLAY_XML), "britannicus.xml"),
+            "play_0_xml": (io.BytesIO(_PLAY_XML), "britannicus.xml"),
         },
         content_type="multipart/form-data",
     )
@@ -332,7 +533,7 @@ def test_builder_source_package_zip_contains_config(client) -> None:
         data={
             "corpus_title": "Tragédies",
             "home_page_file": (io.BytesIO(_HOME_XML), "accueil.xml"),
-            "play_xml": (io.BytesIO(_PLAY_XML), "britannicus.xml"),
+            "play_0_xml": (io.BytesIO(_PLAY_XML), "britannicus.xml"),
         },
         content_type="multipart/form-data",
     )
@@ -346,7 +547,7 @@ def test_builder_source_package_zip_contains_sources(client) -> None:
         data={
             "corpus_title": "Tragédies",
             "home_page_file": (io.BytesIO(_HOME_XML), "accueil.xml"),
-            "play_xml": (io.BytesIO(_PLAY_XML), "britannicus.xml"),
+            "play_0_xml": (io.BytesIO(_PLAY_XML), "britannicus.xml"),
         },
         content_type="multipart/form-data",
     )
@@ -362,7 +563,7 @@ def test_builder_source_package_config_uses_relative_paths(client) -> None:
         data={
             "corpus_title": "Tragédies",
             "home_page_file": (io.BytesIO(_HOME_XML), "accueil.xml"),
-            "play_xml": (io.BytesIO(_PLAY_XML), "britannicus.xml"),
+            "play_0_xml": (io.BytesIO(_PLAY_XML), "britannicus.xml"),
         },
         content_type="multipart/form-data",
     )
@@ -376,6 +577,41 @@ def test_builder_source_package_config_uses_relative_paths(client) -> None:
     assert not Path(play_path).is_absolute(), f"chemin non relatif : {play_path}"
 
 
+def test_builder_source_package_two_plays_zip_contains_both_xmls(client) -> None:
+    rv = client.post(
+        "/publish/builder/source-package",
+        data={
+            "corpus_title": "Tragédies",
+            "home_page_file": (io.BytesIO(_HOME_XML), "accueil.xml"),
+            "play_0_xml": (io.BytesIO(_PLAY_XML), "britannicus.xml"),
+            "play_1_xml": (io.BytesIO(_PLAY_XML), "berenice.xml"),
+        },
+        content_type="multipart/form-data",
+    )
+    assert rv.status_code == 200
+    with zipfile.ZipFile(io.BytesIO(rv.data)) as zf:
+        names = zf.namelist()
+    assert any("britannicus.xml" in n for n in names)
+    assert any("berenice.xml" in n for n in names)
+
+
+def test_builder_source_package_config_has_two_plays(client) -> None:
+    rv = client.post(
+        "/publish/builder/source-package",
+        data={
+            "corpus_title": "Tragédies",
+            "home_page_file": (io.BytesIO(_HOME_XML), "accueil.xml"),
+            "play_0_xml": (io.BytesIO(_PLAY_XML), "britannicus.xml"),
+            "play_1_xml": (io.BytesIO(_PLAY_XML), "berenice.xml"),
+        },
+        content_type="multipart/form-data",
+    )
+    with zipfile.ZipFile(io.BytesIO(rv.data)) as zf:
+        config_bytes = zf.read("publication_config.json")
+    payload = json.loads(config_bytes.decode("utf-8"))
+    assert len(payload["plays"]) == 2
+
+
 def test_builder_source_package_compatible_with_publish_static(client) -> None:
     rv = client.post(
         "/publish/builder/source-package",
@@ -384,7 +620,7 @@ def test_builder_source_package_compatible_with_publish_static(client) -> None:
             "author_first_name": "Jean",
             "author_last_name": "Racine",
             "home_page_file": (io.BytesIO(_HOME_XML), "accueil.xml"),
-            "play_xml": (io.BytesIO(_PLAY_XML), "britannicus.xml"),
+            "play_0_xml": (io.BytesIO(_PLAY_XML), "britannicus.xml"),
             "publish_notices": "1",
             "publish_prefaces": "1",
             "include_metadata": "1",
@@ -410,3 +646,14 @@ def test_builder_source_package_compatible_with_publish_static(client) -> None:
         config = site_publication_dialog_config_from_dict(payload, base_dir=tmp)
         assert config.corpus_title == "Tragédies"
         assert config.author_name == "Jean Racine"
+
+
+# ── JS : le fichier builder.js contient la logique multi-pièces ──────────────
+
+def test_builder_js_contains_multi_play_restore_logic() -> None:
+    js_path = Path(__file__).parents[2] / "src" / "ets" / "web" / "static" / "builder.js"
+    assert js_path.exists(), "builder.js introuvable"
+    content = js_path.read_text(encoding="utf-8")
+    assert "plays" in content
+    assert "_buildBlock" in content
+    assert "expected_xml_filename" in content
