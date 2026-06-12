@@ -466,6 +466,129 @@ Vous partez ?***
         <li><code>aliases</code> — formes reconnues dans le texte transcrit.</li>
       </ul>
     </details>
+	
+	<details>
+  <summary>Notices, préfaces et introductions en DOCX</summary>
+
+  <p>
+    Les fichiers DOCX utilisés pour les notices, préfaces, introductions ou pages
+    d’accueil doivent impérativement être des documents Word <strong>stylés</strong>.
+    La conversion ne repose pas sur l’apparence visuelle du document, mais sur les
+    styles de paragraphe transmis à Pandoc.
+  </p>
+
+  <p>
+    Il ne faut donc pas fabriquer les titres en modifiant seulement la taille, le gras
+    ou l’italique d’un paragraphe <code>Normal</code>. Un titre doit utiliser un style
+    Word de titre ; une citation doit utiliser le style <code>Citation</code> ; un
+    paragraphe ordinaire doit rester en <code>Normal</code>.
+  </p>
+
+  <p>
+    Si le document contient des styles non prévus par ETS, la conversion est interrompue
+    avec une erreur de validation. Les styles décoratifs, personnels ou hérités d’un
+    modèle Word complexe doivent donc être évités.
+  </p>
+
+  <h3>Styles Word recommandés</h3>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Style Word</th>
+        <th>Usage</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>Titre</code> / <code>Title</code></td>
+        <td>Titre principal du document</td>
+      </tr>
+      <tr>
+        <td><code>Sous-titre</code> / <code>Sous titre</code> / <code>Subtitle</code></td>
+        <td>Sous-titre du document</td>
+      </tr>
+      <tr>
+        <td><code>Titre 1</code> / <code>Heading 1</code></td>
+        <td>Section de niveau 1</td>
+      </tr>
+      <tr>
+        <td><code>Titre 2</code> / <code>Heading 2</code></td>
+        <td>Section de niveau 2</td>
+      </tr>
+      <tr>
+        <td><code>Titre 3</code> / <code>Heading 3</code></td>
+        <td>Section de niveau 3</td>
+      </tr>
+      <tr>
+        <td><code>Titre 4</code> / <code>Heading 4</code></td>
+        <td>Section de niveau 4</td>
+      </tr>
+      <tr>
+        <td><code>Normal</code></td>
+        <td>Paragraphe courant</td>
+      </tr>
+      <tr>
+        <td>
+          <code>Sans espacement</code> /
+          <code>Sans retrait</code> /
+          <code>No Spacing</code> /
+          <code>No Indent</code> /
+          <code>NoIndent</code>
+        </td>
+        <td>Paragraphe sans retrait</td>
+      </tr>
+      <tr>
+        <td><code>Citation</code> / <code>Quote</code></td>
+        <td>Citation en bloc</td>
+      </tr>
+      <tr>
+        <td><code>Légende</code> / <code>Legende</code> / <code>Caption</code></td>
+        <td>Légende</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>Styles tolérés mais non recommandés</h3>
+
+  <p>
+    Les styles <code>Body Text</code>, <code>Corps de texte</code> et
+    <code>List Paragraph</code> sont actuellement tolérés, mais ils produisent un
+    avertissement. Pour éviter les surprises, il vaut mieux utiliser directement
+    <code>Normal</code>.
+  </p>
+
+  <h3>Bibliographie</h3>
+
+  <p>
+    La bibliographie ne repose pas sur un style Word particulier. Il faut créer une
+    section intitulée <code>Bibliographie</code> avec un style de titre
+    (<code>Titre 1</code>, <code>Titre 2</code>, etc.). Les paragraphes ordinaires
+    qui suivent sont alors interprétés comme des entrées bibliographiques.
+  </p>
+
+  <h3>Éléments acceptés</h3>
+
+  <ul>
+    <li>italique, gras, petites capitales, exposant et indice ;</li>
+    <li>notes de bas de page Word ;</li>
+    <li>liens ;</li>
+    <li>listes simples ;</li>
+    <li>tableaux simples, sans cellules fusionnées ni structure complexe.</li>
+  </ul>
+
+  <p>
+    Les tableaux complexes, les objets Word non pris en charge et les styles inconnus
+    provoquent une erreur. En cas de doute, simplifier le document avant de l’importer.
+  </p>
+</details>
+	
+	
+	
+	
+	
+	
+	
   </div>
 
 
