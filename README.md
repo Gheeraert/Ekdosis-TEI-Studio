@@ -137,7 +137,11 @@ Aucun fichier n’est stocké durablement sur le serveur.
 Le JSON de publication doit utiliser des chemins relatifs internes au ZIP.
 Les chemins absolus et les chemins sortant du ZIP, par exemple `../`, doivent être refusés.
 
-Exemple de structure :
+### Exemple de paquet ZIP de publication multi-pièces
+
+Un paquet de publication peut contenir une ou plusieurs pièces. La structure recommandée consiste à ranger les fichiers par type de document, en utilisant le même identifiant court — ou *slug* — pour associer automatiquement une pièce, sa notice, sa préface et son dramatis personae.
+
+Exemple avec deux pièces :
 
 ```text
 publication_source.zip
@@ -147,22 +151,83 @@ publication_source.zip
 │   └── phedre.xml
 ├── notices/
 │   ├── britannicus.docx
-│   └── phedre.xml
+│   └── phedre.docx
 ├── prefaces/
-│   └── britannicus.docx
+│   ├── britannicus.docx
+│   └── phedre.docx
 ├── dramatis/
-│   └── britannicus.xml
+│   ├── britannicus.xml
+│   └── phedre.xml
 └── assets/
     └── logos/
         └── logo.png
 ```
 
-Dans cette première version web :
+Dans cet exemple :
 
-- la génération PDF n’est pas activée ;
-- la publication FTP n’est pas activée ;
-- le mode back / privilège n’est pas présent ;
-- `output_dir` est ignoré en mode web et remplacé par un dossier temporaire contrôlé.
+* `dramatic/britannicus.xml` et `dramatic/phedre.xml` sont les XML-TEI des textes dramatiques ;
+* `notices/britannicus.docx` et `notices/phedre.docx` sont les notices, en DOCX stylé léger ou en XML-TEI ;
+* `prefaces/britannicus.docx` et `prefaces/phedre.docx` sont les préfaces, facultatives ;
+* `dramatis/britannicus.xml` et `dramatis/phedre.xml` sont les dramatis personae, en XML-TEI ;
+* `assets/logos/logo.png` contient un logo ou des éléments graphiques communs au site.
+
+Le fichier `publication_config.json` décrit ensuite l’ordre des pièces et l’association entre les fichiers :
+
+```json
+{
+  "schema": "ets.site_publication_dialog_config",
+  "version": 3,
+  "metadata": {
+    "author_name": "Jean Racine",
+    "corpus_title": "Théâtre complet",
+    "scientific_editor": ""
+  },
+  "xml_sources": {
+    "home_page_tei_path": null,
+    "general_intro_tei_path": null
+  },
+  "plays": [
+    {
+      "play_slug": "britannicus",
+      "dramatic_xml_path": "dramatic/britannicus.xml",
+      "notice_xml_path": "notices/britannicus.docx",
+      "preface_xml_path": "prefaces/britannicus.docx",
+      "dramatis_xml_path": "dramatis/britannicus.xml"
+    },
+    {
+      "play_slug": "phedre",
+      "dramatic_xml_path": "dramatic/phedre.xml",
+      "notice_xml_path": "notices/phedre.docx",
+      "preface_xml_path": "prefaces/phedre.docx",
+      "dramatis_xml_path": "dramatis/phedre.xml"
+    }
+  ],
+  "play_order": [
+    "britannicus",
+    "phedre"
+  ],
+  "output": {
+    "output_dir": null
+  },
+  "assets": {
+    "logo_paths": [],
+    "asset_directories": []
+  },
+  "options": {
+    "show_xml_download": true,
+    "build_latex_pdf": false,
+    "hide_minor_variants_in_pdf": false,
+    "publish_notices": true,
+    "publish_prefaces": true,
+    "include_metadata": true,
+    "resolve_notice_xincludes": true
+  }
+}
+```
+
+Les chemins indiqués dans le JSON doivent toujours être relatifs à la racine du ZIP. Il ne faut donc pas utiliser de chemins absolus comme `C:\...` ou `/home/...`, ni de chemins contenant `../`.
+
+En mode web, `output_dir` est ignoré : le site est généré dans un répertoire temporaire, puis renvoyé sous forme de ZIP.
 
 ## 6. Import DOCX vers TEI
 

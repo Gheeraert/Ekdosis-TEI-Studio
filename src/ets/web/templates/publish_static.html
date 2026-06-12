@@ -21,6 +21,110 @@
       (XML dramatiques, notices DOCX ou XML, préfaces, assets).
       Les chemins du JSON doivent être relatifs à la racine du ZIP.
     </p>
+    <section class="help-block">
+      <h3>Exemple de paquet ZIP de publication multi-pièces</h3>
+
+      <p>
+        Un paquet de publication est produit par la page "Constructeur du site".
+		On peut aussi le fabriquer à la main à partir des indications ci-dessous.
+		<br /><br />
+		Un paquet peut contenir une ou plusieurs pièces. La structure
+        recommandée consiste à ranger les fichiers par type de document, en utilisant
+        le même identifiant court — ou <em>slug</em> — pour associer automatiquement
+        une pièce, sa notice, sa préface et son dramatis personae.
+      </p>
+
+      <p>Exemple avec deux pièces :</p>
+
+      <pre><code>publication_source.zip
+├── publication_config.json
+├── dramatic/
+│   ├── britannicus.xml
+│   └── phedre.xml
+├── notices/
+│   ├── britannicus.docx
+│   └── phedre.docx
+├── prefaces/
+│   ├── britannicus.docx
+│   └── phedre.docx
+├── dramatis/
+│   ├── britannicus.xml
+│   └── phedre.xml
+└── assets/
+    └── logos/
+        └── logo.png</code></pre>
+
+      <p>Dans cet exemple :</p>
+
+      <ul>
+        <li><code>dramatic/britannicus.xml</code> et <code>dramatic/phedre.xml</code> sont les XML-TEI des textes dramatiques ;</li>
+        <li><code>notices/britannicus.docx</code> et <code>notices/phedre.docx</code> sont les notices, en DOCX stylé léger ou en XML-TEI ;</li>
+        <li><code>prefaces/britannicus.docx</code> et <code>prefaces/phedre.docx</code> sont les préfaces, facultatives ;</li>
+        <li><code>dramatis/britannicus.xml</code> et <code>dramatis/phedre.xml</code> sont les dramatis personae, en XML-TEI ;</li>
+        <li><code>assets/logos/logo.png</code> contient un logo ou des éléments graphiques communs au site.</li>
+      </ul>
+
+      <p>
+        Le fichier <code>publication_config.json</code>, tel qu'il est construit par la page "Constructeur de site", décrit ensuite l’ordre des pièces et l’association entre les fichiers :
+      </p>
+
+      <pre><code>{
+  "schema": "ets.site_publication_dialog_config",
+  "version": 3,
+  "metadata": {
+    "author_name": "Jean Racine",
+    "corpus_title": "Théâtre complet",
+    "scientific_editor": ""
+  },
+  "xml_sources": {
+    "home_page_tei_path": null,
+    "general_intro_tei_path": null
+  },
+  "plays": [
+    {
+      "play_slug": "britannicus",
+      "dramatic_xml_path": "dramatic/britannicus.xml",
+      "notice_xml_path": "notices/britannicus.docx",
+      "preface_xml_path": "prefaces/britannicus.docx",
+      "dramatis_xml_path": "dramatis/britannicus.xml"
+    },
+    {
+      "play_slug": "phedre",
+      "dramatic_xml_path": "dramatic/phedre.xml",
+      "notice_xml_path": "notices/phedre.docx",
+      "preface_xml_path": "prefaces/phedre.docx",
+      "dramatis_xml_path": "dramatis/phedre.xml"
+    }
+  ],
+  "play_order": [
+    "britannicus",
+    "phedre"
+  ],
+  "output": {
+    "output_dir": null
+  },
+  "assets": {
+    "logo_paths": [],
+    "asset_directories": []
+  },
+  "options": {
+    "show_xml_download": true,
+    "build_latex_pdf": false,
+    "hide_minor_variants_in_pdf": false,
+    "publish_notices": true,
+    "publish_prefaces": true,
+    "include_metadata": true,
+    "resolve_notice_xincludes": true
+  }
+}</code></pre>
+
+      <p>
+        Les chemins indiqués dans le JSON doivent toujours être relatifs à la racine du ZIP.
+        Il ne faut donc pas utiliser de chemins absolus comme <code>C:\...</code> ou
+        <code>/home/...</code>, ni de chemins contenant <code>../</code>.
+      </p>
+    </section>
+
     <div class="field">
       <label>Paquet ZIP source de publication</label>
       <input type="file" name="source_zip" accept=".zip,application/zip" required>
