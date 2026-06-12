@@ -22,50 +22,55 @@
       Les chemins du JSON doivent être relatifs à la racine du ZIP.
     </p>
     <section class="help-block">
-      <h3>Exemple de paquet ZIP de publication multi-pièces</h3>
+      <h3>Structure du paquet source de publication</h3>
 
       <p>
-        Un paquet de publication est produit par la page "Constructeur du site".
-		On peut aussi le fabriquer à la main à partir des indications ci-dessous.
-		<br /><br />
-		Un paquet peut contenir une ou plusieurs pièces. La structure
-        recommandée consiste à ranger les fichiers par type de document, en utilisant
-        le même identifiant court — ou <em>slug</em> — pour associer automatiquement
-        une pièce, sa notice, sa préface et son dramatis personae.
+        Un paquet de publication est un fichier ZIP contenant un unique fichier
+        <code>publication_config.json</code> et tous les fichiers source référencés
+        par ce JSON. Le fichier JSON fait foi : il indique où se trouvent les
+        textes dramatiques, notices, préfaces, dramatis personae et éventuels
+        fichiers graphiques.
+      </p>
+
+      <p>
+        La structure de référence est celle produite par le
+        <strong>Constructeur de site</strong> : le fichier
+        <code>publication_config.json</code> est placé à la racine du ZIP, et les
+        fichiers d’entrée sont regroupés dans un dossier <code>sources/</code>.
       </p>
 
       <p>Exemple avec deux pièces :</p>
 
       <pre><code>publication_source.zip
 ├── publication_config.json
-├── dramatic/
-│   ├── britannicus.xml
-│   └── phedre.xml
-├── notices/
-│   ├── britannicus.docx
-│   └── phedre.docx
-├── prefaces/
-│   ├── britannicus.docx
-│   └── phedre.docx
-├── dramatis/
-│   ├── britannicus.xml
-│   └── phedre.xml
-└── assets/
-    └── logos/
-        └── logo.png</code></pre>
+└── sources/
+    ├── britannicus.xml
+    ├── britannicus_notice.docx
+    ├── britannicus_preface.docx
+    ├── britannicus_dramatis.xml
+    ├── phedre.xml
+    ├── phedre_notice.docx
+    ├── phedre_preface.docx
+    ├── phedre_dramatis.xml
+    ├── accueil.docx
+    ├── introduction.docx
+    └── logo.png</code></pre>
 
       <p>Dans cet exemple :</p>
 
       <ul>
-        <li><code>dramatic/britannicus.xml</code> et <code>dramatic/phedre.xml</code> sont les XML-TEI des textes dramatiques ;</li>
-        <li><code>notices/britannicus.docx</code> et <code>notices/phedre.docx</code> sont les notices, en DOCX stylé léger ou en XML-TEI ;</li>
-        <li><code>prefaces/britannicus.docx</code> et <code>prefaces/phedre.docx</code> sont les préfaces, facultatives ;</li>
-        <li><code>dramatis/britannicus.xml</code> et <code>dramatis/phedre.xml</code> sont les dramatis personae, en XML-TEI ;</li>
-        <li><code>assets/logos/logo.png</code> contient un logo ou des éléments graphiques communs au site.</li>
+        <li><code>sources/britannicus.xml</code> et <code>sources/phedre.xml</code> sont les XML-TEI des textes dramatiques ;</li>
+        <li><code>sources/britannicus_notice.docx</code> et <code>sources/phedre_notice.docx</code> sont les notices, en DOCX stylé léger ou en XML-TEI ;</li>
+        <li><code>sources/britannicus_preface.docx</code> et <code>sources/phedre_preface.docx</code> sont les préfaces, facultatives ;</li>
+        <li><code>sources/britannicus_dramatis.xml</code> et <code>sources/phedre_dramatis.xml</code> sont les dramatis personae, en XML-TEI ;</li>
+        <li><code>sources/accueil.docx</code> et <code>sources/introduction.docx</code> peuvent contenir la page d’accueil et l’introduction générale ;</li>
+        <li><code>sources/logo.png</code> contient un logo ou un élément graphique commun au site.</li>
       </ul>
 
       <p>
-        Le fichier <code>publication_config.json</code>, tel qu'il est construit par la page "Constructeur de site", décrit ensuite l’ordre des pièces et l’association entre les fichiers :
+        Le fichier <code>publication_config.json</code> décrit ensuite l’ordre des
+        pièces et l’association entre les fichiers. Tous les chemins y sont
+        relatifs à la racine du ZIP.
       </p>
 
       <pre><code>{
@@ -77,23 +82,23 @@
     "scientific_editor": ""
   },
   "xml_sources": {
-    "home_page_tei_path": null,
-    "general_intro_tei_path": null
+    "home_page_tei_path": "sources/accueil.docx",
+    "general_intro_tei_path": "sources/introduction.docx"
   },
   "plays": [
     {
       "play_slug": "britannicus",
-      "dramatic_xml_path": "dramatic/britannicus.xml",
-      "notice_xml_path": "notices/britannicus.docx",
-      "preface_xml_path": "prefaces/britannicus.docx",
-      "dramatis_xml_path": "dramatis/britannicus.xml"
+      "dramatic_xml_path": "sources/britannicus.xml",
+      "notice_xml_path": "sources/britannicus_notice.docx",
+      "preface_xml_path": "sources/britannicus_preface.docx",
+      "dramatis_xml_path": "sources/britannicus_dramatis.xml"
     },
     {
       "play_slug": "phedre",
-      "dramatic_xml_path": "dramatic/phedre.xml",
-      "notice_xml_path": "notices/phedre.docx",
-      "preface_xml_path": "prefaces/phedre.docx",
-      "dramatis_xml_path": "dramatis/phedre.xml"
+      "dramatic_xml_path": "sources/phedre.xml",
+      "notice_xml_path": "sources/phedre_notice.docx",
+      "preface_xml_path": "sources/phedre_preface.docx",
+      "dramatis_xml_path": "sources/phedre_dramatis.xml"
     }
   ],
   "play_order": [
@@ -104,7 +109,9 @@
     "output_dir": null
   },
   "assets": {
-    "logo_paths": [],
+    "logo_paths": [
+      "sources/logo.png"
+    ],
     "asset_directories": []
   },
   "options": {
@@ -122,6 +129,13 @@
         Les chemins indiqués dans le JSON doivent toujours être relatifs à la racine du ZIP.
         Il ne faut donc pas utiliser de chemins absolus comme <code>C:\...</code> ou
         <code>/home/...</code>, ni de chemins contenant <code>../</code>.
+      </p>
+
+      <p>
+        D’autres organisations internes peuvent être compatibles si le JSON pointe
+        correctement vers les fichiers, mais, pour éviter les erreurs, il est
+        recommandé d’utiliser la structure <code>publication_config.json</code> +
+        <code>sources/</code>, qui est celle exportée par le Constructeur de site.
       </p>
     </section>
 
