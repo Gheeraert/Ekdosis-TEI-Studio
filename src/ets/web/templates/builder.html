@@ -1,9 +1,15 @@
 {% extends "base.html" %}
 {% block title %}Constructeur de site statique — Ekdosis-TEI Studio{% endblock %}
 
+{% block subnav %}
+<nav class="builder-subnav">
+  <a href="/publish/builder" class="active">Mode normal</a>
+  <a href="/publish/static">Mode expert</a>
+</nav>
+{% endblock %}
+
 {% block content %}
 <h2>Constructeur de site statique</h2>
-<p><a href="/">← Retour à l'établi</a></p>
 
 <p>
   Cet outil génère un site statique complet à partir d'une page d'accueil,

@@ -1,9 +1,15 @@
 {% extends "base.html" %}
 {% block title %}Publication statique — Ekdosis-TEI Studio{% endblock %}
 
+{% block subnav %}
+<nav class="builder-subnav">
+  <a href="/publish/builder">Mode normal</a>
+  <a href="/publish/static" class="active">Mode expert</a>
+</nav>
+{% endblock %}
+
 {% block content %}
-<h2>Publication statique</h2>
-<p><a href="/">← Retour à l'établi</a></p>
+<h2>Mode expert — génération depuis un paquet ZIP</h2>
 
 {% if error %}
 <div class="msg error">

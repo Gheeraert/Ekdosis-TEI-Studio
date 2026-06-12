@@ -13,9 +13,9 @@
     <nav class="main-nav">
       <a href="/">Établi de saisie</a>
       <a href="/publish/builder">Constructeur de site</a>
-      <a href="/publish/static">Publication ZIP</a>
       <a href="/about">À propos d'ETS</a>
     </nav>
+    {% block subnav %}{% endblock %}
   </header>
   <main>
     {% block content %}{% endblock %}
