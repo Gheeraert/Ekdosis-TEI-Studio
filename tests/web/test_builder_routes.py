@@ -69,7 +69,7 @@ def test_builder_get_contains_ajouter_une_piece(client) -> None:
 
 def test_builder_get_contains_version_2(client) -> None:
     rv = client.get("/publish/builder")
-    assert "Version 2" in rv.data.decode()
+    assert "Mode normal" in rv.data.decode()
 
 
 def test_builder_get_does_not_contain_une_seule_piece(client) -> None:
@@ -434,7 +434,7 @@ def test_builder_blueprint_does_not_import_tkinter() -> None:
 
 def test_builder_get_contains_config_section(client) -> None:
     rv = client.get("/publish/builder")
-    assert "Configuration du constructeur" in rv.data.decode()
+    assert "Importations de configurations antérieures" in rv.data.decode()
 
 
 def test_builder_get_contains_load_config_json(client) -> None:
