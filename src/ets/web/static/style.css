@@ -281,10 +281,14 @@ section h2 { border-bottom: 1px solid #c9b47a; padding-bottom: .2em; color: #5a3
 }
 
 .footer-logos {
-  max-width: 760px;
-  width: 80%;
+  display: block;
+  max-width: min(320px, 70%);
+  max-height: 45px;
+  width: auto;
   height: auto;
-  opacity: .95;
+  object-fit: contain;
+  margin: 0 auto;
+  opacity: .9;
 }
 
 .powered-by {
