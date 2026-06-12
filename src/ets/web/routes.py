@@ -172,13 +172,14 @@ def _generate_outputs_from_form(form):
 
 
 @bp.get("/")
-def index():
-    return render_template("index.html", form=_empty_form(), active_tab="import")
-
-
 @bp.get("/about")
 def about():
     return render_template("about.html")
+
+
+@bp.get("/studio")
+def index():
+    return render_template("index.html", form=_empty_form(), active_tab="import")
 
 
 @bp.post("/validate")
