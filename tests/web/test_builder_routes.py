@@ -657,3 +657,189 @@ def test_builder_js_contains_multi_play_restore_logic() -> None:
     assert "plays" in content
     assert "_buildBlock" in content
     assert "expected_xml_filename" in content
+
+
+# ── Helpers pour les tests d'import de paquet source ─────────────────────────
+
+_VALID_SOURCE_CONFIG = json.dumps({
+    "schema": "ets.site_publication_dialog_config",
+    "version": 3,
+    "metadata": {
+        "author_name": "Jean Racine",
+        "corpus_title": "Tragédies",
+        "scientific_editor": "Dr Martin",
+    },
+    "xml_sources": {
+        "home_page_tei_path": "sources/accueil.xml",
+        "general_intro_tei_path": None,
+    },
+    "plays": [
+        {
+            "play_slug": "britannicus",
+            "dramatic_xml_path": "sources/britannicus.xml",
+            "notice_xml_path": "sources/britannicus_notice.docx",
+            "preface_xml_path": None,
+            "dramatis_xml_path": None,
+        }
+    ],
+    "options": {
+        "show_xml_download": True,
+        "build_latex_pdf": False,
+        "hide_minor_variants_in_pdf": False,
+        "publish_notices": True,
+        "publish_prefaces": True,
+        "include_metadata": True,
+        "resolve_notice_xincludes": True,
+    },
+})
+
+
+def _make_source_zip(config_json: str | None = None, extra_entries: list | None = None) -> bytes:
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w") as zf:
+        if config_json is not None:
+            zf.writestr("publication_config.json", config_json.encode("utf-8"))
+        for name, data in (extra_entries or []):
+            zf.writestr(name, data)
+    buf.seek(0)
+    return buf.read()
+
+
+# ── POST /publish/builder/import-source-package ───────────────────────────────
+
+def test_builder_import_source_no_json_returns_error(client) -> None:
+    zip_data = _make_source_zip(config_json=None)
+    rv = client.post(
+        "/publish/builder/import-source-package",
+        data={"source_package_file": (io.BytesIO(zip_data), "source.zip")},
+        content_type="multipart/form-data",
+    )
+    assert rv.status_code == 200
+    html = rv.data.decode()
+    assert "JSON" in html or "json" in html.lower()
+    assert "erreur" in html.lower() or "Erreur" in html
+
+
+def test_builder_import_source_multiple_json_returns_error(client) -> None:
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w") as zf:
+        zf.writestr("publication_config.json", b"{}")
+        zf.writestr("other.json", b"{}")
+    buf.seek(0)
+    rv = client.post(
+        "/publish/builder/import-source-package",
+        data={"source_package_file": (io.BytesIO(buf.read()), "source.zip")},
+        content_type="multipart/form-data",
+    )
+    assert rv.status_code == 200
+    html = rv.data.decode()
+    assert "plusieurs" in html.lower() or "erreur" in html.lower()
+
+
+def test_builder_import_source_invalid_json_returns_error(client) -> None:
+    zip_data = _make_source_zip(config_json="not valid json {{{")
+    rv = client.post(
+        "/publish/builder/import-source-package",
+        data={"source_package_file": (io.BytesIO(zip_data), "source.zip")},
+        content_type="multipart/form-data",
+    )
+    assert rv.status_code == 200
+    html = rv.data.decode()
+    assert "invalide" in html.lower() or "erreur" in html.lower()
+
+
+def test_builder_import_source_dangerous_entry_refused(client) -> None:
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w") as zf:
+        zf.writestr("publication_config.json", b"{}")
+        zf.writestr(zipfile.ZipInfo("../secret.txt"), b"danger")
+    buf.seek(0)
+    rv = client.post(
+        "/publish/builder/import-source-package",
+        data={"source_package_file": (io.BytesIO(buf.read()), "source.zip")},
+        content_type="multipart/form-data",
+    )
+    assert rv.status_code == 200
+    html = rv.data.decode()
+    assert "dangereux" in html.lower() or "erreur" in html.lower()
+
+
+def test_builder_import_source_valid_zip_shows_metadata(client) -> None:
+    zip_data = _make_source_zip(config_json=_VALID_SOURCE_CONFIG)
+    rv = client.post(
+        "/publish/builder/import-source-package",
+        data={"source_package_file": (io.BytesIO(zip_data), "source.zip")},
+        content_type="multipart/form-data",
+    )
+    assert rv.status_code == 200
+    html = rv.data.decode()
+    assert "Tragédies" in html
+    assert "Jean Racine" in html
+
+
+def test_builder_import_source_valid_zip_shows_play_slug(client) -> None:
+    zip_data = _make_source_zip(config_json=_VALID_SOURCE_CONFIG)
+    rv = client.post(
+        "/publish/builder/import-source-package",
+        data={"source_package_file": (io.BytesIO(zip_data), "source.zip")},
+        content_type="multipart/form-data",
+    )
+    assert rv.status_code == 200
+    assert "britannicus" in rv.data.decode()
+
+
+def test_builder_import_source_valid_zip_shows_source_paths(client) -> None:
+    zip_data = _make_source_zip(config_json=_VALID_SOURCE_CONFIG)
+    rv = client.post(
+        "/publish/builder/import-source-package",
+        data={"source_package_file": (io.BytesIO(zip_data), "source.zip")},
+        content_type="multipart/form-data",
+    )
+    assert rv.status_code == 200
+    assert "sources/britannicus.xml" in rv.data.decode()
+
+
+def test_builder_import_json_config_still_works(client) -> None:
+    rv = client.post(
+        "/publish/builder/config",
+        data={"corpus_title": "Tragédies", "author_first_name": "Jean"},
+        content_type="multipart/form-data",
+    )
+    assert rv.status_code == 200
+    assert "json" in rv.content_type.lower()
+    data = json.loads(rv.data)
+    assert data["corpus_title"] == "Tragédies"
+
+
+def test_publish_static_route_still_reachable(client) -> None:
+    rv = client.get("/publish/static")
+    assert rv.status_code == 200
+
+
+def test_builder_import_source_dangerous_json_path_refused(client) -> None:
+    config = json.dumps({
+        "schema": "ets.site_publication_dialog_config",
+        "version": 3,
+        "metadata": {"author_name": "Jean Racine", "corpus_title": "Tragédies", "scientific_editor": ""},
+        "xml_sources": {"home_page_tei_path": "sources/accueil.xml", "general_intro_tei_path": None},
+        "plays": [
+            {
+                "play_slug": "britannicus",
+                "dramatic_xml_path": "../../etc/passwd",
+                "notice_xml_path": None,
+                "preface_xml_path": None,
+                "dramatis_xml_path": None,
+            }
+        ],
+        "options": {},
+    })
+    zip_data = _make_source_zip(config_json=config)
+    rv = client.post(
+        "/publish/builder/import-source-package",
+        data={"source_package_file": (io.BytesIO(zip_data), "source.zip")},
+        content_type="multipart/form-data",
+    )
+    assert rv.status_code == 200
+    html = rv.data.decode()
+    assert "dangereux" in html.lower() or "erreur" in html.lower()
+    assert "etc/passwd" not in html or "dangereux" in html.lower()

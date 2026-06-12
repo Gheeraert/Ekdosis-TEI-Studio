@@ -153,4 +153,66 @@
       reader.readAsText(file);
     });
   }
+
+  // Source package import: apply imported config on page load
+  var sourceImportDataEl = document.getElementById('source-import-data');
+  if (sourceImportDataEl) {
+    var si;
+    try { si = JSON.parse(sourceImportDataEl.textContent); } catch (e) { si = null; }
+    if (si) {
+      function _siSetField(name, value) {
+        var el = document.querySelector('[name="' + name + '"]');
+        if (el && value !== undefined && value !== null && value !== '') { el.value = value; }
+      }
+      function _siSetCheck(name, value) {
+        var el = document.querySelector('[name="' + name + '"]');
+        if (el) { el.checked = !!value; }
+      }
+
+      // author_name is combined in source package — put in author_last_name
+      _siSetField('author_last_name', si.author_name);
+      _siSetField('corpus_title', si.corpus_title);
+      // scientific_editor is combined — put in editor_last_name
+      _siSetField('editor_last_name', si.scientific_editor);
+
+      if (si.options) {
+        _siSetCheck('publish_notices', si.options.publish_notices);
+        _siSetCheck('publish_prefaces', si.options.publish_prefaces);
+        _siSetCheck('include_metadata', si.options.include_metadata);
+        _siSetCheck('resolve_notice_xincludes', si.options.resolve_notice_xincludes);
+      }
+
+      if (Array.isArray(si.plays) && si.plays.length > 0) {
+        var existingBlocks = Array.from(container.querySelectorAll('.play-block'));
+        for (var ri = 1; ri < existingBlocks.length; ri++) {
+          container.removeChild(existingBlocks[ri]);
+        }
+        var needed = si.plays.length;
+        var current = container.querySelectorAll('.play-block').length;
+        for (var bi = current; bi < needed; bi++) {
+          container.appendChild(_buildBlock(bi));
+        }
+        si.plays.forEach(function (play, idx) {
+          var block = container.querySelectorAll('.play-block')[idx];
+          if (!block) { return; }
+          var hintMap = {
+            xml:      play.dramatic_xml_path,
+            notice:   play.notice_xml_path,
+            preface:  play.preface_xml_path,
+            dramatis: play.dramatis_xml_path,
+          };
+          Object.keys(hintMap).forEach(function (suf) {
+            var hint = hintMap[suf];
+            if (!hint) { return; }
+            var inp = block.querySelector('input[name="play_' + idx + '_' + suf + '"]');
+            if (!inp) { return; }
+            var span = inp.nextElementSibling;
+            if (span && span.classList.contains('filename-hint')) {
+              span.textContent = '(paquet source : ' + hint + ')';
+            }
+          });
+        });
+      }
+    }
+  }
 })();

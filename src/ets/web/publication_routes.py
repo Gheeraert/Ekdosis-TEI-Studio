@@ -543,6 +543,125 @@ def builder_source_package():
         )
 
 
+@pub_bp.post("/publish/builder/import-source-package")
+def builder_import_source_package():
+    """Importe un paquet source ZIP dans le constructeur (configuration + inventaire)."""
+    uploaded = request.files.get("source_package_file")
+    if not uploaded or not uploaded.filename:
+        return render_template("builder.html", error="Aucun fichier ZIP fourni.")
+
+    zip_data = uploaded.read()
+
+    try:
+        with zipfile.ZipFile(io.BytesIO(zip_data)) as zf:
+            all_names = zf.namelist()
+    except zipfile.BadZipFile:
+        return render_template(
+            "builder.html",
+            error="Le fichier fourni n'est pas un ZIP valide.",
+        )
+
+    dangerous = [n for n in all_names if not _is_safe_zip_entry(n)]
+    if dangerous:
+        sample = ", ".join(dangerous[:3])
+        return render_template(
+            "builder.html",
+            error=f"Le ZIP contient des entrées dangereuses : {sample}.",
+        )
+
+    json_names = [n for n in all_names if n.lower().endswith(".json")]
+    if not json_names:
+        return render_template(
+            "builder.html",
+            error="Le ZIP ne contient aucun fichier JSON de configuration.",
+        )
+    if len(json_names) > 1:
+        listed = ", ".join(json_names)
+        return render_template(
+            "builder.html",
+            error=f"Le ZIP contient plusieurs fichiers JSON ({listed}). Il doit en contenir exactement un.",
+        )
+
+    json_entry = json_names[0]
+
+    with zipfile.ZipFile(io.BytesIO(zip_data)) as zf:
+        try:
+            raw_json = zf.read(json_entry).decode("utf-8")
+        except UnicodeDecodeError as exc:
+            return render_template(
+                "builder.html",
+                error=f"Le fichier JSON n'est pas encodé en UTF-8 : {exc}",
+            )
+
+    try:
+        payload = json.loads(raw_json)
+    except json.JSONDecodeError as exc:
+        return render_template(
+            "builder.html",
+            error=f"JSON de configuration invalide : {exc.msg}.",
+        )
+
+    if not isinstance(payload, dict):
+        return render_template(
+            "builder.html",
+            error="Le JSON de configuration doit être un objet (accolades {…}).",
+        )
+
+    metadata = payload.get("metadata") or {}
+    xml_sources = payload.get("xml_sources") or {}
+    options_raw = payload.get("options") or {}
+    plays_raw = payload.get("plays") if isinstance(payload.get("plays"), list) else []
+
+    # Contrôle des chemins déclarés dans le JSON (même règles que les entrées ZIP).
+    json_paths: list[str] = []
+    if isinstance(xml_sources, dict):
+        for _key in ("home_page_tei_path", "general_intro_tei_path"):
+            _v = xml_sources.get(_key)
+            if _v is not None:
+                json_paths.append(str(_v))
+    for _p in plays_raw:
+        if isinstance(_p, dict):
+            for _key in ("dramatic_xml_path", "notice_xml_path", "preface_xml_path", "dramatis_xml_path"):
+                _v = _p.get(_key)
+                if _v is not None:
+                    json_paths.append(str(_v))
+
+    unsafe_json_paths = [p for p in json_paths if not _is_safe_zip_entry(p)]
+    if unsafe_json_paths:
+        sample = ", ".join(unsafe_json_paths[:3])
+        return render_template(
+            "builder.html",
+            error=f"Le JSON contient des chemins dangereux : {sample}.",
+        )
+
+    source_import = {
+        "author_name": metadata.get("author_name", "") if isinstance(metadata, dict) else "",
+        "corpus_title": metadata.get("corpus_title", "") if isinstance(metadata, dict) else "",
+        "scientific_editor": metadata.get("scientific_editor", "") if isinstance(metadata, dict) else "",
+        "home_page_path": xml_sources.get("home_page_tei_path") if isinstance(xml_sources, dict) else None,
+        "general_intro_path": xml_sources.get("general_intro_tei_path") if isinstance(xml_sources, dict) else None,
+        "options": {
+            "publish_notices": bool(options_raw.get("publish_notices", True)) if isinstance(options_raw, dict) else True,
+            "publish_prefaces": bool(options_raw.get("publish_prefaces", True)) if isinstance(options_raw, dict) else True,
+            "include_metadata": bool(options_raw.get("include_metadata", True)) if isinstance(options_raw, dict) else True,
+            "resolve_notice_xincludes": bool(options_raw.get("resolve_notice_xincludes", True)) if isinstance(options_raw, dict) else True,
+        },
+        "plays": [
+            {
+                "play_slug": p.get("play_slug", "") if isinstance(p, dict) else "",
+                "dramatic_xml_path": p.get("dramatic_xml_path") if isinstance(p, dict) else None,
+                "notice_xml_path": p.get("notice_xml_path") if isinstance(p, dict) else None,
+                "preface_xml_path": p.get("preface_xml_path") if isinstance(p, dict) else None,
+                "dramatis_xml_path": p.get("dramatis_xml_path") if isinstance(p, dict) else None,
+            }
+            for p in plays_raw
+            if isinstance(p, dict)
+        ],
+    }
+
+    return render_template("builder.html", source_import=source_import)
+
+
 @pub_bp.post("/publish/builder")
 def builder_post():
     form = request.form

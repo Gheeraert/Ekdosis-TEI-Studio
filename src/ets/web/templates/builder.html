@@ -25,6 +25,50 @@
 </div>
 {% endif %}
 
+{% if source_import %}
+<div class="msg success">
+  <strong>Paquet source importé dans le constructeur.</strong>
+  <p>
+    <strong>Corpus :</strong> {{ source_import.corpus_title or '(non spécifié)' }}<br>
+    <strong>Auteur :</strong> {{ source_import.author_name or '(non spécifié)' }}
+  </p>
+  <p>
+    Les champs textuels et les options ont été restaurés à partir du paquet source.
+    Les fichiers viennent du paquet source importé et devront être sélectionnés de nouveau
+    pour générer le site depuis ce constructeur.
+  </p>
+  <p>
+    <em>Note : le même paquet peut être envoyé directement dans
+    <a href="/publish/static">Publication ZIP</a> pour générer le site sans resélectionner les fichiers.</em>
+  </p>
+  {% if source_import.plays %}
+  <table style="border-collapse:collapse;font-size:0.9em;margin-top:0.5em;">
+    <thead>
+      <tr>
+        <th style="text-align:left;padding:0.25em 0.75em;border-bottom:1px solid #ccc;">Slug</th>
+        <th style="text-align:left;padding:0.25em 0.75em;border-bottom:1px solid #ccc;">XML dramatique</th>
+        <th style="text-align:left;padding:0.25em 0.75em;border-bottom:1px solid #ccc;">Notice</th>
+        <th style="text-align:left;padding:0.25em 0.75em;border-bottom:1px solid #ccc;">Préface</th>
+        <th style="text-align:left;padding:0.25em 0.75em;border-bottom:1px solid #ccc;">Dramatis personae</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for play in source_import.plays %}
+      <tr>
+        <td style="padding:0.2em 0.75em;">{{ play.play_slug or '—' }}</td>
+        <td style="padding:0.2em 0.75em;"><code>{{ play.dramatic_xml_path or '—' }}</code></td>
+        <td style="padding:0.2em 0.75em;"><code>{{ play.notice_xml_path or '—' }}</code></td>
+        <td style="padding:0.2em 0.75em;"><code>{{ play.preface_xml_path or '—' }}</code></td>
+        <td style="padding:0.2em 0.75em;"><code>{{ play.dramatis_xml_path or '—' }}</code></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+</div>
+<script id="source-import-data" type="application/json">{{ source_import | tojson }}</script>
+{% endif %}
+
 <form method="post" action="/publish/builder" enctype="multipart/form-data">
 
   <fieldset>
@@ -55,6 +99,24 @@
       Le paquet source ZIP contient la configuration et les fichiers sources.
       Il peut être réimporté directement dans l'outil « Publication ZIP ».
     </p>
+
+    <hr style="margin:1em 0;border:none;border-top:1px solid #ddd;">
+
+    <p class="help">
+      <strong>Importer un paquet source de publication</strong><br>
+      Restaure la configuration à partir d'un ZIP contenant
+      <code>publication_config.json</code> et les fichiers sources.
+      Le paquet source généré par ETS utilise généralement un dossier <code>sources/</code>.
+      Les fichiers locaux devront être sélectionnés de nouveau.
+    </p>
+
+    <div class="field">
+      <label for="source_package_file">Paquet source ZIP</label>
+      <input type="file" id="source_package_file" name="source_package_file" accept=".zip">
+      <button type="submit" formaction="/publish/builder/import-source-package" formnovalidate>
+        Importer le paquet source dans le constructeur
+      </button>
+    </div>
   </fieldset>
 
   <fieldset>
