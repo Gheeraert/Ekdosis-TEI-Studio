@@ -11,13 +11,6 @@
   (notices et préfaces en DOCX ou XML).
 </p>
 
-<div class="msg warning">
-  <strong>Version 2 — limitations actuelles :</strong>
-  cette version accepte un corpus de plusieurs pièces.
-  La génération de PDF, la publication FTP et le mode back/privilège
-  ne sont pas disponibles dans cette interface web.
-</div>
-
 {% if error %}
 <div class="msg error">
   <strong>Erreur :</strong>
@@ -72,51 +65,32 @@
 <form method="post" action="/publish/builder" enctype="multipart/form-data">
 
   <fieldset>
-    <legend>Configuration du constructeur</legend>
-
-    <p class="help">
-      Pour des raisons de sécurité, le navigateur ne peut pas réimporter automatiquement
-      les fichiers locaux. La configuration JSON permet de restaurer les champs textuels, les options
-      et la structure du formulaire ; les fichiers devront être sélectionnés de nouveau.
-    </p>
+    <legend>Importations de configurations antérieures</legend>
 
     <div class="field">
-      <label for="builder_config_file">Importer une configuration JSON</label>
+      <label for="builder_config_file">1. Importer une configuration JSON</label>
       <input type="file" id="builder_config_file" name="builder_config_file" accept=".json">
       <button type="button" id="load-config-btn">Charger la configuration dans l'interface</button>
     </div>
-
-    <div class="field">
-      <button type="submit" formaction="/publish/builder/config" formnovalidate>
-        Exporter la configuration JSON
-      </button>
-      <button type="submit" formaction="/publish/builder/source-package" formnovalidate>
-        Exporter le paquet source de publication
-      </button>
-    </div>
-
-    <p class="help">
-      Le paquet source ZIP contient la configuration et les fichiers sources.
-      Il peut être réimporté directement dans l'outil « Publication ZIP ».
+	
+	    <p class="help">
+      La configuration JSON permet seulement de restaurer les champs textuels, les options
+      et la structure du formulaire ; les fichiers devront être sélectionnés de nouveau
+	  pour être importés.
     </p>
 
     <hr style="margin:1em 0;border:none;border-top:1px solid #ddd;">
 
-    <p class="help">
-      <strong>Importer un paquet source de publication</strong><br>
-      Restaure la configuration à partir d'un ZIP contenant
-      <code>publication_config.json</code> et les fichiers sources.
-      Le paquet source généré par ETS utilise généralement un dossier <code>sources/</code>.
-      Les fichiers locaux devront être sélectionnés de nouveau.
-    </p>
-
     <div class="field">
-      <label for="source_package_file">Paquet source ZIP</label>
+      <label for="source_package_file">2. Importer un paquet ZIP complet</label>
       <input type="file" id="source_package_file" name="source_package_file" accept=".zip">
       <button type="submit" formaction="/publish/builder/import-source-package" formnovalidate>
-        Importer le paquet source dans le constructeur
+        Importer le paquet source complet dans l'interface
       </button>
     </div>
+	 <p class="help">
+      Restaure la configuration complète à partir d'un ZIP préalablement généré.
+     </p>
   </fieldset>
 
   <fieldset>
@@ -253,6 +227,12 @@
     <legend>Génération</legend>
 
     <div class="actions">
+      <button type="submit" formaction="/publish/builder/config" formnovalidate>
+        Exporter la configuration JSON
+      </button>
+      <button type="submit" formaction="/publish/builder/source-package" formnovalidate>
+        Exporter le paquet source de publication
+      </button>
       <button type="submit" class="primary-action">Générer le site statique</button>
     </div>
   </fieldset>
