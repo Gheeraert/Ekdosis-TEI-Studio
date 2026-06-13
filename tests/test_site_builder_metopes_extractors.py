@@ -2,7 +2,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from ets.site_builder.extractors import extract_notice_document
+from ets.site_builder import extractors
+from ets.site_builder.extractors import _is_safe_local_href, extract_notice_document
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -84,3 +85,145 @@ def test_extract_realistic_metopes_master_does_not_crash() -> None:
     assert document.notice_kind == "master_volume"
     assert document.sections
     assert document.toc
+
+
+def test_is_safe_local_href_accepts_plain_relative_paths() -> None:
+    assert _is_safe_local_href("Ch01_Introduction_test.xml")
+    assert _is_safe_local_href("sub/Ch01_Introduction_test.xml")
+    assert _is_safe_local_href("sub\\Ch01_Introduction_test.xml")
+
+
+def test_is_safe_local_href_rejects_traversal_and_absolute_paths() -> None:
+    assert not _is_safe_local_href("")
+    assert not _is_safe_local_href("../secret.xml")
+    assert not _is_safe_local_href("sub/../../secret.xml")
+    assert not _is_safe_local_href("/etc/passwd")
+    assert not _is_safe_local_href("\\Windows\\win.ini")
+    assert not _is_safe_local_href("C:\\Windows\\win.ini")
+    assert not _is_safe_local_href("C:/Windows/win.ini")
+    assert not _is_safe_local_href("\\\\server\\share\\secret.xml")
+    assert not _is_safe_local_href("http://example.com/x.xml")
+    assert not _is_safe_local_href("file:///etc/passwd")
+
+
+def _write_master_with_include(book_path: Path, href: str) -> None:
+    book_path.write_text(
+        f"""<?xml version="1.0" encoding="UTF-8"?>
+<TEI
+  xmlns="http://www.tei-c.org/ns/1.0"
+  xmlns:xi="http://www.w3.org/2001/XInclude">
+  <teiHeader>
+    <fileDesc>
+      <titleStmt><title type="main">Livre avec include suspect</title></titleStmt>
+      <publicationStmt><p>Fixture de test</p></publicationStmt>
+      <sourceDesc><p>Fixture de test</p></sourceDesc>
+    </fileDesc>
+  </teiHeader>
+  <text type="book" xml:id="book-traversal">
+    <group type="book">
+      <group type="suspect">
+        <xi:include href="{href}" xpointer="text"/>
+      </group>
+    </group>
+  </text>
+</TEI>
+""",
+        encoding="utf-8",
+    )
+
+
+def _write_secret_notice(secret_path: Path) -> None:
+    secret_path.write_text(
+        """<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0">
+  <teiHeader>
+    <fileDesc>
+      <titleStmt><title type="main">SECRET CONTENT</title></titleStmt>
+      <publicationStmt><p>secret</p></publicationStmt>
+      <sourceDesc><p>secret</p></sourceDesc>
+    </fileDesc>
+  </teiHeader>
+  <text type="other">
+    <body>
+      <div><head>SECRET</head><p>Contenu confidentiel.</p></div>
+    </body>
+  </text>
+</TEI>
+""",
+        encoding="utf-8",
+    )
+
+
+def test_extract_metopes_master_rejects_traversal_xinclude(tmp_path: Path) -> None:
+    outside_dir = tmp_path / "outside"
+    outside_dir.mkdir()
+    secret = outside_dir / "secret.xml"
+    _write_secret_notice(secret)
+
+    source_dir = tmp_path / "source"
+    source_dir.mkdir()
+    book = source_dir / "book.xml"
+    _write_master_with_include(book, "../outside/secret.xml")
+
+    document = extract_notice_document(book)
+
+    assert document.notice_kind == "master_volume"
+    flat_nodes = _flatten_nodes(document.sections)
+    assert not any(node.node_kind == "included_document" for node in flat_nodes)
+    assert not any("SECRET" in node.title for node in flat_nodes)
+
+    joined_warnings = " | ".join(document.include_warnings)
+    assert "../outside/secret.xml" in joined_warnings
+    # No absolute server path should ever be echoed back to the caller.
+    assert str(outside_dir.resolve()) not in joined_warnings
+    assert str(secret.resolve()) not in joined_warnings
+
+
+def test_extract_metopes_master_rejects_absolute_xinclude(tmp_path: Path) -> None:
+    source_dir = tmp_path / "source"
+    source_dir.mkdir()
+    book = source_dir / "book.xml"
+    _write_master_with_include(book, "/etc/passwd")
+
+    document = extract_notice_document(book)
+
+    assert document.notice_kind == "master_volume"
+    flat_nodes = _flatten_nodes(document.sections)
+    assert not any(node.node_kind == "included_document" for node in flat_nodes)
+
+    joined_warnings = " | ".join(document.include_warnings)
+    assert "/etc/passwd" in joined_warnings
+    assert str(source_dir.resolve()) not in joined_warnings
+
+
+def test_extract_metopes_master_blocks_escape_even_if_href_check_bypassed(
+    tmp_path: Path, monkeypatch
+) -> None:
+    """Defense in depth: even if the href pre-check were bypassed, the
+    post-resolution Path.resolve().relative_to(...) guard must still
+    refuse to read a file outside the source directory."""
+
+    outside_dir = tmp_path / "outside"
+    outside_dir.mkdir()
+    secret = outside_dir / "secret.xml"
+    _write_secret_notice(secret)
+
+    source_dir = tmp_path / "source"
+    source_dir.mkdir()
+    book = source_dir / "book.xml"
+    _write_master_with_include(book, "../outside/secret.xml")
+
+    monkeypatch.setattr(extractors, "_is_safe_local_href", lambda href: True)
+
+    document = extract_notice_document(book)
+
+    assert document.notice_kind == "master_volume"
+    flat_nodes = _flatten_nodes(document.sections)
+    assert not any(node.node_kind == "included_document" for node in flat_nodes)
+    assert not any("SECRET" in node.title for node in flat_nodes)
+
+    joined_warnings = " | ".join(document.include_warnings)
+    assert "outside the allowed directory" in joined_warnings
+    assert "../outside/secret.xml" in joined_warnings
+    assert str(outside_dir.resolve()) not in joined_warnings
+    assert str(secret.resolve()) not in joined_warnings

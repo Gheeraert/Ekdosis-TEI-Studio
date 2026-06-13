@@ -73,8 +73,22 @@ def test_index_returns_200(client) -> None:
     assert rv.status_code == 200
 
 
-def test_index_contains_form(client) -> None:
+def test_index_shows_about_page(client) -> None:
     rv = client.get("/")
+    html = rv.data.decode()
+    assert "À propos d'Ekdosis-TEI Studio" in html
+    assert "Tony Gheeraert" in html
+
+
+def test_etabli_link_points_to_studio(client) -> None:
+    rv = client.get("/")
+    html = rv.data.decode()
+    assert 'href="/studio"' in html
+    assert "Établi" in html
+
+
+def test_index_contains_form(client) -> None:
+    rv = client.get("/studio")
     html = rv.data.decode()
     assert "<form" in html
     assert 'name="transcription"' in html
@@ -234,7 +248,7 @@ def _text_with_thesee(n_witnesses: int = 2) -> str:
 
 
 def test_index_shows_castlist_text_field(client) -> None:
-    rv = client.get("/")
+    rv = client.get("/studio")
     html = rv.data.decode()
     assert 'name="castlist_text"' in html
 
@@ -715,7 +729,7 @@ def test_generate_returns_200(client) -> None:
 
 
 def test_form_fields_unchanged(client) -> None:
-    rv = client.get("/")
+    rv = client.get("/studio")
     html = rv.data.decode()
     assert 'name="transcription"' in html
     assert 'name="config_json"' in html
@@ -725,7 +739,7 @@ def test_form_fields_unchanged(client) -> None:
 # ── Interface à onglets ───────────────────────────────────────────────────────
 
 def test_index_has_five_tabs(client) -> None:
-    rv = client.get("/")
+    rv = client.get("/studio")
     html = rv.data.decode()
     assert "Import" in html
     assert "Configuration manuelle" in html
@@ -735,7 +749,7 @@ def test_index_has_five_tabs(client) -> None:
 
 
 def test_index_config_tab_is_config_manuelle(client) -> None:
-    rv = client.get("/")
+    rv = client.get("/studio")
     html = rv.data.decode()
     import re
     tab_buttons = re.findall(r'<button[^>]+class="tab-button"[^>]*>([^<]+)</button>', html)
@@ -744,7 +758,7 @@ def test_index_config_tab_is_config_manuelle(client) -> None:
 
 
 def test_index_old_tab_name_absent(client) -> None:
-    rv = client.get("/")
+    rv = client.get("/studio")
     html = rv.data.decode()
     import re
     tab_buttons = re.findall(r'<button[^>]+class="tab-button"[^>]*>([^<]+)</button>', html)
@@ -752,7 +766,7 @@ def test_index_old_tab_name_absent(client) -> None:
 
 
 def test_index_tab_buttons_are_not_submit(client) -> None:
-    rv = client.get("/")
+    rv = client.get("/studio")
     html = rv.data.decode()
     # Les boutons d'onglet portent class="tab-button" et type="button"
     assert 'class="tab-button"' in html
@@ -765,7 +779,7 @@ def test_index_tab_buttons_are_not_submit(client) -> None:
 
 
 def test_index_has_required_fields(client) -> None:
-    rv = client.get("/")
+    rv = client.get("/studio")
     html = rv.data.decode()
     for field in [
         'name="package_file"',
@@ -780,7 +794,7 @@ def test_index_has_required_fields(client) -> None:
 
 
 def test_index_has_required_formactions(client) -> None:
-    rv = client.get("/")
+    rv = client.get("/studio")
     html = rv.data.decode()
     for route in ["/load", "/generate", "/download/package",
                   "/download/config", "/download/transcription", "/download/castlist"]:
@@ -788,7 +802,7 @@ def test_index_has_required_formactions(client) -> None:
 
 
 def test_index_single_form(client) -> None:
-    rv = client.get("/")
+    rv = client.get("/studio")
     html = rv.data.decode()
     assert html.count("<form") == 1, "Il doit y avoir exactement un seul <form>"
 
@@ -796,7 +810,7 @@ def test_index_single_form(client) -> None:
 # ── Onglet actif selon le contexte ────────────────────────────────────────────
 
 def test_index_active_tab_is_import(client) -> None:
-    rv = client.get("/")
+    rv = client.get("/studio")
     html = rv.data.decode()
     assert 'data-active-tab="tab-import"' in html
 
@@ -843,7 +857,7 @@ def test_generate_active_tab_resultats(client) -> None:
 # ── Boutons d'export dans l'onglet Export supplémentaire ─────────────────────
 
 def test_export_tab_has_all_download_buttons(client) -> None:
-    rv = client.get("/")
+    rv = client.get("/studio")
     html = rv.data.decode()
     for route in ["/download/package", "/download/config",
                   "/download/transcription", "/download/castlist"]:
@@ -851,7 +865,7 @@ def test_export_tab_has_all_download_buttons(client) -> None:
 
 
 def test_import_fields_still_present(client) -> None:
-    rv = client.get("/")
+    rv = client.get("/studio")
     html = rv.data.decode()
     for field in ["name=\"package_file\"", "name=\"config_file\"",
                   "name=\"transcription_file\"", "name=\"castlist_file\""]:
@@ -861,7 +875,7 @@ def test_import_fields_still_present(client) -> None:
 # ── Onglet Export renommé ─────────────────────────────────────────────────────
 
 def test_index_tab_export_not_supplementaire(client) -> None:
-    rv = client.get("/")
+    rv = client.get("/studio")
     html = rv.data.decode()
     import re
     tab_buttons = re.findall(r'<button[^>]+class="tab-button"[^>]*>([^<]+)</button>', html)
@@ -946,7 +960,7 @@ def test_generate_ok_export_button_is_not_submit(client) -> None:
 
 
 def test_export_routes_still_present(client) -> None:
-    rv = client.get("/")
+    rv = client.get("/studio")
     html = rv.data.decode()
     for route in ["/download/package", "/download/config",
                   "/download/transcription", "/download/castlist"]:
@@ -974,7 +988,7 @@ def test_index_has_apropos_tab(client) -> None:
 
 
 def test_index_existing_tabs_still_present(client) -> None:
-    rv = client.get("/")
+    rv = client.get("/studio")
     html = rv.data.decode()
     for label in ["Import", "Configuration manuelle", "Saisie", "Résultats", "Export"]:
         assert label in html, f"Onglet manquant : {label}"
@@ -1024,14 +1038,14 @@ def test_footer_propulse_par(client) -> None:
 # ── Mode d'emploi Export ──────────────────────────────────────────────────────
 
 def test_export_mode_emploi_index_html(client) -> None:
-    rv = client.get("/")
+    rv = client.get("/studio")
     assert "index.html" in rv.data.decode()
 
 
 # ── Routes d'export inchangées ────────────────────────────────────────────────
 
 def test_export_routes_unchanged(client) -> None:
-    rv = client.get("/")
+    rv = client.get("/studio")
     html = rv.data.decode()
     for route in ["/download/package", "/download/config",
                   "/download/transcription", "/download/castlist"]:
@@ -1039,7 +1053,7 @@ def test_export_routes_unchanged(client) -> None:
 
 
 def test_all_tabs_present(client) -> None:
-    rv = client.get("/")
+    rv = client.get("/studio")
     html = rv.data.decode()
     for label in ["Import", "Configuration manuelle", "Saisie",
                   "Résultats", "Export", "À propos d'ETS"]:
@@ -1049,12 +1063,12 @@ def test_all_tabs_present(client) -> None:
 # ── Onglet Protocole de transcription ────────────────────────────────────────
 
 def test_protocole_tab_present(client) -> None:
-    rv = client.get("/")
+    rv = client.get("/studio")
     assert "Protocole de transcription" in rv.data.decode()
 
 
 def test_protocole_sections_present(client) -> None:
-    rv = client.get("/")
+    rv = client.get("/studio")
     html = rv.data.decode()
     for section in ["Structure dramatique", "Variantes, lacunes",
                     "Vers partagés", "Didascalies", "Chœurs",
@@ -1063,21 +1077,21 @@ def test_protocole_sections_present(client) -> None:
 
 
 def test_protocole_castlist_markers_present(client) -> None:
-    rv = client.get("/")
+    rv = client.get("/studio")
     html = rv.data.decode()
     assert "%%castlist%%" in html
     assert "%%fin_castlist%%" in html
 
 
 def test_protocole_didascalie_types_present(client) -> None:
-    rv = client.get("/")
+    rv = client.get("/studio")
     html = rv.data.decode()
     for typ in ["SPC", "ASP", "TMP", "EVT", "SET", "PROX", "ATT", "VOI"]:
         assert typ in html, f"Type de didascalie manquant : {typ}"
 
 
 def test_protocole_form_fields_unchanged(client) -> None:
-    rv = client.get("/")
+    rv = client.get("/studio")
     html = rv.data.decode()
     assert 'name="transcription"' in html
     assert 'name="config_json"' in html
@@ -1087,14 +1101,14 @@ def test_protocole_form_fields_unchanged(client) -> None:
 # ── Onglet Export — deux sections ────────────────────────────────────────────
 
 def test_export_tab_has_two_sections(client) -> None:
-    rv = client.get("/")
+    rv = client.get("/studio")
     html = rv.data.decode()
     assert "Exporter le travail courant" in html
     assert "Exporter les fichiers générés" in html
 
 
 def test_export_tab_old_routes_still_present(client) -> None:
-    rv = client.get("/")
+    rv = client.get("/studio")
     html = rv.data.decode()
     for route in ["/download/package", "/download/config",
                   "/download/transcription", "/download/castlist"]:
@@ -1102,7 +1116,7 @@ def test_export_tab_old_routes_still_present(client) -> None:
 
 
 def test_export_tab_new_routes_present(client) -> None:
-    rv = client.get("/")
+    rv = client.get("/studio")
     html = rv.data.decode()
     for route in ["/download/generated/tei", "/download/generated/html",
                   "/download/generated/ekdosis", "/download/generated/package"]:
@@ -1194,13 +1208,13 @@ def test_about_page_contains_editorial_content(client) -> None:
 
 
 def test_index_does_not_contain_apropos_tab(client) -> None:
-    rv = client.get("/")
+    rv = client.get("/studio")
     html = rv.data.decode()
     assert 'data-tab="tab-apropos"' not in html
 
 
 def test_index_internal_tabs_present(client) -> None:
-    rv = client.get("/")
+    rv = client.get("/studio")
     html = rv.data.decode()
     assert "Import" in html
     assert "Configuration manuelle" in html
@@ -1208,3 +1222,34 @@ def test_index_internal_tabs_present(client) -> None:
     assert "Résultats" in html
     assert "Export" in html
     assert "Protocole de transcription" in html
+
+
+# ── Configuration MAX_CONTENT_LENGTH ─────────────────────────────────────────
+
+def test_create_app_sets_default_max_content_length(monkeypatch) -> None:
+    monkeypatch.delenv("ETS_MAX_CONTENT_LENGTH", raising=False)
+    app = create_app(testing=True)
+    assert app.config["MAX_CONTENT_LENGTH"] == 25 * 1024 * 1024
+
+
+def test_create_app_honours_env_override(monkeypatch) -> None:
+    monkeypatch.setenv("ETS_MAX_CONTENT_LENGTH", "1048576")
+    app = create_app(testing=True)
+    assert app.config["MAX_CONTENT_LENGTH"] == 1048576
+
+
+def test_create_app_ignores_invalid_env_override(monkeypatch) -> None:
+    monkeypatch.setenv("ETS_MAX_CONTENT_LENGTH", "not-a-number")
+    app = create_app(testing=True)
+    assert app.config["MAX_CONTENT_LENGTH"] == 25 * 1024 * 1024
+
+
+def test_oversized_request_is_rejected_with_413(monkeypatch) -> None:
+    monkeypatch.setenv("ETS_MAX_CONTENT_LENGTH", "100")
+    app = create_app(testing=True)
+    with app.test_client() as oversized_client:
+        rv = oversized_client.post("/validate", data={
+            "config_json": _minimal_config_json(),
+            "transcription": _valid_text() * 50,
+        })
+    assert rv.status_code == 413

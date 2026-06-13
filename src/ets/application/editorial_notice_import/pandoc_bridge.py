@@ -21,8 +21,12 @@ class PandocExecutionError(PandocBridgeError):
 
 
 class PandocBridge:
-    def __init__(self, executable: str = "pandoc") -> None:
+    # Délai maximal accordé à pandoc avant d'abandonner la conversion.
+    DEFAULT_TIMEOUT_SECONDS = 30.0
+
+    def __init__(self, executable: str = "pandoc", timeout: float | None = None) -> None:
         self._executable = self._resolve_executable(executable)
+        self._timeout = self.DEFAULT_TIMEOUT_SECONDS if timeout is None else timeout
 
     @staticmethod
     def _resolve_executable(executable: str) -> str:
@@ -63,7 +67,12 @@ class PandocBridge:
                 capture_output=True,
                 text=True,
                 encoding="utf-8",
+                timeout=self._timeout,
             )
+        except subprocess.TimeoutExpired as exc:
+            raise PandocExecutionError(
+                f"Pandoc execution exceeded the {self._timeout:g}s timeout."
+            ) from exc
         except FileNotFoundError as exc:
             raise PandocNotFoundError("Pandoc executable not found.") from exc
         except OSError as exc:

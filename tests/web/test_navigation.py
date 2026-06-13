@@ -17,7 +17,7 @@ def client():
 def test_main_nav_present_on_index(client) -> None:
     rv = client.get("/")
     html = rv.data.decode()
-    assert "Établi de saisie" in html
+    assert "Établi" in html
     assert "Constructeur de site" in html
     assert "À propos d'ETS" in html
 

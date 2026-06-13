@@ -254,7 +254,15 @@ def _is_safe_local_href(href: str) -> bool:
     lowered = cleaned.lower()
     if lowered.startswith(("http://", "https://", "ftp://", "file://", "data:")):
         return False
-    if ":" in cleaned and not re.match(r"^[A-Za-z]:[\\/]", cleaned):
+    # Refuse any scheme-like prefix (e.g. "C:\\...") and any absolute or
+    # parent-traversing path: only plain relative paths under the source
+    # directory are accepted.
+    if ":" in cleaned:
+        return False
+    normalized = cleaned.replace("\\", "/")
+    if normalized.startswith("/"):
+        return False
+    if ".." in normalized.split("/"):
         return False
     return True
 
@@ -435,6 +443,15 @@ def _extract_notice_core(
             return None
 
         include_path = (source_path.parent / href).resolve()
+        allowed_root = source_path.parent.resolve()
+        try:
+            include_path.relative_to(allowed_root)
+        except ValueError:
+            warnings.append(
+                f"Skipped xi:include href '{href}' in '{source_path.name}': outside the allowed directory."
+            )
+            return None
+
         if not include_path.exists() or not include_path.is_file():
             warnings.append(f"Could not resolve xi:include '{href}' from '{source_path.name}'.")
             return NoticeSection(
