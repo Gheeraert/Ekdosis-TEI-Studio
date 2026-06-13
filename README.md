@@ -16,6 +16,9 @@ Le projet vise désormais trois usages complémentaires :
 
 ETS doit rester utilisable par des littéraires, éditeurs et éditrices critiques, sans leur imposer l’écriture directe de XML, de LaTeX ou de code.
 
+- Page de présentation: https://purh.univ-rouen.fr/logiciels/ekdosis-tei-studio/
+- Vidéo de présentation: https://webtv.univ-rouen.fr/videos/2026-06-13-16-50-03/
+
 ## 2. Principe central
 
 La TEI générée par ETS est la représentation éditoriale canonique.
