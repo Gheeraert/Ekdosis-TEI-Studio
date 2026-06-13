@@ -10,7 +10,8 @@
       "PowerShell(ls -Directory \"C:\\\\ETS_1juin\" | Where-Object { $_.Name -notmatch \"ets_notice_import|\\\\.git|\\\\.pytest_cache|\\\\.venv|build|\\\\.idea\" })",
       "PowerShell(Get-ChildItem -Path \"C:\\\\ETS_1juin\\\\ets\" -Recurse | Where-Object { $_.FullName -notmatch \"\\\\.git\" } | Select-Object FullName | ForEach-Object { $_.FullName.Replace\\(\"C:\\\\ETS_1juin\\\\ets\\\\\", \"\"\\).Replace\\(\"C:\\\\ETS_1juin\\\\ets\", \"[ROOT]\"\\) })",
       "PowerShell(Get-ChildItem -Path \"C:\\\\ETS_1juin\\\\src\" -Recurse | Where-Object { $_.FullName -notmatch \"\\\\.git|__pycache__\" } | Select-Object FullName | ForEach-Object { $_.FullName.Replace\\(\"C:\\\\ETS_1juin\\\\src\\\\\", \"\"\\) } | Sort-Object)",
-      "PowerShell(Get-ChildItem \"C:\\\\ETS_1juin\\\\src\\\\ets\\\\web\" -Recurse -Force | Where-Object { $_.FullName -notmatch \"__pycache__\" } | Select-Object FullName)"
+      "PowerShell(Get-ChildItem \"C:\\\\ETS_1juin\\\\src\\\\ets\\\\web\" -Recurse -Force | Where-Object { $_.FullName -notmatch \"__pycache__\" } | Select-Object FullName)",
+      "Bash(xargs grep -l -i \"flask\\\\|Flask\")"
     ]
   }
 }
