@@ -1,0 +1,54 @@
+block_index,block_start_line,token_index,candidate_class,reason,unique_tokens,unique_count,max_levenshtein_distance,min_levenshtein_similarity,max_damerau_distance,min_damerau_similarity,graphic_keys,witness_1,witness_2,witness_3,witness_4,witness_5
+3,13,1,minor_graphic,historic_graphic_key_identity,"IOCASTE, | JOCASTE,",2,1,0.875,1,0.875,iocaste,"IOCASTE,","IOCASTE,","JOCASTE,","JOCASTE,","JOCASTE,"
+3,13,2,minor_punctuation,punctuation_only,OLYMPE. | OLYMPE..,2,1,0.875,1,0.875,olimpe,OLYMPE.,OLYMPE..,OLYMPE.,OLYMPE.,OLYMPE.
+6,31,1,minor_graphic,historic_graphic_key_identity,Qu’un | Qv’vn,2,2,0.600,2,0.600,quun,Qv’vn,Qu’un,Qu’un,Qu’un,Qu’un
+6,31,9,minor_punctuation,punctuation_only,"pleurs, | pleurs~!",2,2,0.750,2,0.750,pleurs,pleurs~!,"pleurs,","pleurs,",pleurs~!,pleurs~!
+7,37,7,minor_graphic,historic_graphic_key_identity,ouuerts | ouverts,2,1,0.857,1,0.857,ouuerts,ouuerts,ouverts,ouverts,ouverts,ouverts
+7,37,9,minor_punctuation,punctuation_only,"larmes, | larmes~! | larmes~; | larmes~?",4,2,0.750,2,0.750,larmes,"larmes,",larmes~!,larmes~?,larmes~;,"larmes,"
+9,49,1,mixed_minor_and_substantive,historic_graphic_key_identity;low_similarity_or_real_rewriting,Il~deuoit~bien~plutost | Il~devoit~bien~plutost | Il~devoit~bien~plûtost | Puisse~plûtost~la~mort,4,19,0.136,19,0.136,ildeuoitbienplutost | puiseplutostlamort,Il~deuoit~bien~plutost,Il~devoit~bien~plûtost,Il~devoit~bien~plûtost,Puisse~plûtost~la~mort,Il~devoit~bien~plutost
+10,55,1,mixed_minor_and_substantive,historic_graphic_key_identity;low_similarity_or_real_rewriting,Et~m’empescher~de~voir | Que~de~fauoriser | Que~de~favoriser,3,18,0.182,18,0.182,etmempescherdeuoir | quedefauoriser,Que~de~fauoriser,Que~de~favoriser,Que~de~favoriser,Et~m’empescher~de~voir,Que~de~favoriser
+11,61,3,minor_spacing,spacing_or_hyphen_only,sont-ils | sont~ils,2,1,0.875,1,0.875,sontils,sont~ils,sont-ils,sont-ils,sont-ils,sont~ils
+14,79,1,minor_graphic,historic_graphic_key_identity,Ie | Je,2,1,0.500,1,0.500,ie,Ie,Je,Je,Je,Je
+14,79,9,minor_punctuation,punctuation_only,"bataille, | bataille.",2,1,0.889,1,0.889,bataile,"bataille,","bataille,","bataille,",bataille.,"bataille,"
+15,85,1,minor_graphic,historic_graphic_key_identity,I’ay | J’ay,2,1,0.750,1,0.750,iai,I’ay,J’ay,J’ay,J’ay,I’ay
+16,91,4,minor_graphic,historic_graphic_key_identity,"auertir, | avertir,",2,1,0.875,1,0.875,auertir,"auertir,","avertir,","avertir,","avertir,","avertir,"
+16,91,8,substantive,low_similarity_or_real_rewriting,rempars. | remparts.,2,1,0.889,1,0.889,rempars | remparts,rempars.,remparts.,remparts.,remparts.,rempars.
+17,97,1,minor_graphic,historic_graphic_key_identity,I’ay | J’ay,2,1,0.750,1,0.750,iai,I’ay,J’ay,J’ay,J’ay,I’ay
+17,97,8,mixed_minor_and_substantive,low_similarity_or_real_rewriting;punctuation_only,"luy-mesme, | luy-même, | luy~mesme~;",3,5,0.545,5,0.545,luimeme | luimesme,luy~mesme~;,"luy-mesme,","luy-mesme,","luy-même,",luy~mesme~;
+18,103,6,minor_graphic,historic_graphic_key_identity,d’une | d’vne,2,1,0.800,1,0.800,dune,d’vne,d’une,d’une,d’une,d’une
+18,103,8,minor_graphic,historic_graphic_key_identity,"extréme | extrême,",2,2,0.750,2,0.750,extreme,extréme,"extrême,","extrême,","extrême,",extréme
+19,109,7,minor_graphic,historic_graphic_key_identity,brauer | braver,2,1,0.833,1,0.833,brauer,brauer,braver,braver,braver,braver
+21,121,8,minor_punctuation,punctuation_only,"égorger, | égorger.",2,1,0.875,1,0.875,egorger,"égorger,",égorger.,égorger.,égorger.,"égorger,"
+22,127,1,substantive,low_similarity_or_real_rewriting,(lacune) | à~vn~Page.,2,9,0.100,9,0.100,aunpage | lacune,à~vn~Page.,(lacune),(lacune),(lacune),à~vn~Page.
+23,133,-1,whole_line_variant,whole_line_variant_marker_or_lacuna,"Que l’on aille au plus viste auertir la Princesse, | Que l’on aille au plus viste avertir la Princesse, | Que l’on coure avertir & haster la Princesse,",3,,,,,quelonaileauplusuisteauertirlaprincese | queloncoureauertirhasterlaprincese,"Que l’on aille au plus viste auertir la Princesse,","Que l’on coure avertir & haster la Princesse,","Que l’on coure avertir & haster la Princesse,","Que l’on coure avertir & haster la Princesse,","Que l’on aille au plus viste avertir la Princesse,"
+24,139,1,minor_graphic,historic_graphic_key_identity,Ie | Je,2,1,0.500,1,0.500,ie,Ie,Je,Je,Je,Je
+24,139,3,minor_graphic,historic_graphic_key_identity,Iuste | Juste,2,1,0.800,1,0.800,iuste,Iuste,Juste,Juste,Juste,Juste
+24,139,5,substantive,low_similarity_or_real_rewriting,soustenez | soûtenez,2,2,0.778,2,0.778,soustenes | soutenes,soustenez,soûtenez,soûtenez,soûtenez,soustenez
+25,145,2,substantive,low_similarity_or_real_rewriting,"faut,~il~faut~courir | faut~courir,~Olympe,",2,15,0.250,15,0.250,fautcourirolimpe | fautilfautcourir,"faut,~il~faut~courir","faut,~il~faut~courir","faut,~il~faut~courir","faut~courir,~Olympe,","faut,~il~faut~courir"
+25,145,3,minor_graphic,historic_graphic_key_identity,apres | aprés,2,1,0.800,1,0.800,apres,apres,apres,aprés,aprés,apres
+27,157,2,minor_graphic,historic_graphic_key_identity,voici | voicy,2,1,0.800,1,0.800,uoici,voicy,voicy,voici,voicy,voicy
+27,157,4,substantive,low_similarity_or_real_rewriting,"Olympe, | helas~!",2,7,0.000,7,0.000,helas | olimpe,"Olympe,","Olympe,","Olympe,",helas~!,"Olympe,"
+27,157,7,minor_graphic,historic_graphic_key_identity,iour | jour,2,1,0.750,1,0.750,iour,iour,jour,jour,jour,iour
+27,157,8,minor_graphic,historic_graphic_key_identity,detestable | détestable,2,1,0.900,1,0.900,detestable,détestable,detestable,detestable,detestable,détestable
+28,163,7,minor_punctuation,punctuation_only,"miserable, | miserable.",2,1,0.900,1,0.900,miserable,"miserable,",miserable.,miserable.,miserable.,"miserable,"
+29,169,1,minor_graphic,historic_graphic_key_identity,Ni | Ny,2,1,0.500,1,0.500,ni,Ny,Ni,Ni,Ni,Ny
+29,169,3,minor_graphic,historic_graphic_key_identity,ni | ny,2,1,0.500,1,0.500,ni,ny,ni,ni,ni,ny
+29,169,4,minor_punctuation,punctuation_only,"pleurs | pleurs,",2,1,0.857,1,0.857,pleurs,"pleurs,",pleurs,pleurs,pleurs,"pleurs,"
+29,169,9,minor_graphic,historic_graphic_key_identity,"seruy, | servi, | servy,",3,2,0.667,2,0.667,serui,"seruy,","servy,","servi,","servi,","servy,"
+30,175,3,minor_graphic,historic_graphic_key_identity,couroux | courroux,2,1,0.875,1,0.875,courous,couroux,courroux,courroux,courroux,couroux
+30,175,8,minor_graphic,historic_graphic_key_identity,assouuy. | assouvi. | assouvy.,3,2,0.750,2,0.750,asouui,assouuy.,assouvy.,assouvi.,assouvi.,assouvy.
+31,181,2,mixed_minor_and_substantive,low_similarity_or_real_rewriting;punctuation_only,"toy,~Soleil,~ô~toy, | toy,~qui~que~tu~sois | toy,~qui~que~tu~sois,",3,12,0.400,12,0.400,toiquiquetusois | toisoleilotoi,"toy,~qui~que~tu~sois","toy,~qui~que~tu~sois,","toy,~qui~que~tu~sois,","toy,~Soleil,~ô~toy,","toy,~qui~que~tu~sois"
+32,187,3,minor_spacing,spacing_or_hyphen_only,l’as-tu | l’as~tu,2,1,0.857,1,0.857,lastu,l’as~tu,l’as-tu,l’as-tu,l’as-tu,l’as~tu
+32,187,6,minor_graphic,historic_graphic_key_identity,une | vne,2,1,0.667,1,0.667,une,vne,une,une,une,une
+34,199,2,substantive,low_similarity_or_real_rewriting,peus-tu | peux-tu,2,1,0.857,1,0.857,peustu | peuxtu,peus-tu,peux-tu,peux-tu,peux-tu,peus-tu
+35,205,6,minor_mixed,high_graphic_similarity:0.923;historic_graphic_key_identity,t’espouuantent | t’espouvantent | t’épouvantent,3,3,0.786,3,0.786,tepouuantent | tespouuantent,t’espouuantent,t’épouvantent,t’épouvantent,t’épouvantent,t’espouvantent
+35,205,7,minor_punctuation,punctuation_only,"gueres, | gueres.",2,1,0.857,1,0.857,gueres,"gueres,",gueres.,gueres.,"gueres,","gueres,"
+36,211,1,substantive,low_similarity_or_real_rewriting,La~race~de~Lajus | Le~seul~sang~de~Lajus,2,9,0.571,9,0.571,laracedelaius | leseulsangdelaius,Le~seul~sang~de~Lajus,Le~seul~sang~de~Lajus,Le~seul~sang~de~Lajus,La~race~de~Lajus,Le~seul~sang~de~Lajus
+36,211,5,minor_punctuation,punctuation_only,vulgaires. | vulgaires~;,2,2,0.818,2,0.818,uulgaires,vulgaires~;,vulgaires.,vulgaires.,vulgaires.,vulgaires~;
+37,217,2,minor_graphic,historic_graphic_key_identity,peus | peux,2,1,0.750,1,0.750,peus,peus,peux,peux,peux,peus
+38,223,1,minor_graphic,historic_graphic_key_identity,Apres | Aprés,2,1,0.800,1,0.800,apres,Apres,Apres,Aprés,Aprés,Apres
+41,241,6,minor_graphic,historic_graphic_key_identity,d’un | d’vn,2,1,0.750,1,0.750,dun,d’vn,d’un,d’un,d’un,d’un
+43,253,-1,whole_line_variant,whole_line_variant_marker_or_lacuna," (lacune) |  Ce sang en leur donnant la lumiere céleste,",2,,,,,cesangenleurdonantlalumiereceleste | lacune," Ce sang en leur donnant la lumiere céleste,", (lacune), (lacune), (lacune)," Ce sang en leur donnant la lumiere céleste,"
+44,259,-1,whole_line_variant,whole_line_variant_marker_or_lacuna," (lacune) |  Leur donna pour le crime une pente funeste, |  Leur donna pour le crime vne pente funeste,",3,,,,,lacune | leurdonapourlecrimeunepentefuneste," Leur donna pour le crime vne pente funeste,", (lacune), (lacune), (lacune)," Leur donna pour le crime une pente funeste,"
+45,265,-1,whole_line_variant,whole_line_variant_marker_or_lacuna," (lacune) |  Et leurs cœurs infectez de ce fatal poison,",2,,,,,etleurscoeursinfectezdecefatalpoison | lacune," Et leurs cœurs infectez de ce fatal poison,", (lacune), (lacune), (lacune)," Et leurs cœurs infectez de ce fatal poison,"
+46,271,-1,whole_line_variant,whole_line_variant_marker_or_lacuna, (lacune) |  S’ouurirent à la haine auant qu’à la raison. |  S’ouvrirent à la haine avant qu’à la raison.,3,,,,,lacune | souurirentalahaineauantqualaraison, S’ouurirent à la haine auant qu’à la raison., (lacune), (lacune), (lacune), S’ouvrirent à la haine avant qu’à la raison.
