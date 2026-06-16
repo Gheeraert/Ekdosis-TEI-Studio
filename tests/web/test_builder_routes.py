@@ -800,6 +800,25 @@ def test_builder_import_source_multiple_json_returns_error(client) -> None:
     assert "plusieurs" in html.lower() or "erreur" in html.lower()
 
 
+def test_builder_import_source_zip_with_too_large_uncompressed_size_returns_error(client, monkeypatch) -> None:
+    monkeypatch.setattr("ets.web.publication_routes._MAX_SOURCE_ZIP_UNCOMPRESSED_BYTES", 10)
+    zip_data = _make_source_zip(
+        config_json=_VALID_SOURCE_CONFIG,
+        extra_entries=[("sources/britannicus.xml", b"<TEI>contenu trop long</TEI>")],
+    )
+
+    rv = client.post(
+        "/publish/builder/import-source-package",
+        data={"source_package_file": (io.BytesIO(zip_data), "source.zip")},
+        content_type="multipart/form-data",
+    )
+
+    assert rv.status_code == 200
+    assert "zip" not in rv.content_type.lower()
+    html = rv.data.decode().lower()
+    assert "taille" in html or "volumineux" in html or "zip" in html
+
+
 def test_builder_import_source_invalid_json_returns_error(client) -> None:
     zip_data = _make_source_zip(config_json="not valid json {{{")
     rv = client.post(

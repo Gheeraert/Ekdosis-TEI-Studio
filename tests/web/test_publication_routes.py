@@ -150,6 +150,26 @@ def test_publish_static_zip_with_multiple_json_returns_error(client) -> None:
 
 # ── JSON malformé ─────────────────────────────────────────────────────────────
 
+def test_publish_static_zip_with_too_large_uncompressed_size_returns_error(client, monkeypatch) -> None:
+    monkeypatch.setattr("ets.web.publication_routes._MAX_SOURCE_ZIP_UNCOMPRESSED_BYTES", 10)
+    cfg = _pub_config()
+    zip_bytes = _make_zip({
+        "publication_config.json": json.dumps(cfg),
+        "dramatic/britannicus.xml": _DUMMY_XML,
+    })
+
+    rv = client.post(
+        "/publish/static",
+        data={"source_zip": (io.BytesIO(zip_bytes), "source.zip")},
+        content_type="multipart/form-data",
+    )
+
+    assert rv.status_code == 200
+    assert "zip" not in rv.content_type.lower()
+    html = rv.data.decode().lower()
+    assert "taille" in html or "volumineux" in html or "zip" in html
+
+
 def test_publish_static_malformed_json_returns_error_not_500(client) -> None:
     zip_bytes = _make_zip({"publication_config.json": b"{ pas du json valide !!!"})
     rv = client.post(

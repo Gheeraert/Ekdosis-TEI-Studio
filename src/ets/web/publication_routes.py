@@ -28,6 +28,9 @@ pub_bp = Blueprint("publication", __name__)
 _EDITORIAL_EXTS = {".xml", ".docx"}
 _DRAMATIS_EXTS = {".xml"}
 _LOGO_EXTS = {".png", ".jpg", ".jpeg", ".svg", ".webp", ".gif"}
+_MAX_SOURCE_ZIP_BYTES = 50 * 1024 * 1024
+_MAX_SOURCE_ZIP_UNCOMPRESSED_BYTES = 200 * 1024 * 1024
+_MAX_SOURCE_ZIP_ENTRY_BYTES = 50 * 1024 * 1024
 
 
 def _is_safe_zip_entry(name: str) -> bool:
@@ -39,6 +42,24 @@ def _is_safe_zip_entry(name: str) -> bool:
         return False
     parts = name.replace("\\", "/").split("/")
     return ".." not in parts
+
+
+def _zip_size_errors(zip_data: bytes, zf: zipfile.ZipFile) -> list[str]:
+    errors: list[str] = []
+    if len(zip_data) > _MAX_SOURCE_ZIP_BYTES:
+        errors.append("Le fichier ZIP est trop volumineux.")
+
+    total_uncompressed = 0
+    for info in zf.infolist():
+        if info.is_dir():
+            continue
+        total_uncompressed += info.file_size
+        if info.file_size > _MAX_SOURCE_ZIP_ENTRY_BYTES:
+            errors.append(f"L'entrée ZIP {info.filename!r} dépasse la taille maximale autorisée.")
+
+    if total_uncompressed > _MAX_SOURCE_ZIP_UNCOMPRESSED_BYTES:
+        errors.append("La taille totale décompressée du ZIP est trop volumineuse.")
+    return errors
 
 
 def _make_output_slug(config: SitePublicationDialogConfig) -> str:
@@ -102,6 +123,9 @@ def publish_static_post():
 
     try:
         with zipfile.ZipFile(io.BytesIO(zip_data)) as zf:
+            size_errors = _zip_size_errors(zip_data, zf)
+            if size_errors:
+                return render_template("publish_static.html", error=" ".join(size_errors))
             all_names = zf.namelist()
     except zipfile.BadZipFile:
         return render_template(
@@ -549,6 +573,9 @@ def builder_import_source_package():
 
     try:
         with zipfile.ZipFile(io.BytesIO(zip_data)) as zf:
+            size_errors = _zip_size_errors(zip_data, zf)
+            if size_errors:
+                return render_template("builder.html", error=" ".join(size_errors))
             all_names = zf.namelist()
     except zipfile.BadZipFile:
         return render_template(
