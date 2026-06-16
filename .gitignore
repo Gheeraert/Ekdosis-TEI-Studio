@@ -23,3 +23,5 @@ ets_notice_import_*/
 out/
 baseline_main.txt
 after_minor_variants.txt
+/tests/_runtime/
+/tests/_pytest_tmp_site_builder/
