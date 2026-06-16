@@ -10,6 +10,7 @@ import json
 from typing import Any
 
 from ets.domain import EditionConfig, Witness
+from ets.parser.config_loader import _load_characters
 
 
 def _pick(data: dict[str, Any], keys: list[str], default: Any = "") -> Any:
@@ -103,6 +104,7 @@ def config_from_dict(raw: dict[str, Any]) -> EditionConfig:
     author = f"{author_first} {author_last}".strip()
     editor = f"{editor_first} {editor_last}".strip()
     transcriber = f"{transcriber_first} {transcriber_last}".strip()
+    characters = _load_characters(raw)
 
     return EditionConfig(
         title=title,
@@ -111,6 +113,7 @@ def config_from_dict(raw: dict[str, Any]) -> EditionConfig:
         witnesses=witnesses,
         reference_witness=reference_witness,
         transcriber=transcriber,
+        characters=characters,
         castlist_path="",
         transcription_path="",
     )
