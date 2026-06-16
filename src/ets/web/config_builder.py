@@ -33,6 +33,8 @@ def _resolve_reference_witness(raw: dict[str, Any], witnesses: list[Witness]) ->
         "Temoin de base",
         "Témoin lemme",
         "Temoin lemme",
+        "Lemme",
+        "Lemme témoin",
     ]
     raw_value = _pick(raw, canonical_keys + legacy_keys, default=None)
     if raw_value is None or str(raw_value).strip() == "":

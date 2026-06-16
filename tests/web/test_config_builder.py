@@ -61,6 +61,18 @@ def test_config_from_dict_reference_witness_by_siglum() -> None:
     assert cfg.reference_witness == 0
 
 
+def test_config_from_dict_reference_witness_by_lemme() -> None:
+    raw = {**_MINIMAL_RAW, "Lemme": "A"}
+    cfg = config_from_dict(raw)
+    assert cfg.reference_witness == 0
+
+
+def test_config_from_dict_reference_witness_by_lemme_temoin() -> None:
+    raw = {**_MINIMAL_RAW, "Lemme témoin": "A"}
+    cfg = config_from_dict(raw)
+    assert cfg.reference_witness == 0
+
+
 def test_config_from_dict_castlist_path_is_cleared() -> None:
     raw = {**_MINIMAL_RAW, "castlist_path": "castlist2.txt"}
     cfg = config_from_dict(raw)
