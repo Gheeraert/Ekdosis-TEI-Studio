@@ -92,10 +92,6 @@
         try { data = JSON.parse(e.target.result); } catch (err) {
           alert('Fichier JSON invalide : ' + err.message); return;
         }
-        if (data.schema !== 'ets.builder_form_config') {
-          alert('Ce fichier n\'est pas une configuration du constructeur ETS.'); return;
-        }
-
         function setField(name, value) {
           var el = document.querySelector('[name="' + name + '"]');
           if (el && value !== undefined && value !== null) { el.value = value; }
@@ -103,6 +99,89 @@
         function setCheck(name, value) {
           var el = document.querySelector('[name="' + name + '"]');
           if (el) { el.checked = !!value; }
+        }
+        function basenameAnyPath(value) {
+          return String(value || '').replace(/\\/g, '/').replace(/\/+$/, '').split('/').pop() || '';
+        }
+        function splitPersonName(value) {
+          var parts = String(value || '').trim().split(/\s+/).filter(Boolean);
+          if (parts.length === 0) { return ['', '']; }
+          if (parts.length === 1) { return ['', parts[0]]; }
+          return [parts[0], parts.slice(1).join(' ')];
+        }
+        function setFileHint(inputName, pathValue) {
+          var filename = basenameAnyPath(pathValue);
+          if (!filename) { return; }
+          var inp = document.querySelector('[name="' + inputName + '"]');
+          if (!inp) { return; }
+          var span = inp.nextElementSibling;
+          if (!span || !span.classList.contains('filename-hint')) {
+            span = document.createElement('span');
+            span.className = 'filename-hint';
+            span.style.cssText = 'font-size:0.85em;color:#666;margin-left:0.5em;';
+            inp.insertAdjacentElement('afterend', span);
+          }
+          span.textContent = '(attendu : ' + filename + ')';
+        }
+
+        if (data.schema === 'ets.site_publication_dialog_config') {
+          var metadata = data.metadata || {};
+          var xmlSources = data.xml_sources || {};
+          var assets = data.assets || {};
+          var authorName = splitPersonName(metadata.author_name);
+          var editorName = splitPersonName(metadata.scientific_editor);
+          setField('author_first_name', authorName[0]);
+          setField('author_last_name', authorName[1]);
+          setField('corpus_title', metadata.corpus_title);
+          setField('editor_first_name', editorName[0]);
+          setField('editor_last_name', editorName[1]);
+          setFileHint('home_page_file', xmlSources.home_page_tei_path);
+          setFileHint('general_intro_file', xmlSources.general_intro_tei_path);
+          if (Array.isArray(assets.logo_paths) && assets.logo_paths.length > 0) {
+            setFileHint('logos', assets.logo_paths[0]);
+          }
+          if (data.options) {
+            setCheck('publish_notices', data.options.publish_notices);
+            setCheck('publish_prefaces', data.options.publish_prefaces);
+            setCheck('include_metadata', data.options.include_metadata);
+            setCheck('resolve_notice_xincludes', data.options.resolve_notice_xincludes);
+          }
+          if (Array.isArray(data.plays) && data.plays.length > 0) {
+            var existingPublicationBlocks = Array.from(container.querySelectorAll('.play-block'));
+            for (var pi = 1; pi < existingPublicationBlocks.length; pi++) {
+              container.removeChild(existingPublicationBlocks[pi]);
+            }
+            var publicationNeeded = data.plays.length;
+            var publicationCurrent = container.querySelectorAll('.play-block').length;
+            for (var pj = publicationCurrent; pj < publicationNeeded; pj++) {
+              container.appendChild(_buildBlock(pj));
+            }
+            data.plays.forEach(function (play, idx) {
+              var block = container.querySelectorAll('.play-block')[idx];
+              if (!block) { return; }
+              var hintMap = {
+                xml:      play.dramatic_xml_path,
+                notice:   play.notice_xml_path,
+                preface:  play.preface_xml_path,
+                dramatis: play.dramatis_xml_path,
+              };
+              Object.keys(hintMap).forEach(function (suf) {
+                var hint = basenameAnyPath(hintMap[suf]);
+                if (!hint) { return; }
+                var inp = block.querySelector('input[name="play_' + idx + '_' + suf + '"]');
+                if (!inp) { return; }
+                var span = inp.nextElementSibling;
+                if (span && span.classList.contains('filename-hint')) {
+                  span.textContent = '(attendu : ' + hint + ')';
+                }
+              });
+            });
+          }
+          return;
+        }
+
+        if (data.schema !== 'ets.builder_form_config') {
+          alert('Ce fichier n\'est pas une configuration de publication ETS.'); return;
         }
 
         setField('author_first_name', data.author_first_name);

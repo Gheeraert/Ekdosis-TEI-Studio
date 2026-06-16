@@ -477,21 +477,33 @@ def test_builder_config_json_contains_metadata_and_options(client) -> None:
             "author_last_name": "Racine",
             "editor_first_name": "Dr",
             "editor_last_name": "Martin",
+            "home_page_file": (io.BytesIO(_HOME_XML), "accueil.docx"),
+            "general_intro_file": (io.BytesIO(_HOME_XML), "introduction.docx"),
+            "play_0_xml": (io.BytesIO(_PLAY_XML), "Britannicus.xml"),
+            "play_0_notice": (io.BytesIO(b"notice"), "britannicus_notice.docx"),
             "publish_notices": "1",
+            "publish_prefaces": "1",
             "include_metadata": "1",
+            "resolve_notice_xincludes": "1",
         },
         content_type="multipart/form-data",
     )
     assert rv.status_code == 200
     data = json.loads(rv.data)
-    assert data["corpus_title"] == "Tragédies complètes"
-    assert data["author_first_name"] == "Jean"
-    assert data["author_last_name"] == "Racine"
-    assert data["editor_first_name"] == "Dr"
-    assert data["editor_last_name"] == "Martin"
+    assert data["schema"] == "ets.site_publication_dialog_config"
+    assert data["metadata"]["corpus_title"] == "Tragédies complètes"
+    assert data["metadata"]["author_name"] == "Jean Racine"
+    assert data["metadata"]["scientific_editor"] == "Dr Martin"
+    assert data["xml_sources"]["home_page_tei_path"] == "sources/accueil.docx"
+    assert data["xml_sources"]["general_intro_tei_path"] == "sources/introduction.docx"
+    assert data["plays"][0]["dramatic_xml_path"] == "sources/Britannicus.xml"
+    assert data["plays"][0]["notice_xml_path"] == "sources/britannicus_notice.docx"
     assert data["options"]["publish_notices"] is True
-    assert data["options"]["publish_prefaces"] is False
+    assert data["options"]["publish_prefaces"] is True
     assert data["options"]["include_metadata"] is True
+    assert data["options"]["resolve_notice_xincludes"] is True
+    assert data["options"]["build_latex_pdf"] is False
+    assert data["options"]["hide_minor_variants_in_pdf"] is False
 
 
 def test_builder_config_export_two_plays(client) -> None:
@@ -507,8 +519,10 @@ def test_builder_config_export_two_plays(client) -> None:
     assert rv.status_code == 200
     data = json.loads(rv.data)
     assert len(data["plays"]) == 2
-    assert data["plays"][0]["expected_xml_filename"] == "britannicus.xml"
-    assert data["plays"][1]["expected_xml_filename"] == "berenice.xml"
+    assert data["schema"] == "ets.site_publication_dialog_config"
+    assert data["plays"][0]["dramatic_xml_path"] == "sources/britannicus.xml"
+    assert data["plays"][1]["dramatic_xml_path"] == "sources/berenice.xml"
+    assert data["play_order"] == ["britannicus", "berenice"]
 
 
 # ── POST /publish/builder/source-package ──────────────────────────────────────
@@ -657,6 +671,19 @@ def test_builder_js_contains_multi_play_restore_logic() -> None:
     assert "plays" in content
     assert "_buildBlock" in content
     assert "expected_xml_filename" in content
+
+
+def test_builder_js_import_accepts_publication_config_and_windows_basenames() -> None:
+    js_path = Path(__file__).parents[2] / "src" / "ets" / "web" / "static" / "builder.js"
+    content = js_path.read_text(encoding="utf-8")
+    assert "ets.site_publication_dialog_config" in content
+    assert "basenameAnyPath" in content
+    assert "replace(/\\\\/g, '/')" in content
+    assert "home_page_tei_path" in content
+    assert "general_intro_tei_path" in content
+    assert "dramatic_xml_path" in content
+    assert "notice_xml_path" in content
+    assert "logo_paths" in content
 
 
 # ── Helpers pour les tests d'import de paquet source ─────────────────────────
@@ -891,7 +918,9 @@ def test_builder_import_json_config_still_works(client) -> None:
     assert rv.status_code == 200
     assert "json" in rv.content_type.lower()
     data = json.loads(rv.data)
-    assert data["corpus_title"] == "Tragédies"
+    assert data["schema"] == "ets.site_publication_dialog_config"
+    assert data["metadata"]["corpus_title"] == "Tragédies"
+    assert data["metadata"]["author_name"] == "Jean"
 
 
 def test_publish_static_route_still_reachable(client) -> None:

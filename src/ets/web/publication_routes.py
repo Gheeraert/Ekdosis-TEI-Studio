@@ -108,6 +108,12 @@ def _zip_directory(source_dir: Path) -> io.BytesIO:
     return buf
 
 
+def _basename_any_path(value: str | None) -> str:
+    if not value:
+        return ""
+    return str(value).replace("\\", "/").rstrip("/").split("/")[-1]
+
+
 @pub_bp.get("/publish/static")
 def publish_static_get():
     return render_template("publish_static.html")
@@ -351,7 +357,7 @@ def builder_get():
 
 @pub_bp.post("/publish/builder/config")
 def builder_config_download():
-    """Construit et retourne un JSON de configuration du formulaire constructeur."""
+    """Construit et retourne un JSON métier de publication depuis le formulaire constructeur."""
     form = request.form
     files = request.files
 
@@ -366,6 +372,27 @@ def builder_config_download():
     include_metadata = "include_metadata" in form
     resolve_xincludes = "resolve_notice_xincludes" in form
 
+    author_name = " ".join(p for p in (author_first, author_last) if p)
+    scientific_editor = " ".join(p for p in (editor_first, editor_last) if p)
+    relative_base = Path.cwd().resolve()
+    sources_dir = relative_base / "sources"
+
+    def _source_path(key: str) -> Path | None:
+        f = files.get(key)
+        filename = _basename_any_path(f.filename if f else None)
+        if not filename:
+            return None
+        return sources_dir / filename
+
+    home_page_path = _source_path("home_page_file")
+    intro_path = _source_path("general_intro_file")
+    logo_paths = tuple(
+        sources_dir / filename
+        for logo_file in files.getlist("logos")
+        for filename in [_basename_any_path(logo_file.filename if logo_file else None)]
+        if filename
+    )
+
     # Collect indexed play blocks
     indices: set[int] = set()
     for key in list(files.keys()):
@@ -373,45 +400,63 @@ def builder_config_download():
         if m:
             indices.add(int(m.group(1)))
 
-    plays_list = []
+    play_configs: list[SitePublicationDialogPlayConfig] = []
     for i in sorted(indices):
         def _fn(key: str) -> str:
             f = files.get(key)
-            return (f.filename or "") if f else ""
-        plays_list.append({
-            "label": "",
-            "expected_xml_filename": _fn(f"play_{i}_xml"),
-            "expected_notice_filename": _fn(f"play_{i}_notice"),
-            "expected_preface_filename": _fn(f"play_{i}_preface"),
-            "expected_dramatis_filename": _fn(f"play_{i}_dramatis"),
-        })
+            return _basename_any_path(f.filename if f else None)
 
-    if not plays_list:
-        plays_list = [{
-            "label": "",
-            "expected_xml_filename": "",
-            "expected_notice_filename": "",
-            "expected_preface_filename": "",
-            "expected_dramatis_filename": "",
-        }]
+        xml_name = _fn(f"play_{i}_xml")
+        notice_name = _fn(f"play_{i}_notice")
+        preface_name = _fn(f"play_{i}_preface")
+        dramatis_name = _fn(f"play_{i}_dramatis")
+        has_any = any([xml_name, notice_name, preface_name, dramatis_name])
+        if not has_any:
+            continue
+        if not xml_name:
+            return render_template(
+                "builder.html",
+                error=(
+                    "Une piece contient une notice, une preface ou un dramatis "
+                    "mais aucun XML dramatique de piece."
+                ),
+            )
 
-    config_data = {
-        "schema": "ets.builder_form_config",
-        "version": 2,
-        "author_first_name": author_first,
-        "author_last_name": author_last,
-        "corpus_title": corpus_title,
-        "editor_first_name": editor_first,
-        "editor_last_name": editor_last,
-        "options": {
-            "publish_notices": publish_notices,
-            "publish_prefaces": publish_prefaces,
-            "include_metadata": include_metadata,
-            "resolve_notice_xincludes": resolve_xincludes,
-        },
-        "plays": plays_list,
-    }
+        raw_stem = Path(xml_name).stem
+        normalized_stem = unicodedata.normalize("NFD", raw_stem)
+        ascii_stem = normalized_stem.encode("ascii", "ignore").decode("ascii").lower()
+        play_slug = re.sub(r"[^a-z0-9]+", "-", ascii_stem).strip("-") or "piece"
+        play_configs.append(
+            SitePublicationDialogPlayConfig(
+                play_slug=play_slug,
+                dramatic_xml_path=sources_dir / xml_name,
+                notice_xml_path=(sources_dir / notice_name) if notice_name else None,
+                preface_xml_path=(sources_dir / preface_name) if preface_name else None,
+                dramatis_xml_path=(sources_dir / dramatis_name) if dramatis_name else None,
+            )
+        )
 
+    config = SitePublicationDialogConfig(
+        author_name=author_name,
+        corpus_title=corpus_title,
+        scientific_editor=scientific_editor,
+        home_page_tei=home_page_path,
+        general_intro_tei=intro_path,
+        output_dir=None,
+        plays=tuple(play_configs),
+        play_order=tuple(play.play_slug for play in play_configs),
+        logo_paths=logo_paths,
+        asset_directories=(),
+        show_xml_download=True,
+        build_latex_pdf=False,
+        hide_minor_variants_in_pdf=False,
+        publish_notices=publish_notices,
+        publish_prefaces=publish_prefaces,
+        include_metadata=include_metadata,
+        resolve_notice_xincludes=resolve_xincludes,
+    )
+
+    config_data = site_publication_dialog_config_to_dict(config, relative_to=relative_base)
     json_bytes = json.dumps(config_data, ensure_ascii=False, indent=2).encode("utf-8")
     buf = io.BytesIO(json_bytes)
     buf.seek(0)
@@ -424,7 +469,7 @@ def builder_config_download():
         buf,
         mimetype="application/json",
         as_attachment=True,
-        download_name=f"{slug}_builder_config.json",
+        download_name=f"{slug}_publication_config.json",
     )
 
 
