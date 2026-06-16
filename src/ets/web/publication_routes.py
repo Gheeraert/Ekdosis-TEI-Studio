@@ -20,6 +20,7 @@ from ets.application import (
     site_publication_dialog_config_from_dict,
     site_publication_request_from_dialog_config,
 )
+from ets.application.site_publication_config import site_publication_dialog_config_to_dict
 
 pub_bp = Blueprint("publication", __name__)
 
@@ -428,21 +429,20 @@ def builder_source_package():
         sources_dir = tmp / "sources"
         sources_dir.mkdir()
 
-        def _save_rel(key: str) -> str | None:
+        def _save_path(key: str) -> Path | None:
             f = files.get(key)
             if not f or not f.filename:
                 return None
-            saved = _save_upload(f, sources_dir)
-            return saved.relative_to(tmp).as_posix()
+            return _save_upload(f, sources_dir)
 
-        home_page_rel = _save_rel("home_page_file")
-        intro_rel = _save_rel("general_intro_file")
+        home_page_path = _save_path("home_page_file")
+        intro_path = _save_path("general_intro_file")
 
-        logo_rels: list[str] = []
+        logo_paths: list[Path] = []
         for logo_file in files.getlist("logos"):
             if logo_file and logo_file.filename:
                 saved = _save_upload(logo_file, sources_dir)
-                logo_rels.append(saved.relative_to(tmp).as_posix())
+                logo_paths.append(saved)
 
         # Collect indexed play blocks
         indices: set[int] = set()
@@ -451,7 +451,7 @@ def builder_source_package():
             if m:
                 indices.add(int(m.group(1)))
 
-        plays_list = []
+        play_configs: list[SitePublicationDialogPlayConfig] = []
         for i in sorted(indices):
             xml_file = files.get(f"play_{i}_xml")
             notice_file = files.get(f"play_{i}_notice")
@@ -473,59 +473,49 @@ def builder_source_package():
                     ),
                 )
 
-            xml_rel: str | None = None
             saved = _save_upload(xml_file, sources_dir)  # type: ignore[arg-type]
-            xml_rel = saved.relative_to(tmp).as_posix()
             raw_stem = Path(xml_file.filename).stem  # type: ignore[union-attr]
             normalized_stem = unicodedata.normalize("NFD", raw_stem)
             ascii_stem = normalized_stem.encode("ascii", "ignore").decode("ascii").lower()
             play_slug = re.sub(r"[^a-z0-9]+", "-", ascii_stem).strip("-") or "piece"
 
-            def _save_rel_opt(key: str) -> str | None:
+            def _save_path_opt(key: str) -> Path | None:
                 f = files.get(key)
                 if not f or not f.filename:
                     return None
-                saved = _save_upload(f, sources_dir)
-                return saved.relative_to(tmp).as_posix()
+                return _save_upload(f, sources_dir)
 
-            plays_list.append({
-                "play_slug": play_slug,
-                "dramatic_xml_path": xml_rel,
-                "notice_xml_path": _save_rel_opt(f"play_{i}_notice"),
-                "preface_xml_path": _save_rel_opt(f"play_{i}_preface"),
-                "dramatis_xml_path": _save_rel_opt(f"play_{i}_dramatis"),
-            })
+            play_configs.append(
+                SitePublicationDialogPlayConfig(
+                    play_slug=play_slug,
+                    dramatic_xml_path=saved,
+                    notice_xml_path=_save_path_opt(f"play_{i}_notice"),
+                    preface_xml_path=_save_path_opt(f"play_{i}_preface"),
+                    dramatis_xml_path=_save_path_opt(f"play_{i}_dramatis"),
+                )
+            )
 
-        config_dict = {
-            "schema": "ets.site_publication_dialog_config",
-            "version": 3,
-            "metadata": {
-                "author_name": author_name,
-                "corpus_title": corpus_title,
-                "scientific_editor": scientific_editor,
-            },
-            "xml_sources": {
-                "home_page_tei_path": home_page_rel,
-                "general_intro_tei_path": intro_rel,
-            },
-            "plays": plays_list,
-            "play_order": [],
-            "output": {"output_dir": None},
-            "assets": {
-                "logo_paths": logo_rels,
-                "asset_directories": [],
-            },
-            "options": {
-                "show_xml_download": True,
-                "build_latex_pdf": False,
-                "hide_minor_variants_in_pdf": False,
-                "publish_notices": publish_notices,
-                "publish_prefaces": publish_prefaces,
-                "include_metadata": include_metadata,
-                "resolve_notice_xincludes": resolve_xincludes,
-            },
-        }
+        config = SitePublicationDialogConfig(
+            author_name=author_name,
+            corpus_title=corpus_title,
+            scientific_editor=scientific_editor,
+            home_page_tei=home_page_path,
+            general_intro_tei=intro_path,
+            output_dir=None,
+            plays=tuple(play_configs),
+            play_order=(),
+            logo_paths=tuple(logo_paths),
+            asset_directories=(),
+            show_xml_download=True,
+            build_latex_pdf=False,
+            hide_minor_variants_in_pdf=False,
+            publish_notices=publish_notices,
+            publish_prefaces=publish_prefaces,
+            include_metadata=include_metadata,
+            resolve_notice_xincludes=resolve_xincludes,
+        )
 
+        config_dict = site_publication_dialog_config_to_dict(config, relative_to=tmp)
         config_json = json.dumps(config_dict, ensure_ascii=False, indent=2)
 
         zip_buf = io.BytesIO()

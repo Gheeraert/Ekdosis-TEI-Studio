@@ -15,6 +15,7 @@ from ets.application import (
     site_publication_dialog_config_from_dict,
     site_publication_request_from_dialog_config,
 )
+from ets.application.site_publication_config import site_publication_dialog_config_to_dict
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -81,6 +82,39 @@ def test_site_publication_dialog_config_round_trip_json() -> None:
     assert payload["plays"][0]["dramatis_xml_path"].endswith("andromaque-dramatis.xml")
     assert payload["options"]["publish_prefaces"] is True
     assert payload["options"]["hide_minor_variants_in_pdf"] is True
+
+
+def test_site_publication_dialog_config_to_dict_can_write_portable_relative_paths() -> None:
+    runtime = _runtime_dir("app_site_publication_config_portable_paths")
+    sources = runtime / "sources"
+    config = SitePublicationDialogConfig(
+        author_name="Jean Racine",
+        corpus_title="Théâtre complet",
+        scientific_editor="Caroline Labrune",
+        home_page_tei=sources / "accueil.xml",
+        general_intro_tei=sources / "introduction.xml",
+        plays=(
+            SitePublicationDialogPlayConfig(
+                play_slug="britannicus",
+                dramatic_xml_path=sources / "britannicus.xml",
+                notice_xml_path=sources / "britannicus_notice.xml",
+                preface_xml_path=sources / "britannicus_preface.xml",
+                dramatis_xml_path=sources / "britannicus_dramatis.xml",
+            ),
+        ),
+        logo_paths=(sources / "logo.svg",),
+    )
+
+    payload = site_publication_dialog_config_to_dict(config, relative_to=runtime)
+
+    assert payload["xml_sources"]["home_page_tei_path"] == "sources/accueil.xml"
+    assert payload["xml_sources"]["general_intro_tei_path"] == "sources/introduction.xml"
+    assert payload["plays"][0]["dramatic_xml_path"] == "sources/britannicus.xml"
+    assert payload["plays"][0]["notice_xml_path"] == "sources/britannicus_notice.xml"
+    assert payload["plays"][0]["preface_xml_path"] == "sources/britannicus_preface.xml"
+    assert payload["plays"][0]["dramatis_xml_path"] == "sources/britannicus_dramatis.xml"
+    assert payload["assets"]["logo_paths"] == ["sources/logo.svg"]
+    assert not Path(payload["plays"][0]["dramatic_xml_path"]).is_absolute()
 
 
 def test_site_publication_dialog_config_invalid_json_fails_cleanly() -> None:

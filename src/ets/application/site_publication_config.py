@@ -215,7 +215,21 @@ def _normalize_plays(value: Any, *, base_dir: Path) -> tuple[SitePublicationDial
     return tuple(plays)
 
 
-def site_publication_dialog_config_to_dict(config: SitePublicationDialogConfig) -> dict[str, Any]:
+def site_publication_dialog_config_to_dict(
+    config: SitePublicationDialogConfig,
+    *,
+    relative_to: Path | None = None,
+) -> dict[str, Any]:
+    base = relative_to.resolve() if relative_to is not None else None
+
+    def _path_to_json(path: Path | None) -> str | None:
+        if path is None:
+            return None
+        resolved = path.resolve()
+        if base is None:
+            return str(resolved)
+        return resolved.relative_to(base).as_posix()
+
     return {
         "schema": PUBLICATION_DIALOG_CONFIG_SCHEMA,
         "version": PUBLICATION_DIALOG_CONFIG_VERSION,
@@ -225,28 +239,26 @@ def site_publication_dialog_config_to_dict(config: SitePublicationDialogConfig) 
             "scientific_editor": config.scientific_editor,
         },
         "xml_sources": {
-            "home_page_tei_path": str(config.home_page_tei.resolve()) if config.home_page_tei is not None else None,
-            "general_intro_tei_path": (
-                str(config.general_intro_tei.resolve()) if config.general_intro_tei is not None else None
-            ),
+            "home_page_tei_path": _path_to_json(config.home_page_tei),
+            "general_intro_tei_path": _path_to_json(config.general_intro_tei),
         },
         "plays": [
             {
                 "play_slug": play.play_slug,
-                "dramatic_xml_path": str(play.dramatic_xml_path.resolve()),
-                "notice_xml_path": str(play.notice_xml_path.resolve()) if play.notice_xml_path is not None else None,
-                "preface_xml_path": str(play.preface_xml_path.resolve()) if play.preface_xml_path is not None else None,
-                "dramatis_xml_path": str(play.dramatis_xml_path.resolve()) if play.dramatis_xml_path is not None else None,
+                "dramatic_xml_path": _path_to_json(play.dramatic_xml_path),
+                "notice_xml_path": _path_to_json(play.notice_xml_path),
+                "preface_xml_path": _path_to_json(play.preface_xml_path),
+                "dramatis_xml_path": _path_to_json(play.dramatis_xml_path),
             }
             for play in config.plays
         ],
         "play_order": list(config.play_order),
         "output": {
-            "output_dir": str(config.output_dir.resolve()) if config.output_dir is not None else None,
+            "output_dir": _path_to_json(config.output_dir),
         },
         "assets": {
-            "logo_paths": [str(path.resolve()) for path in config.logo_paths],
-            "asset_directories": [str(path.resolve()) for path in config.asset_directories],
+            "logo_paths": [_path_to_json(path) for path in config.logo_paths],
+            "asset_directories": [_path_to_json(path) for path in config.asset_directories],
         },
         "options": {
             "show_xml_download": True,
