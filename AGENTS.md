@@ -184,3 +184,30 @@ ETS is used by literary scholars, students, and editors who may not know TEI, La
 UI and diagnostics must remain explicit, calm, and actionable.
 
 A blocking error should explain what is wrong in the transcription, not expose internal implementation details.
+
+## Post Scriptum : Règles d’encodage
+
+Ce dépôt contient de nombreux textes français accentués. Éviter absolument les accidents d’encodage de type mojibake.
+
+Règles obligatoires :
+
+* Avant de modifier un fichier existant contenant du texte non ASCII, préserver son encodage, son éventuel BOM et son style de fins de ligne.
+* Ne jamais convertir un fichier existant vers un autre encodage dans le cadre d’une correction fonctionnelle ordinaire.
+* Toute conversion d’encodage doit faire l’objet d’une tâche séparée et explicite.
+* Pour les nouveaux fichiers texte, utiliser UTF-8 selon la convention du dépôt.
+* Ne pas utiliser de méthode d’écriture ambiguë sous Windows, notamment redirections shell ou commandes sans encodage explicite.
+* Préférer des écritures explicites, par exemple en Python avec `encoding="utf-8"`.
+* Après modification, relire les fichiers touchés et vérifier que les chaînes françaises représentatives sont intactes.
+
+Chaînes témoins à surveiller :
+
+* `Néron`
+* `NÉRON`
+* `Théâtre complet`
+* `Témoin de référence`
+* `Édition princeps`
+* `préface`
+* `pièce`
+* `dramatis personae`
+
+Si l’une de ces chaînes devient illisible, si des caractères `�` apparaissent, si des `?` remplacent des accents, ou si un diff massif ne contient que des changements de fins de ligne ou d’encodage, arrêter immédiatement et signaler le problème au lieu de sauvegarder ou de poursuivre.
