@@ -46,6 +46,31 @@ dramatic_play = parse_play(input_text, config)
 validate_play_structure(dramatic_play)
 """
 
+PARSE_ENGINE_CODE = """
+fichier : src/ets/parser/text_parser.py
+fonction : parse_play(...)
+
+if _SCENE_RE.match(first) and not first.startswith("####"):
+    current_scene = Scene(head_readings=_extract_wrapped(block, _SCENE_RE), head_block_index=block_index, cast_readings=[])
+    current_act.scenes.append(current_scene)
+
+if _SPEAKER_RE.match(first) and not first.startswith("##"):
+    current_speech = Speech(speaker_readings=_extract_wrapped(block, _SPEAKER_RE), speaker_block_index=block_index)
+    current_scene.speeches.append(current_speech)
+
+direction = StageDirection(readings=readings, block_index=block_index)
+current_scene.stage_directions.append(direction)
+
+verse = VerseLine(
+    number=number,
+    readings=cleaned,
+    block_index=block_index,
+    whole_line_variant=whole_line_variant,
+    met=met,
+)
+current_speech.elements.append(verse)
+"""
+
 VERSE_DUMP_CODE = """
 return {
     "class": "VerseLine",
@@ -76,6 +101,22 @@ return {
 }
 """
 
+TOKEN_ENGINE_CODE = """
+fichier : src/ets/collation/tokenizer.py
+fonction : tokenize_editorial_text(...) / tokenize_parallel_readings(...)
+
+_SPACE_RE = re.compile(r"[ ]+")
+
+def tokenize_editorial_text(text: str) -> list[str]:
+    stripped = text.strip()
+    if not stripped:
+        return []
+    return [token for token in _SPACE_RE.split(stripped) if token]
+
+def tokenize_parallel_readings(readings: list[str]) -> list[list[str]]:
+    return [tokenize_editorial_text(text) for text in readings]
+"""
+
 COLLATE_CODE = """
 collated_play = collate_play(
     dramatic_play,
@@ -88,6 +129,61 @@ return [
     else _dump_literal_segment(segment)
     for segment in text.segments
 ]
+"""
+
+COLLATION_ENGINE_CODE = """
+fichier : src/ets/collation/engine.py
+fonction : align_variants_by_token(...) / build_apparatus_from_alignment(...)
+
+for j, line in enumerate(token_matrix):
+    token = line[i] if i < len(line) else ""
+    if token not in tokens_by_column:
+        order.append(token)
+    tokens_by_column[token].append(witness_sigla[j])
+
+lemma = CollatedReading(text=lemma_token, witness_sigla=tokens_by_column[lemma_token])
+readings = [
+    CollatedReading(text=token, witness_sigla=tokens_by_column[token])
+    for token in non_empty_order
+    if token != lemma_token
+]
+
+if is_literal:
+    segments.append(LiteralTokenSegment(text=lemma.text + suffix))
+else:
+    classification = classify_apparatus(lemma.text, [reading.text for reading in readings])
+    segments.append(
+        ApparatusTokenSegment(
+            lemma=CollatedReading(text=lemma.text + suffix, witness_sigla=lemma.witness_sigla),
+            readings=classified_readings,
+            candidate_class=classification.candidate_class,
+            visibility_policy=classification.visibility_policy,
+            rule_code=classification.rule_code,
+        )
+    )
+"""
+
+MINOR_VARIANT_ENGINE_CODE = """
+fichier : src/ets/collation/minor_variants.py
+fonction : classify_pair(...) / aggregate_pair_classifications(...)
+
+if letters_and_numbers(left_norm) == letters_and_numbers(right_norm) and has_punctuation_difference(left_norm, right_norm):
+    return VariantClassification("minor_punctuation", "hide_safe", "punctuation_only", "punctuation_only")
+
+if (
+    letters_and_numbers_unaccented(left_norm) == letters_and_numbers_unaccented(right_norm)
+    and letters_and_numbers(left_norm) != letters_and_numbers(right_norm)
+):
+    return VariantClassification("minor_graphic_safe", "hide_safe", "accent", "accent_only")
+
+left_graphic, left_rules = apply_historic_graphic_rules(left_norm)
+right_graphic, right_rules = apply_historic_graphic_rules(right_norm)
+if left_graphic == right_graphic and left_graphic:
+    rules = sorted(set(left_rules) | set(right_rules))
+    rule_code = "+".join(rules) if rules else "historic_graphic_key_identity"
+    return VariantClassification(
+        "minor_graphic_safe", "hide_safe", rule_code, "historic_graphic_key_identity"
+    )
 """
 
 APPARATUS_DUMP_CODE = """
@@ -113,6 +209,30 @@ return {
 GENERATE_CODE = """
 xml_text = generate_tei_xml(collated_play, config, characters=config.characters)
 xml_root = ET.fromstring(xml_text)
+"""
+
+TEI_ENGINE_CODE = """
+fichier : src/ets/tei/generator.py
+fonction : _append_collated_line(...) / _append_collated_text(...) / _append_text(...)
+
+attrs = {"n": line.number}
+if line_xml_id:
+    attrs["xml:id"] = line_xml_id
+l_element = ET.SubElement(parent, _tei("l"), attrs)
+if isinstance(line, TokenCollatedLine):
+    _append_collated_text(l_element, line.text)
+    return
+
+app = ET.SubElement(app_parent, _tei("app"), app_attrs)
+_append_reading(app, "lem", segment.lemma)
+for rdg in segment.readings:
+    _append_reading(app, "rdg", rdg)
+
+def _append_text(container: ET.Element, last_child: ET.Element | None, text: str) -> None:
+    if last_child is None:
+        container.text = (container.text or "") + text
+    else:
+        last_child.tail = (last_child.tail or "") + text
 """
 
 ELEMENTTREE_PRINCIPLE_CODE = """
@@ -496,6 +616,7 @@ def _zoom_verse(
             "",
             "Après parse_play(...) :",
             *_maybe_code(with_code, "Code exécuté ou cœur de la transformation :", PARSE_CODE),
+            *_maybe_code(with_code, "Extrait réel du moteur, abrégé :", PARSE_ENGINE_CODE),
             *_maybe_code(with_code, "Code de représentation pédagogique :", VERSE_DUMP_CODE),
             "  Classe : VerseLine",
             f"  number : {verse.number}",
@@ -504,16 +625,20 @@ def _zoom_verse(
             "",
             "Après tokenisation explicite (chaîne brute -> tokens) :",
             *_maybe_code(with_code, "Code exécuté ou cœur de la transformation :", TOKEN_CODE),
+            *_maybe_code(with_code, "Extrait réel du moteur :", TOKEN_ENGINE_CODE),
             _indent(_json(_dump_tokens(verse.readings, witness_sigla)), 4),
             "",
             "Après collate_play(...) :",
             *_maybe_code(with_code, "Code exécuté ou cœur de la transformation :", COLLATE_CODE),
+            *_maybe_code(with_code, "Extrait réel du moteur, abrégé :", COLLATION_ENGINE_CODE),
+            *_maybe_code(with_code, "Extrait réel du moteur, classement des variantes :", MINOR_VARIANT_ENGINE_CODE),
             *_maybe_code(with_code, "Construction du dictionnaire d’apparat :", APPARATUS_DUMP_CODE),
             "  Segments collationnés :",
             _indent(_json(_dump_collated_text(collated_line.text)), 4),
             "",
             "Après generate_tei_xml(...) :",
             *_maybe_code(with_code, "Code exécuté ou cœur de la transformation :", GENERATE_CODE),
+            *_maybe_code(with_code, "Extrait réel du moteur, abrégé :", TEI_ENGINE_CODE),
             *_maybe_code(with_code, "Principe ElementTree :", ELEMENTTREE_PRINCIPLE_CODE),
             _indent(_element_xml(xml_element), 2),
             "",
@@ -541,6 +666,7 @@ def _zoom_explicit_stage(
             "",
             "Après parse_play(...) :",
             *_maybe_code(with_code, "Code exécuté ou cœur de la transformation :", PARSE_CODE),
+            *_maybe_code(with_code, "Extrait réel du moteur, abrégé :", PARSE_ENGINE_CODE),
             *_maybe_code(with_code, "Code de représentation pédagogique :", STAGE_DUMP_CODE),
             "  Classe : StageDirection",
             "  readings :",
@@ -548,15 +674,18 @@ def _zoom_explicit_stage(
             "",
             "Après tokenisation explicite (chaîne brute -> tokens) :",
             *_maybe_code(with_code, "Code exécuté ou cœur de la transformation :", TOKEN_CODE),
+            *_maybe_code(with_code, "Extrait réel du moteur :", TOKEN_ENGINE_CODE),
             _indent(_json(_dump_tokens(stage.readings, witness_sigla)), 4),
             "",
             "Après collate_play(...) :",
             *_maybe_code(with_code, "Code exécuté ou cœur de la transformation :", COLLATE_CODE),
+            *_maybe_code(with_code, "Extrait réel du moteur, abrégé :", COLLATION_ENGINE_CODE),
             "  CollatedStageDirection.text :",
             _indent(_json(_dump_collated_text(collated_stage.text)), 4),
             "",
             "Après generate_tei_xml(...) :",
             *_maybe_code(with_code, "Code exécuté ou cœur de la transformation :", GENERATE_CODE),
+            *_maybe_code(with_code, "Extrait réel du moteur, abrégé :", TEI_ENGINE_CODE),
             *_maybe_code(with_code, "Principe ElementTree :", ELEMENTTREE_PRINCIPLE_CODE),
             _indent(_element_xml(xml_element), 2),
             "",
@@ -589,6 +718,7 @@ def _zoom_implicit_stage(
             "",
             "Après parse_play(...) :",
             *_maybe_code(with_code, "Code exécuté ou cœur de la transformation :", PARSE_CODE),
+            *_maybe_code(with_code, "Extrait réel du moteur, abrégé :", PARSE_ENGINE_CODE),
             *_maybe_code(with_code, "Code de représentation pédagogique :", IMPLICIT_DUMP_CODE),
             "  Classe : ImplicitStageSpan",
             f"  category : {span.category}",
@@ -597,10 +727,13 @@ def _zoom_implicit_stage(
             "",
             "Après tokenisation explicite de la ligne contenue (chaîne brute -> tokens) :",
             *_maybe_code(with_code, "Code exécuté ou cœur de la transformation :", TOKEN_CODE),
+            *_maybe_code(with_code, "Extrait réel du moteur :", TOKEN_ENGINE_CODE),
             _indent(_json(_dump_tokens(span.lines[0].readings, witness_sigla)), 4),
             "",
             "Après collate_play(...) :",
             *_maybe_code(with_code, "Code exécuté ou cœur de la transformation :", COLLATE_CODE),
+            *_maybe_code(with_code, "Extrait réel du moteur, abrégé :", COLLATION_ENGINE_CODE),
+            *_maybe_code(with_code, "Extrait réel du moteur, classement des variantes :", MINOR_VARIANT_ENGINE_CODE),
             *_maybe_code(with_code, "Construction du dictionnaire d’apparat :", APPARATUS_DUMP_CODE),
             "  Classe : CollatedImplicitStageSpan",
             "  lines :",
@@ -608,6 +741,7 @@ def _zoom_implicit_stage(
             "",
             "Après generate_tei_xml(...) :",
             *_maybe_code(with_code, "Code exécuté ou cœur de la transformation :", GENERATE_CODE),
+            *_maybe_code(with_code, "Extrait réel du moteur, abrégé :", TEI_ENGINE_CODE),
             *_maybe_code(with_code, "Principe ElementTree :", ELEMENTTREE_PRINCIPLE_CODE),
             _indent(_element_xml(xml_element), 2),
             "",
@@ -643,6 +777,7 @@ def _zoom_shared_verse(
             "",
             "Après parse_play(...) :",
             *_maybe_code(with_code, "Code exécuté ou cœur de la transformation :", PARSE_CODE),
+            *_maybe_code(with_code, "Extrait réel du moteur, abrégé :", PARSE_ENGINE_CODE),
             *_maybe_code(with_code, "Code de représentation pédagogique :", VERSE_DUMP_CODE),
             "  Le modèle courant encode le partage dans le numéro de vers.",
             "  part équivalent : 4.1 = fragment initial ; 4.2 = fragment final.",
@@ -651,6 +786,7 @@ def _zoom_shared_verse(
             "",
             "Après tokenisation explicite (chaîne brute -> tokens) :",
             *_maybe_code(with_code, "Code exécuté ou cœur de la transformation :", TOKEN_CODE),
+            *_maybe_code(with_code, "Extrait réel du moteur :", TOKEN_ENGINE_CODE),
             _indent(
                 _json(
                     {
@@ -663,11 +799,13 @@ def _zoom_shared_verse(
             "",
             "Après collate_play(...) :",
             *_maybe_code(with_code, "Code exécuté ou cœur de la transformation :", COLLATE_CODE),
+            *_maybe_code(with_code, "Extrait réel du moteur, abrégé :", COLLATION_ENGINE_CODE),
             "  fragments collationnés :",
             _indent(_json([_dump_collated_line(start_line), _dump_collated_line(end_line)]), 4),
             "",
             "Après generate_tei_xml(...) :",
             *_maybe_code(with_code, "Code exécuté ou cœur de la transformation :", GENERATE_CODE),
+            *_maybe_code(with_code, "Extrait réel du moteur, abrégé :", TEI_ENGINE_CODE),
             *_maybe_code(with_code, "Principe ElementTree :", ELEMENTTREE_PRINCIPLE_CODE),
             _indent(_element_xml(start_xml), 2),
             _indent(_element_xml(end_xml), 2),

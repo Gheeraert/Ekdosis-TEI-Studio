@@ -77,10 +77,19 @@ def test_demo_pipeline_verbose_deep_with_code_mode_builds_code_zoom() -> None:
 
     for expected in [
         "Code exécuté ou cœur de la transformation",
+        "Extrait réel du moteur",
+        "src/ets/parser/text_parser.py",
+        "src/ets/collation/tokenizer.py",
+        "src/ets/collation/engine.py",
+        "src/ets/collation/minor_variants.py",
+        "src/ets/tei/generator.py",
         "parse_play(input_text, config)",
         "tokenize_parallel_readings(readings)",
         "collate_play(",
         "generate_tei_xml(",
+        "VerseLine",
+        "ApparatusTokenSegment",
+        "LiteralTokenSegment",
         "ET.SubElement",
         "child.tail",
     ]:
