@@ -464,17 +464,22 @@ def builder_source_package():
             )
             if not has_any:
                 continue
+            if not has_xml:
+                return render_template(
+                    "builder.html",
+                    error=(
+                        "Une pièce contient une notice, une préface ou un dramatis "
+                        "mais aucun XML dramatique de pièce."
+                    ),
+                )
 
             xml_rel: str | None = None
-            if has_xml:
-                saved = _save_upload(xml_file, sources_dir)  # type: ignore[arg-type]
-                xml_rel = saved.relative_to(tmp).as_posix()
-                raw_stem = Path(xml_file.filename).stem  # type: ignore[union-attr]
-                normalized_stem = unicodedata.normalize("NFD", raw_stem)
-                ascii_stem = normalized_stem.encode("ascii", "ignore").decode("ascii").lower()
-                play_slug = re.sub(r"[^a-z0-9]+", "-", ascii_stem).strip("-") or "piece"
-            else:
-                play_slug = "piece"
+            saved = _save_upload(xml_file, sources_dir)  # type: ignore[arg-type]
+            xml_rel = saved.relative_to(tmp).as_posix()
+            raw_stem = Path(xml_file.filename).stem  # type: ignore[union-attr]
+            normalized_stem = unicodedata.normalize("NFD", raw_stem)
+            ascii_stem = normalized_stem.encode("ascii", "ignore").decode("ascii").lower()
+            play_slug = re.sub(r"[^a-z0-9]+", "-", ascii_stem).strip("-") or "piece"
 
             def _save_rel_opt(key: str) -> str | None:
                 f = files.get(key)

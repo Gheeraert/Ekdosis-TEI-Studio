@@ -709,13 +709,6 @@ def test_builder_source_package_paths_match_zip_entries(client) -> None:
     assert config.plays[0].play_slug == "britannicus"
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason=(
-        "Builder source package export currently allows play annexes without "
-        "a dramatic XML, producing a ZIP rejected by the publication config loader."
-    ),
-)
 def test_builder_source_package_without_dramatic_xml_is_not_exportable(client) -> None:
     rv = client.post(
         "/publish/builder/source-package",
