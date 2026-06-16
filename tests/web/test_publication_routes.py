@@ -223,6 +223,19 @@ def test_publish_static_absolute_path_in_json_is_refused(client) -> None:
 
 # ── output_dir du JSON est ignoré ─────────────────────────────────────────────
 
+def test_publish_static_windows_absolute_path_in_json_is_refused(client) -> None:
+    cfg = _pub_config(dramatic_path="C:\\Windows\\win.ini")
+    zip_bytes = _make_zip({"publication_config.json": json.dumps(cfg)})
+    rv = client.post(
+        "/publish/static",
+        data={"source_zip": (io.BytesIO(zip_bytes), "source.zip")},
+        content_type="multipart/form-data",
+    )
+    assert rv.status_code == 200
+    html = rv.data.decode().lower()
+    assert "erreur" in html or "chemin" in html or "invalide" in html
+
+
 def test_publish_static_output_dir_from_json_is_replaced(client, monkeypatch) -> None:
     captured: dict = {}
 

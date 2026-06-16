@@ -12,6 +12,7 @@ from ets.application import (
     derive_corpus_slug,
     load_site_publication_dialog_config,
     save_site_publication_dialog_config,
+    site_publication_dialog_config_from_dict,
     site_publication_request_from_dialog_config,
 )
 
@@ -110,6 +111,104 @@ def test_site_publication_dialog_config_invalid_structure_fails_cleanly() -> Non
 
     with pytest.raises(ValueError, match="plays"):
         load_site_publication_dialog_config(config_path)
+
+
+def test_site_publication_config_loads_required_contract_and_null_optional_paths() -> None:
+    runtime = _runtime_dir("app_site_publication_config_contract")
+    payload = {
+        "schema": "ets.site_publication_dialog_config",
+        "version": 3,
+        "metadata": {
+            "author_name": "Jean Racine",
+            "corpus_title": "Théâtre complet",
+            "scientific_editor": "Caroline Labrune",
+        },
+        "xml_sources": {
+            "home_page_tei_path": None,
+            "general_intro_tei_path": None,
+        },
+        "plays": [
+            {
+                "play_slug": "britannicus",
+                "dramatic_xml_path": "sources/britannicus.xml",
+                "notice_xml_path": None,
+                "preface_xml_path": None,
+                "dramatis_xml_path": None,
+            }
+        ],
+        "play_order": ["britannicus"],
+        "output": {"output_dir": None},
+        "assets": {"logo_paths": [], "asset_directories": []},
+        "options": {
+            "show_xml_download": True,
+            "build_latex_pdf": False,
+            "hide_minor_variants_in_pdf": False,
+            "publish_notices": True,
+            "publish_prefaces": True,
+            "include_metadata": True,
+            "resolve_notice_xincludes": True,
+        },
+    }
+
+    config = site_publication_dialog_config_from_dict(payload, base_dir=runtime)
+
+    assert config.author_name == "Jean Racine"
+    assert config.corpus_title == "Théâtre complet"
+    assert config.home_page_tei is None
+    assert config.general_intro_tei is None
+    assert config.play_order == ("britannicus",)
+    assert config.plays[0].play_slug == "britannicus"
+    assert config.plays[0].dramatic_xml_path == runtime / "sources" / "britannicus.xml"
+    assert config.plays[0].notice_xml_path is None
+    assert config.plays[0].preface_xml_path is None
+    assert config.plays[0].dramatis_xml_path is None
+    assert config.output_dir is None
+    assert config.logo_paths == ()
+    assert config.asset_directories == ()
+    assert config.build_latex_pdf is False
+
+
+@pytest.mark.parametrize(
+    ("play_payload", "match"),
+    [
+        ({"dramatic_xml_path": "sources/britannicus.xml"}, "play_slug"),
+        ({"play_slug": "britannicus"}, "dramatic"),
+    ],
+)
+def test_site_publication_config_requires_play_slug_and_dramatic_xml_path(
+    play_payload: dict[str, object], match: str
+) -> None:
+    payload = {
+        "schema": "ets.site_publication_dialog_config",
+        "version": 3,
+        "metadata": {"author_name": "Jean Racine", "corpus_title": "Théâtre complet"},
+        "xml_sources": {"home_page_tei_path": None, "general_intro_tei_path": None},
+        "plays": [play_payload],
+        "play_order": [],
+        "output": {"output_dir": None},
+        "assets": {"logo_paths": [], "asset_directories": []},
+        "options": {},
+    }
+
+    with pytest.raises(ValueError, match=match):
+        site_publication_dialog_config_from_dict(payload, base_dir=RUNTIME_ROOT)
+
+
+def test_site_publication_config_rejects_builder_form_config() -> None:
+    payload = {
+        "schema": "ets.builder_form_config",
+        "version": 2,
+        "corpus_title": "Théâtre complet",
+        "plays": [
+            {
+                "play_slug": "britannicus",
+                "expected_xml_filename": "britannicus.xml",
+            }
+        ],
+    }
+
+    with pytest.raises(ValueError, match="unsupported schema"):
+        site_publication_dialog_config_from_dict(payload, base_dir=RUNTIME_ROOT)
 
 
 def test_site_publication_dialog_config_rejects_multiple_documents_for_one_play() -> None:

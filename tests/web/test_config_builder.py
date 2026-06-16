@@ -73,6 +73,26 @@ def test_config_from_dict_transcription_path_is_cleared() -> None:
     assert cfg.transcription_path == ""
 
 
+@pytest.mark.xfail(
+    strict=True,
+    reason="Flask import currently drops the speaker authority table (`Personnages`).",
+)
+def test_web_load_desktop_config_preserves_speaker_authority() -> None:
+    raw = {
+        **_MINIMAL_RAW,
+        "Personnages": [
+            {"id": "nero", "nom": "Néron", "aliases": ["NERON", "NÉRON"]},
+        ],
+    }
+
+    cfg = config_from_dict(raw)
+
+    assert cfg.characters
+    assert cfg.characters[0].id == "nero"
+    assert cfg.characters[0].label == "Néron"
+    assert cfg.characters[0].aliases == ["NERON", "NÉRON"]
+
+
 def test_config_from_dict_missing_title_raises() -> None:
     raw = {**_MINIMAL_RAW, "Titre de la pièce": ""}
     with pytest.raises(ValueError, match="titre"):

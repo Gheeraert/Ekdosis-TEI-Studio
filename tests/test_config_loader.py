@@ -91,7 +91,7 @@ def test_cli_override_keeps_priority() -> None:
 def test_load_config_without_characters_keeps_legacy_compatibility() -> None:
     config_path = RUNTIME_DIR / "config_loader_without_characters.json"
     config_path.write_text(
-        json.dumps(_config_payload_with_reference("TÃ©moin de rÃ©fÃ©rence", "B"), ensure_ascii=False),
+        json.dumps(_config_payload_with_reference("Témoin de référence", "B"), ensure_ascii=False),
         encoding="utf-8",
     )
 
@@ -101,7 +101,7 @@ def test_load_config_without_characters_keeps_legacy_compatibility() -> None:
 
 
 def test_load_config_reads_optional_personnages() -> None:
-    payload = _config_payload_with_reference("TÃ©moin de rÃ©fÃ©rence", "B")
+    payload = _config_payload_with_reference("Témoin de référence", "B")
     payload["Personnages"] = [
         {
             "id": "char001",
@@ -124,7 +124,7 @@ def test_load_config_reads_optional_personnages() -> None:
 
 
 def test_load_config_reads_optional_characters_alias() -> None:
-    payload = _config_payload_with_reference("TÃ©moin de rÃ©fÃ©rence", "B")
+    payload = _config_payload_with_reference("Témoin de référence", "B")
     payload["characters"] = [
         {
             "id": "char002",
@@ -142,8 +142,73 @@ def test_load_config_reads_optional_characters_alias() -> None:
     ]
 
 
+def test_edition_config_loads_speaker_authority_personnages() -> None:
+    payload = _config_payload_with_reference("reference_witness", "A")
+    payload["Titre de la pièce"] = "Britannicus"
+    payload["Personnages"] = [
+        {"id": "nero", "nom": "Néron", "aliases": ["NERON", "NÉRON", "Neron."]},
+        {"id": "junie", "nom": "Junie", "aliases": ["JUNIE", "IUNIE"]},
+    ]
+    config_path = RUNTIME_DIR / "config_loader_speaker_authority_personnages.json"
+    config_path.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
+
+    config = load_config(config_path)
+
+    assert config.characters == [
+        Character(id="nero", label="Néron", aliases=["NERON", "NÉRON", "Neron."]),
+        Character(id="junie", label="Junie", aliases=["JUNIE", "IUNIE"]),
+    ]
+    assert config.castlist_path == ""
+
+
+def test_edition_config_loads_legacy_characters_as_speaker_authority() -> None:
+    payload = _config_payload_with_reference("reference_witness", "A")
+    payload["characters"] = [
+        {"id": "nero", "label": "Néron", "aliases": ["NERON", "NÉRON"]},
+    ]
+    config_path = RUNTIME_DIR / "config_loader_legacy_characters_authority.json"
+    config_path.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
+
+    config = load_config(config_path)
+
+    assert config.characters == [
+        Character(id="nero", label="Néron", aliases=["NERON", "NÉRON"])
+    ]
+
+
+def test_edition_config_reference_witness_loads_but_dump_does_not_serialize_currently() -> None:
+    payload = _config_payload_with_reference("reference_witness", "A")
+    config_path = RUNTIME_DIR / "config_loader_reference_witness_dump_contract.json"
+    config_path.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
+
+    config = load_config(config_path)
+    saved_path = save_config(config, RUNTIME_DIR / "reference_witness_dump_contract.json")
+    saved_payload = json.loads(saved_path.read_text(encoding="utf-8"))
+
+    assert config.reference_witness == 0
+    assert "reference_witness" not in saved_payload
+    assert "Témoin de référence" not in saved_payload
+
+
+def test_edition_config_keeps_speaker_authority_distinct_from_castlist_path() -> None:
+    payload = _config_payload_with_reference("reference_witness", "A")
+    # Personnages is the speaker authority table; castlist_path is a separate
+    # paratext/dramatis-personae source path.
+    payload["Personnages"] = [
+        {"id": "nero", "nom": "Néron", "aliases": ["NERON"]},
+    ]
+    payload["castlist_path"] = "paratexts/britannicus_castlist.xml"
+    config_path = RUNTIME_DIR / "config_loader_authority_and_castlist_path.json"
+    config_path.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
+
+    config = load_config(config_path)
+
+    assert config.characters == [Character(id="nero", label="Néron", aliases=["NERON"])]
+    assert config.castlist_path == "paratexts/britannicus_castlist.xml"
+
+
 def test_load_config_reads_optional_castlist_path() -> None:
-    payload = _config_payload_with_reference("TÃƒÂ©moin de rÃƒÂ©fÃƒÂ©rence", "B")
+    payload = _config_payload_with_reference("Témoin de référence", "B")
     payload["castlist_path"] = "castlist.txt"
     config_path = RUNTIME_DIR / "config_loader_castlist_path.json"
     config_path.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
@@ -154,7 +219,7 @@ def test_load_config_reads_optional_castlist_path() -> None:
 
 
 def test_load_config_reads_optional_transcription_path() -> None:
-    payload = _config_payload_with_reference("TÃƒÆ’Ã‚Â©moin de rÃƒÆ’Ã‚Â©fÃƒÆ’Ã‚Â©rence", "B")
+    payload = _config_payload_with_reference("Témoin de référence", "B")
     payload["transcription_path"] = "Esther.txt"
     config_path = RUNTIME_DIR / "config_loader_transcription_path.json"
     config_path.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
@@ -165,7 +230,7 @@ def test_load_config_reads_optional_transcription_path() -> None:
 
 
 def _write_character_config(name: str, characters: list[dict[str, object]]) -> Path:
-    payload = _config_payload_with_reference("TÃƒÂ©moin de rÃƒÂ©fÃƒÂ©rence", "B")
+    payload = _config_payload_with_reference("Témoin de référence", "B")
     payload["Personnages"] = characters
     config_path = RUNTIME_DIR / name
     config_path.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")

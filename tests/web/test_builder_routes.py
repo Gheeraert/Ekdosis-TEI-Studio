@@ -661,6 +661,77 @@ def test_builder_js_contains_multi_play_restore_logic() -> None:
 
 # ── Helpers pour les tests d'import de paquet source ─────────────────────────
 
+def test_builder_source_package_paths_match_zip_entries(client) -> None:
+    rv = client.post(
+        "/publish/builder/source-package",
+        data={
+            "corpus_title": "Tragédies",
+            "author_first_name": "Jean",
+            "author_last_name": "Racine",
+            "home_page_file": (io.BytesIO(_HOME_XML), "accueil.xml"),
+            "general_intro_file": (io.BytesIO(_HOME_XML), "introduction.xml"),
+            "logos": (io.BytesIO(b"logo"), "logo.svg"),
+            "play_0_xml": (io.BytesIO(_PLAY_XML), "britannicus.xml"),
+            "play_0_notice": (io.BytesIO(b"<TEI/>"), "britannicus_notice.xml"),
+            "play_0_preface": (io.BytesIO(b"<TEI/>"), "britannicus_preface.xml"),
+            "play_0_dramatis": (io.BytesIO(b"<TEI/>"), "britannicus_dramatis.xml"),
+        },
+        content_type="multipart/form-data",
+    )
+    assert rv.status_code == 200
+
+    from ets.application import site_publication_dialog_config_from_dict
+
+    with zipfile.ZipFile(io.BytesIO(rv.data)) as zf:
+        names = set(zf.namelist())
+        payload = json.loads(zf.read("publication_config.json").decode("utf-8"))
+
+    paths = [
+        payload["xml_sources"]["home_page_tei_path"],
+        payload["xml_sources"]["general_intro_tei_path"],
+        *payload["assets"]["logo_paths"],
+    ]
+    for play in payload["plays"]:
+        paths.extend([
+            play["dramatic_xml_path"],
+            play["notice_xml_path"],
+            play["preface_xml_path"],
+            play["dramatis_xml_path"],
+        ])
+
+    for path in [p for p in paths if p is not None]:
+        assert path in names
+        assert path.startswith("sources/")
+        assert not Path(path).is_absolute()
+        assert ".." not in Path(path).parts
+
+    config = site_publication_dialog_config_from_dict(payload, base_dir=Path("."))
+    assert config.plays[0].play_slug == "britannicus"
+
+
+@pytest.mark.xfail(
+    strict=True,
+    reason=(
+        "Builder source package export currently allows play annexes without "
+        "a dramatic XML, producing a ZIP rejected by the publication config loader."
+    ),
+)
+def test_builder_source_package_without_dramatic_xml_is_not_exportable(client) -> None:
+    rv = client.post(
+        "/publish/builder/source-package",
+        data={
+            "corpus_title": "Tragédies",
+            "home_page_file": (io.BytesIO(_HOME_XML), "accueil.xml"),
+            "play_0_notice": (io.BytesIO(b"<TEI/>"), "notice.xml"),
+        },
+        content_type="multipart/form-data",
+    )
+
+    assert rv.status_code == 200
+    assert "zip" not in rv.content_type.lower()
+    assert "xml" in rv.data.decode().lower() or "erreur" in rv.data.decode().lower()
+
+
 _VALID_SOURCE_CONFIG = json.dumps({
     "schema": "ets.site_publication_dialog_config",
     "version": 3,

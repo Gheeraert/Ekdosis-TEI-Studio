@@ -463,6 +463,20 @@ def test_load_zip_rejects_absolute_path(client) -> None:
     assert "root:x:0:0" not in rv.data.decode()
 
 
+def test_load_zip_rejects_windows_absolute_path(client) -> None:
+    cfg = _minimal_config_dict()
+    cfg["transcription_path"] = "C:\\Windows\\win.ini"
+    zip_bytes = _make_zip({
+        "britannicus.json": json.dumps(cfg),
+        "C:\\Windows\\win.ini": "windows_secret_marker",
+    })
+    rv = client.post("/load", data={
+        "package_file": (io.BytesIO(zip_bytes), "britannicus.zip"),
+    }, content_type="multipart/form-data")
+    assert rv.status_code == 200
+    assert "windows_secret_marker" not in rv.data.decode()
+
+
 def test_load_zip_rejects_path_traversal(client) -> None:
     cfg = _minimal_config_dict()
     cfg["transcription_path"] = "../secret.txt"
@@ -593,6 +607,24 @@ def test_download_config_has_french_keys(client) -> None:
     assert rv.status_code == 200
     raw = json.loads(rv.data)
     assert "Prénom de l'auteur" in raw or "Nom de l'auteur" in raw
+
+
+def test_web_export_config_preserves_speaker_authority() -> None:
+    app = create_app(testing=True)
+    payload = _minimal_config_dict()
+    payload["Personnages"] = [
+        {"id": "nero", "nom": "Néron", "aliases": ["NERON", "NÉRON"]},
+    ]
+    payload["reference_witness"] = "A"
+    with app.test_client() as c:
+        rv = c.post("/download/config", data={"config_json": json.dumps(payload)})
+
+    assert rv.status_code == 200
+    exported = json.loads(rv.data)
+    assert exported == payload
+    assert exported["Temoins"] == payload["Temoins"]
+    assert exported["Personnages"] == payload["Personnages"]
+    assert exported["reference_witness"] == "A"
 
 
 # ── POST /download/transcription ─────────────────────────────────────────────
