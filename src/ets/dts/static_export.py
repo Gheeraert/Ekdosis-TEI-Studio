@@ -5,6 +5,7 @@ import re
 import shutil
 from pathlib import Path
 
+from .demo_page import render_dts_demo_page
 from .document_fragments import encoded_reference, export_document_fragments
 from .jsonld import entry_point, navigation, resource, root_collection
 from .models import DTSTeiIndex
@@ -89,5 +90,10 @@ def export_dts_static(
         resolved_root,
         dts_root / "collection" / "index.json",
         root_collection(indexes, title=collection_title),
+    )
+    demo_page_target = _safe_target(resolved_root, Path("api-dts.html"))
+    demo_page_target.write_text(
+        render_dts_demo_page(indexes, site_title=collection_title),
+        encoding="utf-8",
     )
     return tuple(warnings)

@@ -59,6 +59,7 @@ Dans le site généré :
 
 ```text
 site/
+  api-dts.html
   api/
     dts/
       index.json
@@ -120,6 +121,7 @@ src/ets/dts/
   tei_index.py
   jsonld.py
   document_fragments.py
+  demo_page.py
   static_export.py
 ```
 
@@ -163,11 +165,20 @@ src/ets/dts/
 - encoder les références utilisées comme noms de fichiers de la même façon que les fichiers Navigation ;
 - écrire les fragments dans `document/<slug>/<ref>.xml`.
 
+`demo_page.py` :
+
+- produire la page statique `api-dts.html` à la racine du site ;
+- présenter les points d’entrée DTS et les ressources de chaque pièce ;
+- proposer des liens relatifs vers le TEI complet et les premiers fragments acte, scène et vers disponibles ;
+- rester autonome, sans JavaScript, appel réseau ou nouvelle dépendance CSS.
+
 ## Intégration
 
 Intégrer l’export dans le site builder, après la copie des sources XML.
 
 Ne pas modifier l’interface utilisateur.
+
+La construction génère également `api-dts.html`, page de démonstration destinée à ouvrir facilement les fichiers DTS depuis un navigateur. Cette page rappelle la distinction entre lecture HTML, TEI canonique et interopérabilité DTS.
 
 Ajouter une fonction interne du type :
 
@@ -195,6 +206,7 @@ tests/test_dts_static_export.py
 Vérifier :
 
 - que `api/dts/index.json` est créé ;
+- que `api-dts.html` est créée et contient des liens relatifs vers les sorties DTS ;
 - que `api/dts/collection/index.json` est créé ;
 - qu’une pièce est exposée comme Resource ;
 - que `api/dts/navigation/<slug>/index.json` existe ;

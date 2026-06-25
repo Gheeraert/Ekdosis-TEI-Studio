@@ -109,6 +109,7 @@ def test_static_export_creates_entry_collection_resource_navigation_and_document
     resource_path = output / "api" / "dts" / "collection" / "britannicus.json"
     navigation_path = output / "api" / "dts" / "navigation" / "britannicus" / "index.json"
     document_path = output / "api" / "dts" / "document" / "britannicus" / "full.xml"
+    demo_page_path = output / "api-dts.html"
     fragment_root = output / "api" / "dts" / "document" / "britannicus"
     act_fragment_path = fragment_root / "acte-premier.xml"
     scene_fragment_path = fragment_root / "scene-premiere.xml"
@@ -119,6 +120,7 @@ def test_static_export_creates_entry_collection_resource_navigation_and_document
     assert collection_path.exists()
     assert resource_path.exists()
     assert navigation_path.exists()
+    assert demo_page_path.exists()
     assert (output / "api" / "dts" / "navigation" / "britannicus" / "acte-premier.json").exists()
     assert (output / "api" / "dts" / "navigation" / "britannicus" / "scene-premiere.json").exists()
     assert (output / "api" / "dts" / "navigation" / "britannicus" / "A1S1L1.json").exists()
@@ -128,6 +130,17 @@ def test_static_export_creates_entry_collection_resource_navigation_and_document
     assert first_line_fragment_path.exists()
     assert second_line_fragment_path.exists()
     assert document_path.read_bytes() == source.read_bytes()
+
+    demo_page = demo_page_path.read_text(encoding="utf-8")
+    assert 'href="api/dts/index.json"' in demo_page
+    assert 'href="api/dts/collection/index.json"' in demo_page
+    assert 'href="api/dts/collection/britannicus.json"' in demo_page
+    assert 'href="api/dts/navigation/britannicus/index.json"' in demo_page
+    assert 'href="api/dts/document/britannicus/full.xml"' in demo_page
+    assert 'href="api/dts/document/britannicus/acte-premier.xml"' in demo_page
+    assert 'href="api/dts/document/britannicus/scene-premiere.xml"' in demo_page
+    assert 'href="api/dts/document/britannicus/A1S1L1.xml"' in demo_page
+    assert "<script" not in demo_page
 
     act_fragment = _parse_xml(act_fragment_path)
     scene_fragment = _parse_xml(scene_fragment_path)
@@ -263,6 +276,7 @@ def test_builder_keeps_site_generation_when_one_dts_resource_fails(tmp_path: Pat
     assert (output_dir / "plays" / "good.html").exists()
     assert (output_dir / "plays" / "bad.html").exists()
     assert (output_dir / "api" / "dts" / "collection" / "good.json").exists()
+    assert (output_dir / "api-dts.html").exists()
     assert not (output_dir / "api" / "dts" / "collection" / "bad.json").exists()
     assert "DTS export skipped for bad: isolated test failure" in result.warnings
 
