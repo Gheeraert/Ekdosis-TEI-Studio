@@ -26,6 +26,9 @@ DTS est une façade d’interopérabilité, générée automatiquement.
 - Aucun changement dans les interfaces Tkinter ou Flask.
 - Aucun changement dans le protocole de transcription.
 - Le DTS statique est une sortie de publication supplémentaire.
+- L’export DTS statique est optionnel et désactivé par défaut.
+- Le builder permet de l’activer avec l’option « Exporter une couche DTS statique expérimentale ».
+- Lorsqu’il est activé, il produit `api/dts/` et `api-dts.html`.
 - L’échec de génération DTS pour une pièce ne doit pas faire échouer toute la construction du site : produire un warning.
 - Les liens JSON doivent fonctionner lorsque le site est publié dans un sous-répertoire : utiliser des chemins relatifs par défaut et ne pas coder d’URL absolue de déploiement.
 - Le slug d’une pièce doit venir du manifest ou de l’objet déjà construit par le site builder. Un slug ne peut être recalculé dans le module DTS que comme fallback explicite.

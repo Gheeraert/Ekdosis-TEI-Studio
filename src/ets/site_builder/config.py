@@ -220,6 +220,7 @@ def site_config_from_dict(payload: dict[str, Any], *, base_dir: Path | None = No
         publish_prefaces=bool(payload.get("publish_prefaces", True)),
         include_metadata=bool(payload.get("include_metadata", True)),
         resolve_notice_xincludes=bool(payload.get("resolve_notice_xincludes", True)),
+        enable_dts=bool(payload.get("enable_dts", False)),
         project_name=_normalize_text(payload.get("project_name", ""), field_name="project_name"),
         editor=_normalize_text(payload.get("editor", ""), field_name="editor"),
         credits=_normalize_text(payload.get("credits", ""), field_name="credits"),

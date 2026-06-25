@@ -48,6 +48,7 @@ class _PublicationVars:
     publish_prefaces: tk.BooleanVar
     include_metadata: tk.BooleanVar
     resolve_notice_xincludes: tk.BooleanVar
+    enable_dts: tk.BooleanVar
 
 @dataclass
 class _PlayEntry:
@@ -93,6 +94,7 @@ class PublicationDialog(tk.Toplevel):
             publish_prefaces=tk.BooleanVar(value=True),
             include_metadata=tk.BooleanVar(value=True),
             resolve_notice_xincludes=tk.BooleanVar(value=True),
+            enable_dts=tk.BooleanVar(value=False),
         )
 
         self._play_entries: list[_PlayEntry] = []
@@ -222,6 +224,19 @@ class PublicationDialog(tk.Toplevel):
         ttk.Checkbutton(options, text="Resoudre les xi:include locaux", variable=self.vars.resolve_notice_xincludes).grid(
             row=1, column=2, sticky="w", padx=(12, 0)
         )
+        ttk.Checkbutton(
+            options,
+            text="Exporter une couche DTS statique expérimentale",
+            variable=self.vars.enable_dts,
+        ).grid(row=2, column=0, columnspan=3, sticky="w")
+        ttk.Label(
+            options,
+            text=(
+                "Génère api/dts/ et api-dts.html : collection, navigation et fragments TEI "
+                "pour l’interopérabilité."
+            ),
+            wraplength=860,
+        ).grid(row=3, column=0, columnspan=3, sticky="w", pady=(0, 2))
 
     def _build_intro_section(self, parent: ttk.Frame, *, row: int) -> None:
         box = ttk.LabelFrame(parent, text="Introduction generale")
@@ -663,6 +678,7 @@ class PublicationDialog(tk.Toplevel):
             publish_prefaces=bool(self.vars.publish_prefaces.get()),
             include_metadata=bool(self.vars.include_metadata.get()),
             resolve_notice_xincludes=bool(self.vars.resolve_notice_xincludes.get()),
+            enable_dts=bool(self.vars.enable_dts.get()),
         )
 
     def _apply_dialog_config(self, config: SitePublicationDialogConfig) -> None:
@@ -707,6 +723,7 @@ class PublicationDialog(tk.Toplevel):
         self.vars.publish_prefaces.set(config.publish_prefaces)
         self.vars.include_metadata.set(config.include_metadata)
         self.vars.resolve_notice_xincludes.set(config.resolve_notice_xincludes)
+        self.vars.enable_dts.set(config.enable_dts)
         self._refresh_corpus_slug()
 
     def _on_save_config(self) -> None:

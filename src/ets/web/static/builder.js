@@ -145,6 +145,7 @@
             setCheck('publish_prefaces', data.options.publish_prefaces);
             setCheck('include_metadata', data.options.include_metadata);
             setCheck('resolve_notice_xincludes', data.options.resolve_notice_xincludes);
+            setCheck('enable_dts', data.options.enable_dts);
           }
           if (Array.isArray(data.plays) && data.plays.length > 0) {
             var existingPublicationBlocks = Array.from(container.querySelectorAll('.play-block'));
@@ -194,6 +195,7 @@
           setCheck('publish_prefaces', data.options.publish_prefaces);
           setCheck('include_metadata', data.options.include_metadata);
           setCheck('resolve_notice_xincludes', data.options.resolve_notice_xincludes);
+          setCheck('enable_dts', data.options.enable_dts);
         }
 
         // Restore play blocks
@@ -259,6 +261,7 @@
         _siSetCheck('publish_prefaces', si.options.publish_prefaces);
         _siSetCheck('include_metadata', si.options.include_metadata);
         _siSetCheck('resolve_notice_xincludes', si.options.resolve_notice_xincludes);
+        _siSetCheck('enable_dts', si.options.enable_dts);
       }
 
       if (Array.isArray(si.plays) && si.plays.length > 0) {

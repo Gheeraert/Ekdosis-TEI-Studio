@@ -67,6 +67,7 @@ class SitePublicationRequest:
     publish_prefaces: bool = True
     include_metadata: bool = True
     resolve_notice_xincludes: bool = True
+    enable_dts: bool = False
     play_notice_map: tuple[tuple[str, str], ...] = ()
     play_preface_map: tuple[tuple[str, tuple[str, ...]], ...] = ()
     play_dramatis_map: tuple[tuple[str, str], ...] = ()

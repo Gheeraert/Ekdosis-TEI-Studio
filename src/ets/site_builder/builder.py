@@ -297,7 +297,8 @@ def build_static_site(config: SiteConfig) -> BuildResult:
 
     copied_assets = _copy_assets(normalized_config, output_root, warnings)
     _copy_xml_sources(output_root=output_root, plays=manifest.plays, notices=manifest.notices)
-    _export_dts_static(output_root, manifest, warnings)
+    if normalized_config.enable_dts:
+        _export_dts_static(output_root, manifest, warnings)
 
     return BuildResult(
         output_dir=output_root,

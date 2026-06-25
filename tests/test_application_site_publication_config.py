@@ -64,6 +64,7 @@ def test_site_publication_dialog_config_round_trip_json() -> None:
         publish_prefaces=True,
         include_metadata=True,
         resolve_notice_xincludes=True,
+        enable_dts=True,
     )
 
     written = save_site_publication_dialog_config(config, config_path)
@@ -82,6 +83,7 @@ def test_site_publication_dialog_config_round_trip_json() -> None:
     assert payload["plays"][0]["dramatis_xml_path"].endswith("andromaque-dramatis.xml")
     assert payload["options"]["publish_prefaces"] is True
     assert payload["options"]["hide_minor_variants_in_pdf"] is True
+    assert payload["options"]["enable_dts"] is True
 
 
 def test_site_publication_dialog_config_to_dict_can_write_portable_relative_paths() -> None:
@@ -200,6 +202,7 @@ def test_site_publication_config_loads_required_contract_and_null_optional_paths
     assert config.logo_paths == ()
     assert config.asset_directories == ()
     assert config.build_latex_pdf is False
+    assert config.enable_dts is False
 
 
 @pytest.mark.parametrize(

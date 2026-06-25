@@ -406,6 +406,7 @@ def test_builder_post_valid_input_returns_zip_with_index(client, monkeypatch, tm
             "publish_prefaces": "1",
             "include_metadata": "1",
             "resolve_notice_xincludes": "1",
+            "enable_dts": "1",
         },
         content_type="multipart/form-data",
     )
@@ -485,6 +486,7 @@ def test_builder_config_json_contains_metadata_and_options(client) -> None:
             "publish_prefaces": "1",
             "include_metadata": "1",
             "resolve_notice_xincludes": "1",
+            "enable_dts": "1",
         },
         content_type="multipart/form-data",
     )
@@ -504,6 +506,7 @@ def test_builder_config_json_contains_metadata_and_options(client) -> None:
     assert data["options"]["resolve_notice_xincludes"] is True
     assert data["options"]["build_latex_pdf"] is False
     assert data["options"]["hide_minor_variants_in_pdf"] is False
+    assert data["options"]["enable_dts"] is True
 
 
 def test_builder_config_export_two_plays(client) -> None:

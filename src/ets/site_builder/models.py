@@ -30,6 +30,7 @@ class SiteConfig:
     publish_prefaces: bool = True
     include_metadata: bool = True
     resolve_notice_xincludes: bool = True
+    enable_dts: bool = False
     project_name: str = ""
     editor: str = ""
     credits: str = ""

@@ -51,6 +51,7 @@ class SitePublicationDialogConfig:
     publish_prefaces: bool = True
     include_metadata: bool = True
     resolve_notice_xincludes: bool = True
+    enable_dts: bool = False
 
 
 def _expect_object(value: Any, *, field_name: str) -> dict[str, Any]:
@@ -268,6 +269,7 @@ def site_publication_dialog_config_to_dict(
             "publish_prefaces": config.publish_prefaces,
             "include_metadata": config.include_metadata,
             "resolve_notice_xincludes": config.resolve_notice_xincludes,
+            "enable_dts": config.enable_dts,
         },
     }
 
@@ -380,6 +382,11 @@ def site_publication_dialog_config_from_dict(
             options.get("resolve_notice_xincludes"),
             field_name="options.resolve_notice_xincludes",
             default=True,
+        ),
+        enable_dts=_expect_bool(
+            options.get("enable_dts"),
+            field_name="options.enable_dts",
+            default=False,
         ),
     )
 
@@ -524,6 +531,7 @@ def site_publication_request_from_dialog_config(config: SitePublicationDialogCon
         publish_prefaces=config.publish_prefaces,
         include_metadata=config.include_metadata,
         resolve_notice_xincludes=config.resolve_notice_xincludes,
+        enable_dts=config.enable_dts,
         play_notice_map=tuple(play_notice_map),
         play_preface_map=tuple(play_preface_map),
         play_dramatis_map=tuple(play_dramatis_map),

@@ -379,6 +379,7 @@ def _normalize_publication_request(
         "publish_prefaces": request.publish_prefaces,
         "include_metadata": request.include_metadata,
         "resolve_notice_xincludes": request.resolve_notice_xincludes,
+        "enable_dts": request.enable_dts,
         "play_notice_map": notice_mapping_dict,
         "play_preface_map": preface_mapping_dict,
         "play_dramatis_map": dramatis_mapping_dict,

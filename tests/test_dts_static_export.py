@@ -269,6 +269,7 @@ def test_builder_keeps_site_generation_when_one_dts_resource_fails(tmp_path: Pat
             dramatic_xml_dir=dramatic_dir,
             output_dir=output_dir,
             publish_notices=False,
+            enable_dts=True,
         )
     )
 
@@ -279,6 +280,47 @@ def test_builder_keeps_site_generation_when_one_dts_resource_fails(tmp_path: Pat
     assert (output_dir / "api-dts.html").exists()
     assert not (output_dir / "api" / "dts" / "collection" / "bad.json").exists()
     assert "DTS export skipped for bad: isolated test failure" in result.warnings
+
+
+def test_builder_does_not_export_dts_by_default(tmp_path: Path) -> None:
+    dramatic_dir = tmp_path / "dramatic"
+    output_dir = tmp_path / "site"
+    _write_tei(dramatic_dir / "britannicus.xml")
+
+    result = build_static_site(
+        SiteConfig(
+            site_title="ETS sans DTS",
+            dramatic_xml_dir=dramatic_dir,
+            output_dir=output_dir,
+            publish_notices=False,
+        )
+    )
+
+    assert result.play_count == 1
+    assert (output_dir / "index.html").exists()
+    assert not (output_dir / "api" / "dts").exists()
+    assert not (output_dir / "api-dts.html").exists()
+
+
+def test_builder_exports_dts_when_enabled(tmp_path: Path) -> None:
+    dramatic_dir = tmp_path / "dramatic"
+    output_dir = tmp_path / "site"
+    _write_tei(dramatic_dir / "britannicus.xml")
+
+    result = build_static_site(
+        SiteConfig(
+            site_title="ETS avec DTS",
+            dramatic_xml_dir=dramatic_dir,
+            output_dir=output_dir,
+            publish_notices=False,
+            enable_dts=True,
+        )
+    )
+
+    assert result.play_count == 1
+    assert (output_dir / "api" / "dts" / "index.json").exists()
+    assert (output_dir / "api" / "dts" / "collection" / "index.json").exists()
+    assert (output_dir / "api-dts.html").exists()
 
 
 def test_static_export_rejects_unsafe_slug_without_writing_outside_output(tmp_path: Path) -> None:

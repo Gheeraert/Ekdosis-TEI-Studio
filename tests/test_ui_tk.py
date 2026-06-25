@@ -1109,6 +1109,7 @@ def test_publication_dialog_builds_rich_request_object(monkeypatch: pytest.Monke
         dialog.play_order_list.insert(tk.END, "andromaque")
         dialog.vars.publish_notices.set(True)
         dialog.vars.publish_prefaces.set(True)
+        dialog.vars.enable_dts.set(True)
 
         dialog._on_validate()
 
@@ -1137,6 +1138,7 @@ def test_publication_dialog_builds_rich_request_object(monkeypatch: pytest.Monke
         assert request.play_dramatis_map
         assert request.publish_notices is True
         assert request.publish_prefaces is True
+        assert request.enable_dts is True
     finally:
         root.destroy()
 
