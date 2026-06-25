@@ -5,9 +5,11 @@ import shutil
 import time
 from pathlib import Path
 
+from ets.dts import export_dts_static
+
 from .config import load_site_config
 from .manifest import build_site_manifest
-from .models import BuildResult, NoticeEntry, PlayEntry, SiteConfig
+from .models import BuildResult, NoticeEntry, PlayEntry, SiteConfig, SiteManifest
 from .render import render_home_page, render_notice_page, render_play_page
 
 _SUPPORTED_AUTO_LOGO_EXTENSIONS = {".png", ".jpg", ".jpeg", ".svg", ".webp"}
@@ -181,6 +183,19 @@ def _copy_xml_sources(
         shutil.copy2(notice.source_path, target)
 
 
+def _export_dts_static(output_root: Path, manifest: SiteManifest, warnings: list[str]) -> None:
+    try:
+        warnings.extend(
+            export_dts_static(
+                output_root,
+                manifest.plays,
+                collection_title=manifest.config.site_title,
+            )
+        )
+    except Exception as exc:
+        warnings.append(f"DTS export skipped: {exc}")
+
+
 def _copy_pdf_download(config: SiteConfig, output_root: Path, warnings: list[str]) -> str | None:
     source = config.pdf_download_source_path
     if source is None:
@@ -282,6 +297,7 @@ def build_static_site(config: SiteConfig) -> BuildResult:
 
     copied_assets = _copy_assets(normalized_config, output_root, warnings)
     _copy_xml_sources(output_root=output_root, plays=manifest.plays, notices=manifest.notices)
+    _export_dts_static(output_root, manifest, warnings)
 
     return BuildResult(
         output_dir=output_root,
