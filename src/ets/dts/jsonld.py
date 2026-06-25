@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 from collections.abc import Iterable
-from urllib.parse import quote
 
+from .document_fragments import encoded_reference
 from .models import DTSNavNode, DTSTeiIndex
 
 DTS_CONTEXT = "https://dtsapi.org/context/v1.0.json"
@@ -104,13 +104,14 @@ def _flatten(nodes: Iterable[DTSNavNode]) -> list[DTSNavNode]:
     return flattened
 
 
-def _citable_unit(node: DTSNavNode) -> dict[str, object]:
+def _citable_unit(node: DTSNavNode, *, slug: str) -> dict[str, object]:
     return {
         "identifier": node.identifier,
         "@type": "CitableUnit",
         "level": node.level,
         "parent": node.parent,
         "citeType": node.cite_type,
+        "document": f"../../document/{slug}/{encoded_reference(node.identifier)}.xml",
         "dublinCore": {
             "title": [
                 {
@@ -136,11 +137,11 @@ def navigation(index: DTSTeiIndex, *, ref: str | None = None) -> dict[str, objec
     data: dict[str, object] = {
         "@context": DTS_CONTEXT,
         "dtsVersion": DTS_VERSION,
-        "@id": f"{quote(ref, safe='-._~')}.json" if ref else "index.json",
+        "@id": f"{encoded_reference(ref)}.json" if ref else "index.json",
         "@type": "Navigation",
         "resource": _resource_links(index, prefix="../../"),
-        "member": [_citable_unit(node) for node in selected_nodes],
+        "member": [_citable_unit(node, slug=slug) for node in selected_nodes],
     }
     if selected_ref is not None:
-        data["ref"] = _citable_unit(selected_ref)
+        data["ref"] = _citable_unit(selected_ref, slug=slug)
     return data

@@ -4,8 +4,8 @@ import json
 import re
 import shutil
 from pathlib import Path
-from urllib.parse import quote
 
+from .document_fragments import encoded_reference, export_document_fragments
 from .jsonld import entry_point, navigation, resource, root_collection
 from .models import DTSTeiIndex
 from .tei_index import index_tei
@@ -30,7 +30,7 @@ def _write_json(output_root: Path, relative_path: Path, payload: dict[str, objec
     target.write_text(f"{serialized}\n", encoding="utf-8")
 
 
-def _export_resource(output_root: Path, index: DTSTeiIndex) -> None:
+def _export_resource(output_root: Path, index: DTSTeiIndex) -> tuple[str, ...]:
     slug = index.resource.slug
     if not _SAFE_SLUG.fullmatch(slug):
         raise ValueError("slug is not a safe static path segment")
@@ -41,13 +41,14 @@ def _export_resource(output_root: Path, index: DTSTeiIndex) -> None:
     for node in _flatten(index):
         _write_json(
             output_root,
-            dts_root / "navigation" / slug / f"{quote(node.identifier, safe='-._~')}.json",
+            dts_root / "navigation" / slug / f"{encoded_reference(node.identifier)}.json",
             navigation(index, ref=node.identifier),
         )
 
     document_target = _safe_target(output_root, dts_root / "document" / slug / "full.xml")
     document_target.parent.mkdir(parents=True, exist_ok=True)
     shutil.copy2(index.resource.source_path, document_target)
+    return export_document_fragments(output_root, index, safe_target=_safe_target)
 
 
 def _flatten(index: DTSTeiIndex):
@@ -77,7 +78,7 @@ def export_dts_static(
                 title=str(getattr(play, "title", "") or ""),
                 author=getattr(play, "author", None),
             )
-            _export_resource(resolved_root, index)
+            warnings.extend(_export_resource(resolved_root, index))
             indexes.append(index)
         except Exception as exc:
             warnings.append(f"DTS export skipped for {slug}: {exc}")

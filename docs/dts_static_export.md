@@ -11,7 +11,7 @@ Cette couche doit permettre à des outils extérieurs de :
 - découvrir la collection ;
 - parcourir les œuvres ;
 - naviguer dans la structure acte / scène / vers ;
-- récupérer le document TEI complet, et plus tard des fragments TEI.
+- récupérer le document TEI complet et des fragments TEI par acte, scène ou vers.
 
 Le site HTML reste destiné aux lecteurs humains.
 La TEI reste le format savant canonique.
@@ -43,14 +43,15 @@ La première passe doit seulement produire :
 - une navigation minimale ;
 - un document TEI complet par pièce.
 
+Une extension expérimentale produit également un fragment TEI bien formé pour chaque acte, scène et vers indexé. Un fragment de vers conserve un conteneur `<sp>` réduit au `<speaker>` éventuel et au seul `<l>` demandé.
+
 Ne pas implémenter dans cette première passe :
 
 - recherche plein texte ;
 - serveur HTTP dynamique ;
 - query parameters complexes ;
 - pagination ;
-- négociation avancée de mediaType ;
-- génération exhaustive d’un fichier XML par vers.
+- négociation avancée de mediaType.
 
 ## Arborescence cible
 
@@ -71,6 +72,7 @@ site/
       document/
         <slug>/
           full.xml
+          <ref>.xml
 ```
 
 ## Correspondance ETS / DTS
@@ -117,6 +119,7 @@ src/ets/dts/
   models.py
   tei_index.py
   jsonld.py
+  document_fragments.py
   static_export.py
 ```
 
@@ -151,6 +154,14 @@ src/ets/dts/
 - écrire du JSON indenté et stable ;
 - copier ou sérialiser le TEI complet dans `document/<slug>/full.xml` ;
 - garantir que les chemins restent dans `output_dir`.
+
+`document_fragments.py` :
+
+- parser la TEI source sans la modifier ;
+- produire une enveloppe TEI minimale pour chaque acte, scène et vers ;
+- conserver le contexte minimal `<sp>` et `<speaker>` pour un vers ;
+- encoder les références utilisées comme noms de fichiers de la même façon que les fichiers Navigation ;
+- écrire les fragments dans `document/<slug>/<ref>.xml`.
 
 ## Intégration
 
@@ -189,6 +200,9 @@ Vérifier :
 - que `api/dts/navigation/<slug>/index.json` existe ;
 - que la navigation contient au moins les actes et scènes ;
 - que `api/dts/document/<slug>/full.xml` existe ;
+- que les fragments acte, scène et vers sont des XML bien formés ;
+- qu’un fragment de vers ne contient pas les autres vers de la scène ;
+- que les liens `document` des unités de navigation pointent vers les fragments ;
 - que l’export DTS ne casse pas la génération globale du site ;
 - qu’une erreur DTS isolée produit un warning et non un échec global.
 

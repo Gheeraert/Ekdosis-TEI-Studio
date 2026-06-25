@@ -3,6 +3,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+from lxml import etree
+
 from ets.dts.static_export import export_dts_static
 from ets.site_builder.builder import build_static_site
 from ets.site_builder.models import PlayEntry, SiteConfig
@@ -90,6 +92,10 @@ def _load(path: Path) -> dict[str, object]:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def _parse_xml(path: Path) -> etree._ElementTree:
+    return etree.parse(str(path))
+
+
 def test_static_export_creates_entry_collection_resource_navigation_and_document(tmp_path: Path) -> None:
     source = tmp_path / "sources" / "piece.xml"
     output = tmp_path / "site"
@@ -103,6 +109,11 @@ def test_static_export_creates_entry_collection_resource_navigation_and_document
     resource_path = output / "api" / "dts" / "collection" / "britannicus.json"
     navigation_path = output / "api" / "dts" / "navigation" / "britannicus" / "index.json"
     document_path = output / "api" / "dts" / "document" / "britannicus" / "full.xml"
+    fragment_root = output / "api" / "dts" / "document" / "britannicus"
+    act_fragment_path = fragment_root / "acte-premier.xml"
+    scene_fragment_path = fragment_root / "scene-premiere.xml"
+    first_line_fragment_path = fragment_root / "A1S1L1.xml"
+    second_line_fragment_path = fragment_root / "A1S1L2.xml"
 
     assert entry_path.exists()
     assert collection_path.exists()
@@ -112,7 +123,25 @@ def test_static_export_creates_entry_collection_resource_navigation_and_document
     assert (output / "api" / "dts" / "navigation" / "britannicus" / "scene-premiere.json").exists()
     assert (output / "api" / "dts" / "navigation" / "britannicus" / "A1S1L1.json").exists()
     assert (output / "api" / "dts" / "navigation" / "britannicus" / "A1S1L2.json").exists()
+    assert act_fragment_path.exists()
+    assert scene_fragment_path.exists()
+    assert first_line_fragment_path.exists()
+    assert second_line_fragment_path.exists()
     assert document_path.read_bytes() == source.read_bytes()
+
+    act_fragment = _parse_xml(act_fragment_path)
+    scene_fragment = _parse_xml(scene_fragment_path)
+    first_line_fragment = _parse_xml(first_line_fragment_path)
+    second_line_fragment = _parse_xml(second_line_fragment_path)
+    assert act_fragment.xpath("//*[local-name()='fragment']/*[local-name()='div'][@type='act']")
+    assert scene_fragment.xpath("//*[local-name()='fragment']/*[local-name()='div'][@type='scene']")
+    assert first_line_fragment.xpath("//*[local-name()='fragment']/*[local-name()='sp']/*[local-name()='speaker']")
+    assert first_line_fragment.xpath(
+        "//*[local-name()='fragment']/*[local-name()='sp']/*[local-name()='l'][@n='1']"
+    )
+    assert not first_line_fragment.xpath("//*[local-name()='fragment']//*[local-name()='l'][@n='2']")
+    assert second_line_fragment.xpath("//*[local-name()='fragment']//*[local-name()='l'][@n='2']")
+    assert not second_line_fragment.xpath("//*[local-name()='fragment']//*[local-name()='l'][@n='1']")
 
     entry = _load(entry_path)
     collection = _load(collection_path)
@@ -131,6 +160,17 @@ def test_static_export_creates_entry_collection_resource_navigation_and_document
         "scene-premiere",
         "A1S1L1",
     ]
+    assert [node["document"] for node in navigation["member"]] == [  # type: ignore[index]
+        "../../document/britannicus/acte-premier.xml",
+        "../../document/britannicus/scene-premiere.xml",
+        "../../document/britannicus/A1S1L1.xml",
+        "../../document/britannicus/A1S1L2.xml",
+    ]
+    line_navigation = _load(
+        output / "api" / "dts" / "navigation" / "britannicus" / "A1S1L1.json"
+    )
+    assert line_navigation["member"][0]["document"] == "../../document/britannicus/A1S1L1.xml"  # type: ignore[index]
+    assert line_navigation["ref"]["document"] == "../../document/britannicus/A1S1L1.xml"  # type: ignore[index]
 
 
 def test_static_export_builds_logical_identifiers_when_xml_ids_are_missing(tmp_path: Path) -> None:
@@ -146,14 +186,26 @@ def test_static_export_builds_logical_identifiers_when_xml_ids_are_missing(tmp_p
     )
 
     navigation_root = output / "api" / "dts" / "navigation" / slug
+    document_root = output / "api" / "dts" / "document" / slug
     assert warnings == ()
     assert (navigation_root / "A1.json").exists()
     assert (navigation_root / "A1S1.json").exists()
     assert (navigation_root / "A1S1L1.json").exists()
+    assert (document_root / "A1.xml").exists()
+    assert (document_root / "A1S1.xml").exists()
+    assert (document_root / "A1S1L1.xml").exists()
 
     navigation = _load(navigation_root / "index.json")
     assert [node["identifier"] for node in navigation["member"]] == ["A1", "A1S1", "A1S1L1"]  # type: ignore[index]
     assert [node["citeType"] for node in navigation["member"]] == ["act", "scene", "line"]  # type: ignore[index]
+    assert [node["document"] for node in navigation["member"]] == [  # type: ignore[index]
+        f"../../document/{slug}/A1.xml",
+        f"../../document/{slug}/A1S1.xml",
+        f"../../document/{slug}/A1S1L1.xml",
+    ]
+    assert _parse_xml(document_root / "A1.xml")
+    assert _parse_xml(document_root / "A1S1.xml")
+    assert _parse_xml(document_root / "A1S1L1.xml")
 
 
 def test_static_export_uses_manifest_slug_and_writes_deterministic_unicode_json(tmp_path: Path) -> None:
@@ -229,3 +281,65 @@ def test_static_export_rejects_unsafe_slug_without_writing_outside_output(tmp_pa
     assert warnings == ("DTS export skipped for ../escape: slug is not a safe static path segment",)
     assert not (tmp_path / "escape.json").exists()
     assert _load(output / "api" / "dts" / "collection" / "index.json")["member"] == []
+
+
+def test_fragment_reference_uses_the_same_url_encoding_as_navigation(tmp_path: Path) -> None:
+    source = tmp_path / "piece.xml"
+    output = tmp_path / "site"
+    _write_tei(source)
+    source.write_text(
+        source.read_text(encoding="utf-8").replace(
+            'xml:id="scene-premiere"',
+            'xml:id="scène-première"',
+        ),
+        encoding="utf-8",
+    )
+
+    warnings = export_dts_static(
+        output,
+        (_play(source),),
+        collection_title="ETS DTS",
+    )
+
+    encoded_ref = "sc%C3%A8ne-premi%C3%A8re"
+    assert warnings == ()
+    assert (
+        output / "api" / "dts" / "navigation" / "britannicus" / f"{encoded_ref}.json"
+    ).exists()
+    assert (
+        output / "api" / "dts" / "document" / "britannicus" / f"{encoded_ref}.xml"
+    ).exists()
+    navigation = _load(output / "api" / "dts" / "navigation" / "britannicus" / "index.json")
+    scene = next(node for node in navigation["member"] if node["identifier"] == "scène-première")  # type: ignore[union-attr]
+    assert scene["document"] == f"../../document/britannicus/{encoded_ref}.xml"
+
+
+def test_fragment_failure_warns_without_stopping_other_exports(tmp_path: Path, monkeypatch) -> None:
+    source = tmp_path / "piece.xml"
+    output = tmp_path / "site"
+    _write_tei(source)
+
+    from ets.dts import document_fragments
+
+    original_fragment_xml = document_fragments._fragment_xml
+
+    def fail_one_fragment(tree, node, source_element):
+        if node.identifier == "A1S1L2":
+            raise ValueError("isolated fragment failure")
+        return original_fragment_xml(tree, node, source_element)
+
+    monkeypatch.setattr(document_fragments, "_fragment_xml", fail_one_fragment)
+    warnings = export_dts_static(
+        output,
+        (_play(source),),
+        collection_title="ETS DTS",
+    )
+
+    assert warnings == (
+        "DTS fragment export skipped for britannicus/A1S1L2: isolated fragment failure",
+    )
+    document_root = output / "api" / "dts" / "document" / "britannicus"
+    assert (document_root / "full.xml").exists()
+    assert (document_root / "A1S1L1.xml").exists()
+    assert not (document_root / "A1S1L2.xml").exists()
+    assert (output / "api" / "dts" / "navigation" / "britannicus" / "index.json").exists()
