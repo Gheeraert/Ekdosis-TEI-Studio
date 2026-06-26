@@ -7,7 +7,12 @@ from urllib.parse import unquote, urlsplit
 from lxml import html as lxml_html
 
 from ets.site_builder.builder import build_static_site
+from ets.site_builder.config import site_config_from_dict
 from ets.site_builder.models import SiteConfig
+
+
+ROOT = Path(__file__).resolve().parents[1]
+FIXTURE_ROOT = ROOT / "fixtures" / "site_builder" / "minimal"
 
 
 def _write_tei(path: Path) -> None:
@@ -114,6 +119,12 @@ def test_builder_does_not_generate_static_search_index_by_default(tmp_path: Path
 
     assert not (output_dir / "search" / "index.json").exists()
     assert not (output_dir / "search.html").exists()
+    home_html = lxml_html.document_fromstring((output_dir / "index.html").read_text(encoding="utf-8"))
+    play_html = lxml_html.document_fromstring(
+        (output_dir / "plays" / "britannicus.html").read_text(encoding="utf-8")
+    )
+    assert not home_html.xpath("//main/nav//a[@href='search.html' and normalize-space()='Recherche']")
+    assert not play_html.xpath("//main/nav//a[@href='../search.html' and normalize-space()='Recherche']")
 
 
 def test_builder_generates_static_search_index_when_enabled_without_dts(tmp_path: Path) -> None:
@@ -165,9 +176,12 @@ def test_builder_generates_static_search_index_when_enabled_without_dts(tmp_path
     assert "dts_navigation" not in first
     assert not (output_dir / "api" / "dts").exists()
 
+    home_html = lxml_html.document_fromstring((output_dir / "index.html").read_text(encoding="utf-8"))
     play_html = lxml_html.document_fromstring(
         (output_dir / "plays" / "britannicus.html").read_text(encoding="utf-8")
     )
+    assert home_html.xpath("//main/nav//a[@href='search.html' and normalize-space()='Recherche']")
+    assert play_html.xpath("//main/nav//a[@href='../search.html' and normalize-space()='Recherche']")
     assert play_html.xpath("//*[@id='A1S1L1']")
     _assert_search_html_links_resolve(output_dir, entries)
 
@@ -221,3 +235,26 @@ def test_static_search_index_and_html_use_logical_line_anchor_without_xml_id(tmp
     assert entries[0]["html"] == "plays/britannicus.html#A1S1L1"
     assert play_html.xpath("//*[@id='A1S1L1']")
     _assert_search_html_links_resolve(output_dir, entries)
+
+
+def test_static_search_navigation_link_is_relative_from_notice_pages(tmp_path: Path) -> None:
+    output_dir = tmp_path / "site"
+    config = site_config_from_dict(
+        {
+            "site_title": "ETS avec recherche et notice",
+            "dramatic_xml_dir": str(FIXTURE_ROOT / "dramatic"),
+            "notice_xml_dir": str(FIXTURE_ROOT / "notices"),
+            "output_dir": str(output_dir),
+            "publish_notices": True,
+            "play_notice_map": {"andromaque": "andromaque-notice"},
+            "enable_search_index": True,
+        }
+    )
+
+    build_static_site(config)
+
+    notice_html = lxml_html.document_fromstring(
+        (output_dir / "notices" / "andromaque-notice.html").read_text(encoding="utf-8")
+    )
+
+    assert notice_html.xpath("//main/nav//a[@href='../search.html' and normalize-space()='Recherche']")
