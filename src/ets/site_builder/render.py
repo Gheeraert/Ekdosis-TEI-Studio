@@ -122,6 +122,17 @@ def _branding_html(manifest: SiteManifest, current_href: str) -> str:
     return f'<div class="branding" aria-label="Identite visuelle">{images}</div>'
 
 
+def _site_header_links_html(manifest: SiteManifest, current_href: str) -> str:
+    if not manifest.config.enable_search_index:
+        return ""
+    href = f"{_asset_prefix(current_href)}search.html"
+    return (
+        '<div class="site-header-links">'
+        f'<a class="site-header-search" href="{html.escape(href, quote=True)}">Recherche</a>'
+        "</div>"
+    )
+
+
 
 def _affiliation_banner_src(current_href: str) -> str:
     return f"{_asset_prefix(current_href)}assets/logos/{AFFILIATION_BANNER_FILENAME}"
@@ -355,6 +366,30 @@ def _layout(
       letter-spacing: 0.01em;
       font-size: clamp(1.8rem, 3vw, 2.35rem);
       white-space: nowrap;
+    }}
+    .site-header-links {{
+      margin-top: 0.45rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      font-family: var(--font-ui);
+    }}
+    .site-header-search {{
+      display: inline-flex;
+      align-items: center;
+      border: 1px solid rgba(243, 236, 224, 0.34);
+      color: var(--header-ink);
+      text-decoration: none;
+      border-radius: 999px;
+      padding: 0.22rem 0.58rem;
+      font-size: 0.78rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }}
+    .site-header-search:hover {{
+      color: var(--header-ink);
+      border-color: rgba(243, 236, 224, 0.68);
+      background: rgba(243, 236, 224, 0.08);
     }}
     .header-controls {{
       display: flex;
@@ -973,6 +1008,9 @@ def _layout(
         font-size: 0.72rem;
         padding: 0.28rem 0.46rem;
       }}
+      .site-header-links {{
+        margin-top: 0.35rem;
+      }}
 
       .site-footer-inner {{
         flex-direction: column;
@@ -991,6 +1029,7 @@ def _layout(
       <div class="site-header-title">
         <p class="site-author">{html.escape(manifest.config.site_subtitle)}</p>
         <h1>{html.escape(manifest.config.site_title)}</h1>
+        {_site_header_links_html(manifest, current_href)}
       </div>
       <div class="site-header-branding">
         <div class="header-controls">

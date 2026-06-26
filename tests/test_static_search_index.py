@@ -123,7 +123,9 @@ def test_builder_does_not_generate_static_search_index_by_default(tmp_path: Path
     play_html = lxml_html.document_fromstring(
         (output_dir / "plays" / "britannicus.html").read_text(encoding="utf-8")
     )
+    assert not home_html.xpath("//header[contains(@class, 'site-header')]//a[@href='search.html']")
     assert not home_html.xpath("//main/nav//a[@href='search.html' and normalize-space()='Recherche']")
+    assert not play_html.xpath("//header[contains(@class, 'site-header')]//a[@href='../search.html']")
     assert not play_html.xpath("//main/nav//a[@href='../search.html' and normalize-space()='Recherche']")
 
 
@@ -180,8 +182,14 @@ def test_builder_generates_static_search_index_when_enabled_without_dts(tmp_path
     play_html = lxml_html.document_fromstring(
         (output_dir / "plays" / "britannicus.html").read_text(encoding="utf-8")
     )
-    assert home_html.xpath("//main/nav//a[@href='search.html' and normalize-space()='Recherche']")
-    assert play_html.xpath("//main/nav//a[@href='../search.html' and normalize-space()='Recherche']")
+    assert home_html.xpath(
+        "//header[contains(@class, 'site-header')]//a[@href='search.html' and normalize-space()='Recherche']"
+    )
+    assert play_html.xpath(
+        "//header[contains(@class, 'site-header')]//a[@href='../search.html' and normalize-space()='Recherche']"
+    )
+    assert not home_html.xpath("//main/nav//a[@href='search.html' and normalize-space()='Recherche']")
+    assert not play_html.xpath("//main/nav//a[@href='../search.html' and normalize-space()='Recherche']")
     assert play_html.xpath("//*[@id='A1S1L1']")
     _assert_search_html_links_resolve(output_dir, entries)
 
@@ -257,4 +265,7 @@ def test_static_search_navigation_link_is_relative_from_notice_pages(tmp_path: P
         (output_dir / "notices" / "andromaque-notice.html").read_text(encoding="utf-8")
     )
 
-    assert notice_html.xpath("//main/nav//a[@href='../search.html' and normalize-space()='Recherche']")
+    assert notice_html.xpath(
+        "//header[contains(@class, 'site-header')]//a[@href='../search.html' and normalize-space()='Recherche']"
+    )
+    assert not notice_html.xpath("//main/nav//a[@href='../search.html' and normalize-space()='Recherche']")

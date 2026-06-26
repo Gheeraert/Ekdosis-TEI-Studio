@@ -394,7 +394,6 @@ def _build_navigation_tree(
     notices: list[NoticeEntry],
     general_notice_slug: str | None,
     home_page_notice_slug: str | None,
-    enable_search_index: bool,
 ) -> tuple[NavigationItem, ...]:
     navigation: list[NavigationItem] = [NavigationItem(label="Accueil", href="index.html", kind="index")]
     attached_notice_slugs: set[str] = set()
@@ -457,9 +456,6 @@ def _build_navigation_tree(
 
     if play_nodes:
         navigation.append(NavigationItem(label="Pièces", href="", kind="plays_group", children=tuple(play_nodes)))
-
-    if enable_search_index:
-        navigation.append(NavigationItem(label="Recherche", href="search.html", kind="search"))
 
     uncategorized_notices = [
         notice
@@ -610,7 +606,6 @@ def build_site_manifest(config: SiteConfig) -> SiteManifest:
         notices=notices,
         general_notice_slug=general_notice_slug,
         home_page_notice_slug=config.home_page_notice_slug or None,
-        enable_search_index=config.enable_search_index,
     )
 
     return SiteManifest(
