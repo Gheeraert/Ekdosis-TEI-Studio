@@ -88,6 +88,39 @@ def _write_tei_without_xml_ids(path: Path) -> None:
     )
 
 
+def _write_tei_with_canonical_xml_ids(path: Path) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(
+        """<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0">
+  <teiHeader>
+    <fileDesc>
+      <titleStmt>
+        <title>Britannicus</title>
+        <author>Jean Racine</author>
+      </titleStmt>
+      <publicationStmt><p>Test</p></publicationStmt>
+      <sourceDesc><p>Test</p></sourceDesc>
+    </fileDesc>
+  </teiHeader>
+  <text>
+    <body>
+      <div type="act" n="1" xml:id="A1">
+        <div type="scene" n="1" xml:id="A1S1">
+          <sp>
+            <speaker>AGRIPPINE</speaker>
+            <l n="37" xml:id="A1S1L37">Vers trente-sept</l>
+          </sp>
+        </div>
+      </div>
+    </body>
+  </text>
+</TEI>
+""",
+        encoding="utf-8",
+    )
+
+
 def _load(path: Path) -> dict[str, object]:
     return json.loads(path.read_text(encoding="utf-8"))
 
@@ -219,6 +252,36 @@ def test_static_export_builds_logical_identifiers_when_xml_ids_are_missing(tmp_p
     assert _parse_xml(document_root / "A1.xml")
     assert _parse_xml(document_root / "A1S1.xml")
     assert _parse_xml(document_root / "A1S1L1.xml")
+
+
+def test_static_export_uses_generated_canonical_xml_ids_as_dts_references(tmp_path: Path) -> None:
+    source = tmp_path / "sources" / "canonical-xml-ids.xml"
+    output = tmp_path / "site"
+    _write_tei_with_canonical_xml_ids(source)
+
+    warnings = export_dts_static(
+        output,
+        (_play(source),),
+        collection_title="ThÃ©Ã¢tre complet",
+    )
+
+    navigation_root = output / "api" / "dts" / "navigation" / "britannicus"
+    document_root = output / "api" / "dts" / "document" / "britannicus"
+    assert warnings == ()
+    assert (navigation_root / "A1.json").exists()
+    assert (navigation_root / "A1S1.json").exists()
+    assert (navigation_root / "A1S1L37.json").exists()
+    assert (document_root / "A1.xml").exists()
+    assert (document_root / "A1S1.xml").exists()
+    assert (document_root / "A1S1L37.xml").exists()
+
+    navigation = _load(navigation_root / "index.json")
+    assert [node["identifier"] for node in navigation["member"]] == ["A1", "A1S1", "A1S1L37"]  # type: ignore[index]
+    assert [node["document"] for node in navigation["member"]] == [  # type: ignore[index]
+        "../../document/britannicus/A1.xml",
+        "../../document/britannicus/A1S1.xml",
+        "../../document/britannicus/A1S1L37.xml",
+    ]
 
 
 def test_static_export_uses_manifest_slug_and_writes_deterministic_unicode_json(tmp_path: Path) -> None:

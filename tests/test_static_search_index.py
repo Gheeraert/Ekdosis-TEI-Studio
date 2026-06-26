@@ -86,6 +86,39 @@ def _write_tei_without_xml_ids(path: Path) -> None:
     )
 
 
+def _write_tei_with_line_xml_id_different_from_logical_fallback(path: Path) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(
+        """<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0">
+  <teiHeader>
+    <fileDesc>
+      <titleStmt>
+        <title>Britannicus</title>
+        <author>Jean Racine</author>
+      </titleStmt>
+      <publicationStmt><p>Test</p></publicationStmt>
+      <sourceDesc><p>Test</p></sourceDesc>
+    </fileDesc>
+  </teiHeader>
+  <text>
+    <body>
+      <div type="act" n="1" xml:id="A1">
+        <div type="scene" n="1" xml:id="A1S1">
+          <sp>
+            <speaker>AGRIPPINE</speaker>
+            <l n="1" xml:id="A1S1L37">Vers portant un identifiant existant</l>
+          </sp>
+        </div>
+      </div>
+    </body>
+  </text>
+</TEI>
+""",
+        encoding="utf-8",
+    )
+
+
 def _assert_search_html_links_resolve(output_dir: Path, entries: list[dict[str, object]]) -> None:
     parsed_pages: dict[str, lxml_html.HtmlElement] = {}
     for entry in entries:
@@ -254,6 +287,40 @@ def test_static_search_index_and_html_use_logical_line_anchor_without_xml_id(tmp
     assert entries[0]["ref"] == "A1S1L1"
     assert entries[0]["html"] == "plays/britannicus.html#A1S1L1"
     assert play_html.xpath("//*[@id='A1S1L1']")
+    _assert_search_html_links_resolve(output_dir, entries)
+
+
+def test_static_search_index_and_html_prefer_existing_xml_id_over_logical_fallback(tmp_path: Path) -> None:
+    dramatic_dir = tmp_path / "dramatic"
+    output_dir = tmp_path / "site"
+    _write_tei_with_line_xml_id_different_from_logical_fallback(dramatic_dir / "britannicus.xml")
+
+    build_static_site(
+        SiteConfig(
+            site_title="ETS avec identifiants existants",
+            dramatic_xml_dir=dramatic_dir,
+            output_dir=output_dir,
+            publish_notices=False,
+            enable_search_index=True,
+            enable_dts=True,
+        )
+    )
+
+    entries = _load(output_dir / "search" / "index.json")
+    play_html = lxml_html.document_fromstring(
+        (output_dir / "plays" / "britannicus.html").read_text(encoding="utf-8")
+    )
+
+    assert entries[0]["ref"] == "A1S1L37"
+    assert entries[0]["html"] == "plays/britannicus.html#A1S1L37"
+    assert entries[0]["dts_document"] == "api/dts/document/britannicus/A1S1L37.xml"
+    assert entries[0]["dts_navigation"] == "api/dts/navigation/britannicus/A1S1L37.json"
+    assert play_html.xpath("//*[@id='A1S1L37']")
+    assert not play_html.xpath("//*[@id='A1S1L1']")
+    assert _load(output_dir / "api" / "dts" / "navigation" / "britannicus" / "A1S1L37.json")
+    assert (output_dir / "api" / "dts" / "document" / "britannicus" / "A1S1L37.xml").exists()
+    assert not (output_dir / "api" / "dts" / "navigation" / "britannicus" / "A1S1L1.json").exists()
+    assert not (output_dir / "api" / "dts" / "document" / "britannicus" / "A1S1L1.xml").exists()
     _assert_search_html_links_resolve(output_dir, entries)
 
 
