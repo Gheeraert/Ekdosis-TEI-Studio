@@ -259,7 +259,7 @@ def render_static_search_head_assets() -> str:
     }
     .search-content h2 {
       margin: 0 0 0.45rem;
-      font-size: clamp(1.8rem, 4vw, 2.55rem);
+      font-size: 1.5rem;
     }
     .search-content a {
       color: var(--accent);
