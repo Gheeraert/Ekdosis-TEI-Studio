@@ -185,6 +185,7 @@ def test_builder_generates_static_search_index_when_enabled_without_dts(tmp_path
     search_page_path = output_dir / "search.html"
     raw_json = index_path.read_text(encoding="utf-8")
     search_html = search_page_path.read_text(encoding="utf-8")
+    search_doc = lxml_html.document_fromstring(search_html)
     entries = _load(index_path)
 
     assert search_page_path.exists()
@@ -194,6 +195,15 @@ def test_builder_generates_static_search_index_when_enabled_without_dts(tmp_path
     assert "Fragment TEI" in search_html
     assert "Navigation DTS" in search_html
     assert "innerHTML" not in search_html
+    assert search_doc.xpath("//header[contains(@class, 'site-header')]")
+    assert search_doc.xpath("//main/nav[@aria-label='Navigation principale']")
+    assert search_doc.xpath(
+        "//main/section[contains(@class, 'content-shell-search')]"
+        "//article[contains(@class, 'search-content')]"
+        "//section[contains(@class, 'search-panel')]//input[@id='search-input' and @type='search']"
+    )
+    assert search_doc.xpath("//label[@for='search-input' and normalize-space()='Rechercher dans les vers']")
+    assert search_doc.xpath("//h2[@id='search-title' and normalize-space()='Recherche']")
     assert len(entries) == 2
     first = entries[0]
     assert first == {

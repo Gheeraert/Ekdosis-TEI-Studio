@@ -7,6 +7,11 @@ from lxml import etree, html as lxml_html
 
 from ets.dts.tei_index import index_tei
 from ets.html import HtmlExportOptions, render_html_export_from_tei
+from ets.search.static_page import (
+    render_static_search_content,
+    render_static_search_head_assets,
+    render_static_search_script,
+)
 
 from .models import (
     HomePageSection,
@@ -1758,6 +1763,17 @@ def render_play_page(manifest: SiteManifest, play: PlayEntry) -> str:
         content_html="".join(lines),
         head_extra_html=head_extras,
         section_class="content-shell content-shell-play",
+    )
+
+
+def render_search_page(manifest: SiteManifest) -> str:
+    return _layout(
+        manifest,
+        page_title=f"Recherche — {manifest.config.site_title}",
+        current_href="search.html",
+        content_html=render_static_search_content() + render_static_search_script(),
+        head_extra_html=render_static_search_head_assets(),
+        section_class="content-shell content-shell-play content-shell-search",
     )
 
 

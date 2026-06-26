@@ -6,12 +6,12 @@ import time
 from pathlib import Path
 
 from ets.dts import export_dts_static
-from ets.search import export_static_search_index, render_static_search_page
+from ets.search import export_static_search_index
 
 from .config import load_site_config
 from .manifest import build_site_manifest
 from .models import BuildResult, NoticeEntry, PlayEntry, SiteConfig, SiteManifest
-from .render import render_home_page, render_notice_page, render_play_page
+from .render import render_home_page, render_notice_page, render_play_page, render_search_page
 
 _SUPPORTED_AUTO_LOGO_EXTENSIONS = {".png", ".jpg", ".jpeg", ".svg", ".webp"}
 _AFFILIATION_BANNER_FILENAME = "banniere_affiliation.png"
@@ -209,7 +209,7 @@ def _export_search_index(output_root: Path, manifest: SiteManifest, warnings: li
         _write_page(
             output_root,
             "search.html",
-            render_static_search_page(site_title=manifest.config.site_title),
+            render_search_page(manifest),
         )
     except Exception as exc:
         warnings.append(f"Search index skipped: {exc}")
