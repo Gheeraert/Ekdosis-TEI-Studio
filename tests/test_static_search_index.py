@@ -119,6 +119,39 @@ def _write_tei_with_line_xml_id_different_from_logical_fallback(path: Path) -> N
     )
 
 
+def _write_tei_with_apparatus(path: Path) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(
+        """<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0">
+  <teiHeader>
+    <fileDesc>
+      <titleStmt>
+        <title>Britannicus</title>
+        <author>Jean Racine</author>
+      </titleStmt>
+      <publicationStmt><p>Test</p></publicationStmt>
+      <sourceDesc><p>Test</p></sourceDesc>
+    </fileDesc>
+  </teiHeader>
+  <text>
+    <body>
+      <div type="act" n="1" xml:id="A1">
+        <div type="scene" n="1" xml:id="A1S1">
+          <sp>
+            <speaker>AGRIPPINE</speaker>
+            <l n="1" xml:id="A1S1L1"><app><lem>QUOY ?</lem><rdg>QUoy ?</rdg><rdg>QUoi ?</rdg><rdg>Quoy !</rdg></app> tandis que Neron s'abandonne au sommeil sommeil,</l>
+          </sp>
+        </div>
+      </div>
+    </body>
+  </text>
+</TEI>
+""",
+        encoding="utf-8",
+    )
+
+
 def _assert_search_html_links_resolve(output_dir: Path, entries: list[dict[str, object]]) -> None:
     parsed_pages: dict[str, lxml_html.HtmlElement] = {}
     for entry in entries:
@@ -292,6 +325,35 @@ def test_builder_generates_static_search_index_with_dts_links_when_dts_is_enable
     assert entries[1]["dts_document"] == "api/dts/document/britannicus/A1S1L2.xml"
     assert entries[1]["dts_navigation"] == "api/dts/navigation/britannicus/A1S1L2.json"
     assert (output_dir / "api" / "dts" / "index.json").exists()
+
+
+def test_static_search_index_uses_lemma_text_without_concatenating_variant_readings(tmp_path: Path) -> None:
+    dramatic_dir = tmp_path / "dramatic"
+    output_dir = tmp_path / "site"
+    _write_tei_with_apparatus(dramatic_dir / "britannicus.xml")
+
+    build_static_site(
+        SiteConfig(
+            site_title="ETS avec apparat",
+            dramatic_xml_dir=dramatic_dir,
+            output_dir=output_dir,
+            publish_notices=False,
+            enable_search_index=True,
+            enable_dts=True,
+        )
+    )
+
+    entries = _load(output_dir / "search" / "index.json")
+    entry = entries[0]
+
+    assert entry["text"] == "QUOY ? tandis que Neron s'abandonne au sommeil sommeil,"
+    assert "QUOY ? tandis que Neron" in entry["text"]
+    assert "QUoy ?" not in entry["text"]
+    assert "QUoi ?" not in entry["text"]
+    assert "Quoy !" not in entry["text"]
+    assert entry["html"] == "plays/britannicus.html#A1S1L1"
+    assert entry["dts_document"] == "api/dts/document/britannicus/A1S1L1.xml"
+    assert entry["dts_navigation"] == "api/dts/navigation/britannicus/A1S1L1.json"
 
 
 def test_static_search_index_and_html_use_logical_line_anchor_without_xml_id(tmp_path: Path) -> None:

@@ -42,6 +42,31 @@ def _normalize_space(value: str) -> str:
     return " ".join(value.split())
 
 
+def _local_name(element: etree._Element) -> str:
+    return etree.QName(element).localname
+
+
+def _reading_text(element: etree._Element) -> str:
+    fragments: list[str] = []
+    if element.text:
+        fragments.append(element.text)
+
+    for child in element:
+        if _local_name(child) == "app":
+            lemmas = child.xpath("./*[local-name()='lem'][1]")
+            if lemmas and isinstance(lemmas[0], etree._Element):
+                fragments.append(_reading_text(lemmas[0]))
+            if child.tail:
+                fragments.append(child.tail)
+            continue
+
+        fragments.append(_reading_text(child))
+        if child.tail:
+            fragments.append(child.tail)
+
+    return "".join(fragments)
+
+
 def _node_n(element: etree._Element, fallback: str) -> str:
     return str(element.get("n") or fallback).strip() or fallback
 
@@ -117,7 +142,7 @@ def _line_entry(
         "citeType": "line",
         "speaker": _speaker_for_line(source.element),
         "label": f"Acte {source.act_n}, scène {source.scene_n}, vers {source.line_n}",
-        "text": _normalize_space("".join(source.element.itertext())),
+        "text": _normalize_space(_reading_text(source.element)),
         "html": f"plays/{slug}.html#{encoded_reference(ref)}",
     }
     if include_dts_links:
