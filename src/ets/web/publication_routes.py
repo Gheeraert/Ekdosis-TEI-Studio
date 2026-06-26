@@ -372,6 +372,7 @@ def builder_config_download():
     include_metadata = "include_metadata" in form
     resolve_xincludes = "resolve_notice_xincludes" in form
     enable_dts = "enable_dts" in form
+    enable_search_index = "enable_search_index" in form
 
     author_name = " ".join(p for p in (author_first, author_last) if p)
     scientific_editor = " ".join(p for p in (editor_first, editor_last) if p)
@@ -456,6 +457,7 @@ def builder_config_download():
         include_metadata=include_metadata,
         resolve_notice_xincludes=resolve_xincludes,
         enable_dts=enable_dts,
+        enable_search_index=enable_search_index,
     )
 
     config_data = site_publication_dialog_config_to_dict(config, relative_to=relative_base)
@@ -495,6 +497,7 @@ def builder_source_package():
     include_metadata = "include_metadata" in form
     resolve_xincludes = "resolve_notice_xincludes" in form
     enable_dts = "enable_dts" in form
+    enable_search_index = "enable_search_index" in form
 
     with tempfile.TemporaryDirectory() as tmp_str:
         tmp = Path(tmp_str)
@@ -586,6 +589,7 @@ def builder_source_package():
             include_metadata=include_metadata,
             resolve_notice_xincludes=resolve_xincludes,
             enable_dts=enable_dts,
+            enable_search_index=enable_search_index,
         )
 
         config_dict = site_publication_dialog_config_to_dict(config, relative_to=tmp)
@@ -717,6 +721,7 @@ def builder_import_source_package():
             "include_metadata": bool(options_raw.get("include_metadata", True)) if isinstance(options_raw, dict) else True,
             "resolve_notice_xincludes": bool(options_raw.get("resolve_notice_xincludes", True)) if isinstance(options_raw, dict) else True,
             "enable_dts": bool(options_raw.get("enable_dts", False)) if isinstance(options_raw, dict) else False,
+            "enable_search_index": bool(options_raw.get("enable_search_index", False)) if isinstance(options_raw, dict) else False,
         },
         "plays": [
             {
@@ -867,6 +872,7 @@ def builder_post():
         include_metadata = "include_metadata" in form
         resolve_xincludes = "resolve_notice_xincludes" in form
         enable_dts = "enable_dts" in form
+        enable_search_index = "enable_search_index" in form
 
         # ── Construction de SitePublicationDialogConfig ───────────────────────
         config = SitePublicationDialogConfig(
@@ -888,6 +894,7 @@ def builder_post():
             include_metadata=include_metadata,
             resolve_notice_xincludes=resolve_xincludes,
             enable_dts=enable_dts,
+            enable_search_index=enable_search_index,
         )
 
         # ── Pipeline de génération ────────────────────────────────────────────

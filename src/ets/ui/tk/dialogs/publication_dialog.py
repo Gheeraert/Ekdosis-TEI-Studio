@@ -49,6 +49,7 @@ class _PublicationVars:
     include_metadata: tk.BooleanVar
     resolve_notice_xincludes: tk.BooleanVar
     enable_dts: tk.BooleanVar
+    enable_search_index: tk.BooleanVar
 
 @dataclass
 class _PlayEntry:
@@ -95,6 +96,7 @@ class PublicationDialog(tk.Toplevel):
             include_metadata=tk.BooleanVar(value=True),
             resolve_notice_xincludes=tk.BooleanVar(value=True),
             enable_dts=tk.BooleanVar(value=False),
+            enable_search_index=tk.BooleanVar(value=False),
         )
 
         self._play_entries: list[_PlayEntry] = []
@@ -229,6 +231,11 @@ class PublicationDialog(tk.Toplevel):
             text="Exporter une couche DTS statique expérimentale",
             variable=self.vars.enable_dts,
         ).grid(row=2, column=0, columnspan=3, sticky="w")
+        ttk.Checkbutton(
+            options,
+            text="Générer un index de recherche statique",
+            variable=self.vars.enable_search_index,
+        ).grid(row=3, column=0, columnspan=3, sticky="w")
         ttk.Label(
             options,
             text=(
@@ -236,7 +243,12 @@ class PublicationDialog(tk.Toplevel):
                 "pour l’interopérabilité."
             ),
             wraplength=860,
-        ).grid(row=3, column=0, columnspan=3, sticky="w", pady=(0, 2))
+        ).grid(row=4, column=0, columnspan=3, sticky="w", pady=(0, 2))
+        ttk.Label(
+            options,
+            text="Produit search/index.json pour préparer une recherche locale dans le site publié.",
+            wraplength=860,
+        ).grid(row=5, column=0, columnspan=3, sticky="w", pady=(0, 2))
 
     def _build_intro_section(self, parent: ttk.Frame, *, row: int) -> None:
         box = ttk.LabelFrame(parent, text="Introduction generale")
@@ -679,6 +691,7 @@ class PublicationDialog(tk.Toplevel):
             include_metadata=bool(self.vars.include_metadata.get()),
             resolve_notice_xincludes=bool(self.vars.resolve_notice_xincludes.get()),
             enable_dts=bool(self.vars.enable_dts.get()),
+            enable_search_index=bool(self.vars.enable_search_index.get()),
         )
 
     def _apply_dialog_config(self, config: SitePublicationDialogConfig) -> None:
@@ -724,6 +737,7 @@ class PublicationDialog(tk.Toplevel):
         self.vars.include_metadata.set(config.include_metadata)
         self.vars.resolve_notice_xincludes.set(config.resolve_notice_xincludes)
         self.vars.enable_dts.set(config.enable_dts)
+        self.vars.enable_search_index.set(config.enable_search_index)
         self._refresh_corpus_slug()
 
     def _on_save_config(self) -> None:

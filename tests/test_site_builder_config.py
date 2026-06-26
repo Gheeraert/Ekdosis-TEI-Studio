@@ -43,6 +43,7 @@ def test_site_config_from_dict_normalizes_paths_and_defaults() -> None:
     assert config.play_dramatis_map == ()
     assert config.publish_prefaces is True
     assert config.enable_dts is False
+    assert config.enable_search_index is False
     assert config.homepage_intro == ""
     assert config.homepage_sections == ()
     assert config.general_notice_slug == ""
@@ -92,6 +93,19 @@ def test_site_config_reads_explicit_enable_dts() -> None:
     )
 
     assert config.enable_dts is True
+
+
+def test_site_config_reads_explicit_enable_search_index() -> None:
+    config = site_config_from_dict(
+        {
+            "site_title": "ETS Search",
+            "dramatic_xml_dir": ".",
+            "output_dir": "out/site",
+            "enable_search_index": True,
+        }
+    )
+
+    assert config.enable_search_index is True
 
 
 def test_site_config_supports_publication_pdf_download_paths() -> None:

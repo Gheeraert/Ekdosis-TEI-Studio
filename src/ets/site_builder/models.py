@@ -31,6 +31,7 @@ class SiteConfig:
     include_metadata: bool = True
     resolve_notice_xincludes: bool = True
     enable_dts: bool = False
+    enable_search_index: bool = False
     project_name: str = ""
     editor: str = ""
     credits: str = ""

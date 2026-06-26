@@ -6,6 +6,7 @@ import time
 from pathlib import Path
 
 from ets.dts import export_dts_static
+from ets.search import export_static_search_index, render_static_search_page
 
 from .config import load_site_config
 from .manifest import build_site_manifest
@@ -196,6 +197,24 @@ def _export_dts_static(output_root: Path, manifest: SiteManifest, warnings: list
         warnings.append(f"DTS export skipped: {exc}")
 
 
+def _export_search_index(output_root: Path, manifest: SiteManifest, warnings: list[str]) -> None:
+    try:
+        warnings.extend(
+            export_static_search_index(
+                output_root,
+                manifest.plays,
+                include_dts_links=manifest.config.enable_dts,
+            )
+        )
+        _write_page(
+            output_root,
+            "search.html",
+            render_static_search_page(site_title=manifest.config.site_title),
+        )
+    except Exception as exc:
+        warnings.append(f"Search index skipped: {exc}")
+
+
 def _copy_pdf_download(config: SiteConfig, output_root: Path, warnings: list[str]) -> str | None:
     source = config.pdf_download_source_path
     if source is None:
@@ -299,6 +318,8 @@ def build_static_site(config: SiteConfig) -> BuildResult:
     _copy_xml_sources(output_root=output_root, plays=manifest.plays, notices=manifest.notices)
     if normalized_config.enable_dts:
         _export_dts_static(output_root, manifest, warnings)
+    if normalized_config.enable_search_index:
+        _export_search_index(output_root, manifest, warnings)
 
     return BuildResult(
         output_dir=output_root,

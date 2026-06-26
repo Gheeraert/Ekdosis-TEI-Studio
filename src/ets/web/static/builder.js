@@ -146,6 +146,7 @@
             setCheck('include_metadata', data.options.include_metadata);
             setCheck('resolve_notice_xincludes', data.options.resolve_notice_xincludes);
             setCheck('enable_dts', data.options.enable_dts);
+            setCheck('enable_search_index', data.options.enable_search_index);
           }
           if (Array.isArray(data.plays) && data.plays.length > 0) {
             var existingPublicationBlocks = Array.from(container.querySelectorAll('.play-block'));
@@ -196,6 +197,7 @@
           setCheck('include_metadata', data.options.include_metadata);
           setCheck('resolve_notice_xincludes', data.options.resolve_notice_xincludes);
           setCheck('enable_dts', data.options.enable_dts);
+          setCheck('enable_search_index', data.options.enable_search_index);
         }
 
         // Restore play blocks
@@ -262,6 +264,7 @@
         _siSetCheck('include_metadata', si.options.include_metadata);
         _siSetCheck('resolve_notice_xincludes', si.options.resolve_notice_xincludes);
         _siSetCheck('enable_dts', si.options.enable_dts);
+        _siSetCheck('enable_search_index', si.options.enable_search_index);
       }
 
       if (Array.isArray(si.plays) && si.plays.length > 0) {

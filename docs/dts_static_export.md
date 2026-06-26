@@ -175,6 +175,30 @@ src/ets/dts/
 - proposer des liens relatifs vers le TEI complet et les premiers fragments acte, scène et vers disponibles ;
 - rester autonome, sans JavaScript, appel réseau ou nouvelle dépendance CSS.
 
+## Vérification locale
+
+Un petit outil autonome permet de contrôler un site statique déjà généré :
+
+```bash
+python tools/dts_probe.py chemin/vers/site
+python tools/dts_probe.py chemin/vers/site --json
+```
+
+Le probe lit `api/dts/`, vérifie les fichiers attendus, suit les liens relatifs vers les fragments TEI et contrôle que ces fragments sont des XML bien formés. Il sert à préparer une démonstration DTS ou une discussion technique sur l’export statique, sans créer de serveur ni moteur de recherche.
+
+## Index et page de recherche statiques
+
+L’option `enable_search_index=True` génère :
+
+```text
+search/index.json
+search.html
+```
+
+`search/index.json` contient les vers indexables des pièces, avec le texte normalisé, le locuteur, la référence logique et un lien vers l’ancre HTML du vers dans le site publié.
+
+`search.html` est une page de recherche statique côté navigateur. Elle charge `search/index.json`, filtre localement les résultats et ne nécessite ni serveur, ni dépendance externe. Si `enable_dts=True` est également activé, les résultats exposent aussi les liens vers les fragments TEI DTS et vers la navigation DTS.
+
 ## Intégration
 
 Intégrer l’export dans le site builder, après la copie des sources XML.

@@ -5,6 +5,7 @@ import re
 
 from lxml import etree, html as lxml_html
 
+from ets.dts.tei_index import index_tei
 from ets.html import HtmlExportOptions, render_html_export_from_tei
 
 from .models import (
@@ -1418,6 +1419,36 @@ def _inject_play_anchors(body: etree._Element, play_navigation: PlayNavigation) 
             scene_index += 1
 
 
+def _line_identifiers_for_play(play: PlayEntry) -> tuple[str, ...]:
+    index = index_tei(
+        play.source_path,
+        slug=play.slug,
+        title=play.title,
+        author=play.author,
+    )
+    identifiers: list[str] = []
+    for act in index.navigation:
+        for scene in act.children:
+            identifiers.extend(line.identifier for line in scene.children)
+    return tuple(identifiers)
+
+
+def _inject_line_anchors(body: etree._Element, play: PlayEntry) -> None:
+    try:
+        line_identifiers = _line_identifiers_for_play(play)
+    except Exception:
+        return
+    verse_containers = [
+        node
+        for node in body.xpath(
+            ".//*[contains(concat(' ', normalize-space(@class), ' '), ' vers-container ')]"
+        )
+        if isinstance(node, etree._Element)
+    ]
+    for identifier, target in zip(line_identifiers, verse_containers):
+        _ensure_anchor_id(body, target, identifier)
+
+
 def _dramatic_assets_from_export_doc(export_doc: etree._Element) -> str:
     chunks: list[str] = []
     for node in export_doc.xpath("/html/head/link | /html/head/style"):
@@ -1479,6 +1510,7 @@ def _play_reading_html(play: PlayEntry, play_navigation: PlayNavigation) -> tupl
         class_parts.append("dramatic-content")
     editorial.set("class", " ".join(class_parts))
     _inject_play_anchors(editorial, play_navigation)
+    _inject_line_anchors(editorial, play)
     dramatic_html = etree.tostring(editorial, encoding="unicode", method="html")
     return dramatic_html, asset_html
 

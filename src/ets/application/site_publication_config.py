@@ -52,6 +52,7 @@ class SitePublicationDialogConfig:
     include_metadata: bool = True
     resolve_notice_xincludes: bool = True
     enable_dts: bool = False
+    enable_search_index: bool = False
 
 
 def _expect_object(value: Any, *, field_name: str) -> dict[str, Any]:
@@ -270,6 +271,7 @@ def site_publication_dialog_config_to_dict(
             "include_metadata": config.include_metadata,
             "resolve_notice_xincludes": config.resolve_notice_xincludes,
             "enable_dts": config.enable_dts,
+            "enable_search_index": config.enable_search_index,
         },
     }
 
@@ -386,6 +388,11 @@ def site_publication_dialog_config_from_dict(
         enable_dts=_expect_bool(
             options.get("enable_dts"),
             field_name="options.enable_dts",
+            default=False,
+        ),
+        enable_search_index=_expect_bool(
+            options.get("enable_search_index"),
+            field_name="options.enable_search_index",
             default=False,
         ),
     )
@@ -532,6 +539,7 @@ def site_publication_request_from_dialog_config(config: SitePublicationDialogCon
         include_metadata=config.include_metadata,
         resolve_notice_xincludes=config.resolve_notice_xincludes,
         enable_dts=config.enable_dts,
+        enable_search_index=config.enable_search_index,
         play_notice_map=tuple(play_notice_map),
         play_preface_map=tuple(play_preface_map),
         play_dramatis_map=tuple(play_dramatis_map),
