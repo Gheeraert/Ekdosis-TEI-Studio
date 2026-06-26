@@ -386,6 +386,34 @@ def test_site_builder_service_publication_request_inlines_home_page_tei_notice_o
     assert not play_doc.xpath("//main/nav//a[@href='../notices/introduction.html']")
 
 
+def test_site_builder_service_preserves_search_index_option_from_publication_request() -> None:
+    base = _runtime_dir("app_site_builder_service_publication_request_search_index")
+    output_dir = base / "site"
+    dialog_config = SitePublicationDialogConfig(
+        author_name="Jean Racine",
+        corpus_title="Theatre complet",
+        output_dir=output_dir,
+        plays=(
+            SitePublicationDialogPlayConfig(
+                play_slug="andromaque",
+                dramatic_xml_path=DRAMATIC_FIXTURES / "andromaque.xml",
+            ),
+        ),
+        enable_search_index=True,
+    )
+
+    request = site_publication_request_from_dialog_config(dialog_config)
+    result = build_site_from_publication_request(request)
+
+    assert request.enable_search_index is True
+    assert result.ok is True
+    assert (output_dir / "search.html").exists()
+    assert (output_dir / "search" / "index.json").exists()
+    home_html = (output_dir / "index.html").read_text(encoding="utf-8")
+    assert 'class="site-header-search"' in home_html
+    assert 'href="search.html"' in home_html
+
+
 def test_site_builder_service_publication_request_notice_and_preface_flags_are_independent() -> None:
     base = _runtime_dir("app_site_builder_service_publication_request_independent_flags")
     output_dir = base / "site"

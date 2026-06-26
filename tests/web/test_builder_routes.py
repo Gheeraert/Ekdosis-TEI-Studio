@@ -370,6 +370,7 @@ def test_builder_post_valid_input_returns_zip_with_index(client, monkeypatch, tm
 
     def _fake_request_from_config(config):
         calls.append("request_from_config")
+        assert config.enable_search_index is True
         from unittest.mock import MagicMock
         req = MagicMock()
         req.output_dir = site_dir

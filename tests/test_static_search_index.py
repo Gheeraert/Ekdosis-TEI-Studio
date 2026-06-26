@@ -120,9 +120,13 @@ def test_builder_does_not_generate_static_search_index_by_default(tmp_path: Path
     assert not (output_dir / "search" / "index.json").exists()
     assert not (output_dir / "search.html").exists()
     home_html = lxml_html.document_fromstring((output_dir / "index.html").read_text(encoding="utf-8"))
+    home_source = (output_dir / "index.html").read_text(encoding="utf-8")
+    play_source = (output_dir / "plays" / "britannicus.html").read_text(encoding="utf-8")
     play_html = lxml_html.document_fromstring(
-        (output_dir / "plays" / "britannicus.html").read_text(encoding="utf-8")
+        play_source
     )
+    assert 'class="site-header-search"' not in home_source
+    assert 'class="site-header-search"' not in play_source
     assert not home_html.xpath("//header[contains(@class, 'site-header')]//a[@href='search.html']")
     assert not home_html.xpath("//main/nav//a[@href='search.html' and normalize-space()='Recherche']")
     assert not play_html.xpath("//header[contains(@class, 'site-header')]//a[@href='../search.html']")
@@ -178,10 +182,17 @@ def test_builder_generates_static_search_index_when_enabled_without_dts(tmp_path
     assert "dts_navigation" not in first
     assert not (output_dir / "api" / "dts").exists()
 
-    home_html = lxml_html.document_fromstring((output_dir / "index.html").read_text(encoding="utf-8"))
+    home_source = (output_dir / "index.html").read_text(encoding="utf-8")
+    play_source = (output_dir / "plays" / "britannicus.html").read_text(encoding="utf-8")
+    home_html = lxml_html.document_fromstring(home_source)
     play_html = lxml_html.document_fromstring(
-        (output_dir / "plays" / "britannicus.html").read_text(encoding="utf-8")
+        play_source
     )
+    assert 'class="site-header-search"' in home_source
+    assert 'href="search.html"' in home_source
+    assert ">Recherche</a>" in home_source
+    assert 'class="site-header-search"' in play_source
+    assert 'href="../search.html"' in play_source
     assert home_html.xpath(
         "//header[contains(@class, 'site-header')]//a[@href='search.html' and normalize-space()='Recherche']"
     )
