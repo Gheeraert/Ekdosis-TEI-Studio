@@ -195,6 +195,8 @@ def test_builder_generates_static_search_index_when_enabled_without_dts(tmp_path
     assert "Fragment TEI" in search_html
     assert "Navigation DTS" in search_html
     assert "innerHTML" not in search_html
+    assert "Cette page interroge un index statique local" not in search_html
+    assert "Les liens DTS vers les fragments TEI" not in search_html
     assert search_doc.xpath("//header[contains(@class, 'site-header')]")
     assert search_doc.xpath("//main/nav[@aria-label='Navigation principale']")
     assert search_doc.xpath(
@@ -238,10 +240,24 @@ def test_builder_generates_static_search_index_when_enabled_without_dts(tmp_path
     assert 'class="site-header-search"' in play_source
     assert 'href="../search.html"' in play_source
     assert home_html.xpath(
-        "//header[contains(@class, 'site-header')]//a[@href='search.html' and .//span[normalize-space()='Recherche']]"
+        "//header[contains(@class, 'site-header')]"
+        "//*[contains(@class, 'site-header-branding')]"
+        "//a[contains(@class, 'site-header-search') and @href='search.html' and .//span[normalize-space()='Recherche']]"
     )
     assert play_html.xpath(
-        "//header[contains(@class, 'site-header')]//a[@href='../search.html' and .//span[normalize-space()='Recherche']]"
+        "//header[contains(@class, 'site-header')]"
+        "//*[contains(@class, 'site-header-branding')]"
+        "//a[contains(@class, 'site-header-search') and @href='../search.html' and .//span[normalize-space()='Recherche']]"
+    )
+    assert not home_html.xpath(
+        "//header[contains(@class, 'site-header')]"
+        "//*[contains(@class, 'site-header-title')]"
+        "//a[contains(@class, 'site-header-search')]"
+    )
+    assert not play_html.xpath(
+        "//header[contains(@class, 'site-header')]"
+        "//*[contains(@class, 'site-header-title')]"
+        "//a[contains(@class, 'site-header-search')]"
     )
     assert not home_html.xpath("//main/nav//a[@href='search.html' and normalize-space()='Recherche']")
     assert not play_html.xpath("//main/nav//a[@href='../search.html' and normalize-space()='Recherche']")
@@ -355,6 +371,8 @@ def test_static_search_navigation_link_is_relative_from_notice_pages(tmp_path: P
     )
 
     assert notice_html.xpath(
-        "//header[contains(@class, 'site-header')]//a[@href='../search.html' and .//span[normalize-space()='Recherche']]"
+        "//header[contains(@class, 'site-header')]"
+        "//*[contains(@class, 'site-header-branding')]"
+        "//a[contains(@class, 'site-header-search') and @href='../search.html' and .//span[normalize-space()='Recherche']]"
     )
     assert not notice_html.xpath("//main/nav//a[@href='../search.html' and normalize-space()='Recherche']")

@@ -376,8 +376,8 @@ def _layout(
       white-space: nowrap;
     }}
     .site-header-links {{
-      margin-top: 0.45rem;
       display: flex;
+      justify-content: flex-end;
       flex-wrap: wrap;
       gap: 0.4rem;
       font-family: var(--font-ui);
@@ -391,8 +391,8 @@ def _layout(
       color: var(--header-ink);
       text-decoration: none;
       border-radius: 999px;
-      padding: 0.26rem 0.68rem;
-      font-size: 0.84rem;
+      padding: 0.22rem 0.58rem;
+      font-size: 0.76rem;
       font-weight: 700;
       letter-spacing: 0.045em;
       text-transform: uppercase;
@@ -1044,7 +1044,6 @@ def _layout(
       <div class="site-header-title">
         <p class="site-author">{html.escape(manifest.config.site_subtitle)}</p>
         <h1>{html.escape(manifest.config.site_title)}</h1>
-        {_site_header_links_html(manifest, current_href)}
       </div>
       <div class="site-header-branding">
         <div class="header-controls">
@@ -1052,6 +1051,7 @@ def _layout(
           <button class="theme-toggle" type="button" data-font-increase aria-label="Agrandir le texte">A+</button>
           <button class="theme-toggle" type="button" data-theme-toggle aria-label="Basculer le theme">Mode sombre</button>
         </div>
+        {_site_header_links_html(manifest, current_href)}
         {_branding_html(manifest, current_href)}
       </div>
     </div>

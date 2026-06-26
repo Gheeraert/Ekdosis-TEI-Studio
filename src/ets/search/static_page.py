@@ -120,8 +120,6 @@ def render_static_search_page(*, site_title: str) -> str:
 <main>
   <header>
     <h1>Recherche</h1>
-    <p>Cette page interroge un index statique local généré avec le site publié.</p>
-    <p class="hint">Les liens DTS vers les fragments TEI apparaissent seulement si l’export DTS a également été activé.</p>
   </header>
   <section class="search-panel" aria-labelledby="search-label">
     <label id="search-label" for="search-input">Rechercher dans les vers</label>
@@ -339,8 +337,6 @@ def render_static_search_content() -> str:
     return """<article class="search-content" aria-labelledby="search-title">
   <header>
     <h2 id="search-title">Recherche</h2>
-    <p>Cette page interroge un index statique local généré avec le site publié.</p>
-    <p class="search-hint">Les liens DTS vers les fragments TEI apparaissent seulement si l’export DTS a également été activé.</p>
   </header>
   <section class="search-panel" aria-labelledby="search-label">
     <label id="search-label" for="search-input">Rechercher dans les vers</label>
