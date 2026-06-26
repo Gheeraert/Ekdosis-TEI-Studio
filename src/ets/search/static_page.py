@@ -187,7 +187,7 @@ def render_static_search_page(*, site_title: str) -> str:
   }}
 
   function render() {{
-    const query = normalize(input.value);
+    const query = normalize(input.value.trim());
     results.replaceChildren();
 
     if (!entries.length) {{
@@ -195,9 +195,12 @@ def render_static_search_page(*, site_title: str) -> str:
       return;
     }}
 
-    const matches = query
-      ? entries.filter((entry) => searchableText(entry).includes(query))
-      : entries.slice(0, 50);
+    if (!query) {{
+      status.textContent = 'Saisissez un terme de recherche.';
+      return;
+    }}
+
+    const matches = entries.filter((entry) => searchableText(entry).includes(query));
 
     if (!matches.length) {{
       status.textContent = 'Aucun résultat ne correspond à cette recherche.';
@@ -407,7 +410,7 @@ def render_static_search_script() -> str:
   }
 
   function render() {
-    const query = normalize(input.value);
+    const query = normalize(input.value.trim());
     results.replaceChildren();
 
     if (!entries.length) {
@@ -415,9 +418,12 @@ def render_static_search_script() -> str:
       return;
     }
 
-    const matches = query
-      ? entries.filter((entry) => searchableText(entry).includes(query))
-      : entries.slice(0, 50);
+    if (!query) {
+      status.textContent = 'Saisissez un terme de recherche.';
+      return;
+    }
+
+    const matches = entries.filter((entry) => searchableText(entry).includes(query));
 
     if (!matches.length) {
       status.textContent = 'Aucun résultat ne correspond à cette recherche.';

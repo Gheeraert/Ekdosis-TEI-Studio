@@ -197,6 +197,10 @@ def test_builder_generates_static_search_index_when_enabled_without_dts(tmp_path
     assert "innerHTML" not in search_html
     assert "Cette page interroge un index statique local" not in search_html
     assert "Les liens DTS vers les fragments TEI" not in search_html
+    assert "const query = normalize(input.value.trim());" in search_html
+    assert "if (!query)" in search_html
+    assert "Saisissez un terme de recherche." in search_html
+    assert "entries.slice(0, 50)" not in search_html
     assert search_doc.xpath("//header[contains(@class, 'site-header')]")
     assert search_doc.xpath("//main/nav[@aria-label='Navigation principale']")
     assert search_doc.xpath(
