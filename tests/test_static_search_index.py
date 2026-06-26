@@ -190,14 +190,15 @@ def test_builder_generates_static_search_index_when_enabled_without_dts(tmp_path
     )
     assert 'class="site-header-search"' in home_source
     assert 'href="search.html"' in home_source
-    assert ">Recherche</a>" in home_source
+    assert 'class="site-header-search-icon" aria-hidden="true"' in home_source
+    assert "Recherche" in home_source
     assert 'class="site-header-search"' in play_source
     assert 'href="../search.html"' in play_source
     assert home_html.xpath(
-        "//header[contains(@class, 'site-header')]//a[@href='search.html' and normalize-space()='Recherche']"
+        "//header[contains(@class, 'site-header')]//a[@href='search.html' and .//span[normalize-space()='Recherche']]"
     )
     assert play_html.xpath(
-        "//header[contains(@class, 'site-header')]//a[@href='../search.html' and normalize-space()='Recherche']"
+        "//header[contains(@class, 'site-header')]//a[@href='../search.html' and .//span[normalize-space()='Recherche']]"
     )
     assert not home_html.xpath("//main/nav//a[@href='search.html' and normalize-space()='Recherche']")
     assert not play_html.xpath("//main/nav//a[@href='../search.html' and normalize-space()='Recherche']")
@@ -277,6 +278,6 @@ def test_static_search_navigation_link_is_relative_from_notice_pages(tmp_path: P
     )
 
     assert notice_html.xpath(
-        "//header[contains(@class, 'site-header')]//a[@href='../search.html' and normalize-space()='Recherche']"
+        "//header[contains(@class, 'site-header')]//a[@href='../search.html' and .//span[normalize-space()='Recherche']]"
     )
     assert not notice_html.xpath("//main/nav//a[@href='../search.html' and normalize-space()='Recherche']")

@@ -128,7 +128,10 @@ def _site_header_links_html(manifest: SiteManifest, current_href: str) -> str:
     href = f"{_asset_prefix(current_href)}search.html"
     return (
         '<div class="site-header-links">'
-        f'<a class="site-header-search" href="{html.escape(href, quote=True)}">Recherche</a>'
+        f'<a class="site-header-search" href="{html.escape(href, quote=True)}">'
+        '<span class="site-header-search-icon" aria-hidden="true">🔎</span>'
+        "<span>Recherche</span>"
+        "</a>"
         "</div>"
     )
 
@@ -377,19 +380,26 @@ def _layout(
     .site-header-search {{
       display: inline-flex;
       align-items: center;
-      border: 1px solid rgba(243, 236, 224, 0.34);
+      gap: 0.32rem;
+      border: 1px solid rgba(243, 236, 224, 0.52);
+      background: rgba(243, 236, 224, 0.08);
       color: var(--header-ink);
       text-decoration: none;
       border-radius: 999px;
-      padding: 0.22rem 0.58rem;
-      font-size: 0.78rem;
-      letter-spacing: 0.04em;
+      padding: 0.26rem 0.68rem;
+      font-size: 0.84rem;
+      font-weight: 700;
+      letter-spacing: 0.045em;
       text-transform: uppercase;
+    }}
+    .site-header-search-icon {{
+      font-size: 0.95em;
+      line-height: 1;
     }}
     .site-header-search:hover {{
       color: var(--header-ink);
       border-color: rgba(243, 236, 224, 0.68);
-      background: rgba(243, 236, 224, 0.08);
+      background: rgba(243, 236, 224, 0.14);
     }}
     .header-controls {{
       display: flex;
