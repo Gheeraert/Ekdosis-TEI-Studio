@@ -20,6 +20,7 @@ from ets.domain import (
 )
 
 TEI_NS = "http://www.tei-c.org/ns/1.0"
+XML_NS = "http://www.w3.org/XML/1998/namespace"
 ET.register_namespace("", TEI_NS)
 
 
@@ -322,6 +323,74 @@ def _append_collated_line(
         _append_reading(app, "rdg", rdg)
 
 
+def _xml_id(element: ET.Element) -> str | None:
+    return element.get(f"{{{XML_NS}}}id") or element.get("xml:id")
+
+
+def _set_xml_id(element: ET.Element, value: str) -> None:
+    element.attrib.pop("xml:id", None)
+    element.set(f"{{{XML_NS}}}id", value)
+
+
+def _reserve_xml_id(candidate: str, used: set[str]) -> str:
+    if candidate not in used:
+        used.add(candidate)
+        return candidate
+    suffix = 2
+    while f"{candidate}-{suffix}" in used:
+        suffix += 1
+    value = f"{candidate}-{suffix}"
+    used.add(value)
+    return value
+
+
+def materialize_act_scene_line_xml_ids(root: ET.Element) -> None:
+    """Materialize missing xml:id values for dramatic acts, scenes and lines only."""
+
+    for element in root.iter():
+        literal_id = element.get("xml:id")
+        namespaced_id = element.get(f"{{{XML_NS}}}id")
+        if literal_id and not namespaced_id:
+            _set_xml_id(element, literal_id)
+
+    used_ids = {
+        value
+        for element in root.iter()
+        for value in [_xml_id(element)]
+        if value
+    }
+
+    body = root.find(f".//{_tei('text')}/{_tei('body')}")
+    if body is None:
+        return
+
+    act_index = 0
+    for act in body:
+        if act.tag != _tei("div") or (act.get("type") or "").strip().lower() != "act":
+            continue
+        act_index += 1
+        act_ref = f"A{act.get('n') or act_index}"
+        if not _xml_id(act):
+            _set_xml_id(act, _reserve_xml_id(act_ref, used_ids))
+
+        scene_index = 0
+        for scene in act:
+            if scene.tag != _tei("div") or (scene.get("type") or "").strip().lower() != "scene":
+                continue
+            scene_index += 1
+            scene_ref = f"{act_ref}S{scene.get('n') or scene_index}"
+            if not _xml_id(scene):
+                _set_xml_id(scene, _reserve_xml_id(scene_ref, used_ids))
+
+            for line in scene.iter(_tei("l")):
+                if _xml_id(line):
+                    continue
+                line_n = (line.get("n") or "").strip()
+                if not line_n:
+                    continue
+                _set_xml_id(line, _reserve_xml_id(f"{scene_ref}L{line_n}", used_ids))
+
+
 def generate_tei_xml(
     collated: CollatedPlay,
     config: EditionConfig,
@@ -435,6 +504,7 @@ def generate_tei_xml(
                     else:
                         _append_collated_line(sp, element, line_xml_id=f"A{act_n}S{scene_n}L{element.number}")
 
+    materialize_act_scene_line_xml_ids(tei)
     tree = ET.ElementTree(tei)
     ET.indent(tree, "  ")
     return ET.tostring(tei, encoding="utf-8", xml_declaration=True).decode("utf-8")

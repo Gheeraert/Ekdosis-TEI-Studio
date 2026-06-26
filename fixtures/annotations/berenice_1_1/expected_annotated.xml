@@ -20,9 +20,9 @@
   </teiHeader>
   <text>
     <body>
-      <div type="act" n="1">
+      <div type="act" n="1" xml:id="A1">
         <head>ACTE I</head>
-        <div type="scene" n="1">
+        <div type="scene" n="1" xml:id="A1S1">
           <head>SCENE I</head>
           <stage type="personnages">ANTIOCHUS</stage>
           <sp>
