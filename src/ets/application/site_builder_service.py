@@ -402,6 +402,16 @@ def _normalize_publication_request(
             else None
         ),
         "pdf_download_relpath": request.pdf_download_relpath,
+        "play_pdf_source_map": {
+            play.play_slug: str(play.pdf_download_source_path.resolve())
+            for play in request.plays
+            if play.pdf_download_source_path is not None
+        },
+        "play_latex_source_map": {
+            play.play_slug: str(play.latex_download_source_path.resolve())
+            for play in request.plays
+            if play.latex_download_source_path is not None
+        },
     }
     return payload, tuple(warnings)
 

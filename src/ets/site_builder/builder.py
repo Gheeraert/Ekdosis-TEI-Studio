@@ -267,6 +267,67 @@ def _copy_pdf_download(config: SiteConfig, output_root: Path, warnings: list[str
     return relpath
 
 
+def _copy_per_play_pdfs(
+    config: SiteConfig,
+    output_root: Path,
+    plays: tuple[PlayEntry, ...],
+    warnings: list[str],
+) -> tuple[PlayEntry, ...]:
+    if not config.play_pdf_source_map:
+        return plays
+
+    pdf_by_slug = dict(config.play_pdf_source_map)
+    latex_by_slug = dict(config.play_latex_source_map)
+
+    updated: list[PlayEntry] = []
+    for play in plays:
+        pdf_source = pdf_by_slug.get(play.slug)
+        if pdf_source is None:
+            updated.append(play)
+            continue
+
+        pdf_source = pdf_source.resolve()
+        if not pdf_source.exists() or not pdf_source.is_file():
+            warnings.append(f"Per-play PDF not found for '{play.slug}': {pdf_source}")
+            updated.append(play)
+            continue
+
+        pdf_relpath = f"downloads/{play.slug}.pdf"
+        target_pdf = (output_root / pdf_relpath).resolve()
+        try:
+            target_pdf.relative_to(output_root)
+        except ValueError:
+            warnings.append(f"Per-play PDF relpath is unsafe for '{play.slug}'.")
+            updated.append(play)
+            continue
+
+        try:
+            target_pdf.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(pdf_source, target_pdf)
+        except OSError as exc:
+            warnings.append(f"Per-play PDF could not be copied for '{play.slug}': {exc}")
+            updated.append(play)
+            continue
+
+        latex_relpath: str | None = None
+        latex_source = latex_by_slug.get(play.slug)
+        if latex_source is not None:
+            latex_source = latex_source.resolve()
+            if latex_source.exists() and latex_source.is_file():
+                target_latex = target_pdf.with_suffix(".tex")
+                try:
+                    shutil.copy2(latex_source, target_latex)
+                    latex_relpath = f"downloads/{play.slug}.tex"
+                except OSError as exc:
+                    warnings.append(f"Per-play LaTeX could not be copied for '{play.slug}': {exc}")
+            else:
+                warnings.append(f"Per-play LaTeX not found for '{play.slug}': {latex_source}")
+
+        updated.append(replace(play, pdf_download_relpath=pdf_relpath, latex_download_relpath=latex_relpath))
+
+    return tuple(updated)
+
+
 def build_static_site(config: SiteConfig) -> BuildResult:
     normalized_config = load_site_config(config)
     resolved_logos = _resolve_logo_files(normalized_config)
@@ -288,6 +349,10 @@ def build_static_site(config: SiteConfig) -> BuildResult:
     elif normalized_config.pdf_download_relpath is not None:
         normalized_config = replace(normalized_config, pdf_download_relpath=None)
         manifest = replace(manifest, config=normalized_config)
+
+    updated_plays = _copy_per_play_pdfs(normalized_config, output_root, manifest.plays, warnings)
+    if updated_plays is not manifest.plays:
+        manifest = replace(manifest, plays=updated_plays)
 
     generated_pages: list[Path] = []
 

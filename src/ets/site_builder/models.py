@@ -46,6 +46,8 @@ class SiteConfig:
     pdf_download_source_path: Path | None = None
     latex_download_source_path: Path | None = None
     pdf_download_relpath: str | None = None
+    play_pdf_source_map: tuple[tuple[str, Path], ...] = ()
+    play_latex_source_map: tuple[tuple[str, Path], ...] = ()
 
 
 @dataclass(frozen=True)
@@ -61,6 +63,8 @@ class PlayEntry:
     txt_download_relpath: str | None = None
     scientific_editor: str | None = None
     transcriber: str | None = None
+    pdf_download_relpath: str | None = None
+    latex_download_relpath: str | None = None
 
 
 @dataclass(frozen=True)

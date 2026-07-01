@@ -1216,8 +1216,9 @@ def test_publication_dialog_compiles_pdf_from_prepared_config_once(monkeypatch: 
         assert build_warnings == ("Warning prepare.",)
         assert request.identity.site_title == "Theatre complet"
         assert request.plays[0].document.source_path == prepared_dramatic
-        assert request.pdf_download_source_path == build_dir / "master.pdf"
-        assert request.latex_download_source_path == build_dir / "master.tex"
+        assert request.plays[0].pdf_download_source_path == build_dir / "master.pdf"
+        assert request.plays[0].latex_download_source_path == build_dir / "master.tex"
+        assert request.pdf_download_source_path is None
         assert request.pdf_download_relpath == "downloads/edition-complete.pdf"
         assert dialog._last_pdf_master_result is not None
         assert dialog._last_pdf_master_result.prepared_config == prepared_config
@@ -1288,7 +1289,7 @@ def test_publication_dialog_pdf_master_lxml_error_is_non_blocking(monkeypatch: p
         assert dialog._last_pdf_master_result is None
         assert dialog._last_pdf_build_result is None
         assert len(dialog._last_prepare_warnings) == 1
-        assert dialog._last_prepare_warnings[0].startswith("PDF de publication non genere:")
+        assert dialog._last_prepare_warnings[0].startswith("PDF de publication non genere")
         assert "bad XML" in dialog._last_prepare_warnings[0]
         dialog.destroy()
     finally:
@@ -1363,7 +1364,7 @@ def test_publication_dialog_pdf_compile_failure_is_non_blocking(monkeypatch: pyt
         assert dialog._last_pdf_build_result.ok is False
         assert len(dialog._last_prepare_warnings) == 2
         assert dialog._last_prepare_warnings[0] == "Warning prepare."
-        assert dialog._last_prepare_warnings[1].startswith("PDF de publication non genere:")
+        assert dialog._last_prepare_warnings[1].startswith("PDF de publication non genere")
         assert "xelatex" in dialog._last_prepare_warnings[1]
         dialog.destroy()
     finally:
@@ -1437,7 +1438,7 @@ def test_publication_dialog_pdf_compile_failure_does_not_show_modal(monkeypatch:
         assert dialog.result.site_request.pdf_download_source_path is None
         assert dialog.result.site_request.latex_download_source_path is None
         assert dialog._last_prepare_warnings
-        assert dialog._last_prepare_warnings[0].startswith("PDF de publication non genere:")
+        assert dialog._last_prepare_warnings[0].startswith("PDF de publication non genere")
     finally:
         if root.winfo_exists():
             root.destroy()

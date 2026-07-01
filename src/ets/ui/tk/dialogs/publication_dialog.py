@@ -796,36 +796,50 @@ class PublicationDialog(tk.Toplevel):
         request = site_publication_request_from_dialog_config(prepared.config)
 
         if prepared.config.build_latex_pdf:
-            try:
-                build_dir = _publication_pdf_build_dir(prepared.config)
-                self._last_pdf_build_result = build_and_compile_publication_pdf_from_prepared_config(
-                    prepared.config,
-                    build_dir,
-                    warnings=prepared.warnings,
-                )
-                self._last_pdf_master_result = self._last_pdf_build_result.master_result
-            except (OSError, ValueError, etree.LxmlError) as exc:
-                warnings.append(f"PDF de publication non genere: {exc}")
+            updated_plays = list(request.plays)
+            play_index_by_slug = {play.play_slug: i for i, play in enumerate(request.plays)}
 
-            if self._last_pdf_build_result is not None:
-                pdf_path = self._last_pdf_build_result.pdf_path
-                if self._last_pdf_build_result.ok and pdf_path is not None and pdf_path.exists():
-                    master_path = self._last_pdf_build_result.master_result.master_path
+            for play_config in prepared.config.plays:
+                play_slug = normalize_publication_identifier(play_config.play_slug)
+                play_index = play_index_by_slug.get(play_slug)
+                single_play_config = replace(prepared.config, plays=(play_config,))
+                result = None
+                try:
+                    build_dir = _publication_pdf_build_dir(single_play_config)
+                    result = build_and_compile_publication_pdf_from_prepared_config(
+                        single_play_config,
+                        build_dir,
+                        warnings=prepared.warnings,
+                    )
+                    self._last_pdf_build_result = result
+                    self._last_pdf_master_result = result.master_result
+                except (OSError, ValueError, etree.LxmlError) as exc:
+                    warnings.append(f"PDF de publication non genere ({play_config.play_slug}): {exc}")
+                    continue
+
+                if result.ok and result.pdf_path is not None and result.pdf_path.exists():
+                    master_path = result.master_result.master_path
                     if master_path.exists():
-                        request = replace(
-                            request,
-                            pdf_download_source_path=pdf_path,
-                            latex_download_source_path=master_path,
-                        )
+                        if play_index is not None:
+                            updated_plays[play_index] = replace(
+                                updated_plays[play_index],
+                                pdf_download_source_path=result.pdf_path,
+                                latex_download_source_path=master_path,
+                            )
                     else:
-                        warnings.append(f"PDF de publication non genere: master LaTeX introuvable: {master_path}")
+                        warnings.append(
+                            f"PDF de publication non genere ({play_config.play_slug}): "
+                            f"master LaTeX introuvable: {master_path}"
+                        )
                 else:
-                    compile_result = self._last_pdf_build_result.compile_result
+                    compile_result = result.compile_result
                     detail = compile_result.error_detail or compile_result.stderr.strip() or compile_result.stdout.strip()
                     message = compile_result.message
                     if detail:
                         message = f"{message} {detail}"
-                    warnings.append(f"PDF de publication non genere: {message}")
+                    warnings.append(f"PDF de publication non genere ({play_config.play_slug}): {message}")
+
+            request = replace(request, plays=tuple(updated_plays))
 
         self._last_prepare_warnings = tuple(warnings)
         return request
@@ -835,7 +849,7 @@ class PublicationDialog(tk.Toplevel):
         return tuple(
             warning
             for warning in warnings
-            if not warning.startswith("PDF de publication non genere:")
+            if not warning.startswith("PDF de publication non genere")
         )
 
     def _show_generation_notice(self) -> tk.Toplevel:

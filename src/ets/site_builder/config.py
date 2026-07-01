@@ -139,6 +139,20 @@ def _coerce_play_order(raw_order: Any) -> tuple[str, ...]:
     return tuple(ordered)
 
 
+def _coerce_play_path_map(raw_mapping: Any, *, base_dir: Path | None = None) -> tuple[tuple[str, Path], ...]:
+    if raw_mapping is None:
+        return ()
+    if not isinstance(raw_mapping, dict):
+        return ()
+    pairs: list[tuple[str, Path]] = []
+    for raw_slug, raw_path in raw_mapping.items():
+        slug = _normalize_identifier(str(raw_slug))
+        if not slug or not raw_path or not str(raw_path).strip():
+            continue
+        pairs.append((slug, _resolve_path(str(raw_path), base_dir=base_dir)))
+    return tuple(pairs)
+
+
 def _coerce_optional_relpath(raw_value: Any, *, field_name: str) -> str | None:
     text = _normalize_text(raw_value, field_name=field_name)
     if not text:
@@ -251,6 +265,8 @@ def site_config_from_dict(payload: dict[str, Any], *, base_dir: Path | None = No
             payload.get("pdf_download_relpath"),
             field_name="pdf_download_relpath",
         ),
+        play_pdf_source_map=_coerce_play_path_map(payload.get("play_pdf_source_map"), base_dir=base_dir),
+        play_latex_source_map=_coerce_play_path_map(payload.get("play_latex_source_map"), base_dir=base_dir),
     )
     return config
 

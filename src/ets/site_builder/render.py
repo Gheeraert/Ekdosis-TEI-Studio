@@ -191,11 +191,16 @@ def _play_download_buttons_html(manifest: SiteManifest, play: PlayEntry, current
             'download title="XML-TEI">XML-TEI</a>'
         )
 
-    pdf_relpath = manifest.config.pdf_download_relpath
-    latex_source = manifest.config.latex_download_source_path
+    pdf_relpath = play.pdf_download_relpath or manifest.config.pdf_download_relpath
+    latex_relpath = play.latex_download_relpath
 
-    if pdf_relpath and latex_source is not None and latex_source.exists():
-        latex_href = f"{prefix}{_latex_relpath_from_pdf_relpath(pdf_relpath)}"
+    if latex_relpath is None and pdf_relpath and manifest.config.latex_download_source_path is not None:
+        corpus_latex_source = manifest.config.latex_download_source_path
+        if corpus_latex_source.exists():
+            latex_relpath = _latex_relpath_from_pdf_relpath(pdf_relpath)
+
+    if latex_relpath:
+        latex_href = f"{prefix}{latex_relpath}"
         buttons.append(
             f'<a class="download-button download-button-latex" href="{html.escape(latex_href, quote=True)}" '
             'download title="Ekdosis">LaTeX-Ekdosis</a>'

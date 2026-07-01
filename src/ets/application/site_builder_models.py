@@ -47,6 +47,8 @@ class DramaticPlayInput:
     related_notice_slug: str | None = None
     related_notice_path: Path | None = None
     related_preface_slug: str | None = None
+    pdf_download_source_path: Path | None = None
+    latex_download_source_path: Path | None = None
 
 
 @dataclass(frozen=True)
