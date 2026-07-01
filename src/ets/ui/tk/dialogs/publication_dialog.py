@@ -797,7 +797,10 @@ class PublicationDialog(tk.Toplevel):
 
         if prepared.config.build_latex_pdf:
             updated_plays = list(request.plays)
-            play_index_by_slug = {play.play_slug: i for i, play in enumerate(request.plays)}
+            play_index_by_slug = {
+                normalize_publication_identifier(play.play_slug): i
+                for i, play in enumerate(request.plays)
+            }
 
             for play_config in prepared.config.plays:
                 play_slug = normalize_publication_identifier(play_config.play_slug)

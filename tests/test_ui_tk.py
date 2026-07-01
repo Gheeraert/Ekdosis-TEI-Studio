@@ -1444,6 +1444,177 @@ def test_publication_dialog_pdf_compile_failure_does_not_show_modal(monkeypatch:
             root.destroy()
 
 
+def test_publication_dialog_generates_one_pdf_per_play_for_multi_play_config(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    root = _make_root()
+    try:
+        runtime = RUNTIME_DIR / f"publication_dialog_pdf_multi_{uuid4().hex}"
+        runtime.mkdir(parents=True, exist_ok=True)
+
+        piece_a = _write_publication_tei(
+            runtime / "piece_a.xml",
+            body=_publication_dramatic_body(),
+            front="<castList><castItem><role>A</role></castItem></castList>",
+        )
+        piece_b = _write_publication_tei(
+            runtime / "piece_b.xml",
+            body=_publication_dramatic_body(),
+            front="<castList><castItem><role>B</role></castItem></castList>",
+        )
+
+        prepared_config = SitePublicationDialogConfig(
+            author_name="Jean Racine",
+            corpus_title="Theatre complet",
+            output_dir=runtime / "site_out",
+            build_latex_pdf=True,
+            plays=(
+                SitePublicationDialogPlayConfig(play_slug="piece-a", dramatic_xml_path=piece_a),
+                SitePublicationDialogPlayConfig(play_slug="piece-b", dramatic_xml_path=piece_b),
+            ),
+        )
+        fake_service = _FakePreparedPublicationService(prepared_config)
+        build_calls: list[tuple[SitePublicationDialogConfig, Path]] = []
+
+        def _fake_build_and_compile(prepared_payload, build_dir, *, warnings=(), **_kwargs):
+            build_dir = Path(build_dir)
+            build_dir.mkdir(parents=True, exist_ok=True)
+            master_path = build_dir / "master.tex"
+            pdf_path = build_dir / "master.pdf"
+            play_slug = prepared_payload.plays[0].play_slug
+            master_path.write_text(f"% master pour {play_slug}\n", encoding="utf-8")
+            pdf_path.write_bytes(f"%PDF {play_slug}".encode())
+            build_calls.append((prepared_payload, build_dir))
+            return _fake_pdf_build_result(
+                master_path=master_path,
+                prepared_config=prepared_payload,
+                ok=True,
+                pdf_path=pdf_path,
+            )
+
+        monkeypatch.setattr(
+            "ets.ui.tk.dialogs.publication_dialog.build_and_compile_publication_pdf_from_prepared_config",
+            _fake_build_and_compile,
+        )
+
+        dialog = PublicationDialog(root)
+        dialog._editorial_import_service = fake_service
+        dialog.vars.corpus_title.set("Theatre complet brut")
+        dialog.vars.output_dir.set(str(runtime / "site_out"))
+        dialog._append_play_from_path(runtime / "piece_a.xml")
+        dialog._append_play_from_path(runtime / "piece_b.xml")
+        dialog._sync_play_order_from_entries()
+        dialog.vars.build_latex_pdf.set(True)
+        request = dialog._build_request()
+
+        assert len(build_calls) == 2, "une compilation par pièce"
+
+        config_a, build_dir_a = build_calls[0]
+        config_b, build_dir_b = build_calls[1]
+        assert len(config_a.plays) == 1
+        assert len(config_b.plays) == 1
+        assert config_a.plays[0].play_slug == "piece-a"
+        assert config_b.plays[0].play_slug == "piece-b"
+        assert build_dir_a != build_dir_b, "chaque pièce a son propre répertoire de build"
+
+        play_a = next(p for p in request.plays if p.play_slug == "piece-a")
+        play_b = next(p for p in request.plays if p.play_slug == "piece-b")
+
+        assert play_a.pdf_download_source_path is not None
+        assert play_b.pdf_download_source_path is not None
+        assert play_a.pdf_download_source_path != play_b.pdf_download_source_path
+
+        assert play_a.latex_download_source_path is not None
+        assert play_b.latex_download_source_path is not None
+        assert play_a.latex_download_source_path != play_b.latex_download_source_path
+
+        assert request.pdf_download_source_path is None, "pas de PDF corpus global"
+
+        assert not dialog._last_prepare_warnings, "aucun avertissement PDF"
+
+        dialog.destroy()
+    finally:
+        root.destroy()
+
+
+def test_publication_dialog_pdf_failure_on_one_play_does_not_block_other(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    root = _make_root()
+    try:
+        runtime = RUNTIME_DIR / f"publication_dialog_pdf_partial_failure_{uuid4().hex}"
+        runtime.mkdir(parents=True, exist_ok=True)
+
+        piece_a = _write_publication_tei(
+            runtime / "piece_a.xml",
+            body=_publication_dramatic_body(),
+            front="<castList><castItem><role>A</role></castItem></castList>",
+        )
+        piece_b = _write_publication_tei(
+            runtime / "piece_b.xml",
+            body=_publication_dramatic_body(),
+            front="<castList><castItem><role>B</role></castItem></castList>",
+        )
+
+        prepared_config = SitePublicationDialogConfig(
+            author_name="Jean Racine",
+            corpus_title="Theatre complet",
+            output_dir=runtime / "site_out",
+            build_latex_pdf=True,
+            plays=(
+                SitePublicationDialogPlayConfig(play_slug="piece-a", dramatic_xml_path=piece_a),
+                SitePublicationDialogPlayConfig(play_slug="piece-b", dramatic_xml_path=piece_b),
+            ),
+        )
+        fake_service = _FakePreparedPublicationService(prepared_config)
+
+        def _fake_build_and_compile(prepared_payload, build_dir, *, warnings=(), **_kwargs):
+            build_dir = Path(build_dir)
+            build_dir.mkdir(parents=True, exist_ok=True)
+            play_slug = prepared_payload.plays[0].play_slug
+            if play_slug == "piece-a":
+                raise ValueError("Témoin contradictoire pour la pièce A")
+            master_path = build_dir / "master.tex"
+            pdf_path = build_dir / "master.pdf"
+            master_path.write_text(f"% master {play_slug}\n", encoding="utf-8")
+            pdf_path.write_bytes(b"%PDF piece-b")
+            return _fake_pdf_build_result(
+                master_path=master_path,
+                prepared_config=prepared_payload,
+                ok=True,
+                pdf_path=pdf_path,
+            )
+
+        monkeypatch.setattr(
+            "ets.ui.tk.dialogs.publication_dialog.build_and_compile_publication_pdf_from_prepared_config",
+            _fake_build_and_compile,
+        )
+
+        dialog = PublicationDialog(root)
+        dialog._editorial_import_service = fake_service
+        dialog.vars.corpus_title.set("Theatre complet brut")
+        dialog.vars.output_dir.set(str(runtime / "site_out"))
+        dialog._append_play_from_path(runtime / "piece_a.xml")
+        dialog._append_play_from_path(runtime / "piece_b.xml")
+        dialog._sync_play_order_from_entries()
+        dialog.vars.build_latex_pdf.set(True)
+        request = dialog._build_request()
+
+        play_a = next(p for p in request.plays if p.play_slug == "piece-a")
+        play_b = next(p for p in request.plays if p.play_slug == "piece-b")
+
+        assert play_a.pdf_download_source_path is None, "pièce A a échoué"
+        assert play_b.pdf_download_source_path is not None, "pièce B a réussi malgré l'échec de A"
+
+        assert len(dialog._last_prepare_warnings) == 1
+        assert "piece-a" in dialog._last_prepare_warnings[0]
+        assert "PDF de publication non genere" in dialog._last_prepare_warnings[0]
+
+        dialog.destroy()
+    finally:
+        root.destroy()
+
+
 def test_publication_dialog_publish_ftp_returns_structured_result(monkeypatch: pytest.MonkeyPatch) -> None:
     root = _make_root()
     try:

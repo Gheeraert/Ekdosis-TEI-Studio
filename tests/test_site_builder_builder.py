@@ -396,6 +396,99 @@ def test_builder_copies_branding_assets_and_references_logos() -> None:
     assert 'src="../assets/logos/c-logo.webp"' in play_html
 
 
+def test_builder_copies_per_play_pdfs_and_links_them_from_each_play_page() -> None:
+    base_dir = _runtime_dir("site_builder_per_play_pdf")
+    output_dir = base_dir / "site_per_play_pdf"
+
+    pdf_a = base_dir / "build" / "andromaque.pdf"
+    latex_a = base_dir / "build" / "andromaque.tex"
+    pdf_b = base_dir / "build" / "berenice.pdf"
+    latex_b = base_dir / "build" / "berenice.tex"
+    pdf_a.parent.mkdir(parents=True, exist_ok=True)
+    pdf_a.write_bytes(b"%PDF andromaque")
+    latex_a.write_text("% andromaque tex\n", encoding="utf-8")
+    pdf_b.write_bytes(b"%PDF berenice")
+    latex_b.write_text("% berenice tex\n", encoding="utf-8")
+
+    config = site_config_from_dict(
+        {
+            "site_title": "ETS Demo",
+            "dramatic_xml_dir": str(FIXTURE_ROOT / "dramatic"),
+            "notice_xml_dir": str(FIXTURE_ROOT / "notices"),
+            "output_dir": str(output_dir),
+            "publish_notices": True,
+            "play_pdf_source_map": {
+                "andromaque": str(pdf_a),
+                "berenice": str(pdf_b),
+            },
+            "play_latex_source_map": {
+                "andromaque": str(latex_a),
+                "berenice": str(latex_b),
+            },
+        }
+    )
+
+    assert len(config.play_pdf_source_map) == 2
+    assert len(config.play_latex_source_map) == 2
+
+    result = build_static_site(config)
+    assert not result.warnings
+
+    assert (output_dir / "downloads" / "andromaque.pdf").exists()
+    assert (output_dir / "downloads" / "andromaque.tex").exists()
+    assert (output_dir / "downloads" / "berenice.pdf").exists()
+    assert (output_dir / "downloads" / "berenice.tex").exists()
+    assert (output_dir / "downloads" / "andromaque.pdf").read_bytes() == b"%PDF andromaque"
+    assert (output_dir / "downloads" / "berenice.pdf").read_bytes() == b"%PDF berenice"
+    assert not (output_dir / "downloads" / "edition-complete.pdf").exists()
+
+    html_a = (output_dir / "plays" / "andromaque.html").read_text(encoding="utf-8")
+    html_b = (output_dir / "plays" / "berenice.html").read_text(encoding="utf-8")
+
+    assert 'href="../downloads/andromaque.pdf" download title="PDF">PDF</a>' in html_a
+    assert 'href="../downloads/andromaque.tex" download title="Ekdosis">LaTeX-Ekdosis</a>' in html_a
+    assert "berenice.pdf" not in html_a
+
+    assert 'href="../downloads/berenice.pdf" download title="PDF">PDF</a>' in html_b
+    assert 'href="../downloads/berenice.tex" download title="Ekdosis">LaTeX-Ekdosis</a>' in html_b
+    assert "andromaque.pdf" not in html_b
+
+
+def test_builder_per_play_pdf_missing_source_warns_without_broken_link() -> None:
+    base_dir = _runtime_dir("site_builder_per_play_pdf_missing")
+    output_dir = base_dir / "site_per_play_pdf_missing"
+
+    pdf_a = base_dir / "build" / "andromaque.pdf"
+    pdf_a.parent.mkdir(parents=True, exist_ok=True)
+    pdf_a.write_bytes(b"%PDF andromaque")
+    missing_pdf_b = base_dir / "build" / "berenice_missing.pdf"
+
+    config = site_config_from_dict(
+        {
+            "site_title": "ETS Demo",
+            "dramatic_xml_dir": str(FIXTURE_ROOT / "dramatic"),
+            "notice_xml_dir": str(FIXTURE_ROOT / "notices"),
+            "output_dir": str(output_dir),
+            "publish_notices": True,
+            "play_pdf_source_map": {
+                "andromaque": str(pdf_a),
+                "berenice": str(missing_pdf_b),
+            },
+        }
+    )
+
+    result = build_static_site(config)
+
+    assert (output_dir / "downloads" / "andromaque.pdf").exists()
+    assert not (output_dir / "downloads" / "berenice.pdf").exists()
+    assert any("berenice" in w and "not found" in w for w in result.warnings)
+
+    html_a = (output_dir / "plays" / "andromaque.html").read_text(encoding="utf-8")
+    html_b = (output_dir / "plays" / "berenice.html").read_text(encoding="utf-8")
+    assert "andromaque.pdf" in html_a
+    assert "berenice.pdf" not in html_b
+
+
 def test_builder_does_not_render_branding_when_assets_logos_folder_is_missing() -> None:
     base_dir = _runtime_dir("site_builder_assets_missing")
     output_dir = base_dir / "site_assets_missing"
