@@ -185,6 +185,7 @@ def load_config(path: str | Path, reference_override: int | None = None) -> Edit
     characters = _load_characters(raw)
     transcription_path = str(_pick(raw, ["transcription_path"], "") or "").strip()
     castlist_path = str(_pick(raw, ["castlist_path"], "") or "").strip()
+    play_id = str(_pick(raw, ["play_id", "Identifiant de la pièce"], "") or "").strip()
     return EditionConfig(
         title=title,
         author=author,
@@ -195,6 +196,7 @@ def load_config(path: str | Path, reference_override: int | None = None) -> Edit
         characters=characters,
         transcription_path=transcription_path,
         castlist_path=castlist_path,
+        play_id=play_id,
     )
 
 

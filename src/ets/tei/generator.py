@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import re
+import unicodedata
 import xml.etree.ElementTree as ET
 
 from ets.characters import resolve_speaker_block
@@ -28,6 +30,27 @@ ET.register_namespace("", TEI_NS)
 
 def _tei(tag: str) -> str:
     return f"{{{TEI_NS}}}{tag}"
+
+
+def slugify_play_id(value: str) -> str:
+    """Slug stable et compatible xml:id : minuscules, sans accent ni espace.
+
+    Un xml:id ne peut pas commencer par un chiffre : un préfixe sûr est
+    ajouté dans ce cas.
+    """
+    normalized = unicodedata.normalize("NFKD", value.strip())
+    ascii_only = normalized.encode("ascii", "ignore").decode("ascii").lower()
+    slug = re.sub(r"[^a-z0-9]+", "-", ascii_only).strip("-")
+    if not slug:
+        return "piece"
+    if slug[0].isdigit():
+        return f"p-{slug}"
+    return slug
+
+
+def resolve_play_id(config: EditionConfig) -> str:
+    """Identifiant de pièce : ``config.play_id`` s'il est fourni, sinon le titre."""
+    return slugify_play_id(config.play_id or config.title)
 
 
 def _wit_attr(sigla: list[str]) -> str:
@@ -357,7 +380,12 @@ def _reserve_xml_id(candidate: str, used: set[str]) -> str:
 
 
 def materialize_act_scene_line_xml_ids(root: ET.Element) -> None:
-    """Materialize missing xml:id values for dramatic acts, scenes and lines only."""
+    """Materialize missing xml:id values for dramatic acts, scenes and lines only.
+
+    Structural identifiers are prefixed with the play identifier (the
+    ``xml:id`` of the ``<text>`` element) when it is present, so that they
+    stay unique across a multi-play corpus: ``bajazet-A1S1L70``.
+    """
 
     for element in root.iter():
         literal_id = element.get("xml:id")
@@ -372,6 +400,10 @@ def materialize_act_scene_line_xml_ids(root: ET.Element) -> None:
         if value
     }
 
+    text_element = root if root.tag == _tei("text") else root.find(f".//{_tei('text')}")
+    play_id = _xml_id(text_element) if text_element is not None else None
+    prefix = f"{play_id}-" if play_id else ""
+
     body = root.find(f".//{_tei('text')}/{_tei('body')}")
     if body is None:
         return
@@ -381,7 +413,7 @@ def materialize_act_scene_line_xml_ids(root: ET.Element) -> None:
         if act.tag != _tei("div") or (act.get("type") or "").strip().lower() != "act":
             continue
         act_index += 1
-        act_ref = f"A{act.get('n') or act_index}"
+        act_ref = f"{prefix}A{act.get('n') or act_index}"
         if not _xml_id(act):
             _set_xml_id(act, _reserve_xml_id(act_ref, used_ids))
 
@@ -437,7 +469,8 @@ def generate_tei_xml(
     else:
         ET.SubElement(source_desc, _tei("p")).text = "Generated from plain-text parallel witnesses."
 
-    text = ET.SubElement(tei, _tei("text"))
+    play_id = resolve_play_id(config)
+    text = ET.SubElement(tei, _tei("text"), {"xml:id": play_id})
     if front_elements:
         front = ET.SubElement(text, _tei("front"))
         for element in front_elements:
@@ -463,7 +496,7 @@ def generate_tei_xml(
                 stage_el = ET.SubElement(
                     parent,
                     _tei("stage"),
-                    {"xml:id": f"A{act_n}S{scene_n}ST{stage_index}"},
+                    {"xml:id": f"{play_id}-A{act_n}S{scene_n}ST{stage_index}"},
                 )
                 _append_collated_text(stage_el, stage_text)
 
@@ -493,13 +526,17 @@ def generate_tei_xml(
                             sp,
                             _tei("stage"),
                             {
-                                "xml:id": f"implicite{implicit_counter}",
+                                "xml:id": f"{play_id}-implicite{implicit_counter}",
                                 "type": "DI",
                                 "ana": f"#{element.category}",
                             },
                         )
                         for span_line in element.lines:
-                            _append_collated_line(span, span_line, line_xml_id=f"A{act_n}S{scene_n}L{span_line.number}")
+                            _append_collated_line(
+                                span,
+                                span_line,
+                                line_xml_id=f"{play_id}-A{act_n}S{scene_n}L{span_line.number}",
+                            )
                     elif isinstance(element, CollatedStanza):
                         attrs = {"type": "stanza"}
                         if element.subtype:
@@ -511,10 +548,14 @@ def generate_tei_xml(
                             _append_collated_line(
                                 lg,
                                 stanza_line,
-                                line_xml_id=f"A{act_n}S{scene_n}L{stanza_line.number}",
+                                line_xml_id=f"{play_id}-A{act_n}S{scene_n}L{stanza_line.number}",
                             )
                     else:
-                        _append_collated_line(sp, element, line_xml_id=f"A{act_n}S{scene_n}L{element.number}")
+                        _append_collated_line(
+                            sp,
+                            element,
+                            line_xml_id=f"{play_id}-A{act_n}S{scene_n}L{element.number}",
+                        )
 
     materialize_act_scene_line_xml_ids(tei)
     tree = ET.ElementTree(tei)

@@ -28,6 +28,9 @@ class EditionConfig:
     characters: list[Character] = field(default_factory=list)
     transcription_path: str = ""
     castlist_path: str = ""
+    # Identifiant court et stable de la pièce (xml:id de <text>). S'il est
+    # vide, il est dérivé du titre par slugification à la génération TEI.
+    play_id: str = ""
 
 
 @dataclass

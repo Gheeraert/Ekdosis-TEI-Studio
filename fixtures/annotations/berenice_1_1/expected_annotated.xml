@@ -18,23 +18,23 @@
       </sourceDesc>
     </fileDesc>
   </teiHeader>
-  <text>
+  <text xml:id="berenice">
     <body>
-      <div type="act" n="1" xml:id="A1">
+      <div type="act" n="1" xml:id="berenice-A1">
         <head>ACTE I</head>
-        <div type="scene" n="1" xml:id="A1S1">
+        <div type="scene" n="1" xml:id="berenice-A1S1">
           <head>SCENE I</head>
           <stage type="personnages">ANTIOCHUS</stage>
           <sp>
             <speaker>ANTIOCHUS</speaker>
-            <l n="1" xml:id="A1S1L1">Arretons un moment.</l>
-            <stage xml:id="A1S1ST1">Il entre.</stage>
-            <l n="2" xml:id="A1S1L2">Je demeure.</l>
-            <l n="3" xml:id="A1S1L3">Je vous vois.</l>
+            <l n="1" xml:id="berenice-A1S1L1">Arretons un moment.</l>
+            <stage xml:id="berenice-A1S1ST1">Il entre.</stage>
+            <l n="2" xml:id="berenice-A1S1L2">Je demeure.</l>
+            <l n="3" xml:id="berenice-A1S1L3">Je vous vois.</l>
           </sp>
-          <note xml:id="n1" type="explicative" target="#A1S1L1" resp="TG" ana="#draft" corresp="#ouverture">Ouverture solennelle de la scene.</note>
-          <note xml:id="n2" type="dramaturgique" target="#A1S1L2 #A1S1L3" ana="#reviewed" corresp="#rythme #scene">Le rythme s'accelere sur la fin de la replique.</note>
-          <note xml:id="n3" type="dramaturgique" target="#A1S1ST1" ana="#validated">Entree scenique structurante.</note>
+          <note xml:id="n1" type="explicative" target="#berenice-A1S1L1" resp="TG" ana="#draft" corresp="#ouverture">Ouverture solennelle de la scene.</note>
+          <note xml:id="n2" type="dramaturgique" target="#berenice-A1S1L2 #berenice-A1S1L3" ana="#reviewed" corresp="#rythme #scene">Le rythme s'accelere sur la fin de la replique.</note>
+          <note xml:id="n3" type="dramaturgique" target="#berenice-A1S1ST1" ana="#validated">Entree scenique structurante.</note>
         </div>
       </div>
     </body>

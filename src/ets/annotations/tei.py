@@ -182,9 +182,12 @@ def _resolve_targets(
             return [], None, None
         scene_div, act_n, scene_n = resolved_scene
         target_id = _stage_target_id(act_n, scene_n, anchor.stage_index)
-        target = scene_div.find(f".//*[@xml:id='{target_id}']", {"xml": XML_NS})
-        if target is not None:
-            return [f"#{target_id}"], scene_div, None
+        # Structural ids may carry a play prefix (e.g. "bajazet-A1S1ST1"):
+        # match the logical suffix instead of the literal id.
+        for candidate in scene_div.iter():
+            xml_id = candidate.get(f"{{{XML_NS}}}id") or ""
+            if xml_id == target_id or xml_id.endswith(f"-{target_id}"):
+                return [f"#{xml_id}"], scene_div, None
         return [], scene_div, None
 
     return [], None, None

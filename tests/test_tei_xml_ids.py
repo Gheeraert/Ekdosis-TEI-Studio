@@ -145,9 +145,9 @@ def test_generated_tei_materializes_act_scene_line_ids_and_shared_line_ids() -> 
     assert act is not None
     assert scene is not None
     assert first_line is not None
-    assert _xml_id(act) == "A1"
-    assert _xml_id(scene) == "A1S1"
-    assert _xml_id(first_line) == "A1S1L1"
+    assert _xml_id(act) == "britannicus-A1"
+    assert _xml_id(scene) == "britannicus-A1S1"
+    assert _xml_id(first_line) == "britannicus-A1S1L1"
 
     stable_root = ET.fromstring(
         (ROOT / "fixtures" / "stable" / "expected.xml").read_text(encoding="utf-8")
@@ -189,6 +189,6 @@ def test_generated_tei_ids_stay_aligned_with_dts_search_and_html(tmp_path: Path)
         (output_dir / "plays" / f"{slug}.html").read_text(encoding="utf-8")
     )
 
-    assert first_entry["ref"] == "A1S1L1"
-    assert any(node["identifier"] == "A1S1L1" for node in dts_navigation["member"])
-    assert play_html.xpath("//*[@id='A1S1L1']")
+    assert first_entry["ref"] == "britannicus-A1S1L1"
+    assert any(node["identifier"] == "britannicus-A1S1L1" for node in dts_navigation["member"])
+    assert play_html.xpath("//*[@id='britannicus-A1S1L1']")

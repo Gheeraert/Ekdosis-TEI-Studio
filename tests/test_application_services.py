@@ -198,7 +198,7 @@ def test_service_generate_tei_from_text_success() -> None:
     assert result.ok is True
     assert result.tei_xml is not None
     assert "<TEI" in result.tei_xml
-    assert "<text>" in result.tei_xml
+    assert '<text xml:id="' in result.tei_xml
 
 
 def test_service_generate_tei_from_text_converts_inline_underscore_italics() -> None:

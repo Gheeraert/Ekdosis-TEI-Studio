@@ -300,21 +300,21 @@ def test_html_preview_renders_note_calls_notes_block_numbering_and_backlinks() -
         "Entree scenique structurante.↩",
     ]
 
-    assert doc.xpath("//sup[contains(@class, 'note-call') and @id='noteref-1-A1S1L1']/a[@href='#note-1' and text()='1']")
-    assert doc.xpath("//sup[contains(@class, 'note-call') and @id='noteref-2-A1S1L2']/a[@href='#note-2' and text()='2']")
-    assert doc.xpath("//sup[contains(@class, 'note-call') and @id='noteref-2-A1S1L3']/a[@href='#note-2' and text()='2']")
-    assert doc.xpath("//sup[contains(@class, 'note-call') and @id='noteref-3-A1S1ST1']/a[@href='#note-3' and text()='3']")
+    assert doc.xpath("//sup[contains(@class, 'note-call') and @id='noteref-1-berenice-A1S1L1']/a[@href='#note-1' and text()='1']")
+    assert doc.xpath("//sup[contains(@class, 'note-call') and @id='noteref-2-berenice-A1S1L2']/a[@href='#note-2' and text()='2']")
+    assert doc.xpath("//sup[contains(@class, 'note-call') and @id='noteref-2-berenice-A1S1L3']/a[@href='#note-2' and text()='2']")
+    assert doc.xpath("//sup[contains(@class, 'note-call') and @id='noteref-3-berenice-A1S1ST1']/a[@href='#note-3' and text()='3']")
 
-    assert doc.xpath("//li[@id='note-1']//a[contains(@class, 'note-backlink') and @href='#noteref-1-A1S1L1']")
-    assert doc.xpath("//li[@id='note-2']//a[contains(@class, 'note-backlink') and @href='#noteref-2-A1S1L2']")
-    assert doc.xpath("//li[@id='note-3']//a[contains(@class, 'note-backlink') and @href='#noteref-3-A1S1ST1']")
+    assert doc.xpath("//li[@id='note-1']//a[contains(@class, 'note-backlink') and @href='#noteref-1-berenice-A1S1L1']")
+    assert doc.xpath("//li[@id='note-2']//a[contains(@class, 'note-backlink') and @href='#noteref-2-berenice-A1S1L2']")
+    assert doc.xpath("//li[@id='note-3']//a[contains(@class, 'note-backlink') and @href='#noteref-3-berenice-A1S1ST1']")
 
 
 def test_html_note_call_has_native_preview_attributes() -> None:
     preview = render_html_preview_from_tei(_annotated_fixture_tei_xml())
     doc = lxml_html.document_fromstring(preview)
 
-    link = doc.xpath("//sup[@id='noteref-1-A1S1L1']/a")[0]
+    link = doc.xpath("//sup[@id='noteref-1-berenice-A1S1L1']/a")[0]
     assert link.get("title") == "Ouverture solennelle de la scene."
     assert link.get("aria-label") == "Note 1: Ouverture solennelle de la scene."
 
@@ -323,7 +323,7 @@ def test_html_note_call_preview_is_plain_text_not_raw_xml() -> None:
     preview = render_html_preview_from_tei(_annotated_markdown_tei_xml())
     doc = lxml_html.document_fromstring(preview)
 
-    title = doc.xpath("//sup[@id='noteref-1-A1S1L1']/a/@title")[0]
+    title = doc.xpath("//sup[@id='noteref-1-berenice-A1S1L1']/a/@title")[0]
     assert "<" not in title
     assert ">" not in title
     assert "*" not in title
@@ -333,7 +333,7 @@ def test_html_note_call_preview_truncates_long_notes() -> None:
     preview = render_html_preview_from_tei(_annotated_long_note_tei_xml())
     doc = lxml_html.document_fromstring(preview)
 
-    title = doc.xpath("//sup[@id='noteref-1-A1S1L1']/a/@title")[0]
+    title = doc.xpath("//sup[@id='noteref-1-berenice-A1S1L1']/a/@title")[0]
     assert title.endswith("…")
     assert len(title) == 201
 
@@ -342,7 +342,7 @@ def test_html_note_call_preview_keeps_short_notes_untruncated() -> None:
     preview = render_html_preview_from_tei(_annotated_fixture_tei_xml())
     doc = lxml_html.document_fromstring(preview)
 
-    title = doc.xpath("//sup[@id='noteref-1-A1S1L1']/a/@title")[0]
+    title = doc.xpath("//sup[@id='noteref-1-berenice-A1S1L1']/a/@title")[0]
     assert not title.endswith("…")
 
 

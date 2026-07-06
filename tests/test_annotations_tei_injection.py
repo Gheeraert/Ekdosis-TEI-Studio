@@ -35,9 +35,9 @@ def test_injection_on_line_range_and_stage_targets() -> None:
 
     assert len(notes) == 3
     note_by_id = {note.get(f"{{{XML_NS}}}id"): note for note in notes}
-    assert note_by_id["n1"].get("target") == "#A1S1L1"
-    assert note_by_id["n2"].get("target") == "#A1S1L2 #A1S1L3"
-    assert note_by_id["n3"].get("target") == "#A1S1ST1"
+    assert note_by_id["n1"].get("target") == "#berenice-A1S1L1"
+    assert note_by_id["n2"].get("target") == "#berenice-A1S1L2 #berenice-A1S1L3"
+    assert note_by_id["n3"].get("target") == "#berenice-A1S1ST1"
 
 
 def test_injection_target_not_found_raises_diagnostic() -> None:
@@ -70,7 +70,7 @@ def test_regression_pipeline_without_annotations_still_generates_plain_tei() -> 
     root = ET.fromstring(tei_xml)
 
     assert root.find(".//tei:note", NS) is None
-    assert root.find(".//tei:l[@xml:id='A1S1L1']", {"tei": NS["tei"], "xml": XML_NS}) is not None
+    assert root.find(".//tei:l[@xml:id='berenice-A1S1L1']", {"tei": NS["tei"], "xml": XML_NS}) is not None
 
 
 def test_enriched_fixture_matches_expected_xml() -> None:
@@ -129,7 +129,7 @@ def test_line_anchor_resolves_when_tei_uses_roman_act_scene_numbers() -> None:
     root = ET.fromstring(enriched)
     note = root.find(".//tei:note[@xml:id='n_roman']", {"tei": NS["tei"], "xml": XML_NS})
     assert note is not None
-    assert note.get("target") == "#A1S1L1"
+    assert note.get("target") == "#test-A1S1L1"
 
 
 def test_line_range_over_shared_verse_returns_explicit_decimal_diagnostic() -> None:

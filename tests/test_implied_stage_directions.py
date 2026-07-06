@@ -75,8 +75,8 @@ def test_implied_stage_direction_fixture_matches_expected_xml() -> None:
 
     implicit_stages = speech.findall("./tei:stage[@type='DI']", NS)
     assert len(implicit_stages) == 2
-    assert implicit_stages[0].get(f"{{{XML_NS}}}id") == "implicite1"
-    assert implicit_stages[1].get(f"{{{XML_NS}}}id") == "implicite2"
+    assert implicit_stages[0].get(f"{{{XML_NS}}}id") == "berenice-implicite1"
+    assert implicit_stages[1].get(f"{{{XML_NS}}}id") == "berenice-implicite2"
     assert implicit_stages[0].get("ana") == "#SET"
     assert implicit_stages[1].get("ana") == "#EVT"
 
