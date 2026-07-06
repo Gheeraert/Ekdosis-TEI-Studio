@@ -3,6 +3,8 @@ from __future__ import annotations
 import xml.etree.ElementTree as ET
 
 from ets.characters import resolve_speaker_block
+from ets.collation.minor_variants import subtype_for_candidate_class
+from ets.tei.terminal_punctuation import normalize_terminal_punctuation_segments
 from ets.domain import (
     ApparatusLine,
     ApparatusTokenSegment,
@@ -32,7 +34,7 @@ def _wit_attr(sigla: list[str]) -> str:
     return " ".join(f"#{siglum}" for siglum in sigla)
 
 
-def _append_reading(parent: ET.Element, tag: str, reading: CollatedReading) -> None:
+def _append_reading(parent: ET.Element, tag: str, reading: CollatedReading) -> ET.Element:
     element = ET.SubElement(parent, _tei(tag), {"wit": _wit_attr(reading.witness_sigla)})
     reading_text = reading.text
     if reading_text.count("_") % 2 != 0:
@@ -43,7 +45,7 @@ def _append_reading(parent: ET.Element, tag: str, reading: CollatedReading) -> N
             _append_text(element, None, leading)
             hi = ET.SubElement(element, _tei("hi"), {"rend": "italic"})
             hi.text = content
-            return
+            return element
         if stripped.endswith("_"):
             marker = reading_text.rfind("_")
             content = reading_text[:marker]
@@ -51,9 +53,10 @@ def _append_reading(parent: ET.Element, tag: str, reading: CollatedReading) -> N
             hi = ET.SubElement(element, _tei("hi"), {"rend": "italic"})
             hi.text = content
             hi.tail = trailing
-            return
+            return element
         reading_text = reading_text.replace("_", "")
     _append_inline_italics(element, None, reading_text)
+    return element
 
 
 def _append_text(container: ET.Element, last_child: ET.Element | None, text: str) -> None:
@@ -102,6 +105,7 @@ def _append_inline_italics(
 
 
 def _append_collated_text(parent: ET.Element, text: CollatedText) -> None:
+    segments = normalize_terminal_punctuation_segments(text.segments)
     last_child: ET.Element | None = None
     italic_open = False
     italic_element: ET.Element | None = None
@@ -185,8 +189,8 @@ def _append_collated_text(parent: ET.Element, text: CollatedText) -> None:
         return None
 
     def find_grouped_italic_variant_end(start_index: int) -> int | None:
-        for candidate_index in range(start_index + 1, len(text.segments)):
-            candidate = text.segments[candidate_index]
+        for candidate_index in range(start_index + 1, len(segments)):
+            candidate = segments[candidate_index]
             if isinstance(candidate, LiteralTokenSegment):
                 continue
             if not isinstance(candidate, ApparatusTokenSegment):
@@ -198,14 +202,14 @@ def _append_collated_text(parent: ET.Element, text: CollatedText) -> None:
 
     def append_grouped_italic_variant(start_index: int, end_index: int) -> bool:
         nonlocal last_child
-        start_segment = text.segments[start_index]
-        end_segment = text.segments[end_index]
+        start_segment = segments[start_index]
+        end_segment = segments[end_index]
         if not isinstance(start_segment, ApparatusTokenSegment) or not isinstance(end_segment, ApparatusTokenSegment):
             raise TypeError("Grouped italic variant boundaries must be apparatus segments.")
 
         middle = "".join(
             segment.text
-            for segment in text.segments[start_index + 1 : end_index]
+            for segment in segments[start_index + 1 : end_index]
             if isinstance(segment, LiteralTokenSegment)
         )
         opening_readings = [start_segment.lemma, *start_segment.readings]
@@ -237,8 +241,8 @@ def _append_collated_text(parent: ET.Element, text: CollatedText) -> None:
         return True
 
     index = 0
-    while index < len(text.segments):
-        segment = text.segments[index]
+    while index < len(segments):
+        segment = segments[index]
         if isinstance(segment, LiteralTokenSegment):
             append_literal_segment(segment.text)
             index += 1
@@ -268,7 +272,7 @@ def _append_collated_text(parent: ET.Element, text: CollatedText) -> None:
             if getattr(segment, "visibility_policy", "visible") in {"hide_safe", "inspect"}:
                 app_attrs["type"] = "minor"
                 candidate_class = getattr(segment, "candidate_class", "minor")
-                subtype = candidate_class.removeprefix("minor_").removesuffix("_safe").replace("_", "-")
+                subtype = subtype_for_candidate_class(candidate_class)
                 app_attrs["subtype"] = subtype
                 rule_code = getattr(segment, "rule_code", "")
                 if rule_code:
@@ -276,9 +280,14 @@ def _append_collated_text(parent: ET.Element, text: CollatedText) -> None:
                 if getattr(segment, "visibility_policy", "visible") == "inspect":
                     app_attrs["cert"] = "low"
             app = ET.SubElement(app_parent, _tei("app"), app_attrs)
-            _append_reading(app, "lem", segment.lemma)
+            punctuation_only = getattr(segment, "candidate_class", "") == "minor_punctuation"
+            lem_element = _append_reading(app, "lem", segment.lemma)
+            if punctuation_only and not segment.lemma.text:
+                lem_element.set("type", "omission")
             for rdg in segment.readings:
-                _append_reading(app, "rdg", rdg)
+                rdg_element = _append_reading(app, "rdg", rdg)
+                if punctuation_only and not rdg.text:
+                    rdg_element.set("type", "omission")
             if not markup_variant and italic_open and italic_element is not None:
                 italic_last_child = app
             else:
