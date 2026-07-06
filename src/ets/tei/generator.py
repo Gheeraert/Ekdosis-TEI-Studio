@@ -280,7 +280,10 @@ def _append_collated_text(parent: ET.Element, text: CollatedText) -> None:
                 if getattr(segment, "visibility_policy", "visible") == "inspect":
                     app_attrs["cert"] = "low"
             app = ET.SubElement(app_parent, _tei("app"), app_attrs)
-            punctuation_only = getattr(segment, "candidate_class", "") == "minor_punctuation"
+            punctuation_only = (
+                getattr(segment, "candidate_class", "") == "minor_punctuation"
+                or getattr(segment, "rule_code", "") == "punctuation_only"
+            )
             lem_element = _append_reading(app, "lem", segment.lemma)
             if punctuation_only and not segment.lemma.text:
                 lem_element.set("type", "omission")
