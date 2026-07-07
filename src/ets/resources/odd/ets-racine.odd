@@ -1,0 +1,355 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0"
+     xmlns:sch="http://purl.oclc.org/dsdl/schematron"
+     xmlns:rng="http://relaxng.org/ns/structure/1.0"
+     xml:lang="fr">
+  <teiHeader>
+    <fileDesc>
+      <titleStmt>
+        <title>Profil ODD ETS-Racine pour la TEI dramatique générée par Ekdosis-TEI Studio</title>
+        <respStmt>
+          <resp>Définition du profil TEI de sortie ETS-Racine</resp>
+          <name>Ekdosis-TEI Studio</name>
+        </respStmt>
+      </titleStmt>
+      <publicationStmt>
+        <p>Ressource de validation interne destinée au dépôt Ekdosis-TEI Studio.</p>
+      </publicationStmt>
+      <sourceDesc>
+        <p>Cet ODD est dérivé du générateur TEI ETS, du schéma opérationnel ets-racine.rnc, du Schematron opérationnel ets-racine.sch et des fixtures de validation, notamment Britannicus, la fixture de strophe et la fixture de didascalies implicites.</p>
+      </sourceDesc>
+    </fileDesc>
+  </teiHeader>
+  <text>
+    <body>
+      <div type="scope">
+        <head>Périmètre</head>
+        <p>Le profil ETS-Racine est une personnalisation TEI destinée à documenter le XML produit automatiquement par Ekdosis-TEI Studio pour le corps dramatique des pièces de Racine. Il décrit une TEI de sortie, générée par le pipeline ETS, et non une saisie manuelle libre.</p>
+        <p>Il ne couvre pas les paratextes, le front matter, les notices, les introductions, les notes critiques ni les bibliographies. Il ne constitue pas une recommandation générale pour l'encodage TEI du théâtre : il décrit un contrat de sortie homogène, contrôlé et validable.</p>
+        <p>Le profil documente la structure dramatique produite sous <gi>text</gi>/<gi>body</gi> : actes, scènes, listes de personnages sur scène, répliques, vers, strophes, didascalies explicites, didascalies implicites, italiques et apparats.</p>
+      </div>
+
+      <div type="principles">
+        <head>Principes</head>
+        <p>La TEI générée est la représentation éditoriale canonique. Les sorties de publication doivent être dérivées de cette TEI plutôt que d'une logique parallèle.</p>
+        <p>Ce profil reste volontairement maigre. Il formalise seulement les éléments et attributs réellement produits pour le corps dramatique ETS-Racine : il n'élargit pas le contrat à toute la TEI P5, à une TEI dramatique généraliste, aux notices, aux paratextes, à DTS, aux sorties HTML, LaTeX ou PDF.</p>
+        <list>
+          <item><label>#SPC</label> parole</item>
+          <item><label>#ASP</label> aspect</item>
+          <item><label>#TMP</label> temps</item>
+          <item><label>#EVT</label> événement</item>
+          <item><label>#SET</label> décor</item>
+          <item><label>#PROX</label> proxémie</item>
+          <item><label>#ATT</label> attitude</item>
+          <item><label>#VOI</label> voix</item>
+        </list>
+      </div>
+
+      <div type="operational-schemas">
+        <head>Articulation avec les schémas opérationnels</head>
+        <p>Le fichier ets-racine.rnc porte la première grammaire Relax NG compacte utilisée comme profil opérationnel maigre. Le fichier ets-racine.sch porte les règles métier Schematron actuellement testées. Le présent ODD documente la même cible méthodologique et intègre les contraintes principales sous forme de <gi>constraintSpec</gi>.</p>
+        <p>Cette V1 ne met pas en place de génération automatique ODD vers RNC ou Schematron en intégration continue. Les tests associés vérifient la présence, la cohérence documentaire et le caractère XML bien formé de l'ODD.</p>
+      </div>
+
+      <schemaSpec ident="ets-racine" start="TEI">
+        <desc>Personnalisation TEI pour le corps dramatique des pièces de Racine générées automatiquement par Ekdosis-TEI Studio.</desc>
+        <moduleRef key="tei"/>
+        <moduleRef key="header"/>
+        <moduleRef key="core"/>
+        <moduleRef key="textstructure"/>
+        <moduleRef key="drama"/>
+        <moduleRef key="textcrit"/>
+        <moduleRef key="verse"/>
+        <moduleRef key="tagdocs"/>
+
+        <elementSpec ident="TEI" mode="change">
+          <desc>Racine du document TEI produit par ETS-Racine. Elle contient un en-tête éditorial minimal et un texte dramatique.</desc>
+        </elementSpec>
+
+        <elementSpec ident="teiHeader" mode="change">
+          <desc>En-tête minimal du document généré. Il contient <gi>fileDesc</gi>, avec <gi>titleStmt</gi>, <gi>publicationStmt</gi> et <gi>sourceDesc</gi>.</desc>
+        </elementSpec>
+
+        <elementSpec ident="text" mode="change">
+          <desc>Conteneur du texte dramatique de sortie. L'attribut <att>xml:id</att> identifie la pièce et sert de préfixe cible pour les identifiants structurels.</desc>
+          <attList>
+            <attDef ident="xml:id" usage="req">
+              <desc>Identifiant obligatoire de la pièce générée.</desc>
+            </attDef>
+          </attList>
+          <constraintSpec ident="ets-racine-text-id" scheme="schematron">
+            <constraint>
+              <sch:rule context="tei:text">
+                <sch:assert test="@xml:id">text doit avoir @xml:id.</sch:assert>
+              </sch:rule>
+            </constraint>
+          </constraintSpec>
+        </elementSpec>
+
+        <elementSpec ident="body" mode="change">
+          <desc>Corps dramatique généré. Il ne contient que des divisions d'acte, représentées par <gi>div</gi> avec <att>type</att> égal à <val>act</val>.</desc>
+          <constraintSpec ident="ets-racine-body-acts-only" scheme="schematron">
+            <constraint>
+              <sch:rule context="tei:body">
+                <sch:assert test="not(*[not(self::tei:div[@type='act'])])">body ne doit contenir que des div type="act".</sch:assert>
+              </sch:rule>
+            </constraint>
+          </constraintSpec>
+        </elementSpec>
+
+        <elementSpec ident="div" mode="change">
+          <desc>Division structurelle limitée aux actes et scènes. Un acte est <gi>div</gi> <att>type</att>=<val>act</val> avec <att>n</att>, <att>xml:id</att>, un <gi>head</gi> et au moins une scène. Une scène est <gi>div</gi> <att>type</att>=<val>scene</val> avec <att>n</att>, <att>xml:id</att>, un <gi>head</gi> et au moins une réplique <gi>sp</gi>.</desc>
+          <attList>
+            <attDef ident="type" usage="req">
+              <desc>Valeur attendue : <val>act</val> pour les actes ou <val>scene</val> pour les scènes.</desc>
+            </attDef>
+            <attDef ident="n" usage="req">
+              <desc>Numéro d'acte ou de scène.</desc>
+            </attDef>
+            <attDef ident="xml:id" usage="req">
+              <desc>Identifiant structurel obligatoire.</desc>
+            </attDef>
+          </attList>
+          <constraintSpec ident="ets-racine-div-structure" scheme="schematron">
+            <constraint>
+              <sch:rule context="tei:div">
+                <sch:assert test="not(@type='act') or @n">Chaque acte doit avoir @n.</sch:assert>
+                <sch:assert test="not(@type='act') or @xml:id">Chaque acte doit avoir @xml:id.</sch:assert>
+                <sch:assert test="not(@type='act') or tei:head">Chaque acte doit avoir un head.</sch:assert>
+                <sch:assert test="not(@type='act') or tei:div[@type='scene']">Chaque acte doit contenir au moins une scène.</sch:assert>
+                <sch:assert test="not(@type='scene') or @n">Chaque scène doit avoir @n.</sch:assert>
+                <sch:assert test="not(@type='scene') or @xml:id">Chaque scène doit avoir @xml:id.</sch:assert>
+                <sch:assert test="not(@type='scene') or tei:head">Chaque scène doit avoir un head.</sch:assert>
+                <sch:assert test="not(@type='scene') or tei:sp">Chaque scène doit contenir au moins une réplique sp.</sch:assert>
+              </sch:rule>
+            </constraint>
+          </constraintSpec>
+        </elementSpec>
+
+        <elementSpec ident="head" mode="change">
+          <desc>Titre d'acte ou de scène. Il accepte du contenu textuel mixte, des italiques <gi>hi</gi> et des apparats <gi>app</gi> produits par la collation.</desc>
+        </elementSpec>
+
+        <elementSpec ident="stage" mode="change">
+          <desc>Didascalie ou liste de personnages sur scène. <gi>stage</gi> <att>type</att>=<val>personnages</val> représente la liste des personnages présents et ne porte pas <att>xml:id</att>. Les didascalies explicites portent <att>xml:id</att>. Les didascalies implicites portent <att>type</att>=<val>DI</val>, <att>xml:id</att>, <att>ana</att> et contiennent au moins un vers <gi>l</gi>.</desc>
+          <attList>
+            <attDef ident="type" usage="opt">
+              <desc>Valeurs générées : <val>personnages</val> ou <val>DI</val>.</desc>
+            </attDef>
+            <attDef ident="xml:id" usage="opt">
+              <desc>Obligatoire pour les didascalies explicites et implicites, interdit pour <val>personnages</val>.</desc>
+            </attDef>
+            <attDef ident="ana" usage="opt">
+              <desc>Catégorie de didascalie implicite : #SPC, #ASP, #TMP, #EVT, #SET, #PROX, #ATT ou #VOI.</desc>
+            </attDef>
+          </attList>
+          <constraintSpec ident="ets-racine-stage" scheme="schematron">
+            <constraint>
+              <sch:rule context="tei:stage">
+                <sch:assert test="not(@type='personnages') or not(@xml:id)">stage type="personnages" ne doit pas avoir @xml:id.</sch:assert>
+                <sch:assert test="not(@type='DI') or @xml:id">stage[@type='DI'] doit avoir @xml:id.</sch:assert>
+                <sch:assert test="not(@type='DI') or @ana">stage[@type='DI'] doit avoir @ana.</sch:assert>
+                <sch:assert test="not(@type='DI') or tei:l">stage[@type='DI'] doit contenir au moins un l.</sch:assert>
+                <sch:assert test="not(@type='DI') or @ana = '#SPC' or @ana = '#ASP' or @ana = '#TMP' or @ana = '#EVT' or @ana = '#SET' or @ana = '#PROX' or @ana = '#ATT' or @ana = '#VOI'">stage[@type='DI']/@ana doit appartenir aux catégories ETS-Racine.</sch:assert>
+              </sch:rule>
+            </constraint>
+          </constraintSpec>
+        </elementSpec>
+
+        <elementSpec ident="sp" mode="change">
+          <desc>Réplique dramatique générée. Elle contient un <gi>speaker</gi>, puis des vers <gi>l</gi>, strophes <gi>lg</gi> ou didascalies <gi>stage</gi>. L'attribut <att>who</att> est optionnel et pointe vers l'autorité de personnages lorsque la résolution est disponible.</desc>
+          <attList>
+            <attDef ident="who" usage="opt">
+              <desc>Référence optionnelle à un personnage contrôlé.</desc>
+            </attDef>
+          </attList>
+        </elementSpec>
+
+        <elementSpec ident="speaker" mode="change">
+          <desc>Nom de locuteur généré pour une réplique. Il accepte du texte mixte, des italiques et des apparats.</desc>
+        </elementSpec>
+
+        <elementSpec ident="l" mode="change">
+          <desc>Vers dramatique. Il porte toujours <att>n</att> et <att>xml:id</att>. Dans une strophe, il peut porter <att>met</att>.</desc>
+          <attList>
+            <attDef ident="n" usage="req">
+              <desc>Numéro de vers.</desc>
+            </attDef>
+            <attDef ident="xml:id" usage="req">
+              <desc>Identifiant structurel du vers.</desc>
+            </attDef>
+            <attDef ident="met" usage="opt">
+              <desc>Mètre explicite uniquement pour les vers métrés de strophe.</desc>
+            </attDef>
+          </attList>
+          <constraintSpec ident="ets-racine-line" scheme="schematron">
+            <constraint>
+              <sch:rule context="tei:l">
+                <sch:assert test="@n">Chaque l doit avoir @n.</sch:assert>
+                <sch:assert test="@xml:id">Chaque l doit avoir @xml:id.</sch:assert>
+              </sch:rule>
+            </constraint>
+          </constraintSpec>
+        </elementSpec>
+
+        <elementSpec ident="lg" mode="change">
+          <desc>Groupe de vers limité aux strophes lyriques générées. Il porte <att>type</att>=<val>stanza</val>, peut porter <att>subtype</att> et <att>rhyme</att>, et contient au moins un <gi>l</gi>.</desc>
+          <attList>
+            <attDef ident="type" usage="req">
+              <desc>Valeur attendue : <val>stanza</val>.</desc>
+            </attDef>
+            <attDef ident="subtype" usage="opt">
+              <desc>Sous-type de strophe lorsque la transcription ETS le fournit.</desc>
+            </attDef>
+            <attDef ident="rhyme" usage="opt">
+              <desc>Schéma rimique lorsque la transcription ETS le fournit.</desc>
+            </attDef>
+          </attList>
+          <constraintSpec ident="ets-racine-lg-stanza" scheme="schematron">
+            <constraint>
+              <sch:rule context="tei:lg">
+                <sch:assert test="@type = 'stanza'">lg doit avoir @type="stanza".</sch:assert>
+                <sch:assert test="tei:l">lg stanza doit contenir au moins un l.</sch:assert>
+              </sch:rule>
+            </constraint>
+          </constraintSpec>
+        </elementSpec>
+
+        <elementSpec ident="app" mode="change">
+          <desc>Apparat critique généré par la collation. Un apparat majeur n'a pas <att>type</att>. Un apparat mineur porte <att>type</att>=<val>minor</val>, <att>subtype</att>, <att>ana</att> et éventuellement <att>cert</att>=<val>low</val>.</desc>
+          <attList>
+            <attDef ident="type" usage="opt">
+              <desc>Valeur générée pour l'apparat mineur : <val>minor</val>.</desc>
+            </attDef>
+            <attDef ident="subtype" usage="opt">
+              <desc>Catégorie d'apparat mineur : graphic, punctuation, mixed, case, spacing ou identical.</desc>
+            </attDef>
+            <attDef ident="ana" usage="opt">
+              <desc>Code de règle de variante mineure.</desc>
+            </attDef>
+            <attDef ident="cert" usage="opt">
+              <desc>Valeur générée possible : <val>low</val>.</desc>
+            </attDef>
+          </attList>
+          <constraintSpec ident="ets-racine-app" scheme="schematron">
+            <constraint>
+              <sch:rule context="tei:app">
+                <sch:assert test="count(tei:lem) = 1 and count(tei:rdg) &gt;= 1">app doit contenir exactement un lem et au moins un rdg.</sch:assert>
+                <sch:assert test="tei:lem[1][not(preceding-sibling::*)]">app doit commencer par lem.</sch:assert>
+                <sch:assert test="not(@type='minor') or @subtype">app[@type='minor'] doit avoir @subtype.</sch:assert>
+                <sch:assert test="not(@type='minor') or @ana">app[@type='minor'] doit avoir @ana.</sch:assert>
+                <sch:assert test="not(@subtype) or @subtype = 'graphic' or @subtype = 'punctuation' or @subtype = 'mixed' or @subtype = 'case' or @subtype = 'spacing' or @subtype = 'identical'">app/@subtype doit appartenir aux valeurs ETS-Racine.</sch:assert>
+              </sch:rule>
+            </constraint>
+          </constraintSpec>
+        </elementSpec>
+
+        <elementSpec ident="lem" mode="change">
+          <desc>Lecture de référence d'un apparat. <att>wit</att> est obligatoire et pointe vers un ou plusieurs <gi>witness</gi> déclarés. <att>type</att>=<val>omission</val> est possible pour certains cas de ponctuation. Le contenu peut contenir <gi>hi</gi>, mais pas d'apparat imbriqué.</desc>
+          <attList>
+            <attDef ident="wit" usage="req">
+              <desc>Témoins portant la lecture.</desc>
+            </attDef>
+            <attDef ident="type" usage="opt">
+              <desc>Valeur possible : <val>omission</val>.</desc>
+            </attDef>
+          </attList>
+          <constraintSpec ident="ets-racine-lem" scheme="schematron">
+            <constraint>
+              <sch:rule context="tei:lem">
+                <sch:assert test="@wit">lem doit avoir @wit.</sch:assert>
+                <sch:assert test="not(@wit) or starts-with(normalize-space(@wit), '#')">lem/@wit doit pointer vers des witness/@xml:id déclarés.</sch:assert>
+                <sch:assert test="not(tei:app)">lem ne doit pas contenir app.</sch:assert>
+              </sch:rule>
+            </constraint>
+          </constraintSpec>
+        </elementSpec>
+
+        <elementSpec ident="rdg" mode="change">
+          <desc>Lecture variante d'un apparat. <att>wit</att> est obligatoire et pointe vers un ou plusieurs <gi>witness</gi> déclarés. <att>type</att>=<val>omission</val> est possible pour certains cas de ponctuation. Le contenu peut contenir <gi>hi</gi>, mais pas d'apparat imbriqué.</desc>
+          <attList>
+            <attDef ident="wit" usage="req">
+              <desc>Témoins portant la lecture.</desc>
+            </attDef>
+            <attDef ident="type" usage="opt">
+              <desc>Valeur possible : <val>omission</val>.</desc>
+            </attDef>
+          </attList>
+          <constraintSpec ident="ets-racine-rdg" scheme="schematron">
+            <constraint>
+              <sch:rule context="tei:rdg">
+                <sch:assert test="@wit">rdg doit avoir @wit.</sch:assert>
+                <sch:assert test="not(@wit) or starts-with(normalize-space(@wit), '#')">rdg/@wit doit pointer vers des witness/@xml:id déclarés.</sch:assert>
+                <sch:assert test="not(tei:app)">rdg ne doit pas contenir app.</sch:assert>
+              </sch:rule>
+            </constraint>
+          </constraintSpec>
+        </elementSpec>
+
+        <elementSpec ident="hi" mode="change">
+          <desc>Segment en italique généré. La seule valeur attendue pour <att>rend</att> est <val>italic</val>. Un apparat <gi>app</gi> peut être contenu dans <gi>hi</gi> lorsque l'italique traverse une variante.</desc>
+          <attList>
+            <attDef ident="rend" usage="req">
+              <desc>Valeur attendue : <val>italic</val>.</desc>
+            </attDef>
+          </attList>
+          <constraintSpec ident="ets-racine-hi" scheme="schematron">
+            <constraint>
+              <sch:rule context="tei:hi">
+                <sch:assert test="@rend = 'italic'">hi/@rend doit valoir italic.</sch:assert>
+              </sch:rule>
+            </constraint>
+          </constraintSpec>
+        </elementSpec>
+
+        <elementSpec ident="listWit" mode="change">
+          <desc>Liste des témoins déclarés dans <gi>sourceDesc</gi> lorsque la configuration ETS fournit des témoins. Elle contient au moins un <gi>witness</gi>.</desc>
+        </elementSpec>
+
+        <elementSpec ident="witness" mode="change">
+          <desc>Témoin utilisé par les attributs <att>wit</att> de <gi>lem</gi> et <gi>rdg</gi>. Chaque témoin porte un <att>xml:id</att> obligatoire.</desc>
+          <attList>
+            <attDef ident="xml:id" usage="req">
+              <desc>Sigle du témoin, cible des références @wit.</desc>
+            </attDef>
+          </attList>
+          <constraintSpec ident="ets-racine-wit-targets-and-ids" scheme="schematron">
+            <constraint>
+              <sch:rule context="*">
+                <sch:assert test="not(@xml:id) or count(//*[@xml:id = current()/@xml:id]) = 1">Les xml:id structurels doivent être uniques.</sch:assert>
+              </sch:rule>
+              <sch:rule context="tei:l">
+                <sch:assert test="not(ancestor::tei:text/@xml:id) or starts-with(@xml:id, concat(ancestor::tei:text/@xml:id, '-'))">Les préfixes play_id-... sont la cible pour les xml:id de vers.</sch:assert>
+              </sch:rule>
+              <sch:rule context="tei:div">
+                <sch:assert test="not(@type='act' or @type='scene') or not(ancestor::tei:text/@xml:id) or starts-with(@xml:id, concat(ancestor::tei:text/@xml:id, '-'))">Les préfixes play_id-... sont la cible pour les xml:id d'actes et de scènes.</sch:assert>
+              </sch:rule>
+              <sch:rule context="tei:stage">
+                <sch:assert test="@type='personnages' or not(ancestor::tei:text/@xml:id) or starts-with(@xml:id, concat(ancestor::tei:text/@xml:id, '-'))">Les préfixes play_id-... sont la cible pour les xml:id de didascalies explicites et implicites.</sch:assert>
+              </sch:rule>
+            </constraint>
+          </constraintSpec>
+        </elementSpec>
+
+        <elementSpec ident="editor" mode="change">
+          <desc>Responsable scientifique déclaré dans l'en-tête généré lorsque la configuration fournit un éditeur.</desc>
+          <attList>
+            <attDef ident="role" usage="req">
+              <desc>Valeur attendue : <val>scientific</val>.</desc>
+            </attDef>
+          </attList>
+        </elementSpec>
+
+        <elementSpec ident="name" mode="change">
+          <desc>Nom de transcripteur dans <gi>respStmt</gi> lorsque la configuration ETS le fournit.</desc>
+          <attList>
+            <attDef ident="role" usage="opt">
+              <desc>Valeur attendue lorsqu'elle est présente : <val>transcriber</val>.</desc>
+            </attDef>
+          </attList>
+        </elementSpec>
+
+      </schemaSpec>
+    </body>
+  </text>
+</TEI>
