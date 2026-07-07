@@ -15,11 +15,11 @@ def _write_runtime_file(path: Path, content: str) -> None:
 
 def _runtime_config(path: Path) -> None:
     payload = {
-        "PrÃƒÂ©nom de l'auteur": "Jean",
+        "Prénom de l'auteur": "Jean",
         "Nom de l'auteur": "Racine",
-        "Titre de la piÃƒÂ¨ce": "Andromaque",
-        "Nom de l'ÃƒÂ©diteur (vous)": "Gheeraert",
-        "PrÃƒÂ©nom de l'ÃƒÂ©diteur": "ClÃƒÂ©mentine",
+        "Titre de la pièce": "Andromaque",
+        "Nom de l'éditeur (vous)": "Gheeraert",
+        "Prénom de l'éditeur": "Clémentine",
         "Temoins": [
             {"abbr": "A", "year": "1667", "desc": "A"},
             {"abbr": "B", "year": "1671", "desc": "B"},

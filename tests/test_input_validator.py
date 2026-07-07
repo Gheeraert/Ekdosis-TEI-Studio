@@ -314,11 +314,11 @@ def test_pipeline_surfaces_token_count_mismatch_during_input_validation() -> Non
     config_path.write_text(
         """
         {
-          "PrÃƒÆ’Ã‚Â©nom de l'auteur": "Jean",
+          "Prénom de l'auteur": "Jean",
           "Nom de l'auteur": "Racine",
-          "Titre de la piÃƒÆ’Ã‚Â¨ce": "Test",
-          "Nom de l'ÃƒÆ’Ã‚Â©diteur (vous)": "Editeur",
-          "PrÃƒÆ’Ã‚Â©nom de l'ÃƒÆ’Ã‚Â©diteur": "Test",
+          "Titre de la pièce": "Test",
+          "Nom de l'éditeur (vous)": "Editeur",
+          "Prénom de l'éditeur": "Test",
           "Temoins": [
             {"abbr": "A", "year": "1667", "desc": "A"},
             {"abbr": "B", "year": "1671", "desc": "B"}

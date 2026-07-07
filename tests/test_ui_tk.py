@@ -256,7 +256,7 @@ def test_restore_autosave_reloads_text_and_invalidates_outputs(monkeypatch: pyte
         autosave_base.mkdir(parents=True, exist_ok=True)
 
         store = AutosaveStore(base_dir=autosave_base)
-        store.save(AutosavePayload(text="Texte restaurÃ©"))
+        store.save(AutosavePayload(text="Texte restauré"))
 
         window = MainWindow(root, autosave_store=store)
         window.state.tei_xml = "<TEI/>"
@@ -269,7 +269,7 @@ def test_restore_autosave_reloads_text_and_invalidates_outputs(monkeypatch: pyte
 
         window.action_restore_autosave()
 
-        assert window.editor.get_text() == "Texte restaurÃ©"
+        assert window.editor.get_text() == "Texte restauré"
         assert window.state.tei_xml is None
         assert window.state.html_preview is None
         assert window.state.outputs_stale is True
@@ -1679,7 +1679,7 @@ def test_publication_dialog_multiselect_without_slug_creates_distinct_plays(monk
         assert not errors
         assert [item.play_slug for item in dialog._play_entries] == ["andromaque", "berenice"]
 
-        dialog.vars.corpus_title.set("ThÃ©Ã¢tre complet")
+        dialog.vars.corpus_title.set("Théâtre complet")
         dialog.vars.output_dir.set(str(runtime / "site_out"))
         request = dialog._build_request()
         assert len(request.plays) == 2
@@ -1958,7 +1958,7 @@ def test_publication_dialog_save_and_load_config_round_trip(monkeypatch: pytest.
         monkeypatch.setattr("tkinter.messagebox.showerror", lambda _title, message, **kwargs: errors.append(message))
 
         dialog.vars.author_name.set("Jean Racine")
-        dialog.vars.corpus_title.set("ThÃ©Ã¢tre complet")
+        dialog.vars.corpus_title.set("Théâtre complet")
         dialog.vars.scientific_editor.set("Caroline Labrune")
         dialog.vars.output_dir.set(str(output_dir))
         dialog.vars.home_page_tei.set(str(home_page_tei))
@@ -2000,7 +2000,7 @@ def test_publication_dialog_save_and_load_config_round_trip(monkeypatch: pytest.
 
         assert not errors
         assert dialog.vars.author_name.get() == "Jean Racine"
-        assert dialog.vars.corpus_title.get() == "ThÃ©Ã¢tre complet"
+        assert dialog.vars.corpus_title.get() == "Théâtre complet"
         assert dialog.vars.scientific_editor.get() == "Caroline Labrune"
         assert dialog.vars.home_page_tei.get() == str(home_page_tei.resolve())
         assert dialog.vars.general_intro_tei.get() == str(general_intro.resolve())
@@ -2590,7 +2590,7 @@ def test_selecting_line_range_annotation_focuses_first_line_and_range(monkeypatc
 
 def _two_witness_config() -> EditionConfig:
     return EditionConfig(
-        title="PhÃ¨dre",
+        title="Phèdre",
         author="Jean Racine",
         editor="Claire Martin",
         witnesses=[
@@ -2609,14 +2609,14 @@ Acteurs
 Acteurs
 %%fin_head%%
 
-%%cast id=thesee role="ThÃ©sÃ©e" desc="roi d'AthÃ¨nes" aliases="THESEE|THESEE."%%
-ThÃ©sÃ©e, roi d'AthÃ¨nes
-ThÃ©sÃ©e, Roi d'AthÃ¨nes
+%%cast id=thesee role="Thésée" desc="roi d'Athènes" aliases="THESEE|THESEE."%%
+Thésée, roi d'Athènes
+Thésée, Roi d'Athènes
 %%fin_cast%%
 
 %%setting%%
-La scÃ¨ne est Ã  TrÃ©zÃ¨ne.
-La Scene est Ã  TrÃ©zÃ¨ne.
+La scène est à Trézène.
+La Scene est à Trézène.
 %%fin_setting%%
 
 %%fin_castlist%%
@@ -2664,7 +2664,7 @@ def test_load_config_action_loads_configured_castlist_relative_to_config(
         assert window.state.config_path == config_path
         assert window.state.castlist_file_path == castlist_path
         assert "%%castlist%%" in window.castlist_editor.get_text()
-        assert "ThÃ©sÃ©e, roi d'AthÃ¨nes" in window.castlist_editor.get_text()
+        assert "Thésée, roi d'Athènes" in window.castlist_editor.get_text()
     finally:
         root.destroy()
 
@@ -2893,8 +2893,8 @@ def test_generate_tei_uses_config_directory_for_castlist_path(monkeypatch: pytes
         castlist_lines = [
             "%%castlist%%",
             "",
-            '%%cast id=thesee role="ThÃ©sÃ©e" desc="roi d\'AthÃ¨nes" aliases="THESEE"%%',
-            *["ThÃ©sÃ©e, roi d'AthÃ¨nes"] * len(base_config.witnesses),
+            '%%cast id=thesee role="Thésée" desc="roi d\'Athènes" aliases="THESEE"%%',
+            *["Thésée, roi d'Athènes"] * len(base_config.witnesses),
             "%%fin_cast%%",
             "",
             "%%fin_castlist%%",

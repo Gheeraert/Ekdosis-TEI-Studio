@@ -382,6 +382,47 @@ def test_save_config_writes_transcription_path_when_present() -> None:
     assert payload["transcription_path"] == "Esther.txt"
 
 
+def test_config_roundtrip_preserves_play_id() -> None:
+    original = EditionConfig(
+        title="La Thébaïde",
+        author="Jean Racine",
+        editor="Tony Gheeraert",
+        witnesses=[
+            Witness(siglum="A", year="1664", description="Originale"),
+            Witness(siglum="B", year="1697", description="Collective"),
+        ],
+        reference_witness=1,
+        transcriber="Caroline Labrune",
+        play_id="thebaide",
+    )
+    path = save_config(original, RUNTIME_DIR / "roundtrip_play_id.json")
+    payload = json.loads(path.read_text(encoding="utf-8"))
+
+    assert payload["play_id"] == "thebaide"
+
+    reloaded = load_config(path)
+    assert reloaded.play_id == "thebaide"
+    assert reloaded.title == "La Thébaïde"
+    assert reloaded.author == "Jean Racine"
+    assert reloaded.editor == "Tony Gheeraert"
+    assert reloaded.transcriber == "Caroline Labrune"
+    assert [witness.siglum for witness in reloaded.witnesses] == ["A", "B"]
+
+
+def test_save_config_omits_play_id_key_when_empty() -> None:
+    config = EditionConfig(
+        title="Bajazet",
+        author="Jean Racine",
+        editor="Tony Gheeraert",
+        witnesses=[Witness(siglum="A", year="1672", description="A")],
+        reference_witness=0,
+    )
+    saved_path = save_config(config, RUNTIME_DIR / "canonique_sans_play_id.json")
+    payload = json.loads(saved_path.read_text(encoding="utf-8"))
+
+    assert "play_id" not in payload
+
+
 def test_load_config_after_save_remains_compatible() -> None:
     original = EditionConfig(
         title="Britannicus",

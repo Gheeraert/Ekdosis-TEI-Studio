@@ -42,11 +42,11 @@ def test_shared_verse_two_segments_can_cross_successive_scenes() -> None:
     config_path = runtime_dir / "shared_cross_scene_config.json"
     input_path = runtime_dir / "shared_cross_scene_input.txt"
     config_payload = {
-        "PrÃƒÂ©nom de l'auteur": "Jean",
+        "Prénom de l'auteur": "Jean",
         "Nom de l'auteur": "Racine",
-        "Titre de la piÃƒÂ¨ce": "Test",
-        "Nom de l'ÃƒÂ©diteur (vous)": "Editeur",
-        "PrÃƒÂ©nom de l'ÃƒÂ©diteur": "Test",
+        "Titre de la pièce": "Test",
+        "Nom de l'éditeur (vous)": "Editeur",
+        "Prénom de l'éditeur": "Test",
         "Temoins": [
             {"abbr": "A", "year": "1667", "desc": "A"},
             {"abbr": "B", "year": "1671", "desc": "B"},

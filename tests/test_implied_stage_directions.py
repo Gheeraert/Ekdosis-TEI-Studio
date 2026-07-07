@@ -41,11 +41,11 @@ def _write_runtime_file(path: Path, content: str) -> None:
 
 def _write_runtime_config(path: Path) -> None:
     payload = {
-        "PrÃƒÂ©nom de l'auteur": "Racine",
+        "Prénom de l'auteur": "Racine",
         "Nom de l'auteur": "Racine",
-        "Titre de la piÃƒÂ¨ce": "BÃƒÂ©rÃƒÂ©nice",
-        "Nom de l'ÃƒÂ©diteur (vous)": "Gheeraert",
-        "PrÃƒÂ©nom de l'ÃƒÂ©diteur": "Tony",
+        "Titre de la pièce": "Bérénice",
+        "Nom de l'éditeur (vous)": "Gheeraert",
+        "Prénom de l'éditeur": "Tony",
         "Temoins": [
             {"abbr": "A", "year": "1671", "desc": "A"},
             {"abbr": "B", "year": "1676", "desc": "B"},
@@ -69,6 +69,12 @@ def test_implied_stage_direction_fixture_matches_expected_xml() -> None:
     expected_scene = expected.find(".//tei:div[@type='scene']", NS)
     assert actual_scene is not None and expected_scene is not None
     _assert_xml_equivalent(actual_scene, expected_scene)
+
+    text = actual.find(".//tei:text", NS)
+    act = actual.find(".//tei:div[@type='act']", NS)
+    assert text is not None and text.get(f"{{{XML_NS}}}id") == "berenice"
+    assert act is not None and act.get(f"{{{XML_NS}}}id") == "berenice-A1"
+    assert actual_scene.get(f"{{{XML_NS}}}id") == "berenice-A1S1"
 
     speech = actual.find(".//tei:sp", NS)
     assert speech is not None

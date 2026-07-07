@@ -149,14 +149,14 @@ def _realistic_prepared_config(tmp_path: Path) -> SitePublicationDialogConfig:
         extra_body="""
         <table>
           <row>
-            <cell>TÃ©moin</cell>
-            <cell>Description longue destinÃ©e Ã  revenir Ã  la ligne dans le PDF.</cell>
+            <cell>Témoin</cell>
+            <cell>Description longue destinée à revenir à la ligne dans le PDF.</cell>
             <cell>Note</cell>
           </row>
           <row>
             <cell>A</cell>
-            <cell>Tradition imprimÃ©e avec <hi rend="italic">variante</hi>.</cell>
-            <cell>UtilisÃ©.</cell>
+            <cell>Tradition imprimée avec <hi rend="italic">variante</hi>.</cell>
+            <cell>Utilisé.</cell>
           </row>
         </table>
         """,
@@ -281,7 +281,7 @@ def test_realistic_prepared_config_generates_per_play_publication_master(tmp_pat
     assert "% GENERAL INTRO intentionally omitted from per-play PDF." in master_text
     assert "% GENERAL INTRO source:" in master_text
     assert "Introduction generale du corpus." not in master_text
-    assert r"Tradition imprimÃ©e avec \emph{variante}." not in master_text
+    assert r"Tradition imprimée avec \emph{variante}." not in master_text
     assert r"\begin{tabular}{" not in master_text
     assert "% NOTICE:" in master_text
     assert "Notice scientifique d'Andromaque." in master_text

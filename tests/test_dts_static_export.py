@@ -262,7 +262,7 @@ def test_static_export_uses_generated_canonical_xml_ids_as_dts_references(tmp_pa
     warnings = export_dts_static(
         output,
         (_play(source),),
-        collection_title="ThÃ©Ã¢tre complet",
+        collection_title="Théâtre complet",
     )
 
     navigation_root = output / "api" / "dts" / "navigation" / "britannicus"

@@ -28,7 +28,6 @@ def _resolve_reference_witness(raw: dict[str, Any], witnesses: list[Witness], re
         "Temoin de reference",
         "Reference witness",
         "reference_witness",
-        "TÃ©moin de rÃ©fÃ©rence",
     ]
     legacy_keys = [
         "Témoin de base",
@@ -37,9 +36,6 @@ def _resolve_reference_witness(raw: dict[str, Any], witnesses: list[Witness], re
         "Temoin lemme",
         "Lemme",
         "Lemme témoin",
-        "TÃ©moin de base",
-        "TÃ©moin lemme",
-        "Lemme tÃ©moin",
     ]
     raw_value = _pick(raw, canonical_keys + legacy_keys, default=None)
     if raw_value is None or str(raw_value).strip() == "":
@@ -131,6 +127,8 @@ def _canonical_config_payload(config: EditionConfig) -> dict[str, Any]:
         payload["transcription_path"] = config.transcription_path.strip()
     if config.castlist_path.strip():
         payload["castlist_path"] = config.castlist_path.strip()
+    if config.play_id.strip():
+        payload["play_id"] = config.play_id.strip()
     return payload
 
 
@@ -138,16 +136,14 @@ def load_config(path: str | Path, reference_override: int | None = None) -> Edit
     config_path = Path(path)
     raw = json.loads(config_path.read_text(encoding="utf-8"))
 
-    author_first = _pick(raw, ["Prénom de l'auteur", "PrÃ©nom de l'auteur", "PrÃƒÂ©nom de l'auteur"])
+    author_first = _pick(raw, ["Prénom de l'auteur"])
     author_last = _pick(raw, ["Nom de l'auteur"])
-    title = _pick(raw, ["Titre de la pièce", "Titre de la piÃ¨ce", "Titre de la piÃƒÂ¨ce"])
+    title = _pick(raw, ["Titre de la pièce"])
     editor_first = _pick(
         raw,
         [
             "Prénom de l'éditeur scientifique",
             "Prénom de l'éditeur",
-            "PrÃ©nom de l'Ã©diteur",
-            "PrÃƒÂ©nom de l'ÃƒÂ©diteur",
         ],
     )
     editor_last = _pick(
@@ -155,11 +151,9 @@ def load_config(path: str | Path, reference_override: int | None = None) -> Edit
         [
             "Nom de l'éditeur scientifique",
             "Nom de l'éditeur (vous)",
-            "Nom de l'Ã©diteur (vous)",
-            "Nom de l'ÃƒÂ©diteur (vous)",
         ],
     )
-    transcriber_first = _pick(raw, ["Prénom du transcripteur", "PrÃ©nom du transcripteur"], default="")
+    transcriber_first = _pick(raw, ["Prénom du transcripteur"], default="")
     transcriber_last = _pick(raw, ["Nom du transcripteur"], default="")
 
     witnesses_raw = _pick(raw, ["Temoins"], [])

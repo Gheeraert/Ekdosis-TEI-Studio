@@ -16,11 +16,11 @@ def _write(path: Path, text: str) -> None:
 
 def _config(path: Path) -> None:
     payload = {
-        "PrÃƒÂ©nom de l'auteur": "Jean",
+        "Prénom de l'auteur": "Jean",
         "Nom de l'auteur": "Racine",
-        "Titre de la piÃƒÂ¨ce": "Test",
-        "Nom de l'ÃƒÂ©diteur (vous)": "Editeur",
-        "PrÃƒÂ©nom de l'ÃƒÂ©diteur": "Test",
+        "Titre de la pièce": "Test",
+        "Nom de l'éditeur (vous)": "Editeur",
+        "Prénom de l'éditeur": "Test",
         "Temoins": [
             {"abbr": "A", "year": "1667", "desc": "A"},
             {"abbr": "B", "year": "1671", "desc": "B"},
@@ -61,8 +61,8 @@ def test_scene_change_does_not_reuse_previous_speaker() -> None:
                 "##BETA##",
                 "##BETA##",
                 "",
-                "Ceci doit ÃƒÂ©chouer sans locuteur.",
-                "Ceci doit ÃƒÂ©chouer sans locuteur.",
+                "Ceci doit échouer sans locuteur.",
+                "Ceci doit échouer sans locuteur.",
             ]
         )
         + "\n",

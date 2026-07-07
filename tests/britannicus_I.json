@@ -1,12 +1,12 @@
 ﻿{
-    "PrÃ©nom de l'auteur": "Jean",
+    "Prénom de l'auteur": "Jean",
     "Nom de l'auteur": "Racine",
-    "Titre de la piÃ¨ce": "Britannicus",
-    "Nombre de scÃ¨nes dans l'acte": "4",
-    "Noms des personnages (sÃ©parÃ©s par virgule)": "Agrippine, Albine",
-    "Nombre de tÃ©moins": 5,
-    "Nom de l'Ã©diteur (vous)": "Labrune",
-    "PrÃ©nom de l'Ã©diteur": "Caroline",
+    "Titre de la pièce": "Britannicus",
+    "Nombre de scènes dans l'acte": "4",
+    "Noms des personnages (séparés par virgule)": "Agrippine, Albine",
+    "Nombre de témoins": 5,
+    "Nom de l'éditeur (vous)": "Labrune",
+    "Prénom de l'éditeur": "Caroline",
     "Temoins": [
         {
             "abbr": "A",
@@ -26,12 +26,12 @@
         {
             "abbr": "D",
             "year": "1697",
-            "desc": "DÃ©finitive"
+            "desc": "Définitive"
         },
         {
             "abbr": "E",
-            "year": "1670-RÃ©g.",
-            "desc": "PremiÃ¨re Ã©dition rÃ©gularisÃ©e"
+            "year": "1670-Rég.",
+            "desc": "Première édition régularisée"
         }
     ]
 }
