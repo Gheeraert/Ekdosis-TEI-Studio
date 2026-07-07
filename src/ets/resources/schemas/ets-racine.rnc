@@ -1,0 +1,183 @@
+default namespace = "http://www.tei-c.org/ns/1.0"
+namespace xml = "http://www.w3.org/XML/1998/namespace"
+datatypes xsd = "http://www.w3.org/2001/XMLSchema-datatypes"
+
+start = TEI
+
+TEI =
+  element TEI {
+    teiHeader,
+    text
+  }
+
+teiHeader =
+  element teiHeader {
+    element fileDesc {
+      titleStmt,
+      publicationStmt,
+      sourceDesc
+    }
+  }
+
+titleStmt =
+  element titleStmt {
+    element title { text },
+    element author { text },
+    editor?,
+    respStmt*
+  }
+
+editor =
+  element editor {
+    attribute role { "scientific" },
+    text
+  }
+
+respStmt =
+  element respStmt {
+    element resp { text },
+    element name { attribute role { "transcriber" }?, text }
+  }
+
+publicationStmt =
+  element publicationStmt {
+    element p { text }
+  }
+
+sourceDesc =
+  element sourceDesc {
+    listWit | p
+  }
+
+p =
+  element p { text }
+
+listWit =
+  element listWit {
+    witness+
+  }
+
+witness =
+  element witness {
+    attribute xml:id { xsd:ID },
+    text
+  }
+
+text =
+  element text {
+    attribute xml:id { xsd:ID },
+    body
+  }
+
+body =
+  element body {
+    actDiv+
+  }
+
+actDiv =
+  element div {
+    attribute type { "act" },
+    attribute n { text },
+    attribute xml:id { xsd:ID },
+    head,
+    sceneDiv+
+  }
+
+sceneDiv =
+  element div {
+    attribute type { "scene" },
+    attribute n { text },
+    attribute xml:id { xsd:ID },
+    head,
+    personnagesStage?,
+    explicitStage*,
+    sp+
+  }
+
+head = element head { mixed { inline* } }
+
+personnagesStage =
+  element stage {
+    attribute type { "personnages" },
+    mixed { inline* }
+  }
+
+explicitStage =
+  element stage {
+    attribute xml:id { xsd:ID },
+    mixed { inline* }
+  }
+
+implicitStage =
+  element stage {
+    attribute type { "DI" },
+    attribute xml:id { xsd:ID },
+    attribute ana {
+      "#SPC" | "#ASP" | "#TMP" | "#EVT" | "#SET" | "#PROX" | "#ATT" | "#VOI"
+    },
+    l+
+  }
+
+sp =
+  element sp {
+    attribute who { text }?,
+    speaker,
+    (l | lg | explicitStage | implicitStage)+
+  }
+
+speaker = element speaker { mixed { inline* } }
+
+lg =
+  element lg {
+    attribute type { "stanza" },
+    attribute subtype { text }?,
+    attribute rhyme { text }?,
+    l+
+  }
+
+l =
+  element l {
+    attribute n { text },
+    attribute xml:id { xsd:ID },
+    attribute met { text }?,
+    mixed { inline* }
+  }
+
+inline = app | hi
+
+readingInline = hi
+
+app =
+  element app {
+    (minorAppAttributes | empty),
+    lem,
+    rdg+
+  }
+
+minorAppAttributes =
+  attribute type { "minor" },
+  attribute subtype {
+    "graphic" | "punctuation" | "mixed" | "case" | "spacing" | "identical"
+  },
+  attribute ana { text },
+  attribute cert { "low" }?
+
+lem =
+  element lem {
+    attribute wit { text },
+    attribute type { "omission" }?,
+    mixed { readingInline* }
+  }
+
+rdg =
+  element rdg {
+    attribute wit { text },
+    attribute type { "omission" }?,
+    mixed { readingInline* }
+  }
+
+hi =
+  element hi {
+    attribute rend { "italic" },
+    mixed { inline* }
+  }
