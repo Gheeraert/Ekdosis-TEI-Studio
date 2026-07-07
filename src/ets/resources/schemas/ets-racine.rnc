@@ -16,7 +16,8 @@ teiHeader =
       titleStmt,
       publicationStmt,
       sourceDesc
-    }
+    },
+    encodingDesc
   }
 
 titleStmt =
@@ -61,6 +62,19 @@ witness =
   element witness {
     attribute xml:id { xsd:ID },
     text
+  }
+
+encodingDesc =
+  element encodingDesc {
+    schemaRef+
+  }
+
+schemaRef =
+  element schemaRef {
+    attribute key { "ets-racine" | "ets-racine-rnc" | "ets-racine-sch" },
+    attribute type { "projectODD" | "validationRNC" | "validationSchematron" },
+    attribute url { text },
+    element desc { text }?
   }
 
 text =

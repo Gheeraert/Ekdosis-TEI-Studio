@@ -67,7 +67,15 @@
         </elementSpec>
 
         <elementSpec ident="teiHeader" mode="change">
-          <desc>En-tête minimal du document généré. Il contient <gi>fileDesc</gi>, avec <gi>titleStmt</gi>, <gi>publicationStmt</gi> et <gi>sourceDesc</gi>.</desc>
+          <desc>En-tête minimal du document généré. Il contient <gi>fileDesc</gi>, avec <gi>titleStmt</gi>, <gi>publicationStmt</gi> et <gi>sourceDesc</gi>, puis <gi>encodingDesc</gi> pour référencer le profil ODD ETS-Racine et les schémas opérationnels publiés.</desc>
+        </elementSpec>
+
+        <elementSpec ident="encodingDesc" mode="change">
+          <desc>Description de l'encodage généré. Dans le profil ETS-Racine, il contient les <gi>schemaRef</gi> pointant vers l'ODD, le RNC et le Schematron du profil.</desc>
+        </elementSpec>
+
+        <elementSpec ident="schemaRef" mode="change">
+          <desc>Référence déclarative au profil ETS-Racine. Le profil généré utilise <att>type</att>=<val>projectODD</val> pour l'ODD, <att>type</att>=<val>validationRNC</val> pour la grammaire Relax NG compacte et <att>type</att>=<val>validationSchematron</val> pour les contraintes métier.</desc>
         </elementSpec>
 
         <elementSpec ident="text" mode="change">

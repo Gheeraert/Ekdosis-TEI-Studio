@@ -1,12 +1,15 @@
 from __future__ import annotations
 
 from dataclasses import replace
+from importlib import resources
+import os
 import shutil
 import time
 from pathlib import Path
 
 from ets.dts import export_dts_static
 from ets.search import export_static_search_index
+from ets.tei.generator import with_tei_profile_references
 
 from .config import load_site_config
 from .manifest import build_site_manifest
@@ -16,6 +19,11 @@ from .render import render_home_page, render_notice_page, render_play_page, rend
 _SUPPORTED_AUTO_LOGO_EXTENSIONS = {".png", ".jpg", ".jpeg", ".svg", ".webp"}
 _AFFILIATION_BANNER_FILENAME = "banniere_affiliation.png"
 _DEFAULT_PDF_DOWNLOAD_RELPATH = "downloads/edition-complete.pdf"
+_TEI_PROFILE_RESOURCES = (
+    ("odd", "ets-racine.odd"),
+    ("schemas", "ets-racine.rnc"),
+    ("schemas", "ets-racine.sch"),
+)
 
 def _banner_search_roots(config: SiteConfig) -> tuple[Path, ...]:
     roots: list[Path] = []
@@ -167,7 +175,12 @@ def _copy_xml_sources(
             continue
         target = output_root / play.xml_download_relpath
         target.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(play.source_path, target)
+        profile_base_href = os.path.relpath(output_root / "tei-profile", start=target.parent).replace(os.sep, "/")
+        xml_text = play.source_path.read_text(encoding="utf-8")
+        target.write_text(
+            with_tei_profile_references(xml_text, profile_base_href=profile_base_href),
+            encoding="utf-8",
+        )
 
         if play.txt_download_relpath:
             transcription_source = play.source_path.with_suffix(".txt")
@@ -182,6 +195,16 @@ def _copy_xml_sources(
         target = output_root / notice.xml_download_relpath
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(notice.source_path, target)
+
+
+def _copy_tei_profile_resources(output_root: Path) -> None:
+    profile_dir = output_root / "tei-profile"
+    profile_dir.mkdir(parents=True, exist_ok=True)
+    resource_root = resources.files("ets.resources")
+    for resource_dir, filename in _TEI_PROFILE_RESOURCES:
+        source = resource_root / resource_dir / filename
+        with resources.as_file(source) as source_path:
+            shutil.copy2(source_path, profile_dir / filename)
 
 
 def _export_dts_static(output_root: Path, manifest: SiteManifest, warnings: list[str]) -> None:
@@ -381,6 +404,7 @@ def build_static_site(config: SiteConfig) -> BuildResult:
 
     copied_assets = _copy_assets(normalized_config, output_root, warnings)
     _copy_xml_sources(output_root=output_root, plays=manifest.plays, notices=manifest.notices)
+    _copy_tei_profile_resources(output_root)
     if normalized_config.enable_dts:
         _export_dts_static(output_root, manifest, warnings)
     if normalized_config.enable_search_index:

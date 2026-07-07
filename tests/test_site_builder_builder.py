@@ -3,6 +3,7 @@
 import shutil
 from pathlib import Path
 from uuid import uuid4
+import xml.etree.ElementTree as ET
 
 from lxml import html as lxml_html
 
@@ -25,6 +26,7 @@ ROOT = Path(__file__).resolve().parents[1]
 FIXTURE_ROOT = ROOT / "fixtures" / "site_builder" / "minimal"
 METOPES_MINIMAL = ROOT / "fixtures" / "metopes" / "minimal"
 RUNTIME_ROOT = ROOT / "tests" / "_runtime"
+TEI_NS = {"tei": "http://www.tei-c.org/ns/1.0"}
 
 
 def _runtime_dir(prefix: str) -> Path:
@@ -60,7 +62,55 @@ def test_builder_generates_index_and_secondary_pages() -> None:
     assert (output_dir / "notices" / "andromaque-notice.html").exists()
     assert (output_dir / "xml" / "dramatic" / "andromaque.xml").exists()
     assert (output_dir / "xml" / "dramatic" / "berenice.xml").exists()
+    for filename in ("ets-racine.odd", "ets-racine.rnc", "ets-racine.sch"):
+        profile_resource = output_dir / "tei-profile" / filename
+        assert profile_resource.exists()
+        assert profile_resource.stat().st_size > 0
     assert len(result.generated_pages) >= 4
+
+
+def test_builder_published_play_xml_points_to_copied_tei_profile_without_touching_notices() -> None:
+    base_dir = _runtime_dir("site_builder_tei_profile_xml")
+    output_dir = base_dir / "site_profile_xml"
+    config = site_config_from_dict(
+        {
+            "site_title": "ETS Demo",
+            "dramatic_xml_dir": str(FIXTURE_ROOT / "dramatic"),
+            "notice_xml_dir": str(FIXTURE_ROOT / "notices"),
+            "output_dir": str(output_dir),
+            "show_xml_download": True,
+            "publish_notices": True,
+            "play_notice_map": {"andromaque": "andromaque-notice"},
+        }
+    )
+
+    build_static_site(config)
+
+    play_xml_path = output_dir / "xml" / "dramatic" / "andromaque.xml"
+    play_xml = play_xml_path.read_text(encoding="utf-8")
+    assert play_xml.count("xml-model") == 2
+    assert play_xml.count("ets-racine.rnc") == 2
+    assert play_xml.count("ets-racine.sch") == 2
+    assert 'href="../../tei-profile/ets-racine.rnc"' in play_xml
+    assert 'href="../../tei-profile/ets-racine.sch"' in play_xml
+
+    play_root = ET.fromstring(play_xml)
+    schema_refs = play_root.findall(".//tei:teiHeader/tei:encodingDesc/tei:schemaRef", TEI_NS)
+    project_odd_refs = [
+        ref for ref in schema_refs if ref.get("key") == "ets-racine" or ref.get("type") == "projectODD"
+    ]
+    assert len(project_odd_refs) == 1
+    assert project_odd_refs[0].get("url") == "../../tei-profile/ets-racine.odd"
+    assert len([ref for ref in schema_refs if ref.get("type") == "validationRNC"]) == 1
+    assert len([ref for ref in schema_refs if ref.get("type") == "validationSchematron"]) == 1
+
+    notice_xml_path = output_dir / "xml" / "notices" / "andromaque-notice.xml"
+    assert notice_xml_path.exists()
+    notice_xml = notice_xml_path.read_text(encoding="utf-8")
+    assert "xml-model" not in notice_xml
+    assert "ets-racine.odd" not in notice_xml
+    assert "ets-racine.rnc" not in notice_xml
+    assert "ets-racine.sch" not in notice_xml
 
 
 def test_builder_generates_cross_links_and_home_intro_from_explicit_mapping() -> None:

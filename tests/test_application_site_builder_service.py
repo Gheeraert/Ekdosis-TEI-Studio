@@ -177,7 +177,14 @@ def test_site_builder_service_build_from_publication_request_single_play_uses_on
     assert "plays/andromaque.html" in result.generated_page_relpaths
     copied_xml = output_dir / "xml" / "dramatic" / "andromaque.xml"
     assert copied_xml.exists()
-    assert copied_xml.read_text(encoding="utf-8") == source_xml.read_text(encoding="utf-8")
+    copied_xml_text = copied_xml.read_text(encoding="utf-8")
+    source_xml_text = source_xml.read_text(encoding="utf-8")
+    assert "ets-racine.rnc" not in source_xml_text
+    assert "ets-racine.sch" not in source_xml_text
+    assert "ets-racine.odd" not in source_xml_text
+    assert 'href="../../tei-profile/ets-racine.rnc"' in copied_xml_text
+    assert 'href="../../tei-profile/ets-racine.sch"' in copied_xml_text
+    assert 'url="../../tei-profile/ets-racine.odd"' in copied_xml_text
 
 
 def test_site_builder_service_publication_request_copies_publication_pdf() -> None:

@@ -36,6 +36,36 @@ def test_tei_header_keeps_config_metadata_and_clean_listwit_structure() -> None:
     assert [w.attrib.get(XML_ID) for w in witnesses] == [w.siglum for w in config.witnesses]
 
 
+def test_generated_tei_declares_ets_racine_profile_models_and_schema_refs() -> None:
+    root = Path(__file__).resolve().parents[1]
+    fixture_dir = root / "fixtures" / "stable"
+    input_text = (fixture_dir / "input.txt").read_text(encoding="utf-8")
+    config = load_config(fixture_dir / "config.json")
+
+    tei_xml = run_pipeline_from_text(input_text, config)
+    xml_root = ET.fromstring(tei_xml)
+
+    assert tei_xml.startswith('<?xml version="1.0" encoding="UTF-8"?>')
+    assert (
+        '<?xml-model href="tei-profile/ets-racine.rnc" '
+        'type="application/relax-ng-compact-syntax"?>'
+    ) in tei_xml
+    assert (
+        '<?xml-model href="tei-profile/ets-racine.sch" type="application/xml" '
+        'schematypens="http://purl.oclc.org/dsdl/schematron"?>'
+    ) in tei_xml
+
+    encoding_desc = xml_root.find(".//tei:teiHeader/tei:encodingDesc", namespaces=TEI_NS)
+    assert encoding_desc is not None
+    schema_refs = {
+        (schema_ref.attrib.get("key"), schema_ref.attrib.get("type")): schema_ref.attrib.get("url")
+        for schema_ref in encoding_desc.findall("tei:schemaRef", namespaces=TEI_NS)
+    }
+    assert schema_refs[("ets-racine", "projectODD")] == "tei-profile/ets-racine.odd"
+    assert schema_refs[("ets-racine-rnc", "validationRNC")] == "tei-profile/ets-racine.rnc"
+    assert schema_refs[("ets-racine-sch", "validationSchematron")] == "tei-profile/ets-racine.sch"
+
+
 def test_tei_header_includes_optional_transcriber_respstmt() -> None:
     root = Path(__file__).resolve().parents[1]
     fixture_dir = root / "fixtures" / "stable"

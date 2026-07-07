@@ -17,6 +17,13 @@
         </listWit>
       </sourceDesc>
     </fileDesc>
+    <encodingDesc>
+      <schemaRef key="ets-racine" type="projectODD" url="tei-profile/ets-racine.odd">
+        <desc>Profil ODD ETS-Racine décrivant la TEI dramatique générée par Ekdosis-TEI Studio.</desc>
+      </schemaRef>
+      <schemaRef key="ets-racine-rnc" type="validationRNC" url="tei-profile/ets-racine.rnc" />
+      <schemaRef key="ets-racine-sch" type="validationSchematron" url="tei-profile/ets-racine.sch" />
+    </encodingDesc>
   </teiHeader>
   <text xml:id="berenice">
     <body>

@@ -27,9 +27,124 @@ TEI_NS = "http://www.tei-c.org/ns/1.0"
 XML_NS = "http://www.w3.org/XML/1998/namespace"
 ET.register_namespace("", TEI_NS)
 
+_XML_DECLARATION = '<?xml version="1.0" encoding="UTF-8"?>'
+_TEI_PROFILE_ODD = "ets-racine.odd"
+_TEI_PROFILE_RNC = "ets-racine.rnc"
+_TEI_PROFILE_SCH = "ets-racine.sch"
+_TEI_PROFILE_SCHEMA_KEYS = {
+    "ets-racine",
+    "ets-racine-rnc",
+    "ets-racine-sch",
+}
+_TEI_PROFILE_SCHEMA_TYPES = {
+    "projectODD",
+    "validationRNC",
+    "validationSchematron",
+}
+
 
 def _tei(tag: str) -> str:
     return f"{{{TEI_NS}}}{tag}"
+
+
+def _tei_profile_href(profile_base_href: str, filename: str) -> str:
+    if not profile_base_href:
+        return filename
+    return f"{profile_base_href.rstrip('/')}/{filename}"
+
+
+def _xml_model_processing_instructions(*, profile_base_href: str) -> tuple[str, str]:
+    rnc_href = _tei_profile_href(profile_base_href, _TEI_PROFILE_RNC)
+    sch_href = _tei_profile_href(profile_base_href, _TEI_PROFILE_SCH)
+    return (
+        f'<?xml-model href="{rnc_href}" type="application/relax-ng-compact-syntax"?>',
+        f'<?xml-model href="{sch_href}" type="application/xml" '
+        'schematypens="http://purl.oclc.org/dsdl/schematron"?>',
+    )
+
+
+def _strip_tei_profile_xml_models(xml: str) -> str:
+    pattern = re.compile(r"<\?xml-model\b[^?]*(?:ets-racine\.rnc|ets-racine\.sch)[^?]*\?>\s*")
+    return pattern.sub("", xml)
+
+
+def _prepend_xml_model_processing_instructions(xml: str, *, profile_base_href: str) -> str:
+    xml = _strip_tei_profile_xml_models(xml).lstrip()
+    processing_instructions = "\n".join(
+        _xml_model_processing_instructions(profile_base_href=profile_base_href)
+    )
+    if xml.startswith("<?xml"):
+        declaration_end = xml.find("?>")
+        if declaration_end >= 0:
+            declaration = _XML_DECLARATION
+            rest = xml[declaration_end + 2 :].lstrip()
+            return f"{declaration}\n{processing_instructions}\n{rest}"
+    return f"{_XML_DECLARATION}\n{processing_instructions}\n{xml}"
+
+
+def add_tei_profile_header_references(root: ET.Element, *, profile_base_href: str) -> None:
+    tei_header = root.find(_tei("teiHeader"))
+    if tei_header is None:
+        tei_header = ET.SubElement(root, _tei("teiHeader"))
+
+    encoding_desc = tei_header.find(_tei("encodingDesc"))
+    if encoding_desc is None:
+        file_desc = tei_header.find(_tei("fileDesc"))
+        insert_at = list(tei_header).index(file_desc) + 1 if file_desc is not None else len(tei_header)
+        encoding_desc = ET.Element(_tei("encodingDesc"))
+        tei_header.insert(insert_at, encoding_desc)
+
+    for schema_ref in list(encoding_desc.findall(_tei("schemaRef"))):
+        if (
+            schema_ref.get("key") in _TEI_PROFILE_SCHEMA_KEYS
+            or schema_ref.get("type") in _TEI_PROFILE_SCHEMA_TYPES
+            or "ets-racine." in (schema_ref.get("url") or "")
+        ):
+            encoding_desc.remove(schema_ref)
+
+    odd_ref = ET.SubElement(
+        encoding_desc,
+        _tei("schemaRef"),
+        {
+            "key": "ets-racine",
+            "type": "projectODD",
+            "url": _tei_profile_href(profile_base_href, _TEI_PROFILE_ODD),
+        },
+    )
+    ET.SubElement(odd_ref, _tei("desc")).text = (
+        "Profil ODD ETS-Racine décrivant la TEI dramatique générée par Ekdosis-TEI Studio."
+    )
+    ET.SubElement(
+        encoding_desc,
+        _tei("schemaRef"),
+        {
+            "key": "ets-racine-rnc",
+            "type": "validationRNC",
+            "url": _tei_profile_href(profile_base_href, _TEI_PROFILE_RNC),
+        },
+    )
+    ET.SubElement(
+        encoding_desc,
+        _tei("schemaRef"),
+        {
+            "key": "ets-racine-sch",
+            "type": "validationSchematron",
+            "url": _tei_profile_href(profile_base_href, _TEI_PROFILE_SCH),
+        },
+    )
+
+
+def serialize_tei_with_profile_references(root: ET.Element, *, profile_base_href: str = "tei-profile/") -> str:
+    add_tei_profile_header_references(root, profile_base_href=profile_base_href)
+    tree = ET.ElementTree(root)
+    ET.indent(tree, "  ")
+    xml_body = ET.tostring(root, encoding="unicode")
+    return _prepend_xml_model_processing_instructions(xml_body, profile_base_href=profile_base_href)
+
+
+def with_tei_profile_references(xml: str, *, profile_base_href: str = "tei-profile/") -> str:
+    root = ET.fromstring(_strip_tei_profile_xml_models(xml))
+    return serialize_tei_with_profile_references(root, profile_base_href=profile_base_href)
 
 
 def slugify_play_id(value: str) -> str:
@@ -441,6 +556,7 @@ def generate_tei_xml(
     *,
     front_elements: list[ET.Element] | None = None,
     characters: list[Character] | None = None,
+    profile_base_href: str = "tei-profile/",
 ) -> str:
     tei = ET.Element(_tei("TEI"))
     tei_header = ET.SubElement(tei, _tei("teiHeader"))
@@ -558,6 +674,4 @@ def generate_tei_xml(
                         )
 
     materialize_act_scene_line_xml_ids(tei)
-    tree = ET.ElementTree(tei)
-    ET.indent(tree, "  ")
-    return ET.tostring(tei, encoding="utf-8", xml_declaration=True).decode("utf-8")
+    return serialize_tei_with_profile_references(tei, profile_base_href=profile_base_href)
