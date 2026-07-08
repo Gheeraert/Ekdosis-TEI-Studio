@@ -10,3 +10,10 @@ dependencies = [
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+
+[tool.setuptools.package-data]
+"ets.resources" = [
+    "odd/*.odd",
+    "schemas/*.rnc",
+    "schemas/*.sch",
+]
