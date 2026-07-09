@@ -192,14 +192,11 @@
           }
           .variation-empty {
             display: inline-block;
-            min-width: 0.65em;
-            text-align: center;
-          }
-          .variation-empty::before {
-            content: "\25E6";
-            color: #8b5e3c;
-            font-size: 0.8em;
+            min-width: 0.75em;
+            min-height: 1em;
             line-height: 1;
+            vertical-align: baseline;
+            text-align: center;
           }
           .variation::after {
             content: attr(data-tooltip);

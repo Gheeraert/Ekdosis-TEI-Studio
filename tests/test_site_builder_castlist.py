@@ -167,9 +167,12 @@ def test_structured_dramatis_python_renderer_keeps_empty_lemma_empty(tmp_path: P
     assert addition.get("tabindex") == "0"
     assert "vraiment" in (addition.get("data-tooltip") or "")
     assert addition.text_content() == ""
+    assert "\\25E6" not in play_html
+    assert "min-height: 1em" in play_html
 
     dramatis_text = doc.xpath("//section[@id='dramatis-personae']")[0].text_content()
     assert "vraiment" not in dramatis_text
+    assert "\u25e6" not in dramatis_text
 
     omission = doc.xpath("(//section[@id='dramatis-personae']//span[contains(@class, 'variation')])[2]")[0]
     assert "variation-empty" not in (omission.get("class") or "")

@@ -725,16 +725,11 @@ def _layout(
     .content-shell-play .dramatic-content .variation-empty,
     .content-shell-play .dramatis-personae-block .variation-empty {{
       display: inline-block;
-      min-width: 0.65em;
-      text-align: center;
-    }}
-
-    .content-shell-play .dramatic-content .variation-empty::before,
-    .content-shell-play .dramatis-personae-block .variation-empty::before {{
-      content: "\\25E6";
-      color: var(--accent);
-      font-size: 0.8em;
+      min-width: 0.75em;
+      min-height: 1em;
       line-height: 1;
+      vertical-align: baseline;
+      text-align: center;
     }}
     
     

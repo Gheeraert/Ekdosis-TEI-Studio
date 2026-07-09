@@ -476,7 +476,9 @@ def test_html_preview_marks_empty_active_reading_variant_anchors_without_text_po
     assert ordinary_variant.get("tabindex") is None
     assert "donne" in (ordinary_variant.get("data-tooltip") or "")
 
+    assert "\\25E6" not in preview
     assert "\u25e6" not in preview
     assert "\u25e6" not in doc.text_content()
+    assert "min-height: 1em" in preview
     assert "Cas A suite." in lines[0].text_content()
     assert "Cas B suite." in lines[1].text_content()
