@@ -168,6 +168,14 @@ def resolve_play_id(config: EditionConfig) -> str:
     return slugify_play_id(config.play_id or config.title)
 
 
+def tei_character_xml_id(character_id: str) -> str:
+    """Return the TEI xml:id used for a character authority entry."""
+    character_id = character_id.strip()
+    if character_id.startswith("char-"):
+        return character_id
+    return f"char-{character_id}"
+
+
 def _wit_attr(sigla: list[str]) -> str:
     return " ".join(f"#{siglum}" for siglum in sigla)
 
@@ -656,7 +664,7 @@ def generate_tei_xml(
                 if authority_characters and speech.speaker_readings:
                     resolution = resolve_speaker_block(speech.speaker_readings, authority_characters)
                     if resolution.status == "resolved" and resolution.character_id is not None:
-                        sp_attrs["who"] = f"#{resolution.character_id}"
+                        sp_attrs["who"] = f"#{tei_character_xml_id(resolution.character_id)}"
                 sp = ET.SubElement(scene_div, _tei("sp"), sp_attrs)
                 speaker = ET.SubElement(sp, _tei("speaker"))
                 _append_collated_text(speaker, speech.speaker)

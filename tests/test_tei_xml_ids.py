@@ -160,6 +160,63 @@ def test_generated_tei_materializes_act_scene_line_ids_and_shared_line_ids() -> 
     assert len(shared_ids) == len(set(shared_ids))
 
 
+def test_character_id_does_not_collide_with_play_id_and_who_uses_prefixed_id(tmp_path: Path) -> None:
+    castlist_path = tmp_path / "britannicus_castlist.txt"
+    castlist_path.write_text(
+        "\n".join(
+            [
+                "%%castlist%%",
+                '%%cast id=britannicus role="Britannicus" aliases="BRITANNICUS"%%',
+                "Britannicus",
+                "Britannicus",
+                "%%fin_cast%%",
+                "%%fin_castlist%%",
+            ]
+        ),
+        encoding="utf-8",
+    )
+    config = EditionConfig(
+        title="Britannicus",
+        author="Jean Racine",
+        editor="Editeur",
+        witnesses=[
+            Witness(siglum="A", year="1670", description="temoin A"),
+            Witness(siglum="B", year="1671", description="temoin B"),
+        ],
+        reference_witness=0,
+        castlist_path=castlist_path.name,
+    )
+    text = "\n".join(
+        [
+            "####ACTE I####",
+            "####ACTE I####",
+            "",
+            "###SCENE I###",
+            "###SCENE I###",
+            "",
+            "#BRITANNICUS#",
+            "#BRITANNICUS#",
+            "",
+            "Premier vers",
+            "Premier vers",
+        ]
+    )
+    root = ET.fromstring(run_pipeline_from_text(text, config, castlist_base_dir=tmp_path))
+
+    text_element = root.find(".//tei:text", NS)
+    cast_item = root.find(".//tei:castItem", NS)
+    speech = root.find(".//tei:sp", NS)
+    xml_ids = [value for element in root.iter() for value in [_xml_id(element)] if value]
+
+    assert text_element is not None and _xml_id(text_element) == "britannicus"
+    assert cast_item is not None and _xml_id(cast_item) == "char-britannicus"
+    assert "britannicus-A1" in xml_ids
+    assert "britannicus-A1S1" in xml_ids
+    assert "britannicus-A1S1L1" in xml_ids
+    assert len(xml_ids) == len(set(xml_ids))
+    assert speech is not None and speech.get("who") == "#char-britannicus"
+
+
 def test_generated_tei_ids_stay_aligned_with_dts_search_and_html(tmp_path: Path) -> None:
     dramatic_dir = tmp_path / "dramatic"
     output_dir = tmp_path / "site"

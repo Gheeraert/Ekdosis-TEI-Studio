@@ -70,7 +70,7 @@ def test_generates_castlist_and_castitem_xml_id() -> None:
 
     assert cast_list is not None
     assert cast_item is not None
-    assert cast_item.attrib[XML_ID] == "thesee"
+    assert cast_item.attrib[XML_ID] == "char-thesee"
 
 
 def test_cast_id_is_not_duplicated_on_role() -> None:

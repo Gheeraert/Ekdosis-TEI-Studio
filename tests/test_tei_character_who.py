@@ -84,7 +84,7 @@ def test_tei_known_single_speaker_gets_who() -> None:
     characters = [Character(id="char001", label="Hermione", aliases=["HERMIONE"])]
     sp = _first_sp(run_pipeline_from_text(_text(["HERMIONE", "HERMIONE"]), _config(characters)))
 
-    assert sp.attrib["who"] == "#char001"
+    assert sp.attrib["who"] == "#char-char001"
 
 
 def test_tei_castlist_character_authority_sets_who() -> None:
@@ -96,7 +96,7 @@ def test_tei_castlist_character_authority_sets_who() -> None:
     )
     sp = _first_sp(xml_text)
 
-    assert sp.attrib["who"] == "#neron"
+    assert sp.attrib["who"] == "#char-neron"
 
 
 def test_tei_castlist_character_authority_leaves_unresolved_speaker_without_who() -> None:
@@ -115,7 +115,7 @@ def test_tei_speaker_variants_resolved_to_same_character_get_who() -> None:
     characters = [Character(id="char001", label="Hermione", aliases=["HERMIONNE.", "HERMIONE"])]
     sp = _first_sp(run_pipeline_from_text(_text(["HERMIONNE.", "HERMIONE"]), _config(characters)))
 
-    assert sp.attrib["who"] == "#char001"
+    assert sp.attrib["who"] == "#char-char001"
 
 
 def test_tei_unknown_speaker_form_gets_no_who() -> None:
@@ -149,5 +149,12 @@ def test_tei_speaker_content_is_not_replaced_by_canonical_label() -> None:
     characters = [Character(id="char001", label="Hermione", aliases=["HERMIONNE."])]
     sp = _first_sp(run_pipeline_from_text(_text(["HERMIONNE.", "HERMIONNE."]), _config(characters)))
 
-    assert sp.attrib["who"] == "#char001"
+    assert sp.attrib["who"] == "#char-char001"
     assert _speaker_text(sp) == "HERMIONNE."
+
+
+def test_tei_character_id_already_prefixed_is_not_prefixed_again() -> None:
+    characters = [Character(id="char-hermione", label="Hermione", aliases=["HERMIONE"])]
+    sp = _first_sp(run_pipeline_from_text(_text(["HERMIONE", "HERMIONE"]), _config(characters)))
+
+    assert sp.attrib["who"] == "#char-hermione"

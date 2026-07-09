@@ -4,7 +4,7 @@ import xml.etree.ElementTree as ET
 
 from ets.collation import collate_parallel_text
 from ets.domain import DramatisPersonae, EditionConfig
-from ets.tei.generator import _append_collated_text, _tei
+from ets.tei.generator import _append_collated_text, _tei, tei_character_xml_id
 
 
 def _append_readings(parent: ET.Element, readings: list[str], config: EditionConfig) -> None:
@@ -26,7 +26,7 @@ def build_castlist_tei_element(dramatis_personae: DramatisPersonae, config: Edit
 
     cast_list = ET.SubElement(root, _tei("castList"))
     for entry in dramatis_personae.entries:
-        cast_item = ET.SubElement(cast_list, _tei("castItem"), {"xml:id": entry.id})
+        cast_item = ET.SubElement(cast_list, _tei("castItem"), {"xml:id": tei_character_xml_id(entry.id)})
         ET.SubElement(cast_item, _tei("role")).text = entry.role
         if entry.desc:
             ET.SubElement(cast_item, _tei("roleDesc")).text = entry.desc

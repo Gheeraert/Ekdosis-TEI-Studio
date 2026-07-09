@@ -106,7 +106,7 @@ def test_witness_ids_are_not_prefixed() -> None:
     assert [witness.get("xml:id") or _xml_id(witness) for witness in witnesses] == ["A", "B"]
 
 
-def test_character_ids_and_who_are_not_prefixed() -> None:
+def test_character_ids_and_who_are_prefixed() -> None:
     root = _generate(
         "Bajazet",
         characters=[Character(id="agrippine", label="AGRIPPINE")],
@@ -114,7 +114,7 @@ def test_character_ids_and_who_are_not_prefixed() -> None:
     speech = root.find(".//tei:sp", NS)
 
     assert speech is not None
-    assert speech.get("who") == "#agrippine"
+    assert speech.get("who") == "#char-agrippine"
 
 
 def test_play_id_slugifies_titles() -> None:
