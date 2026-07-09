@@ -198,13 +198,30 @@
             vertical-align: baseline;
             text-align: center;
           }
-          .variant-display-options {
-            margin: 0 0 1em 9em;
+          .apparatus-controls {
+            position: fixed;
+            top: calc(var(--site-header-offset, 0px) + 0.75rem);
+            right: 1rem;
+            z-index: 1700;
+            width: min(18rem, calc(100vw - 2rem));
+            max-height: calc(100vh - var(--site-header-offset, 0px) - 1.5rem);
+            overflow: auto;
+            padding: 0.65rem 0.75rem;
+            border: 1px solid #d2b47c;
+            border-radius: 6px;
+            background: rgba(254, 253, 248, 0.96);
+            box-shadow: 0 6px 18px rgba(74, 60, 26, 0.14);
             font-family: 'Source Sans Pro', sans-serif;
             font-size: 0.88em;
             color: #4a3c1a;
           }
-          .variant-display-options label {
+          .apparatus-controls h2 {
+            margin: 0 0 0.35rem;
+            font-size: 0.95rem;
+          }
+          .apparatus-controls label {
+            display: block;
+            margin-top: 0.25rem;
             cursor: pointer;
           }
           .variation::after {
@@ -228,15 +245,24 @@
           .variation:focus::after {
             display: block;
           }
-          .hide-punctuation-variants .variation-punctuation-only {
+          .hide-minor-variants .variation-minor,
+          .hide-punctuation-variants .variation-punctuation-only,
+          .hide-case-variants .variation-case-only,
+          .hide-spacing-variants .variation-spacing-or-hyphen-only {
             border-bottom-color: transparent;
             cursor: inherit;
           }
-          .hide-punctuation-variants .variation-punctuation-only::after {
+          .hide-minor-variants .variation-minor::after,
+          .hide-punctuation-variants .variation-punctuation-only::after,
+          .hide-case-variants .variation-case-only::after,
+          .hide-spacing-variants .variation-spacing-or-hyphen-only::after {
             content: none;
             display: none !important;
           }
-          .hide-punctuation-variants .variation-punctuation-only.variation-empty {
+          .hide-minor-variants .variation-minor.variation-empty,
+          .hide-punctuation-variants .variation-punctuation-only.variation-empty,
+          .hide-case-variants .variation-case-only.variation-empty,
+          .hide-spacing-variants .variation-spacing-or-hyphen-only.variation-empty {
             display: inline;
             min-width: 0;
             width: 0;
@@ -396,11 +422,27 @@
       </head>
       <body>
         <xsl:apply-templates select="tei:metadonnees"/>
-        <div class="variant-display-options">
-          <label>
-            <input id="toggle-punctuation-variants" type="checkbox"/>
-            <span>Masquer les variantes de ponctuation</span>
-          </label>
+        <div class="apparatus-controls" aria-label="Options d'affichage">
+          <h2>Affichage</h2>
+          <fieldset>
+            <legend>Variantes mineures</legend>
+            <label>
+              <input class="apparatus-toggle" data-hide-class="hide-minor-variants" type="checkbox" checked="checked"/>
+              <span>Variantes mineures</span>
+            </label>
+            <label>
+              <input id="toggle-punctuation-variants" class="apparatus-toggle" data-hide-class="hide-punctuation-variants" type="checkbox" checked="checked"/>
+              <span>Variantes de ponctuation</span>
+            </label>
+            <label>
+              <input class="apparatus-toggle" data-hide-class="hide-case-variants" type="checkbox" checked="checked"/>
+              <span>Variantes de majuscules/minuscules</span>
+            </label>
+            <label>
+              <input class="apparatus-toggle" data-hide-class="hide-spacing-variants" type="checkbox" checked="checked"/>
+              <span>Variantes d'espacement / traits d'union</span>
+            </label>
+          </fieldset>
         </div>
         <xsl:if test=".//tei:stage[@type='DI']">
           <div class="didas-implicites-label">didas. implicites</div>
@@ -408,23 +450,35 @@
         <xsl:apply-templates select="tei:text"/>
         <script>
           (function () {
-            var checkbox = document.getElementById('toggle-punctuation-variants');
-            if (!checkbox) {
+            var toggles = Array.prototype.slice.call(document.querySelectorAll('.apparatus-toggle[data-hide-class]'));
+            if (!toggles.length) {
               return;
             }
-            function updatePunctuationVariantVisibility() {
-              var hidden = checkbox.checked;
-              document.documentElement.classList.toggle('hide-punctuation-variants', hidden);
-              document.querySelectorAll('.variation-punctuation-only.variation-empty').forEach(function (node) {
-                if (hidden) {
+            function isHiddenEmptyVariation(node) {
+              var root = document.documentElement;
+              return (
+                (root.classList.contains('hide-minor-variants') &amp;&amp; node.classList.contains('variation-minor')) ||
+                (root.classList.contains('hide-punctuation-variants') &amp;&amp; node.classList.contains('variation-punctuation-only')) ||
+                (root.classList.contains('hide-case-variants') &amp;&amp; node.classList.contains('variation-case-only')) ||
+                (root.classList.contains('hide-spacing-variants') &amp;&amp; node.classList.contains('variation-spacing-or-hyphen-only'))
+              );
+            }
+            function updateApparatusVisibility() {
+              toggles.forEach(function (toggle) {
+                document.documentElement.classList.toggle(toggle.dataset.hideClass, !toggle.checked);
+              });
+              document.querySelectorAll('.variation-empty').forEach(function (node) {
+                if (isHiddenEmptyVariation(node)) {
                   node.setAttribute('tabindex', '-1');
                 } else {
                   node.setAttribute('tabindex', '0');
                 }
               });
             }
-            checkbox.addEventListener('change', updatePunctuationVariantVisibility);
-            updatePunctuationVariantVisibility();
+            toggles.forEach(function (toggle) {
+              toggle.addEventListener('change', updateApparatusVisibility);
+            });
+            updateApparatusVisibility();
           }());
         </script>
       </body>
@@ -507,8 +561,20 @@
         <xsl:if test="normalize-space(tei:lem) = ''">
           <xsl:text> variation-empty</xsl:text>
         </xsl:if>
+        <xsl:if test="@type = 'minor'">
+          <xsl:text> variation-minor</xsl:text>
+        </xsl:if>
         <xsl:if test="normalize-space(@ana) = '#punctuation_only' or (not(@ana) and @subtype = 'punctuation')">
           <xsl:text> variation-punctuation-only</xsl:text>
+        </xsl:if>
+        <xsl:if test="normalize-space(@ana) = '#case_only'">
+          <xsl:text> variation-case-only</xsl:text>
+        </xsl:if>
+        <xsl:if test="normalize-space(@ana) = '#spacing_or_hyphen_only'">
+          <xsl:text> variation-spacing-or-hyphen-only</xsl:text>
+        </xsl:if>
+        <xsl:if test="@subtype = 'mixed' or contains(normalize-space(@ana), '+')">
+          <xsl:text> variation-mixed</xsl:text>
         </xsl:if>
       </xsl:attribute>
       <xsl:attribute name="data-tooltip">  
@@ -639,8 +705,20 @@
         <xsl:if test="normalize-space(tei:lem) = ''">
           <xsl:text> variation-empty</xsl:text>
         </xsl:if>
+        <xsl:if test="@type = 'minor'">
+          <xsl:text> variation-minor</xsl:text>
+        </xsl:if>
         <xsl:if test="normalize-space(@ana) = '#punctuation_only' or (not(@ana) and @subtype = 'punctuation')">
           <xsl:text> variation-punctuation-only</xsl:text>
+        </xsl:if>
+        <xsl:if test="normalize-space(@ana) = '#case_only'">
+          <xsl:text> variation-case-only</xsl:text>
+        </xsl:if>
+        <xsl:if test="normalize-space(@ana) = '#spacing_or_hyphen_only'">
+          <xsl:text> variation-spacing-or-hyphen-only</xsl:text>
+        </xsl:if>
+        <xsl:if test="@subtype = 'mixed' or contains(normalize-space(@ana), '+')">
+          <xsl:text> variation-mixed</xsl:text>
         </xsl:if>
       </xsl:attribute>
       <xsl:attribute name="data-tooltip">
@@ -705,8 +783,20 @@
         <xsl:if test="normalize-space(tei:lem) = ''">
           <xsl:text> variation-empty</xsl:text>
         </xsl:if>
+        <xsl:if test="@type = 'minor'">
+          <xsl:text> variation-minor</xsl:text>
+        </xsl:if>
         <xsl:if test="normalize-space(@ana) = '#punctuation_only' or (not(@ana) and @subtype = 'punctuation')">
           <xsl:text> variation-punctuation-only</xsl:text>
+        </xsl:if>
+        <xsl:if test="normalize-space(@ana) = '#case_only'">
+          <xsl:text> variation-case-only</xsl:text>
+        </xsl:if>
+        <xsl:if test="normalize-space(@ana) = '#spacing_or_hyphen_only'">
+          <xsl:text> variation-spacing-or-hyphen-only</xsl:text>
+        </xsl:if>
+        <xsl:if test="@subtype = 'mixed' or contains(normalize-space(@ana), '+')">
+          <xsl:text> variation-mixed</xsl:text>
         </xsl:if>
       </xsl:attribute>
       <xsl:attribute name="data-tooltip">

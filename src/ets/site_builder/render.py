@@ -762,20 +762,38 @@ def _layout(
       display: block;
     }}
 
+    .hide-minor-variants .content-shell-play .dramatic-content .variation-minor,
+    .hide-minor-variants .content-shell-play .dramatis-personae-block .variation-minor,
     .hide-punctuation-variants .content-shell-play .dramatic-content .variation-punctuation-only,
-    .hide-punctuation-variants .content-shell-play .dramatis-personae-block .variation-punctuation-only {{
+    .hide-punctuation-variants .content-shell-play .dramatis-personae-block .variation-punctuation-only,
+    .hide-case-variants .content-shell-play .dramatic-content .variation-case-only,
+    .hide-case-variants .content-shell-play .dramatis-personae-block .variation-case-only,
+    .hide-spacing-variants .content-shell-play .dramatic-content .variation-spacing-or-hyphen-only,
+    .hide-spacing-variants .content-shell-play .dramatis-personae-block .variation-spacing-or-hyphen-only {{
       border-bottom-color: transparent;
       cursor: inherit;
     }}
 
+    .hide-minor-variants .content-shell-play .dramatic-content .variation-minor::after,
+    .hide-minor-variants .content-shell-play .dramatis-personae-block .variation-minor::after,
     .hide-punctuation-variants .content-shell-play .dramatic-content .variation-punctuation-only::after,
-    .hide-punctuation-variants .content-shell-play .dramatis-personae-block .variation-punctuation-only::after {{
+    .hide-punctuation-variants .content-shell-play .dramatis-personae-block .variation-punctuation-only::after,
+    .hide-case-variants .content-shell-play .dramatic-content .variation-case-only::after,
+    .hide-case-variants .content-shell-play .dramatis-personae-block .variation-case-only::after,
+    .hide-spacing-variants .content-shell-play .dramatic-content .variation-spacing-or-hyphen-only::after,
+    .hide-spacing-variants .content-shell-play .dramatis-personae-block .variation-spacing-or-hyphen-only::after {{
       content: none;
       display: none !important;
     }}
 
+    .hide-minor-variants .content-shell-play .dramatic-content .variation-minor.variation-empty,
+    .hide-minor-variants .content-shell-play .dramatis-personae-block .variation-minor.variation-empty,
     .hide-punctuation-variants .content-shell-play .dramatic-content .variation-punctuation-only.variation-empty,
-    .hide-punctuation-variants .content-shell-play .dramatis-personae-block .variation-punctuation-only.variation-empty {{
+    .hide-punctuation-variants .content-shell-play .dramatis-personae-block .variation-punctuation-only.variation-empty,
+    .hide-case-variants .content-shell-play .dramatic-content .variation-case-only.variation-empty,
+    .hide-case-variants .content-shell-play .dramatis-personae-block .variation-case-only.variation-empty,
+    .hide-spacing-variants .content-shell-play .dramatic-content .variation-spacing-or-hyphen-only.variation-empty,
+    .hide-spacing-variants .content-shell-play .dramatis-personae-block .variation-spacing-or-hyphen-only.variation-empty {{
       display: inline;
       min-width: 0;
       width: 0;
@@ -1351,8 +1369,16 @@ def _render_tei_inline_element(node: etree._Element) -> str:
             extra_attrs = f' tabindex="0" aria-label="{html.escape(aria_label, quote=True)}"'
         ana = (node.get("ana") or "").strip()
         subtype = (node.get("subtype") or "").strip()
+        if (node.get("type") or "").strip() == "minor":
+            class_name += " variation-minor"
         if ana == "#punctuation_only" or (not ana and subtype == "punctuation"):
             class_name += " variation-punctuation-only"
+        if ana == "#case_only":
+            class_name += " variation-case-only"
+        if ana == "#spacing_or_hyphen_only":
+            class_name += " variation-spacing-or-hyphen-only"
+        if subtype == "mixed" or "+" in ana:
+            class_name += " variation-mixed"
         return (
             f'<span class="{class_name}" data-tooltip="{html.escape(tooltip, quote=True)}"{extra_attrs}>'
             f"{lemma_html}</span>"

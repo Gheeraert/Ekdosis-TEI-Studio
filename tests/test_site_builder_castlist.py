@@ -170,6 +170,22 @@ def test_structured_dramatis_python_renderer_keeps_empty_lemma_empty(tmp_path: P
               </app>
             </note>
           </castItem>
+          <castItem xml:id="casse">
+            <note type="semi-diplomatic">
+              <app type="minor" subtype="case" ana="#case_only">
+                <lem wit="#A">Fils</lem>
+                <rdg wit="#B">fils</rdg>
+              </app>
+            </note>
+          </castItem>
+          <castItem xml:id="espacement">
+            <note type="semi-diplomatic">
+              <app type="minor" subtype="spacing" ana="#spacing_or_hyphen_only">
+                <lem wit="#A">bien-tost</lem>
+                <rdg wit="#B">bientost</rdg>
+              </app>
+            </note>
+          </castItem>
         </castList>
       </div>
     </front>
@@ -203,10 +219,25 @@ def test_structured_dramatis_python_renderer_keeps_empty_lemma_empty(tmp_path: P
 
     mixed = doc.xpath("(//section[@id='dramatis-personae']//span[contains(@class, 'variation')])[4]")[0]
     assert "variation-punctuation-only" not in (mixed.get("class") or "")
+    assert "variation-mixed" in (mixed.get("class") or "")
     assert mixed.text_content() == "Cause,"
 
-    assert "Masquer les variantes de ponctuation" in play_html
+    case_variant = doc.xpath("(//section[@id='dramatis-personae']//span[contains(@class, 'variation')])[5]")[0]
+    assert "variation-case-only" in (case_variant.get("class") or "")
+
+    spacing_variant = doc.xpath("(//section[@id='dramatis-personae']//span[contains(@class, 'variation')])[6]")[0]
+    assert "variation-spacing-or-hyphen-only" in (spacing_variant.get("class") or "")
+
+    assert "apparatus-controls" in play_html
+    assert "--site-header-offset" in play_html
+    assert "z-index: 1700" in play_html
+    assert "max-height:" in play_html
+    assert "overflow: auto" in play_html
+    assert "Variantes de ponctuation" in play_html
     assert "hide-punctuation-variants" in play_html
+    assert "hide-case-variants" in play_html
+    assert "hide-spacing-variants" in play_html
+    assert "hide-minor-variants" in play_html
 
 
 def test_site_builder_uses_default_title_and_role_fallback_without_head(tmp_path: Path) -> None:
