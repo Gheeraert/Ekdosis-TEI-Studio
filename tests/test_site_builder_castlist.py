@@ -132,6 +132,51 @@ def test_site_builder_renders_embedded_dramatis_personae_before_first_act(tmp_pa
     assert "Je parle." in play_html
 
 
+def test_structured_dramatis_python_renderer_keeps_empty_lemma_empty(tmp_path: Path) -> None:
+    front = """
+    <front>
+      <div type="dramatis-personae">
+        <head>Acteurs</head>
+        <castList>
+          <castItem xml:id="ajout">
+            <note type="semi-diplomatic">
+              <app>
+                <lem wit="#A" type="omission"/>
+                <rdg wit="#B">vraiment </rdg>
+              </app>
+            </note>
+          </castItem>
+          <castItem xml:id="omission">
+            <note type="semi-diplomatic">
+              <app>
+                <lem wit="#A">Visible</lem>
+                <rdg wit="#B" type="omission"/>
+              </app>
+            </note>
+          </castItem>
+        </castList>
+      </div>
+    </front>
+    """
+
+    play_html = _build_site(tmp_path, front=front)
+    doc = lxml_html.document_fromstring(play_html)
+
+    addition = doc.xpath("(//section[@id='dramatis-personae']//span[contains(@class, 'variation')])[1]")[0]
+    assert "variation-empty" in (addition.get("class") or "")
+    assert addition.get("tabindex") == "0"
+    assert "vraiment" in (addition.get("data-tooltip") or "")
+    assert addition.text_content() == ""
+
+    dramatis_text = doc.xpath("//section[@id='dramatis-personae']")[0].text_content()
+    assert "vraiment" not in dramatis_text
+
+    omission = doc.xpath("(//section[@id='dramatis-personae']//span[contains(@class, 'variation')])[2]")[0]
+    assert "variation-empty" not in (omission.get("class") or "")
+    assert omission.text_content() == "Visible"
+    assert "omission" in (omission.get("data-tooltip") or "")
+
+
 def test_site_builder_uses_default_title_and_role_fallback_without_head(tmp_path: Path) -> None:
     front = """
     <front>

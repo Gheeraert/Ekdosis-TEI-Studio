@@ -138,6 +138,46 @@ def _mini_stanza_text() -> str:
     )
 
 
+def _empty_reading_diagnostic_tei_xml() -> str:
+    return """<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0">
+  <teiHeader>
+    <fileDesc>
+      <titleStmt>
+        <title>Diagnostic variantes vides</title>
+        <author>Auteur</author>
+      </titleStmt>
+      <publicationStmt><p>Test</p></publicationStmt>
+      <sourceDesc>
+        <listWit>
+          <witness xml:id="A">A (1670) temoin A</witness>
+          <witness xml:id="B">B (1671) temoin B</witness>
+          <witness xml:id="C">C (1672) temoin C</witness>
+        </listWit>
+      </sourceDesc>
+    </fileDesc>
+  </teiHeader>
+  <text>
+    <body>
+      <div type="act" n="1">
+        <head>ACTE I</head>
+        <div type="scene" n="1">
+          <head>SCENE I</head>
+          <sp>
+            <speaker>ORESTE</speaker>
+            <l n="1">Cas A<app type="minor" subtype="punctuation" ana="#punctuation_only"><lem wit="#A #B" type="omission"/><rdg wit="#C">,</rdg></app> suite.</l>
+            <l n="2">Cas B <app><lem wit="#A" type="omission"/><rdg wit="#B">vraiment </rdg></app>suite.</l>
+            <l n="3">Cas C <app><lem wit="#A">vraiment </lem><rdg wit="#B" type="omission"/></app>suite.</l>
+            <l n="4">Cas D <app><lem wit="#A">cause</lem><rdg wit="#B">donne</rdg></app> suite.</l>
+          </sp>
+        </div>
+      </div>
+    </body>
+  </text>
+</TEI>
+"""
+
+
 def test_html_preview_transforms_stable_tei_fixture() -> None:
     preview = render_html_preview_from_tei(_stable_tei_xml())
     doc = lxml_html.document_fromstring(preview)
@@ -400,3 +440,43 @@ def test_html_preview_renders_stanza_and_meter_classes() -> None:
     variants = doc.xpath("//span[contains(@class, 'variation') and @data-tooltip]")
     assert variants
     assert "estat" in variants[0].get("data-tooltip")
+
+
+def test_html_preview_marks_empty_active_reading_variant_anchors_without_text_pollution() -> None:
+    preview = render_html_preview_from_tei(_empty_reading_diagnostic_tei_xml())
+    doc = lxml_html.document_fromstring(preview)
+
+    lines = doc.xpath("//div[contains(@class, 'vers-container')]")
+    assert len(lines) == 4
+
+    punctuation_addition = lines[0].xpath(".//span[contains(@class, 'variation')]")[0]
+    word_addition = lines[1].xpath(".//span[contains(@class, 'variation')]")[0]
+    word_omission = lines[2].xpath(".//span[contains(@class, 'variation')]")[0]
+    ordinary_variant = lines[3].xpath(".//span[contains(@class, 'variation')]")[0]
+
+    assert punctuation_addition.text_content() == ""
+    assert "variation-empty" in (punctuation_addition.get("class") or "")
+    assert punctuation_addition.get("tabindex") == "0"
+    assert "Apparat critique" in (punctuation_addition.get("aria-label") or "")
+    assert "," in (punctuation_addition.get("data-tooltip") or "")
+
+    assert word_addition.text_content() == ""
+    assert "variation-empty" in (word_addition.get("class") or "")
+    assert word_addition.get("tabindex") == "0"
+    assert "Apparat critique" in (word_addition.get("aria-label") or "")
+    assert "vraiment" in (word_addition.get("data-tooltip") or "")
+
+    assert word_omission.text_content() == "vraiment "
+    assert "variation-empty" not in (word_omission.get("class") or "")
+    assert word_omission.get("tabindex") is None
+    assert "B (1671):" in (word_omission.get("data-tooltip") or "")
+
+    assert ordinary_variant.text_content() == "cause"
+    assert "variation-empty" not in (ordinary_variant.get("class") or "")
+    assert ordinary_variant.get("tabindex") is None
+    assert "donne" in (ordinary_variant.get("data-tooltip") or "")
+
+    assert "\u25e6" not in preview
+    assert "\u25e6" not in doc.text_content()
+    assert "Cas A suite." in lines[0].text_content()
+    assert "Cas B suite." in lines[1].text_content()

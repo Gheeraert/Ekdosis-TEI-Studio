@@ -721,6 +721,21 @@ def _layout(
       border-bottom-color: color-mix(in oklab, var(--accent) 50%, var(--ink-muted));
       cursor: help;
     }}
+
+    .content-shell-play .dramatic-content .variation-empty,
+    .content-shell-play .dramatis-personae-block .variation-empty {{
+      display: inline-block;
+      min-width: 0.65em;
+      text-align: center;
+    }}
+
+    .content-shell-play .dramatic-content .variation-empty::before,
+    .content-shell-play .dramatis-personae-block .variation-empty::before {{
+      content: "\\25E6";
+      color: var(--accent);
+      font-size: 0.8em;
+      line-height: 1;
+    }}
     
     
     .content-shell-play .dramatic-content .variation::after,
@@ -746,7 +761,9 @@ def _layout(
     }}
     
     .content-shell-play .dramatic-content .variation:hover::after,
-    .content-shell-play .dramatis-personae-block .variation:hover::after {{
+    .content-shell-play .dramatic-content .variation:focus::after,
+    .content-shell-play .dramatis-personae-block .variation:hover::after,
+    .content-shell-play .dramatis-personae-block .variation:focus::after {{
       display: block;
     }}
 
@@ -1279,6 +1296,8 @@ def _render_app_tooltip(app_node: etree._Element) -> str:
         if not isinstance(rdg, etree._Element):
             continue
         text = _canonical_tei_text(rdg)
+        if not text and (rdg.get("type") or "").strip().lower() == "omission":
+            text = "omission"
         if not text:
             continue
 
@@ -1298,15 +1317,25 @@ def _render_tei_inline_element(node: etree._Element) -> str:
     if local_name == "app":
         lem_nodes = node.xpath("./*[local-name()='lem'][1]")
         lemma_html = ""
-        if lem_nodes and isinstance(lem_nodes[0], etree._Element):
+        lemma_text = ""
+        has_lemma = bool(lem_nodes and isinstance(lem_nodes[0], etree._Element))
+        if has_lemma:
             lemma_html = _render_tei_inline_children(lem_nodes[0])
-        if not lemma_html:
-            lemma_html = html.escape(_canonical_tei_text(node))
+            lemma_text = _canonical_tei_text(lem_nodes[0])
+        else:
+            lemma_text = _canonical_tei_text(node)
+            lemma_html = html.escape(lemma_text)
         tooltip = _render_app_tooltip(node)
         if not tooltip:
             return lemma_html
+        class_name = "variation"
+        extra_attrs = ""
+        if not lemma_text.strip():
+            class_name += " variation-empty"
+            aria_label = f"Apparat critique: {tooltip}"
+            extra_attrs = f' tabindex="0" aria-label="{html.escape(aria_label, quote=True)}"'
         return (
-            f'<span class="variation" data-tooltip="{html.escape(tooltip, quote=True)}">'
+            f'<span class="{class_name}" data-tooltip="{html.escape(tooltip, quote=True)}"{extra_attrs}>'
             f"{lemma_html}</span>"
         )
     if local_name == "rdg":

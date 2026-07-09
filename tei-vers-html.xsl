@@ -190,6 +190,17 @@
             border-bottom: 1px dotted #8b5e3c;
             cursor: help;
           }
+          .variation-empty {
+            display: inline-block;
+            min-width: 0.65em;
+            text-align: center;
+          }
+          .variation-empty::before {
+            content: "\25E6";
+            color: #8b5e3c;
+            font-size: 0.8em;
+            line-height: 1;
+          }
           .variation::after {
             content: attr(data-tooltip);
             position: absolute;
@@ -207,7 +218,8 @@
             max-width: 400px;
             overflow-wrap: break-word;
           }
-          .variation:hover::after {
+          .variation:hover::after,
+          .variation:focus::after {
             display: block;
           }
           .vers-container {
@@ -442,7 +454,13 @@
   </xsl:template>
 
   <xsl:template match="tei:stage[@type='characters' or @type='personnages']/tei:app">
-    <span class="variation" style="font-variant: small-caps;">
+    <span style="font-variant: small-caps;">
+      <xsl:attribute name="class">
+        <xsl:text>variation</xsl:text>
+        <xsl:if test="normalize-space(tei:lem) = ''">
+          <xsl:text> variation-empty</xsl:text>
+        </xsl:if>
+      </xsl:attribute>
       <xsl:attribute name="data-tooltip">  
       
       <xsl:for-each select="tei:rdg">
@@ -454,6 +472,19 @@
       </xsl:for-each>
       
       </xsl:attribute>
+      <xsl:if test="normalize-space(tei:lem) = ''">
+        <xsl:attribute name="tabindex">0</xsl:attribute>
+        <xsl:attribute name="aria-label">
+          <xsl:text>Apparat critique: </xsl:text>
+          <xsl:for-each select="tei:rdg">
+            <xsl:call-template name="format-wit-lines">
+              <xsl:with-param name="wit" select="@wit"/>
+              <xsl:with-param name="reading" select="normalize-space(.)"/>
+            </xsl:call-template>
+            <xsl:text> </xsl:text>
+          </xsl:for-each>
+        </xsl:attribute>
+      </xsl:if>
       <xsl:apply-templates select="tei:lem"/>
     </span>
   </xsl:template>
@@ -552,7 +583,13 @@
   </xsl:template>
 
   <xsl:template match="tei:speaker/tei:app">
-    <span class="variation" style="font-variant: small-caps;">
+    <span style="font-variant: small-caps;">
+      <xsl:attribute name="class">
+        <xsl:text>variation</xsl:text>
+        <xsl:if test="normalize-space(tei:lem) = ''">
+          <xsl:text> variation-empty</xsl:text>
+        </xsl:if>
+      </xsl:attribute>
       <xsl:attribute name="data-tooltip">
         
       <xsl:for-each select="tei:rdg">
@@ -564,6 +601,19 @@
       </xsl:for-each>
       
       </xsl:attribute>
+      <xsl:if test="normalize-space(tei:lem) = ''">
+        <xsl:attribute name="tabindex">0</xsl:attribute>
+        <xsl:attribute name="aria-label">
+          <xsl:text>Apparat critique: </xsl:text>
+          <xsl:for-each select="tei:rdg">
+            <xsl:call-template name="format-wit-lines">
+              <xsl:with-param name="wit" select="@wit"/>
+              <xsl:with-param name="reading" select="normalize-space(.)"/>
+            </xsl:call-template>
+            <xsl:text> </xsl:text>
+          </xsl:for-each>
+        </xsl:attribute>
+      </xsl:if>
       <xsl:apply-templates select="tei:lem"/>
     </span>
   </xsl:template>
@@ -596,7 +646,13 @@
   </xsl:template>
 
   <xsl:template match="tei:app">
-    <span class="variation">
+    <span>
+      <xsl:attribute name="class">
+        <xsl:text>variation</xsl:text>
+        <xsl:if test="normalize-space(tei:lem) = ''">
+          <xsl:text> variation-empty</xsl:text>
+        </xsl:if>
+      </xsl:attribute>
       <xsl:attribute name="data-tooltip">
       
       <xsl:for-each select="tei:rdg">
@@ -608,6 +664,19 @@
       </xsl:for-each>
       
       </xsl:attribute>
+      <xsl:if test="normalize-space(tei:lem) = ''">
+        <xsl:attribute name="tabindex">0</xsl:attribute>
+        <xsl:attribute name="aria-label">
+          <xsl:text>Apparat critique: </xsl:text>
+          <xsl:for-each select="tei:rdg">
+            <xsl:call-template name="format-wit-lines">
+              <xsl:with-param name="wit" select="@wit"/>
+              <xsl:with-param name="reading" select="normalize-space(.)"/>
+            </xsl:call-template>
+            <xsl:text> </xsl:text>
+          </xsl:for-each>
+        </xsl:attribute>
+      </xsl:if>
       <xsl:apply-templates select="tei:lem"/>
     </span>
   </xsl:template>
