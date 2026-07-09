@@ -595,16 +595,36 @@ def generate_tei_xml(
     implicit_counter = 0
     authority_characters = config.characters if characters is None else characters
 
-    for act_index, act in enumerate(collated.acts, start=1):
-        act_n = str(act_index)
-        act_div = ET.SubElement(body, _tei("div"), {"type": "act", "n": act_n})
+    act_index = 0
+    for act in collated.acts:
+        is_prologue = act.kind == "prologue"
+        if is_prologue:
+            act_n = ""
+            act_div = ET.SubElement(
+                body,
+                _tei("div"),
+                {"type": "prologue", "xml:id": f"{play_id}-prologue"},
+            )
+        else:
+            act_index += 1
+            act_n = str(act_index)
+            act_div = ET.SubElement(body, _tei("div"), {"type": "act", "n": act_n})
         head = ET.SubElement(act_div, _tei("head"))
         _append_collated_text(head, act.head)
 
         for scene_index, scene in enumerate(act.scenes, start=1):
             scene_n = str(scene_index)
-            scene_div = ET.SubElement(act_div, _tei("div"), {"type": "scene", "n": scene_n})
+            scene_div = (
+                act_div
+                if is_prologue
+                else ET.SubElement(act_div, _tei("div"), {"type": "scene", "n": scene_n})
+            )
             stage_index = 0
+            line_id_prefix = (
+                f"{play_id}-prologue-L"
+                if is_prologue
+                else f"{play_id}-A{act_n}S{scene_n}L"
+            )
 
             def append_explicit_stage(parent: ET.Element, stage_text: CollatedText) -> None:
                 nonlocal stage_index
@@ -612,12 +632,19 @@ def generate_tei_xml(
                 stage_el = ET.SubElement(
                     parent,
                     _tei("stage"),
-                    {"xml:id": f"{play_id}-A{act_n}S{scene_n}ST{stage_index}"},
+                    {
+                        "xml:id": (
+                            f"{play_id}-prologue-ST{stage_index}"
+                            if is_prologue
+                            else f"{play_id}-A{act_n}S{scene_n}ST{stage_index}"
+                        )
+                    },
                 )
                 _append_collated_text(stage_el, stage_text)
 
-            scene_head = ET.SubElement(scene_div, _tei("head"))
-            _append_collated_text(scene_head, scene.head)
+            if not is_prologue:
+                scene_head = ET.SubElement(scene_div, _tei("head"))
+                _append_collated_text(scene_head, scene.head)
             if scene.cast:
                 stage_cast = ET.SubElement(scene_div, _tei("stage"), {"type": "personnages"})
                 _append_collated_text(stage_cast, scene.cast)
@@ -651,7 +678,7 @@ def generate_tei_xml(
                             _append_collated_line(
                                 span,
                                 span_line,
-                                line_xml_id=f"{play_id}-A{act_n}S{scene_n}L{span_line.number}",
+                                line_xml_id=f"{line_id_prefix}{span_line.number}",
                             )
                     elif isinstance(element, CollatedStanza):
                         attrs = {"type": "stanza"}
@@ -664,13 +691,13 @@ def generate_tei_xml(
                             _append_collated_line(
                                 lg,
                                 stanza_line,
-                                line_xml_id=f"{play_id}-A{act_n}S{scene_n}L{stanza_line.number}",
+                                line_xml_id=f"{line_id_prefix}{stanza_line.number}",
                             )
                     else:
                         _append_collated_line(
                             sp,
                             element,
-                            line_xml_id=f"{play_id}-A{act_n}S{scene_n}L{element.number}",
+                            line_xml_id=f"{line_id_prefix}{element.number}",
                         )
 
     materialize_act_scene_line_xml_ids(tei)

@@ -60,6 +60,7 @@ class _Block:
 
 
 _ACT_RE = re.compile(r"^####([^#]+?)####$")
+_PROLOGUE_RE = re.compile(r"^####\s*PROLOGUE\.?\s*####$", re.IGNORECASE)
 _SCENE_RE = re.compile(r"^###([^#]+?)###$")
 _SPEAKER_RE = re.compile(r"^#([^#]+?)#$")
 _CAST_LINE_RE = re.compile(r"^(##[^#]+##)(\s+##[^#]+##)*$")
@@ -437,6 +438,7 @@ def validate_input_text(
     seen_scene = False
     seen_speaker = False
     suppress_next_verse_without_speaker = False
+    in_prologue = False
 
     for block in blocks:
         first = block.first
@@ -584,7 +586,8 @@ def validate_input_text(
                     excerpt=first,
                 )
                 implicit_open = False
-            current_act = _extract_act_label(first)
+            in_prologue = _PROLOGUE_RE.match(first) is not None
+            current_act = "PROLOGUE" if in_prologue else _extract_act_label(first)
             current_scene = None
             current_speaker = None
             shared_open = False
@@ -843,7 +846,7 @@ def validate_input_text(
                     excerpt=first,
                 )
                 implicit_open = False
-            if current_scene is None:
+            if current_scene is None and not in_prologue:
                 _append_error(
                     diagnostics,
                     code="E_SPEAKER_OUTSIDE_SCENE",
@@ -1187,6 +1190,21 @@ def validate_input_text(
                     excerpt=first,
                 )
             implicit_open = True
+            continue
+
+        if current_speaker is None and in_prologue:
+            _validate_token_count_consistency(
+                diagnostics,
+                normalized_readings=[raw.strip() for raw in block.lines],
+                witness_labels=labels,
+                block_type="stage",
+                line_number=line,
+                block_index=block.index,
+                act=current_act,
+                scene=current_scene,
+                speaker=current_speaker,
+                block_lines=block.lines,
+            )
             continue
 
         if current_speaker is None:

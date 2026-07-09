@@ -104,6 +104,7 @@ class Act:
     head_readings: list[str]
     head_block_index: int
     scenes: list[Scene] = field(default_factory=list)
+    kind: str = "act"
 
 
 @dataclass
@@ -223,6 +224,7 @@ class CollatedScene:
 class CollatedAct:
     head: CollatedText
     scenes: list[CollatedScene] = field(default_factory=list)
+    kind: str = "act"
 
 
 @dataclass

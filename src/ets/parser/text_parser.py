@@ -5,6 +5,7 @@ import re
 from ets.domain import Act, EditionConfig, ImplicitStageSpan, Play, Scene, Speech, StageDirection, Stanza, VerseLine
 
 _ACT_RE = re.compile(r"^####(.+?)####$")
+_PROLOGUE_RE = re.compile(r"^####\s*PROLOGUE\.?\s*####$", re.IGNORECASE)
 _SCENE_RE = re.compile(r"^###(.+?)###$")
 _SPEAKER_RE = re.compile(r"^#(.+?)#$")
 _CAST_RE = re.compile(r"##(.*?)##")
@@ -176,11 +177,36 @@ def parse_play(text: str, config: EditionConfig) -> Play:
     for block_index, block in enumerate(blocks):
         first = block[0].strip()
 
+        if _PROLOGUE_RE.match(first):
+            if current_stanza is not None:
+                raise ValueError("Unclosed stanza before prologue boundary.")
+            if current_implicit_span is not None:
+                raise ValueError("Unclosed implicit stage span before prologue boundary.")
+            current_act = Act(
+                head_readings=["PROLOGUE" for _ in config.witnesses],
+                head_block_index=block_index,
+                kind="prologue",
+            )
+            play.acts.append(current_act)
+            current_scene = Scene(
+                head_readings=["PROLOGUE" for _ in config.witnesses],
+                head_block_index=block_index,
+                cast_readings=[],
+            )
+            current_act.scenes.append(current_scene)
+            current_speech = None
+            shared_base = None
+            shared_part = 0
+            shared_carried_across_scene = False
+            line_number = 1
+            continue
+
         if _ACT_RE.match(first):
             if current_stanza is not None:
                 raise ValueError("Unclosed stanza before act boundary.")
             if current_implicit_span is not None:
                 raise ValueError("Unclosed implicit stage span before act boundary.")
+            follows_prologue = current_act is not None and current_act.kind == "prologue"
             current_act = Act(head_readings=_extract_wrapped(block, _ACT_RE), head_block_index=block_index)
             play.acts.append(current_act)
             current_scene = None
@@ -188,6 +214,8 @@ def parse_play(text: str, config: EditionConfig) -> Play:
             shared_base = None
             shared_part = 0
             shared_carried_across_scene = False
+            if follows_prologue:
+                line_number = 1
             continue
 
         if _SCENE_RE.match(first) and not first.startswith("####"):
@@ -292,6 +320,12 @@ def parse_play(text: str, config: EditionConfig) -> Play:
                 raise ValueError("Nested implicit stage spans are unsupported.")
             category = _extract_implicit_open_category(block)
             current_implicit_span = ImplicitStageSpan(category=category, block_index_open=block_index)
+            continue
+
+        if current_speech is None and current_act is not None and current_act.kind == "prologue":
+            current_scene.stage_directions.append(
+                StageDirection(readings=[_normalize_inline_text(line) for line in block], block_index=block_index)
+            )
             continue
 
         if current_speech is None:

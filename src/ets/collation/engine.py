@@ -205,7 +205,8 @@ def collate_play(play: Play, witness_sigla: list[str], reference_witness: int) -
                 scene_label="N/A",
                 speaker_label=None,
                 block_index=act.head_block_index,
-            )
+            ),
+            kind=act.kind,
         )
         collated.acts.append(collated_act)
 
