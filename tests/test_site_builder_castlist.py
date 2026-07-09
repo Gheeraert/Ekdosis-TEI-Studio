@@ -154,6 +154,22 @@ def test_structured_dramatis_python_renderer_keeps_empty_lemma_empty(tmp_path: P
               </app>
             </note>
           </castItem>
+          <castItem xml:id="ponctuation">
+            <note type="semi-diplomatic">
+              <app type="minor" subtype="punctuation" ana="#punctuation_only">
+                <lem wit="#A" type="omission"/>
+                <rdg wit="#B">,</rdg>
+              </app>
+            </note>
+          </castItem>
+          <castItem xml:id="mixte">
+            <note type="semi-diplomatic">
+              <app type="minor" subtype="mixed" ana="#case_only+punctuation_only">
+                <lem wit="#A">Cause,</lem>
+                <rdg wit="#B">cause</rdg>
+              </app>
+            </note>
+          </castItem>
         </castList>
       </div>
     </front>
@@ -178,6 +194,19 @@ def test_structured_dramatis_python_renderer_keeps_empty_lemma_empty(tmp_path: P
     assert "variation-empty" not in (omission.get("class") or "")
     assert omission.text_content() == "Visible"
     assert "omission" in (omission.get("data-tooltip") or "")
+
+    punctuation = doc.xpath("(//section[@id='dramatis-personae']//span[contains(@class, 'variation')])[3]")[0]
+    assert "variation-empty" in (punctuation.get("class") or "")
+    assert "variation-punctuation-only" in (punctuation.get("class") or "")
+    assert punctuation.text_content() == ""
+    assert "," in (punctuation.get("data-tooltip") or "")
+
+    mixed = doc.xpath("(//section[@id='dramatis-personae']//span[contains(@class, 'variation')])[4]")[0]
+    assert "variation-punctuation-only" not in (mixed.get("class") or "")
+    assert mixed.text_content() == "Cause,"
+
+    assert "Masquer les variantes de ponctuation" in play_html
+    assert "hide-punctuation-variants" in play_html
 
 
 def test_site_builder_uses_default_title_and_role_fallback_without_head(tmp_path: Path) -> None:

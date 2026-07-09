@@ -198,6 +198,15 @@
             vertical-align: baseline;
             text-align: center;
           }
+          .variant-display-options {
+            margin: 0 0 1em 9em;
+            font-family: 'Source Sans Pro', sans-serif;
+            font-size: 0.88em;
+            color: #4a3c1a;
+          }
+          .variant-display-options label {
+            cursor: pointer;
+          }
           .variation::after {
             content: attr(data-tooltip);
             position: absolute;
@@ -218,6 +227,20 @@
           .variation:hover::after,
           .variation:focus::after {
             display: block;
+          }
+          .hide-punctuation-variants .variation-punctuation-only {
+            border-bottom-color: transparent;
+            cursor: inherit;
+          }
+          .hide-punctuation-variants .variation-punctuation-only::after {
+            content: none;
+            display: none !important;
+          }
+          .hide-punctuation-variants .variation-punctuation-only.variation-empty {
+            display: inline;
+            min-width: 0;
+            width: 0;
+            min-height: 0;
           }
           .vers-container {
             position: relative;
@@ -373,10 +396,37 @@
       </head>
       <body>
         <xsl:apply-templates select="tei:metadonnees"/>
+        <div class="variant-display-options">
+          <label>
+            <input id="toggle-punctuation-variants" type="checkbox"/>
+            <span>Masquer les variantes de ponctuation</span>
+          </label>
+        </div>
         <xsl:if test=".//tei:stage[@type='DI']">
           <div class="didas-implicites-label">didas. implicites</div>
         </xsl:if>
         <xsl:apply-templates select="tei:text"/>
+        <script>
+          (function () {
+            var checkbox = document.getElementById('toggle-punctuation-variants');
+            if (!checkbox) {
+              return;
+            }
+            function updatePunctuationVariantVisibility() {
+              var hidden = checkbox.checked;
+              document.documentElement.classList.toggle('hide-punctuation-variants', hidden);
+              document.querySelectorAll('.variation-punctuation-only.variation-empty').forEach(function (node) {
+                if (hidden) {
+                  node.setAttribute('tabindex', '-1');
+                } else {
+                  node.setAttribute('tabindex', '0');
+                }
+              });
+            }
+            checkbox.addEventListener('change', updatePunctuationVariantVisibility);
+            updatePunctuationVariantVisibility();
+          }());
+        </script>
       </body>
     </html>
   </xsl:template>
@@ -456,6 +506,9 @@
         <xsl:text>variation</xsl:text>
         <xsl:if test="normalize-space(tei:lem) = ''">
           <xsl:text> variation-empty</xsl:text>
+        </xsl:if>
+        <xsl:if test="normalize-space(@ana) = '#punctuation_only' or (not(@ana) and @subtype = 'punctuation')">
+          <xsl:text> variation-punctuation-only</xsl:text>
         </xsl:if>
       </xsl:attribute>
       <xsl:attribute name="data-tooltip">  
@@ -586,6 +639,9 @@
         <xsl:if test="normalize-space(tei:lem) = ''">
           <xsl:text> variation-empty</xsl:text>
         </xsl:if>
+        <xsl:if test="normalize-space(@ana) = '#punctuation_only' or (not(@ana) and @subtype = 'punctuation')">
+          <xsl:text> variation-punctuation-only</xsl:text>
+        </xsl:if>
       </xsl:attribute>
       <xsl:attribute name="data-tooltip">
         
@@ -648,6 +704,9 @@
         <xsl:text>variation</xsl:text>
         <xsl:if test="normalize-space(tei:lem) = ''">
           <xsl:text> variation-empty</xsl:text>
+        </xsl:if>
+        <xsl:if test="normalize-space(@ana) = '#punctuation_only' or (not(@ana) and @subtype = 'punctuation')">
+          <xsl:text> variation-punctuation-only</xsl:text>
         </xsl:if>
       </xsl:attribute>
       <xsl:attribute name="data-tooltip">

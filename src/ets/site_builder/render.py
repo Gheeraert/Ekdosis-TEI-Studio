@@ -762,6 +762,26 @@ def _layout(
       display: block;
     }}
 
+    .hide-punctuation-variants .content-shell-play .dramatic-content .variation-punctuation-only,
+    .hide-punctuation-variants .content-shell-play .dramatis-personae-block .variation-punctuation-only {{
+      border-bottom-color: transparent;
+      cursor: inherit;
+    }}
+
+    .hide-punctuation-variants .content-shell-play .dramatic-content .variation-punctuation-only::after,
+    .hide-punctuation-variants .content-shell-play .dramatis-personae-block .variation-punctuation-only::after {{
+      content: none;
+      display: none !important;
+    }}
+
+    .hide-punctuation-variants .content-shell-play .dramatic-content .variation-punctuation-only.variation-empty,
+    .hide-punctuation-variants .content-shell-play .dramatis-personae-block .variation-punctuation-only.variation-empty {{
+      display: inline;
+      min-width: 0;
+      width: 0;
+      min-height: 0;
+    }}
+
     .dramatis-personae-block {{
       margin: 0.15rem 0 1rem;
       padding: 0.75rem 0.9rem 0.8rem;
@@ -1329,6 +1349,10 @@ def _render_tei_inline_element(node: etree._Element) -> str:
             class_name += " variation-empty"
             aria_label = f"Apparat critique: {tooltip}"
             extra_attrs = f' tabindex="0" aria-label="{html.escape(aria_label, quote=True)}"'
+        ana = (node.get("ana") or "").strip()
+        subtype = (node.get("subtype") or "").strip()
+        if ana == "#punctuation_only" or (not ana and subtype == "punctuation"):
+            class_name += " variation-punctuation-only"
         return (
             f'<span class="{class_name}" data-tooltip="{html.escape(tooltip, quote=True)}"{extra_attrs}>'
             f"{lemma_html}</span>"

@@ -169,6 +169,8 @@ def _empty_reading_diagnostic_tei_xml() -> str:
             <l n="2">Cas B <app><lem wit="#A" type="omission"/><rdg wit="#B">vraiment </rdg></app>suite.</l>
             <l n="3">Cas C <app><lem wit="#A">vraiment </lem><rdg wit="#B" type="omission"/></app>suite.</l>
             <l n="4">Cas D <app><lem wit="#A">cause</lem><rdg wit="#B">donne</rdg></app> suite.</l>
+            <l n="5">Cas E<app type="minor" subtype="punctuation" ana="#punctuation_only"><lem wit="#C">,</lem><rdg wit="#A #B" type="omission"/></app> suite.</l>
+            <l n="6">Cas F <app type="minor" subtype="mixed" ana="#case_only+punctuation_only"><lem wit="#A">Cause,</lem><rdg wit="#B">cause</rdg></app> suite.</l>
           </sp>
         </div>
       </div>
@@ -447,15 +449,18 @@ def test_html_preview_marks_empty_active_reading_variant_anchors_without_text_po
     doc = lxml_html.document_fromstring(preview)
 
     lines = doc.xpath("//div[contains(@class, 'vers-container')]")
-    assert len(lines) == 4
+    assert len(lines) == 6
 
     punctuation_addition = lines[0].xpath(".//span[contains(@class, 'variation')]")[0]
     word_addition = lines[1].xpath(".//span[contains(@class, 'variation')]")[0]
     word_omission = lines[2].xpath(".//span[contains(@class, 'variation')]")[0]
     ordinary_variant = lines[3].xpath(".//span[contains(@class, 'variation')]")[0]
+    visible_punctuation = lines[4].xpath(".//span[contains(@class, 'variation')]")[0]
+    mixed_variant = lines[5].xpath(".//span[contains(@class, 'variation')]")[0]
 
     assert punctuation_addition.text_content() == ""
     assert "variation-empty" in (punctuation_addition.get("class") or "")
+    assert "variation-punctuation-only" in (punctuation_addition.get("class") or "")
     assert punctuation_addition.get("tabindex") == "0"
     assert "Apparat critique" in (punctuation_addition.get("aria-label") or "")
     assert "," in (punctuation_addition.get("data-tooltip") or "")
@@ -476,6 +481,15 @@ def test_html_preview_marks_empty_active_reading_variant_anchors_without_text_po
     assert ordinary_variant.get("tabindex") is None
     assert "donne" in (ordinary_variant.get("data-tooltip") or "")
 
+    assert visible_punctuation.text_content() == ","
+    assert "variation-punctuation-only" in (visible_punctuation.get("class") or "")
+    assert "Cas E, suite." in lines[4].text_content()
+
+    assert mixed_variant.text_content() == "Cause,"
+    assert "variation-punctuation-only" not in (mixed_variant.get("class") or "")
+
+    assert "Masquer les variantes de ponctuation" in preview
+    assert "hide-punctuation-variants" in preview
     assert "\\25E6" not in preview
     assert "\u25e6" not in preview
     assert "\u25e6" not in doc.text_content()
