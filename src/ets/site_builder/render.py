@@ -731,6 +731,11 @@ def _layout(
       vertical-align: baseline;
       text-align: center;
     }}
+
+    .content-shell-play .dramatic-content .app-reading[hidden],
+    .content-shell-play .dramatis-personae-block .app-reading[hidden] {{
+      display: none !important;
+    }}
     
     
     .content-shell-play .dramatic-content .variation::after,
@@ -1345,6 +1350,51 @@ def _render_app_tooltip(app_node: etree._Element) -> str:
 
     return "\n\n".join(readings)
 
+
+def _normalized_wit_refs(wit_value: str | None) -> str:
+    refs: list[str] = []
+    for token in (wit_value or "").split():
+        token = token.strip().removeprefix("#")
+        if token:
+            refs.append(token)
+    return " ".join(refs)
+
+
+def _app_variation_class(app_node: etree._Element, active_text: str) -> str:
+    class_name = "variation"
+    if not active_text.strip():
+        class_name += " variation-empty"
+    ana = (app_node.get("ana") or "").strip()
+    subtype = (app_node.get("subtype") or "").strip()
+    if (app_node.get("type") or "").strip() == "minor":
+        class_name += " variation-minor"
+    if ana == "#punctuation_only" or (not ana and subtype == "punctuation"):
+        class_name += " variation-punctuation-only"
+    if ana == "#case_only":
+        class_name += " variation-case-only"
+    if ana == "#spacing_or_hyphen_only":
+        class_name += " variation-spacing-or-hyphen-only"
+    if subtype == "mixed" or "+" in ana:
+        class_name += " variation-mixed"
+    return class_name
+
+
+def _render_app_reading(reading: etree._Element, *, kind: str, is_default: bool = False) -> str:
+    class_name = "app-reading"
+    if is_default:
+        class_name += " app-reading-default app-reading-active"
+    attrs = [
+        f'class="{class_name}"',
+        f'data-kind="{html.escape(kind, quote=True)}"',
+        f'data-wits="{html.escape(_normalized_wit_refs(reading.get("wit")), quote=True)}"',
+    ]
+    if (reading.get("type") or "").strip().lower() == "omission":
+        attrs.append('data-omission="true"')
+    if not is_default:
+        attrs.append('hidden="hidden"')
+    return f"<span {' '.join(attrs)}>{_render_tei_inline_children(reading)}</span>"
+
+
 def _render_tei_inline_element(node: etree._Element) -> str:
     local_name = _local_name(node)
     if local_name == "app":
@@ -1361,27 +1411,26 @@ def _render_tei_inline_element(node: etree._Element) -> str:
         tooltip = _render_app_tooltip(node)
         if not tooltip:
             return lemma_html
-        class_name = "variation"
+        class_name = _app_variation_class(node, lemma_text)
         extra_attrs = ""
         if not lemma_text.strip():
-            class_name += " variation-empty"
             aria_label = f"Apparat critique: {tooltip}"
             extra_attrs = f' tabindex="0" aria-label="{html.escape(aria_label, quote=True)}"'
-        ana = (node.get("ana") or "").strip()
-        subtype = (node.get("subtype") or "").strip()
-        if (node.get("type") or "").strip() == "minor":
-            class_name += " variation-minor"
-        if ana == "#punctuation_only" or (not ana and subtype == "punctuation"):
-            class_name += " variation-punctuation-only"
-        if ana == "#case_only":
-            class_name += " variation-case-only"
-        if ana == "#spacing_or_hyphen_only":
-            class_name += " variation-spacing-or-hyphen-only"
-        if subtype == "mixed" or "+" in ana:
-            class_name += " variation-mixed"
+        readings_html: list[str] = []
+        if has_lemma:
+            readings_html.append(_render_app_reading(lem_nodes[0], kind="lem", is_default=True))
+        else:
+            readings_html.append(
+                '<span class="app-reading app-reading-default app-reading-active" '
+                f'data-kind="fallback" data-wits="">{lemma_html}</span>'
+            )
+        for rdg in node.xpath("./*[local-name()='rdg']"):
+            if isinstance(rdg, etree._Element):
+                readings_html.append(_render_app_reading(rdg, kind="rdg"))
         return (
-            f'<span class="{class_name}" data-tooltip="{html.escape(tooltip, quote=True)}"{extra_attrs}>'
-            f"{lemma_html}</span>"
+            f'<span class="{class_name}" data-tooltip="{html.escape(tooltip, quote=True)}" '
+            f'data-default-tooltip="{html.escape(tooltip, quote=True)}"{extra_attrs}>'
+            f'{"".join(readings_html)}</span>'
         )
     if local_name == "rdg":
         return ""

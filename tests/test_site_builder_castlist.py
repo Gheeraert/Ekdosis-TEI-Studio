@@ -64,6 +64,19 @@ def _build_site(tmp_path: Path, *, front: str = "") -> str:
     return (output_dir / "plays" / "phedre.html").read_text(encoding="utf-8")
 
 
+def _visible_text_without_hidden(node) -> str:
+    fragments: list[str] = []
+    if node.get("hidden") is not None:
+        return ""
+    if node.text:
+        fragments.append(node.text)
+    for child in node:
+        fragments.append(_visible_text_without_hidden(child))
+        if child.tail:
+            fragments.append(child.tail)
+    return "".join(fragments)
+
+
 def test_site_builder_without_dramatis_personae_keeps_old_behavior(tmp_path: Path) -> None:
     play_html = _build_site(tmp_path)
     doc = lxml_html.document_fromstring(play_html)
@@ -113,11 +126,15 @@ def test_site_builder_renders_embedded_dramatis_personae_before_first_act(tmp_pa
     assert doc.xpath("//section[@id='dramatis-personae' and contains(@class, 'dramatis-personae-block')]")
     assert not doc.xpath("//section[contains(@class, 'dramatic-content')]//section[contains(@class, 'dramatis-personae')]")
     assert doc.xpath("//section[@id='dramatis-personae']/h2[normalize-space(.)='Acteurs']")
-    assert doc.xpath("//section[@id='dramatis-personae']//ul[contains(@class, 'cast-list')]/li//span[contains(@class, 'variation') and normalize-space(.)=\"Thesee, roi d'Athenes\"]")
-    assert doc.xpath("//section[@id='dramatis-personae']//ul[contains(@class, 'cast-list')]/li//span[contains(@class, 'variation') and contains(@data-tooltip, \"Thesee, Roi d'Athenes\")]")
+    cast_variant = doc.xpath("//section[@id='dramatis-personae']//ul[contains(@class, 'cast-list')]/li//span[contains(@class, 'variation') and contains(@data-tooltip, \"Thesee, Roi d'Athenes\")]")[0]
+    assert _visible_text_without_hidden(cast_variant) == "Thesee, roi d'Athenes"
+    assert cast_variant.xpath("./span[contains(@class, 'app-reading-default') and @data-kind='lem' and @data-wits='A']")
+    assert cast_variant.xpath("./span[@hidden and @data-kind='rdg' and @data-wits='B' and normalize-space(.)=\"Thesee, Roi d'Athenes\"]")
     assert doc.xpath("//section[@id='dramatis-personae']//li[normalize-space(.)='Aricie']")
-    assert doc.xpath("//section[@id='dramatis-personae']/p[contains(@class, 'setting')]//span[contains(@class, 'variation') and normalize-space(.)='La scene est a Trezene.']")
-    assert doc.xpath("//section[@id='dramatis-personae']/p[contains(@class, 'setting')]//span[contains(@class, 'variation') and contains(@data-tooltip, 'La Scene est a Trezene.')]")
+    setting_variant = doc.xpath("//section[@id='dramatis-personae']/p[contains(@class, 'setting')]//span[contains(@class, 'variation') and contains(@data-tooltip, 'La Scene est a Trezene.')]")[0]
+    assert _visible_text_without_hidden(setting_variant) == "La scene est a Trezene."
+    assert setting_variant.xpath("./span[contains(@class, 'app-reading-default') and @data-kind='lem' and @data-wits='A']")
+    assert setting_variant.xpath("./span[@hidden and @data-kind='rdg' and @data-wits='B' and normalize-space(.)='La Scene est a Trezene.']")
 
     nav_links = doc.xpath("//main/nav//a[contains(@href, '#dramatis-personae')]")
     assert len(nav_links) == 1
@@ -198,29 +215,50 @@ def test_structured_dramatis_python_renderer_keeps_empty_lemma_empty(tmp_path: P
     assert "variation-empty" in (addition.get("class") or "")
     assert addition.get("tabindex") == "0"
     assert "vraiment" in (addition.get("data-tooltip") or "")
-    assert addition.text_content() == ""
+    assert _visible_text_without_hidden(addition) == ""
+    addition_readings = addition.xpath("./span[contains(@class, 'app-reading')]")
+    assert len(addition_readings) == 2
+    assert addition_readings[0].get("data-kind") == "lem"
+    assert addition_readings[0].get("data-wits") == "A"
+    assert addition_readings[0].get("data-omission") == "true"
+    assert "app-reading-active" in (addition_readings[0].get("class") or "")
+    assert addition_readings[1].get("data-kind") == "rdg"
+    assert addition_readings[1].get("data-wits") == "B"
+    assert addition_readings[1].get("hidden") is not None
+    assert addition_readings[1].text_content() == "vraiment "
     assert "\\25E6" not in play_html
     assert "min-height: 1em" in play_html
 
     dramatis_text = doc.xpath("//section[@id='dramatis-personae']")[0].text_content()
-    assert "vraiment" not in dramatis_text
+    dramatis_visible_text = _visible_text_without_hidden(doc.xpath("//section[@id='dramatis-personae']")[0])
+    assert "vraiment" not in dramatis_visible_text
     assert "\u25e6" not in dramatis_text
 
     omission = doc.xpath("(//section[@id='dramatis-personae']//span[contains(@class, 'variation')])[2]")[0]
     assert "variation-empty" not in (omission.get("class") or "")
-    assert omission.text_content() == "Visible"
+    assert _visible_text_without_hidden(omission) == "Visible"
+    omission_readings = omission.xpath("./span[contains(@class, 'app-reading')]")
+    assert omission_readings[0].get("data-wits") == "A"
+    assert omission_readings[1].get("data-wits") == "B"
+    assert omission_readings[1].get("data-omission") == "true"
+    assert omission_readings[1].get("hidden") is not None
     assert "omission" in (omission.get("data-tooltip") or "")
 
     punctuation = doc.xpath("(//section[@id='dramatis-personae']//span[contains(@class, 'variation')])[3]")[0]
     assert "variation-empty" in (punctuation.get("class") or "")
     assert "variation-punctuation-only" in (punctuation.get("class") or "")
-    assert punctuation.text_content() == ""
+    assert _visible_text_without_hidden(punctuation) == ""
+    punctuation_readings = punctuation.xpath("./span[contains(@class, 'app-reading')]")
+    assert punctuation_readings[0].get("data-wits") == "A"
+    assert punctuation_readings[0].get("data-omission") == "true"
+    assert punctuation_readings[1].get("data-wits") == "B"
+    assert punctuation_readings[1].get("hidden") is not None
     assert "," in (punctuation.get("data-tooltip") or "")
 
     mixed = doc.xpath("(//section[@id='dramatis-personae']//span[contains(@class, 'variation')])[4]")[0]
     assert "variation-punctuation-only" not in (mixed.get("class") or "")
     assert "variation-mixed" in (mixed.get("class") or "")
-    assert mixed.text_content() == "Cause,"
+    assert _visible_text_without_hidden(mixed) == "Cause,"
 
     case_variant = doc.xpath("(//section[@id='dramatis-personae']//span[contains(@class, 'variation')])[5]")[0]
     assert "variation-case-only" in (case_variant.get("class") or "")
@@ -233,6 +271,9 @@ def test_structured_dramatis_python_renderer_keeps_empty_lemma_empty(tmp_path: P
     assert "z-index: 1700" in play_html
     assert "max-height:" in play_html
     assert "overflow: auto" in play_html
+    assert ".app-reading[hidden]" in play_html
+    assert "data-wits" in play_html
+    assert "app-reading-active" in play_html
     assert "Variantes de ponctuation" in play_html
     assert "hide-punctuation-variants" in play_html
     assert "hide-case-variants" in play_html

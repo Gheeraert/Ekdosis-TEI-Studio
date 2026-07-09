@@ -182,6 +182,19 @@ def _empty_reading_diagnostic_tei_xml() -> str:
 """
 
 
+def _visible_text_without_hidden(node) -> str:
+    fragments: list[str] = []
+    if node.get("hidden") is not None:
+        return ""
+    if node.text:
+        fragments.append(node.text)
+    for child in node:
+        fragments.append(_visible_text_without_hidden(child))
+        if child.tail:
+            fragments.append(child.tail)
+    return "".join(fragments)
+
+
 def test_html_preview_transforms_stable_tei_fixture() -> None:
     preview = render_html_preview_from_tei(_stable_tei_xml())
     doc = lxml_html.document_fromstring(preview)
@@ -462,35 +475,63 @@ def test_html_preview_marks_empty_active_reading_variant_anchors_without_text_po
     case_variant = lines[6].xpath(".//span[contains(@class, 'variation')]")[0]
     spacing_variant = lines[7].xpath(".//span[contains(@class, 'variation')]")[0]
 
-    assert punctuation_addition.text_content() == ""
+    punctuation_readings = punctuation_addition.xpath("./span[contains(@class, 'app-reading')]")
+    assert len(punctuation_readings) == 2
+    assert "app-reading-default" in (punctuation_readings[0].get("class") or "")
+    assert "app-reading-active" in (punctuation_readings[0].get("class") or "")
+    assert punctuation_readings[0].get("data-kind") == "lem"
+    assert punctuation_readings[0].get("data-wits") == "A B"
+    assert punctuation_readings[0].get("data-omission") == "true"
+    assert punctuation_readings[0].text_content() == ""
+    assert punctuation_readings[1].get("data-kind") == "rdg"
+    assert punctuation_readings[1].get("data-wits") == "C"
+    assert punctuation_readings[1].get("hidden") is not None
+    assert punctuation_readings[1].text_content() == ","
+    assert _visible_text_without_hidden(punctuation_addition) == ""
     assert "variation-empty" in (punctuation_addition.get("class") or "")
     assert "variation-minor" in (punctuation_addition.get("class") or "")
     assert "variation-punctuation-only" in (punctuation_addition.get("class") or "")
     assert punctuation_addition.get("tabindex") == "0"
     assert "Apparat critique" in (punctuation_addition.get("aria-label") or "")
     assert "," in (punctuation_addition.get("data-tooltip") or "")
+    assert punctuation_addition.get("data-default-tooltip") == punctuation_addition.get("data-tooltip")
 
-    assert word_addition.text_content() == ""
+    word_addition_readings = word_addition.xpath("./span[contains(@class, 'app-reading')]")
+    assert word_addition_readings[0].get("data-wits") == "A"
+    assert word_addition_readings[0].get("data-omission") == "true"
+    assert word_addition_readings[1].get("data-wits") == "B"
+    assert word_addition_readings[1].get("hidden") is not None
+    assert word_addition_readings[1].text_content() == "vraiment "
+    assert _visible_text_without_hidden(word_addition) == ""
     assert "variation-empty" in (word_addition.get("class") or "")
     assert word_addition.get("tabindex") == "0"
     assert "Apparat critique" in (word_addition.get("aria-label") or "")
     assert "vraiment" in (word_addition.get("data-tooltip") or "")
 
-    assert word_omission.text_content() == "vraiment "
+    assert _visible_text_without_hidden(word_omission) == "vraiment "
+    word_omission_readings = word_omission.xpath("./span[contains(@class, 'app-reading')]")
+    assert word_omission_readings[0].get("data-wits") == "A"
+    assert word_omission_readings[1].get("data-wits") == "B"
+    assert word_omission_readings[1].get("data-omission") == "true"
+    assert word_omission_readings[1].get("hidden") is not None
     assert "variation-empty" not in (word_omission.get("class") or "")
     assert word_omission.get("tabindex") is None
     assert "B (1671):" in (word_omission.get("data-tooltip") or "")
 
-    assert ordinary_variant.text_content() == "cause"
+    assert _visible_text_without_hidden(ordinary_variant) == "cause"
+    ordinary_readings = ordinary_variant.xpath("./span[contains(@class, 'app-reading')]")
+    assert ordinary_readings[0].get("data-wits") == "A"
+    assert ordinary_readings[1].get("data-wits") == "B"
+    assert ordinary_readings[1].get("hidden") is not None
     assert "variation-empty" not in (ordinary_variant.get("class") or "")
     assert ordinary_variant.get("tabindex") is None
     assert "donne" in (ordinary_variant.get("data-tooltip") or "")
 
-    assert visible_punctuation.text_content() == ","
+    assert _visible_text_without_hidden(visible_punctuation) == ","
     assert "variation-punctuation-only" in (visible_punctuation.get("class") or "")
     assert "Cas E, suite." in lines[4].text_content()
 
-    assert mixed_variant.text_content() == "Cause,"
+    assert _visible_text_without_hidden(mixed_variant) == "Cause,"
     assert "variation-punctuation-only" not in (mixed_variant.get("class") or "")
     assert "variation-mixed" in (mixed_variant.get("class") or "")
 
@@ -498,10 +539,16 @@ def test_html_preview_marks_empty_active_reading_variant_anchors_without_text_po
     assert "variation-spacing-or-hyphen-only" in (spacing_variant.get("class") or "")
 
     assert "apparatus-controls" in preview
+    assert "Version affichée" in preview
+    assert doc.xpath("//select[@data-witness-select]/option[@value='' and normalize-space(.)='Lemme de référence']")
+    assert doc.xpath("//select[@data-witness-select]/option[@value='A' and contains(., 'A (1670)')]")
+    assert doc.xpath("//select[@data-witness-select]/option[@value='B' and contains(., 'B (1671)')]")
+    assert doc.xpath("//select[@data-witness-select]/option[@value='C' and contains(., 'C (1672)')]")
     assert "--site-header-offset" in preview
     assert "z-index: 1700" in preview
     assert "max-height:" in preview
     assert "overflow: auto" in preview
+    assert ".app-reading[hidden]" in preview
     assert "Affichage" in preview
     assert "Variantes de ponctuation" in preview
     assert "hide-punctuation-variants" in preview
@@ -512,5 +559,10 @@ def test_html_preview_marks_empty_active_reading_variant_anchors_without_text_po
     assert "\u25e6" not in preview
     assert "\u25e6" not in doc.text_content()
     assert "min-height: 1em" in preview
-    assert "Cas A suite." in lines[0].text_content()
-    assert "Cas B suite." in lines[1].text_content()
+    assert "ets-witness-display" in preview
+    assert "data-wits" in preview
+    assert "app-reading-active" in preview
+    assert "activeReadingFor" in preview
+    assert "updateVariationReading" in preview
+    assert "Cas A suite." in _visible_text_without_hidden(lines[0])
+    assert "Cas B suite." in _visible_text_without_hidden(lines[1])

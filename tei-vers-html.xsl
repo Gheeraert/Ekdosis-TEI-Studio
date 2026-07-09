@@ -50,6 +50,147 @@
   </xsl:if>
 </xsl:template>
 
+<xsl:template name="normalize-wit-list">
+  <xsl:param name="wit"/>
+  <xsl:variable name="trim" select="normalize-space($wit)"/>
+  <xsl:if test="$trim != ''">
+    <xsl:variable name="first" select="substring-before(concat($trim, ' '), ' ')"/>
+    <xsl:variable name="rest" select="normalize-space(substring-after($trim, ' '))"/>
+    <xsl:choose>
+      <xsl:when test="starts-with($first, '#')">
+        <xsl:value-of select="substring-after($first, '#')"/>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:value-of select="$first"/>
+      </xsl:otherwise>
+    </xsl:choose>
+    <xsl:if test="$rest != ''">
+      <xsl:text> </xsl:text>
+      <xsl:call-template name="normalize-wit-list">
+        <xsl:with-param name="wit" select="$rest"/>
+      </xsl:call-template>
+    </xsl:if>
+  </xsl:if>
+</xsl:template>
+
+<xsl:template name="app-variation-classes">
+  <xsl:text>variation</xsl:text>
+  <xsl:if test="normalize-space(tei:lem) = ''">
+    <xsl:text> variation-empty</xsl:text>
+  </xsl:if>
+  <xsl:if test="@type = 'minor'">
+    <xsl:text> variation-minor</xsl:text>
+  </xsl:if>
+  <xsl:if test="normalize-space(@ana) = '#punctuation_only' or (not(@ana) and @subtype = 'punctuation')">
+    <xsl:text> variation-punctuation-only</xsl:text>
+  </xsl:if>
+  <xsl:if test="normalize-space(@ana) = '#case_only'">
+    <xsl:text> variation-case-only</xsl:text>
+  </xsl:if>
+  <xsl:if test="normalize-space(@ana) = '#spacing_or_hyphen_only'">
+    <xsl:text> variation-spacing-or-hyphen-only</xsl:text>
+  </xsl:if>
+  <xsl:if test="@subtype = 'mixed' or contains(normalize-space(@ana), '+')">
+    <xsl:text> variation-mixed</xsl:text>
+  </xsl:if>
+</xsl:template>
+
+<xsl:template name="app-tooltip-text">
+  <xsl:for-each select="tei:rdg">
+    <xsl:call-template name="format-wit-lines">
+      <xsl:with-param name="wit" select="@wit"/>
+      <xsl:with-param name="reading">
+        <xsl:choose>
+          <xsl:when test="normalize-space(.) != ''">
+            <xsl:value-of select="normalize-space(.)"/>
+          </xsl:when>
+          <xsl:when test="@type = 'omission'">omission</xsl:when>
+        </xsl:choose>
+      </xsl:with-param>
+    </xsl:call-template>
+    <xsl:text>&#10;&#10;</xsl:text>
+  </xsl:for-each>
+</xsl:template>
+
+<xsl:template name="render-app-reading">
+  <xsl:param name="reading"/>
+  <xsl:param name="kind"/>
+  <xsl:param name="is-default" select="false()"/>
+  <span>
+    <xsl:attribute name="class">
+      <xsl:text>app-reading</xsl:text>
+      <xsl:if test="$is-default">
+        <xsl:text> app-reading-default app-reading-active</xsl:text>
+      </xsl:if>
+    </xsl:attribute>
+    <xsl:attribute name="data-kind">
+      <xsl:value-of select="$kind"/>
+    </xsl:attribute>
+    <xsl:attribute name="data-wits">
+      <xsl:call-template name="normalize-wit-list">
+        <xsl:with-param name="wit" select="$reading/@wit"/>
+      </xsl:call-template>
+    </xsl:attribute>
+    <xsl:if test="$reading/@type = 'omission'">
+      <xsl:attribute name="data-omission">true</xsl:attribute>
+    </xsl:if>
+    <xsl:if test="not($is-default)">
+      <xsl:attribute name="hidden">hidden</xsl:attribute>
+    </xsl:if>
+    <xsl:apply-templates select="$reading/node()"/>
+  </span>
+</xsl:template>
+
+<xsl:template name="render-app-variation">
+  <xsl:param name="style"/>
+  <xsl:variable name="tooltip">
+    <xsl:call-template name="app-tooltip-text"/>
+  </xsl:variable>
+  <span>
+    <xsl:if test="$style != ''">
+      <xsl:attribute name="style">
+        <xsl:value-of select="$style"/>
+      </xsl:attribute>
+    </xsl:if>
+    <xsl:attribute name="class">
+      <xsl:call-template name="app-variation-classes"/>
+    </xsl:attribute>
+    <xsl:attribute name="data-tooltip">
+      <xsl:value-of select="$tooltip"/>
+    </xsl:attribute>
+    <xsl:attribute name="data-default-tooltip">
+      <xsl:value-of select="$tooltip"/>
+    </xsl:attribute>
+    <xsl:if test="normalize-space(tei:lem) = ''">
+      <xsl:attribute name="tabindex">0</xsl:attribute>
+      <xsl:attribute name="aria-label">
+        <xsl:text>Apparat critique: </xsl:text>
+        <xsl:value-of select="normalize-space($tooltip)"/>
+      </xsl:attribute>
+    </xsl:if>
+    <xsl:choose>
+      <xsl:when test="tei:lem">
+        <xsl:call-template name="render-app-reading">
+          <xsl:with-param name="reading" select="tei:lem[1]"/>
+          <xsl:with-param name="kind">lem</xsl:with-param>
+          <xsl:with-param name="is-default" select="true()"/>
+        </xsl:call-template>
+      </xsl:when>
+      <xsl:otherwise>
+        <span class="app-reading app-reading-default app-reading-active" data-kind="fallback" data-wits="">
+          <xsl:value-of select="normalize-space(.)"/>
+        </span>
+      </xsl:otherwise>
+    </xsl:choose>
+    <xsl:for-each select="tei:rdg">
+      <xsl:call-template name="render-app-reading">
+        <xsl:with-param name="reading" select="."/>
+        <xsl:with-param name="kind">rdg</xsl:with-param>
+      </xsl:call-template>
+    </xsl:for-each>
+  </span>
+</xsl:template>
+
 
   <xsl:template match="/tei:TEI">
     <html lang="fr">
@@ -198,6 +339,9 @@
             vertical-align: baseline;
             text-align: center;
           }
+          .app-reading[hidden] {
+            display: none !important;
+          }
           .apparatus-controls {
             position: fixed;
             top: calc(var(--site-header-offset, 0px) + 0.75rem);
@@ -223,6 +367,11 @@
             display: block;
             margin-top: 0.25rem;
             cursor: pointer;
+          }
+          .apparatus-controls select {
+            display: block;
+            width: 100%;
+            margin-top: 0.2rem;
           }
           .variation::after {
             content: attr(data-tooltip);
@@ -424,6 +573,31 @@
         <xsl:apply-templates select="tei:metadonnees"/>
         <div class="apparatus-controls" aria-label="Options d'affichage">
           <h2>Affichage</h2>
+          <label>
+            <span>Version affichée</span>
+            <select data-witness-select="data-witness-select">
+              <option value="">Lemme de référence</option>
+              <xsl:for-each select="tei:teiHeader//tei:listWit/tei:witness[@xml:id]">
+                <xsl:variable name="witness-id" select="@xml:id"/>
+                <option value="{$witness-id}">
+                  <xsl:value-of select="$witness-id"/>
+                  <xsl:variable name="witness-label" select="normalize-space(.)"/>
+                  <xsl:if test="$witness-label != ''">
+                    <xsl:text> - </xsl:text>
+                    <xsl:choose>
+                      <xsl:when test="string-length($witness-label) &gt; 60">
+                        <xsl:value-of select="substring($witness-label, 1, 57)"/>
+                        <xsl:text>...</xsl:text>
+                      </xsl:when>
+                      <xsl:otherwise>
+                        <xsl:value-of select="$witness-label"/>
+                      </xsl:otherwise>
+                    </xsl:choose>
+                  </xsl:if>
+                </option>
+              </xsl:for-each>
+            </select>
+          </label>
           <fieldset>
             <legend>Variantes mineures</legend>
             <label>
@@ -451,9 +625,8 @@
         <script>
           (function () {
             var toggles = Array.prototype.slice.call(document.querySelectorAll('.apparatus-toggle[data-hide-class]'));
-            if (!toggles.length) {
-              return;
-            }
+            var witnessSelect = document.querySelector('[data-witness-select]');
+            var storageKey = 'ets-witness-display';
             function isHiddenEmptyVariation(node) {
               var root = document.documentElement;
               return (
@@ -463,11 +636,54 @@
                 (root.classList.contains('hide-spacing-variants') &amp;&amp; node.classList.contains('variation-spacing-or-hyphen-only'))
               );
             }
-            function updateApparatusVisibility() {
-              toggles.forEach(function (toggle) {
-                document.documentElement.classList.toggle(toggle.dataset.hideClass, !toggle.checked);
+            function hasWitness(reading, witness) {
+              return (reading.getAttribute('data-wits') || '').split(/\s+/).filter(Boolean).indexOf(witness) !== -1;
+            }
+            function defaultReading(readings) {
+              for (var i = 0; i &lt; readings.length; i += 1) {
+                if (readings[i].classList.contains('app-reading-default')) {
+                  return readings[i];
+                }
+              }
+              return readings[0] || null;
+            }
+            function activeReadingFor(readings, witness) {
+              if (witness) {
+                for (var i = 0; i &lt; readings.length; i += 1) {
+                  if (hasWitness(readings[i], witness)) {
+                    return readings[i];
+                  }
+                }
+              }
+              return defaultReading(readings);
+            }
+            function updateVariationReading(node, witness) {
+              var readings = Array.prototype.slice.call(node.children).filter(function (child) {
+                return child.classList.contains('app-reading');
               });
-              document.querySelectorAll('.variation-empty').forEach(function (node) {
+              if (!readings.length) {
+                return;
+              }
+              var active = activeReadingFor(readings, witness);
+              readings.forEach(function (reading) {
+                var isActive = reading === active;
+                reading.hidden = !isActive;
+                reading.classList.toggle('app-reading-active', isActive);
+              });
+              var isEmpty = !active || active.dataset.omission === 'true' || active.textContent.trim() === '';
+              node.classList.toggle('variation-empty', isEmpty);
+              if (isEmpty) {
+                node.setAttribute('aria-label', 'Apparat critique: ' + (node.dataset.tooltip || node.dataset.defaultTooltip || ''));
+              } else {
+                node.removeAttribute('aria-label');
+              }
+            }
+            function updateVariationTabStops() {
+              document.querySelectorAll('.variation').forEach(function (node) {
+                if (!node.classList.contains('variation-empty')) {
+                  node.removeAttribute('tabindex');
+                  return;
+                }
                 if (isHiddenEmptyVariation(node)) {
                   node.setAttribute('tabindex', '-1');
                 } else {
@@ -475,9 +691,46 @@
                 }
               });
             }
+            function updateApparatusVisibility() {
+              toggles.forEach(function (toggle) {
+                document.documentElement.classList.toggle(toggle.dataset.hideClass, !toggle.checked);
+              });
+              updateVariationTabStops();
+            }
+            function applyWitnessChoice() {
+              var witness = witnessSelect ? witnessSelect.value : '';
+              document.querySelectorAll('.variation').forEach(function (node) {
+                updateVariationReading(node, witness);
+              });
+              updateVariationTabStops();
+            }
+            function selectHasOption(select, value) {
+              return Array.prototype.slice.call(select.options).some(function (option) {
+                return option.value === value;
+              });
+            }
             toggles.forEach(function (toggle) {
               toggle.addEventListener('change', updateApparatusVisibility);
             });
+            if (witnessSelect) {
+              try {
+                var saved = window.localStorage.getItem(storageKey);
+                if (saved &amp;&amp; selectHasOption(witnessSelect, saved)) {
+                  witnessSelect.value = saved;
+                }
+              } catch (error) {
+                // Local storage can be unavailable in some embedded previews.
+              }
+              witnessSelect.addEventListener('change', function () {
+                try {
+                  window.localStorage.setItem(storageKey, witnessSelect.value);
+                } catch (error) {
+                  // Keep the selector usable even when persistence is blocked.
+                }
+                applyWitnessChoice();
+              });
+            }
+            applyWitnessChoice();
             updateApparatusVisibility();
           }());
         </script>
@@ -555,54 +808,9 @@
   </xsl:template>
 
   <xsl:template match="tei:stage[@type='characters' or @type='personnages']/tei:app">
-    <span style="font-variant: small-caps;">
-      <xsl:attribute name="class">
-        <xsl:text>variation</xsl:text>
-        <xsl:if test="normalize-space(tei:lem) = ''">
-          <xsl:text> variation-empty</xsl:text>
-        </xsl:if>
-        <xsl:if test="@type = 'minor'">
-          <xsl:text> variation-minor</xsl:text>
-        </xsl:if>
-        <xsl:if test="normalize-space(@ana) = '#punctuation_only' or (not(@ana) and @subtype = 'punctuation')">
-          <xsl:text> variation-punctuation-only</xsl:text>
-        </xsl:if>
-        <xsl:if test="normalize-space(@ana) = '#case_only'">
-          <xsl:text> variation-case-only</xsl:text>
-        </xsl:if>
-        <xsl:if test="normalize-space(@ana) = '#spacing_or_hyphen_only'">
-          <xsl:text> variation-spacing-or-hyphen-only</xsl:text>
-        </xsl:if>
-        <xsl:if test="@subtype = 'mixed' or contains(normalize-space(@ana), '+')">
-          <xsl:text> variation-mixed</xsl:text>
-        </xsl:if>
-      </xsl:attribute>
-      <xsl:attribute name="data-tooltip">  
-      
-      <xsl:for-each select="tei:rdg">
-       <xsl:call-template name="format-wit-lines">
-        <xsl:with-param name="wit" select="@wit"/>
-        <xsl:with-param name="reading" select="normalize-space(.)"/>
-       </xsl:call-template>
-       <xsl:text>&#10;&#10;</xsl:text>
-      </xsl:for-each>
-      
-      </xsl:attribute>
-      <xsl:if test="normalize-space(tei:lem) = ''">
-        <xsl:attribute name="tabindex">0</xsl:attribute>
-        <xsl:attribute name="aria-label">
-          <xsl:text>Apparat critique: </xsl:text>
-          <xsl:for-each select="tei:rdg">
-            <xsl:call-template name="format-wit-lines">
-              <xsl:with-param name="wit" select="@wit"/>
-              <xsl:with-param name="reading" select="normalize-space(.)"/>
-            </xsl:call-template>
-            <xsl:text> </xsl:text>
-          </xsl:for-each>
-        </xsl:attribute>
-      </xsl:if>
-      <xsl:apply-templates select="tei:lem"/>
-    </span>
+    <xsl:call-template name="render-app-variation">
+      <xsl:with-param name="style">font-variant: small-caps;</xsl:with-param>
+    </xsl:call-template>
   </xsl:template>
 
   <xsl:template match="tei:div[@type='dramatis-personae']">
@@ -699,54 +907,9 @@
   </xsl:template>
 
   <xsl:template match="tei:speaker/tei:app">
-    <span style="font-variant: small-caps;">
-      <xsl:attribute name="class">
-        <xsl:text>variation</xsl:text>
-        <xsl:if test="normalize-space(tei:lem) = ''">
-          <xsl:text> variation-empty</xsl:text>
-        </xsl:if>
-        <xsl:if test="@type = 'minor'">
-          <xsl:text> variation-minor</xsl:text>
-        </xsl:if>
-        <xsl:if test="normalize-space(@ana) = '#punctuation_only' or (not(@ana) and @subtype = 'punctuation')">
-          <xsl:text> variation-punctuation-only</xsl:text>
-        </xsl:if>
-        <xsl:if test="normalize-space(@ana) = '#case_only'">
-          <xsl:text> variation-case-only</xsl:text>
-        </xsl:if>
-        <xsl:if test="normalize-space(@ana) = '#spacing_or_hyphen_only'">
-          <xsl:text> variation-spacing-or-hyphen-only</xsl:text>
-        </xsl:if>
-        <xsl:if test="@subtype = 'mixed' or contains(normalize-space(@ana), '+')">
-          <xsl:text> variation-mixed</xsl:text>
-        </xsl:if>
-      </xsl:attribute>
-      <xsl:attribute name="data-tooltip">
-        
-      <xsl:for-each select="tei:rdg">
-       <xsl:call-template name="format-wit-lines">
-        <xsl:with-param name="wit" select="@wit"/>
-        <xsl:with-param name="reading" select="normalize-space(.)"/>
-       </xsl:call-template>
-       <xsl:text>&#10;&#10;</xsl:text>
-      </xsl:for-each>
-      
-      </xsl:attribute>
-      <xsl:if test="normalize-space(tei:lem) = ''">
-        <xsl:attribute name="tabindex">0</xsl:attribute>
-        <xsl:attribute name="aria-label">
-          <xsl:text>Apparat critique: </xsl:text>
-          <xsl:for-each select="tei:rdg">
-            <xsl:call-template name="format-wit-lines">
-              <xsl:with-param name="wit" select="@wit"/>
-              <xsl:with-param name="reading" select="normalize-space(.)"/>
-            </xsl:call-template>
-            <xsl:text> </xsl:text>
-          </xsl:for-each>
-        </xsl:attribute>
-      </xsl:if>
-      <xsl:apply-templates select="tei:lem"/>
-    </span>
+    <xsl:call-template name="render-app-variation">
+      <xsl:with-param name="style">font-variant: small-caps;</xsl:with-param>
+    </xsl:call-template>
   </xsl:template>
 
   <xsl:template match="tei:l">
@@ -777,54 +940,7 @@
   </xsl:template>
 
   <xsl:template match="tei:app">
-    <span>
-      <xsl:attribute name="class">
-        <xsl:text>variation</xsl:text>
-        <xsl:if test="normalize-space(tei:lem) = ''">
-          <xsl:text> variation-empty</xsl:text>
-        </xsl:if>
-        <xsl:if test="@type = 'minor'">
-          <xsl:text> variation-minor</xsl:text>
-        </xsl:if>
-        <xsl:if test="normalize-space(@ana) = '#punctuation_only' or (not(@ana) and @subtype = 'punctuation')">
-          <xsl:text> variation-punctuation-only</xsl:text>
-        </xsl:if>
-        <xsl:if test="normalize-space(@ana) = '#case_only'">
-          <xsl:text> variation-case-only</xsl:text>
-        </xsl:if>
-        <xsl:if test="normalize-space(@ana) = '#spacing_or_hyphen_only'">
-          <xsl:text> variation-spacing-or-hyphen-only</xsl:text>
-        </xsl:if>
-        <xsl:if test="@subtype = 'mixed' or contains(normalize-space(@ana), '+')">
-          <xsl:text> variation-mixed</xsl:text>
-        </xsl:if>
-      </xsl:attribute>
-      <xsl:attribute name="data-tooltip">
-      
-      <xsl:for-each select="tei:rdg">
-       <xsl:call-template name="format-wit-lines">
-        <xsl:with-param name="wit" select="@wit"/>
-        <xsl:with-param name="reading" select="normalize-space(.)"/>
-       </xsl:call-template>
-       <xsl:text>&#10;&#10;</xsl:text>
-      </xsl:for-each>
-      
-      </xsl:attribute>
-      <xsl:if test="normalize-space(tei:lem) = ''">
-        <xsl:attribute name="tabindex">0</xsl:attribute>
-        <xsl:attribute name="aria-label">
-          <xsl:text>Apparat critique: </xsl:text>
-          <xsl:for-each select="tei:rdg">
-            <xsl:call-template name="format-wit-lines">
-              <xsl:with-param name="wit" select="@wit"/>
-              <xsl:with-param name="reading" select="normalize-space(.)"/>
-            </xsl:call-template>
-            <xsl:text> </xsl:text>
-          </xsl:for-each>
-        </xsl:attribute>
-      </xsl:if>
-      <xsl:apply-templates select="tei:lem"/>
-    </span>
+    <xsl:call-template name="render-app-variation"/>
   </xsl:template>
 
   <xsl:template match="tei:hi">
