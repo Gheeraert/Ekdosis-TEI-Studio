@@ -41,6 +41,21 @@ def _text(speakers: list[str]) -> str:
     )
 
 
+def _multi_speech_text(speech_speakers: list[list[str]]) -> str:
+    witness_count = len(speech_speakers[0])
+    lines: list[str] = []
+    lines += ["####ACTE V####"] * witness_count
+    lines += [""]
+    lines += ["###SCENE VI###"] * witness_count
+    lines += [""]
+    for index, speakers in enumerate(speech_speakers, start=1):
+        lines += [f"#{speaker}#" for speaker in speakers]
+        lines += [""]
+        lines += [f"Vers {index}."] * witness_count
+        lines += [""]
+    return "\n".join(lines)
+
+
 def _first_sp(xml_text: str) -> ET.Element:
     root = ET.fromstring(xml_text)
     sp = root.find(".//tei:sp", NS)
@@ -158,3 +173,30 @@ def test_tei_character_id_already_prefixed_is_not_prefixed_again() -> None:
     sp = _first_sp(run_pipeline_from_text(_text(["HERMIONE", "HERMIONE"]), _config(characters)))
 
     assert sp.attrib["who"] == "#char-hermione"
+
+
+def test_tei_resolves_britannicus_style_speaker_blocks_with_lacune_readings() -> None:
+    characters = [
+        Character(id="neron", label="Néron", aliases=["NERON", "NERON,"]),
+        Character(id="junie", label="Junie", aliases=["JUNIE", "JUNIE."]),
+    ]
+    xml_text = run_pipeline_from_text(
+        _multi_speech_text(
+            [
+                ["NERON", "(lacune)"],
+                ["JUNIE.", "(lacune)"],
+                ["(lacune)", "NERON,"],
+                ["NERON", "NERON"],
+            ]
+        ),
+        _config(characters),
+    )
+    root = ET.fromstring(xml_text)
+    speeches = root.findall(".//tei:sp", NS)
+
+    assert [sp.attrib.get("who") for sp in speeches] == [
+        "#char-neron",
+        "#char-junie",
+        "#char-neron",
+        "#char-neron",
+    ]

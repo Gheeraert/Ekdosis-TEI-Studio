@@ -84,6 +84,8 @@ def resolve_speaker_block(readings: list[str], characters: list[Character]) -> S
 
     for raw in readings:
         form = raw.strip()
+        if form == "(lacune)":
+            continue
         normalized = normalize_character_label(form)
         if not normalized:
             continue

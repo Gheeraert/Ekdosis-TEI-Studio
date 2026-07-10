@@ -139,3 +139,50 @@ def test_resolve_speaker_block_reports_conflict_between_ids() -> None:
     resolution = resolve_speaker_block(["HERMIONE", "ANDROMAQUE"], characters)
 
     assert resolution.status == "conflict"
+
+
+def test_resolve_speaker_block_ignores_exact_lacune_marker() -> None:
+    characters = [
+        Character(id="neron", label="Néron", aliases=["NERON", "NERON,"]),
+        Character(id="junie", label="Junie", aliases=["JUNIE", "JUNIE."]),
+    ]
+
+    first = resolve_speaker_block(["NERON", "(lacune)"], characters)
+    second = resolve_speaker_block(["(lacune)", "NERON,", "NERON"], characters)
+    third = resolve_speaker_block(["JUNIE.", "(lacune)"], characters)
+
+    assert first.status == "resolved"
+    assert first.character_id == "neron"
+    assert second.status == "resolved"
+    assert second.character_id == "neron"
+    assert third.status == "resolved"
+    assert third.character_id == "junie"
+
+
+def test_resolve_speaker_block_preserves_conflicts_with_lacune_marker() -> None:
+    characters = [
+        Character(id="neron", label="Néron", aliases=["NERON"]),
+        Character(id="junie", label="Junie", aliases=["JUNIE"]),
+    ]
+
+    resolution = resolve_speaker_block(["NERON", "JUNIE", "(lacune)"], characters)
+
+    assert resolution.status == "conflict"
+
+
+def test_resolve_speaker_block_all_lacune_markers_are_unresolved() -> None:
+    characters = [Character(id="neron", label="Néron", aliases=["NERON"])]
+
+    resolution = resolve_speaker_block(["(lacune)", "(lacune)"], characters)
+
+    assert resolution.status == "unresolved"
+    assert resolution.problematic_forms == ()
+
+
+def test_resolve_speaker_block_keeps_unknown_forms_unresolved_with_lacune_marker() -> None:
+    characters = [Character(id="neron", label="Néron", aliases=["NERON"])]
+
+    resolution = resolve_speaker_block(["PERSONNAGE INCONNU", "(lacune)"], characters)
+
+    assert resolution.status == "unresolved"
+    assert resolution.problematic_forms == ("PERSONNAGE INCONNU",)
