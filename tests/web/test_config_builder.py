@@ -50,6 +50,32 @@ def test_config_from_dict_witnesses() -> None:
     assert cfg.witnesses[1] == Witness(siglum="B", year="1676", description="Collective")
 
 
+def test_config_from_dict_preserves_witness_kind() -> None:
+    raw = {
+        **_MINIMAL_RAW,
+        "Temoins": [
+            {"abbr": "A", "year": "1670", "desc": "A", "kind": "documentary"},
+            {"abbr": "E", "year": "1670-Reg.", "desc": "Regularized", "kind": "editorial"},
+        ],
+    }
+
+    cfg = config_from_dict(raw)
+
+    assert [witness.kind for witness in cfg.witnesses] == ["documentary", "editorial"]
+
+
+def test_config_from_dict_rejects_invalid_witness_kind() -> None:
+    raw = {
+        **_MINIMAL_RAW,
+        "Temoins": [
+            {"abbr": "E", "year": "1670-Reg.", "desc": "Regularized", "kind": "regularized"},
+        ],
+    }
+
+    with pytest.raises(ValueError, match="Unsupported witness kind"):
+        config_from_dict(raw)
+
+
 def test_config_from_dict_reference_witness_defaults_to_last() -> None:
     cfg = config_from_dict(_MINIMAL_RAW)
     assert cfg.reference_witness == 1  # last witness
@@ -202,6 +228,28 @@ def test_config_from_form_temoins_as_witness_objects() -> None:
     cfg = config_from_form(form)
     assert len(cfg.witnesses) == 2
     assert cfg.witnesses[0] == Witness(siglum="A", year="1670", description="Édition princeps")
+
+
+def test_config_from_form_preserves_witness_kind_from_json_textarea() -> None:
+    form = {
+        "titre": "Test",
+        "auteur_prenom": "",
+        "auteur_nom": "",
+        "editeur_prenom": "",
+        "editeur_nom": "",
+        "transcripteur_prenom": "",
+        "transcripteur_nom": "",
+        "temoins_json": json.dumps([
+            {"abbr": "A", "year": "1670", "desc": "A"},
+            {"abbr": "E", "year": "1670-Reg.", "desc": "Regularized", "kind": "editorial"},
+        ]),
+        "temoin_reference": "",
+        "transcription": "",
+    }
+
+    cfg = config_from_form(form)
+
+    assert [witness.kind for witness in cfg.witnesses] == ["", "editorial"]
 
 
 def test_config_from_form_reference_by_siglum() -> None:

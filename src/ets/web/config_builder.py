@@ -10,7 +10,7 @@ import json
 from typing import Any
 
 from ets.domain import EditionConfig, Witness
-from ets.parser.config_loader import _load_characters
+from ets.parser.config_loader import _load_characters, _load_witness_kind
 
 
 def _pick(data: dict[str, Any], keys: list[str], default: Any = "") -> Any:
@@ -67,7 +67,8 @@ def _witnesses_from_raw(witnesses_raw: list[Any]) -> list[Witness]:
         desc = str(item.get("desc", "")).strip()
         if not abbr:
             raise ValueError(f"Témoin #{i + 1} : le sigle (abbr) est requis.")
-        witnesses.append(Witness(siglum=abbr, year=year, description=desc))
+        kind = _load_witness_kind(item, abbr)
+        witnesses.append(Witness(siglum=abbr, year=year, description=desc, kind=kind))
     return witnesses
 
 

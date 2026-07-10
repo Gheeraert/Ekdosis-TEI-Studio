@@ -41,7 +41,7 @@ from ets.domain import Character, EditionConfig, Witness
 from ets.parser import save_config as save_edition_config
 from ets.ui.tk.helpers import diagnostic_line_numbers, format_config_status
 from ets.ui.tk.main_window import MainWindow, suggest_next_annotation_id
-from ets.ui.tk.dialogs.config_dialog import ConfigDialog
+from ets.ui.tk.dialogs.config_dialog import ConfigDialog, _parse_witnesses, _witnesses_to_lines
 from ets.ui.tk.dialogs.publication_dialog import PublicationDialog, PublicationDialogResult
 from ets.publication_pdf import PublicationPdfBuildResult, PublicationPdfCompileResult, PublicationPdfMasterBuildResult
 
@@ -2753,6 +2753,20 @@ def test_config_dialog_preserves_non_edited_config_fields() -> None:
         assert dialog.result.castlist_path == "Esther_castlist.txt"
     finally:
         root.destroy()
+
+
+def test_config_dialog_preserves_existing_witness_kind_without_visible_field() -> None:
+    witnesses = [
+        Witness(siglum="A", year="1670", description="Barbin"),
+        Witness(siglum="E", year="1670-Reg.", description="Regularized", kind="editorial"),
+    ]
+
+    raw = _witnesses_to_lines(witnesses)
+    parsed = _parse_witnesses(raw, witnesses)
+
+    assert "editorial" not in raw
+    assert parsed[0].kind == ""
+    assert parsed[1].kind == "editorial"
 
 
 def test_edit_config_with_transcription_path_does_not_overwrite_unsaved_text(

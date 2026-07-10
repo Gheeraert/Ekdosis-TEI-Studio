@@ -546,6 +546,32 @@ def test_download_package_zip_contains_standalone_json(client) -> None:
         assert raw.get("Titre de la pièce") == "Test"
 
 
+def test_download_package_from_form_fields_preserves_witness_kind(client) -> None:
+    rv = client.post("/download/package", data={
+        "config_json": "",
+        "titre": "Test",
+        "auteur_prenom": "Jean",
+        "auteur_nom": "Racine",
+        "editeur_prenom": "",
+        "editeur_nom": "Editeur",
+        "transcripteur_prenom": "",
+        "transcripteur_nom": "",
+        "temoins_json": json.dumps([
+            {"abbr": "A", "year": "1670", "desc": "A"},
+            {"abbr": "E", "year": "1670-Reg.", "desc": "Regularized", "kind": "editorial"},
+        ]),
+        "transcription": "Texte",
+        "castlist_text": "",
+    })
+
+    assert rv.status_code == 200
+    with zipfile.ZipFile(io.BytesIO(rv.data)) as zf:
+        json_names = [n for n in zf.namelist() if n.endswith(".json")]
+        raw = json.loads(zf.read(json_names[0]))
+        assert "kind" not in raw["Temoins"][0]
+        assert raw["Temoins"][1]["kind"] == "editorial"
+
+
 def test_download_package_zip_contains_transcription(client) -> None:
     rv = client.post("/download/package", data={
         "config_json": _minimal_config_json(),
@@ -607,6 +633,28 @@ def test_download_config_has_french_keys(client) -> None:
     assert rv.status_code == 200
     raw = json.loads(rv.data)
     assert "Prénom de l'auteur" in raw or "Nom de l'auteur" in raw
+
+
+def test_download_config_from_form_fields_preserves_witness_kind(client) -> None:
+    rv = client.post("/download/config", data={
+        "config_json": "",
+        "titre": "Test",
+        "auteur_prenom": "Jean",
+        "auteur_nom": "Racine",
+        "editeur_prenom": "",
+        "editeur_nom": "Editeur",
+        "transcripteur_prenom": "",
+        "transcripteur_nom": "",
+        "temoins_json": json.dumps([
+            {"abbr": "A", "year": "1670", "desc": "A"},
+            {"abbr": "E", "year": "1670-Reg.", "desc": "Regularized", "kind": "editorial"},
+        ]),
+    })
+
+    assert rv.status_code == 200
+    raw = json.loads(rv.data)
+    assert "kind" not in raw["Temoins"][0]
+    assert raw["Temoins"][1]["kind"] == "editorial"
 
 
 def test_web_export_config_preserves_speaker_authority() -> None:

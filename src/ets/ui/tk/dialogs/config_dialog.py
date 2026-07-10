@@ -20,14 +20,25 @@ def _witnesses_to_lines(witnesses: list[Witness]) -> str:
     return "\n".join(f"{w.siglum}|{w.year}|{w.description}" for w in witnesses)
 
 
-def _parse_witnesses(raw: str) -> list[Witness]:
+def _parse_witnesses(raw: str, existing: list[Witness] | None = None) -> list[Witness]:
+    existing_by_siglum = {witness.siglum: witness for witness in existing or []}
     lines = [line.strip() for line in raw.splitlines() if line.strip()]
     witnesses: list[Witness] = []
     for line in lines:
         parts = [part.strip() for part in line.split("|")]
         if len(parts) < 3:
             raise ValueError(f"Ligne témoin invalide: {line}")
-        witnesses.append(Witness(siglum=parts[0], year=parts[1], description="|".join(parts[2:]).strip()))
+        siglum = parts[0]
+        existing_witness = existing_by_siglum.get(siglum)
+        kind = existing_witness.kind if existing_witness else ""
+        witnesses.append(
+            Witness(
+                siglum=siglum,
+                year=parts[1],
+                description="|".join(parts[2:]).strip(),
+                kind=kind,
+            )
+        )
     if not witnesses:
         raise ValueError("Au moins un témoin est requis.")
     return witnesses
@@ -127,7 +138,10 @@ class ConfigDialog(tk.Toplevel):
 
     def _on_validate(self) -> None:
         try:
-            witnesses = _parse_witnesses(self.witnesses.get("1.0", "end-1c"))
+            witnesses = _parse_witnesses(
+                self.witnesses.get("1.0", "end-1c"),
+                self._initial.witnesses if self._initial else None,
+            )
             reference = min(self._reference_witness, len(witnesses) - 1)
             self.result = EditionConfig(
                 title=self.vars.title.get().strip(),

@@ -8,6 +8,7 @@ class Witness:
     siglum: str
     year: str
     description: str
+    kind: str = ""
 
 
 @dataclass(frozen=True)

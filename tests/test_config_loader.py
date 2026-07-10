@@ -229,6 +229,73 @@ def test_load_config_reads_optional_transcription_path() -> None:
     assert config.transcription_path == "Esther.txt"
 
 
+def test_witness_constructor_keeps_legacy_positional_compatibility() -> None:
+    witness = Witness("A", "1670", "Barbin")
+
+    assert witness.kind == ""
+
+
+def test_load_config_without_witness_kind_defaults_to_empty() -> None:
+    config_path = RUNTIME_DIR / "config_loader_witness_kind_legacy.json"
+    config_path.write_text(
+        json.dumps(_config_payload_with_reference("Témoin de référence", "B"), ensure_ascii=False),
+        encoding="utf-8",
+    )
+
+    config = load_config(config_path)
+
+    assert [witness.kind for witness in config.witnesses] == ["", "", ""]
+
+
+def test_load_config_reads_editorial_witness_kind() -> None:
+    payload = _config_payload_with_reference("Témoin de référence", "B")
+    payload["Temoins"][2]["kind"] = "editorial"  # type: ignore[index]
+    config_path = RUNTIME_DIR / "config_loader_witness_kind_editorial.json"
+    config_path.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
+
+    config = load_config(config_path)
+
+    assert config.witnesses[2].kind == "editorial"
+
+
+def test_load_config_reads_documentary_witness_kind() -> None:
+    payload = _config_payload_with_reference("Témoin de référence", "B")
+    payload["Temoins"][0]["kind"] = "documentary"  # type: ignore[index]
+    config_path = RUNTIME_DIR / "config_loader_witness_kind_documentary.json"
+    config_path.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
+
+    config = load_config(config_path)
+
+    assert config.witnesses[0].kind == "documentary"
+
+
+def test_load_config_normalizes_witness_kind() -> None:
+    payload = _config_payload_with_reference("Témoin de référence", "B")
+    payload["Temoins"][2]["kind"] = " Editorial "  # type: ignore[index]
+    config_path = RUNTIME_DIR / "config_loader_witness_kind_normalized.json"
+    config_path.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
+
+    config = load_config(config_path)
+
+    assert config.witnesses[2].kind == "editorial"
+
+
+def test_load_config_rejects_invalid_witness_kind() -> None:
+    payload = _config_payload_with_reference("Témoin de référence", "B")
+    payload["Temoins"][2]["kind"] = "regularized"  # type: ignore[index]
+    config_path = RUNTIME_DIR / "config_loader_witness_kind_invalid.json"
+    config_path.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
+
+    with pytest.raises(ValueError) as excinfo:
+        load_config(config_path)
+
+    message = str(excinfo.value)
+    assert "F" in message
+    assert "regularized" in message
+    assert "documentary" in message
+    assert "editorial" in message
+
+
 def _write_character_config(name: str, characters: list[dict[str, object]]) -> Path:
     payload = _config_payload_with_reference("Témoin de référence", "B")
     payload["Personnages"] = characters
@@ -323,6 +390,7 @@ def test_save_config_writes_canonical_json_without_reference_key() -> None:
     assert payload["Prénom du transcripteur"] == ""
     assert payload["Nom du transcripteur"] == ""
     assert payload["Temoins"][0] == {"abbr": "A", "year": "1670", "desc": "Barbin"}
+    assert "kind" not in payload["Temoins"][0]
     assert "Numéro du vers de départ" not in payload
     assert "Numéro de l'acte" not in payload
     assert "Numéro de la scène" not in payload
@@ -333,6 +401,27 @@ def test_save_config_writes_canonical_json_without_reference_key() -> None:
 
     assert "castlist_path" not in payload
     assert "transcription_path" not in payload
+
+
+def test_save_config_writes_witness_kind_when_present() -> None:
+    config = EditionConfig(
+        title="Britannicus",
+        author="Jean Racine",
+        editor="Tony Gheeraert",
+        witnesses=[
+            Witness(siglum="E", year="1670-Reg.", description="Regularized edition", kind="editorial"),
+        ],
+        reference_witness=0,
+    )
+    saved_path = save_config(config, RUNTIME_DIR / "canonique_witness_kind.json")
+    payload = json.loads(saved_path.read_text(encoding="utf-8"))
+
+    assert payload["Temoins"][0] == {
+        "abbr": "E",
+        "year": "1670-Reg.",
+        "desc": "Regularized edition",
+        "kind": "editorial",
+    }
 
 
 def test_save_config_writes_characters_when_present() -> None:
@@ -407,6 +496,29 @@ def test_config_roundtrip_preserves_play_id() -> None:
     assert reloaded.editor == "Tony Gheeraert"
     assert reloaded.transcriber == "Caroline Labrune"
     assert [witness.siglum for witness in reloaded.witnesses] == ["A", "B"]
+
+
+def test_config_roundtrip_preserves_witness_kind() -> None:
+    original = EditionConfig(
+        title="Britannicus",
+        author="Jean Racine",
+        editor="Tony Gheeraert",
+        witnesses=[
+            Witness(siglum="A", year="1670", description="Barbin"),
+            Witness(siglum="E", year="1670-Reg.", description="Regularized edition", kind="editorial"),
+        ],
+        reference_witness=1,
+    )
+    path = save_config(original, RUNTIME_DIR / "roundtrip_witness_kind.json")
+    reloaded = load_config(path)
+
+    assert reloaded.witnesses[0] == Witness(siglum="A", year="1670", description="Barbin")
+    assert reloaded.witnesses[1] == Witness(
+        siglum="E",
+        year="1670-Reg.",
+        description="Regularized edition",
+        kind="editorial",
+    )
 
 
 def test_save_config_omits_play_id_key_when_empty() -> None:

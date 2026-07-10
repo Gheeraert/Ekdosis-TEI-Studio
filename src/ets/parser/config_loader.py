@@ -9,6 +9,7 @@ from ets.domain import Character, EditionConfig, Witness
 
 
 _CHARACTER_ID_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_.-]*$")
+_ALLOWED_WITNESS_KINDS = {"", "documentary", "editorial"}
 
 
 def _pick(data: dict[str, Any], keys: list[str], default: Any = "") -> Any:
@@ -101,6 +102,23 @@ def _load_characters(raw: dict[str, Any]) -> list[Character]:
     return characters
 
 
+def _load_witness_kind(item: dict[str, Any], siglum: str) -> str:
+    kind = str(item.get("kind", "")).strip().lower()
+    if kind not in _ALLOWED_WITNESS_KINDS:
+        raise ValueError(
+            f"Unsupported witness kind {kind!r} for witness {siglum}; "
+            "expected 'documentary', 'editorial', or an empty value."
+        )
+    return kind
+
+
+def _witness_payload(witness: Witness) -> dict[str, str]:
+    payload = {"abbr": witness.siglum, "year": witness.year, "desc": witness.description}
+    if witness.kind:
+        payload["kind"] = witness.kind
+    return payload
+
+
 def _canonical_config_payload(config: EditionConfig) -> dict[str, Any]:
     author_first, author_last = _split_person_name(config.author)
     editor_first, editor_last = _split_person_name(config.editor)
@@ -113,10 +131,7 @@ def _canonical_config_payload(config: EditionConfig) -> dict[str, Any]:
         "Nom de l'éditeur scientifique": editor_last,
         "Prénom du transcripteur": transcriber_first,
         "Nom du transcripteur": transcriber_last,
-        "Temoins": [
-            {"abbr": witness.siglum, "year": witness.year, "desc": witness.description}
-            for witness in config.witnesses
-        ],
+        "Temoins": [_witness_payload(witness) for witness in config.witnesses],
     }
     if config.characters:
         payload["Personnages"] = [
@@ -162,6 +177,7 @@ def load_config(path: str | Path, reference_override: int | None = None) -> Edit
             siglum=str(item.get("abbr", "")).strip(),
             year=str(item.get("year", "")).strip(),
             description=str(item.get("desc", "")).strip(),
+            kind=_load_witness_kind(item, str(item.get("abbr", "")).strip()),
         )
         for item in witnesses_raw
     ]
