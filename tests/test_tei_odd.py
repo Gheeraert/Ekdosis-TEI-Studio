@@ -66,6 +66,10 @@ def test_odd_documents_central_ets_racine_elements() -> None:
         "hi",
         "listWit",
         "witness",
+        "classDecl",
+        "taxonomy",
+        "category",
+        "catDesc",
     }.issubset(elements)
 
 
@@ -107,6 +111,10 @@ def test_odd_contains_schematron_constraints_for_critical_rules() -> None:
         "rdg",
         "@wit",
         "witness",
+        "witness/@ana",
+        "ets-witness-taxonomy",
+        "witness_documentary",
+        "witness_editorial",
         "hi",
         "italic",
         "lg",
@@ -139,3 +147,28 @@ def test_odd_documents_language_omissions_and_shared_verse_parts() -> None:
         "(lacune)",
     ]:
         assert token in content
+
+
+def test_odd_documents_explicit_witness_kinds_and_taxonomy() -> None:
+    content = _text_content(_parse_odd())
+    constraints = _constraint_text(_parse_odd())
+
+    for token in [
+        "ets-witness-taxonomy",
+        "witness_documentary",
+        "witness_editorial",
+        "Témoin documentaire.",
+        "Témoin éditorial construit.",
+        "#witness_documentary",
+        "#witness_editorial",
+        "Le statut n'est jamais inféré",
+    ]:
+        assert token in content
+
+    for token in [
+        "witness/@ana doit valoir",
+        "exactement une taxonomie ets-witness-taxonomy",
+        "witness_documentary",
+        "witness_editorial",
+    ]:
+        assert token in constraints

@@ -71,11 +71,27 @@
         </elementSpec>
 
         <elementSpec ident="encodingDesc" mode="change">
-          <desc>Description de l'encodage généré. Dans le profil ETS-Racine, il contient les <gi>schemaRef</gi> pointant vers l'ODD, le RNC et le Schematron du profil.</desc>
+          <desc>Description de l'encodage généré. Dans le profil ETS-Racine, il contient les <gi>schemaRef</gi> pointant vers l'ODD, le RNC et le Schematron du profil. Il peut aussi contenir un <gi>classDecl</gi> avec les taxonomies de projet, notamment <ident>ets-variant-taxonomy</ident> et <ident>ets-witness-taxonomy</ident>.</desc>
         </elementSpec>
 
         <elementSpec ident="schemaRef" mode="change">
           <desc>Référence déclarative au profil ETS-Racine. Le profil généré utilise <att>type</att>=<val>projectODD</val> pour l'ODD, <att>type</att>=<val>validationRNC</val> pour la grammaire Relax NG compacte et <att>type</att>=<val>validationSchematron</val> pour les contraintes métier.</desc>
+        </elementSpec>
+
+        <elementSpec ident="classDecl" mode="change">
+          <desc>Déclaration des taxonomies de projet utilisées par le document. La taxonomie des témoins, <ident>ets-witness-taxonomy</ident>, est distincte de la taxonomie des variantes, <ident>ets-variant-taxonomy</ident>.</desc>
+        </elementSpec>
+
+        <elementSpec ident="taxonomy" mode="change">
+          <desc>Taxonomie de projet déclarée dans <gi>classDecl</gi>. <ident>ets-witness-taxonomy</ident> est produite uniquement lorsqu'au moins un <gi>witness</gi> porte <att>ana</att>=<val>#witness_documentary</val> ou <val>#witness_editorial</val>. Lorsqu'elle existe, elle déclare les catégories <ident>witness_documentary</ident> et <ident>witness_editorial</ident>.</desc>
+        </elementSpec>
+
+        <elementSpec ident="category" mode="change">
+          <desc>Catégorie d'une taxonomie de projet. Pour <ident>ets-witness-taxonomy</ident>, les identifiants attendus sont <ident>witness_documentary</ident> et <ident>witness_editorial</ident>.</desc>
+        </elementSpec>
+
+        <elementSpec ident="catDesc" mode="change">
+          <desc>Description textuelle d'une catégorie. Pour la taxonomie des témoins, les libellés générés sont <mentioned>Témoin documentaire.</mentioned> et <mentioned>Témoin éditorial construit.</mentioned>.</desc>
         </elementSpec>
 
         <elementSpec ident="text" mode="change">
@@ -336,12 +352,30 @@
         </elementSpec>
 
         <elementSpec ident="witness" mode="change">
-          <desc>Témoin utilisé par les attributs <att>wit</att> de <gi>lem</gi> et <gi>rdg</gi>. Chaque témoin porte un <att>xml:id</att> obligatoire.</desc>
+          <desc>Témoin utilisé par les attributs <att>wit</att> de <gi>lem</gi> et <gi>rdg</gi>. Chaque témoin porte un <att>xml:id</att> obligatoire correspondant à son sigle. Le texte conserve le libellé historique généré par ETS, par exemple sigle, millésime et description. L'attribut <att>ana</att> est facultatif : son absence signifie que la nature du témoin n'est pas précisée. <val>#witness_documentary</val> désigne un témoin documentaire ; <val>#witness_editorial</val> désigne un témoin éditorial construit par l'éditeur scientifique. Le statut n'est jamais inféré du sigle, du millésime ou de la description.</desc>
           <attList>
             <attDef ident="xml:id" usage="req">
               <desc>Sigle du témoin, cible des références @wit.</desc>
             </attDef>
+            <attDef ident="ana" usage="opt">
+              <desc>Pointeur facultatif vers la nature explicite du témoin. Valeurs documentées dans cette version : <val>#witness_documentary</val> ou <val>#witness_editorial</val>, un seul pointeur à la fois.</desc>
+            </attDef>
           </attList>
+          <constraintSpec ident="ets-racine-witness-ana" scheme="schematron">
+            <constraint>
+              <sch:rule context="tei:witness">
+                <sch:assert test="not(@ana) or @ana = '#witness_documentary' or @ana = '#witness_editorial'">witness/@ana doit valoir #witness_documentary ou #witness_editorial lorsqu'il est présent.</sch:assert>
+                <sch:assert test="not(@ana = '#witness_documentary' or @ana = '#witness_editorial') or count(/tei:TEI/tei:teiHeader/tei:encodingDesc/tei:classDecl/tei:taxonomy[@xml:id='ets-witness-taxonomy']) = 1">witness/@ana exige exactement une taxonomie ets-witness-taxonomy.</sch:assert>
+                <sch:assert test="not(@ana = '#witness_documentary') or /tei:TEI/tei:teiHeader/tei:encodingDesc/tei:classDecl/tei:taxonomy[@xml:id='ets-witness-taxonomy']/tei:category[@xml:id='witness_documentary']">#witness_documentary doit pointer vers une catégorie witness_documentary déclarée.</sch:assert>
+                <sch:assert test="not(@ana = '#witness_editorial') or /tei:TEI/tei:teiHeader/tei:encodingDesc/tei:classDecl/tei:taxonomy[@xml:id='ets-witness-taxonomy']/tei:category[@xml:id='witness_editorial']">#witness_editorial doit pointer vers une catégorie witness_editorial déclarée.</sch:assert>
+              </sch:rule>
+              <sch:rule context="tei:teiHeader">
+                <sch:assert test="count(.//tei:taxonomy[@xml:id='ets-witness-taxonomy']) &lt;= 1">Il ne doit pas y avoir plus d'une taxonomie ets-witness-taxonomy.</sch:assert>
+                <sch:assert test="not(.//tei:taxonomy[@xml:id='ets-witness-taxonomy']) or .//tei:taxonomy[@xml:id='ets-witness-taxonomy']/tei:category[@xml:id='witness_documentary']">ets-witness-taxonomy doit déclarer witness_documentary.</sch:assert>
+                <sch:assert test="not(.//tei:taxonomy[@xml:id='ets-witness-taxonomy']) or .//tei:taxonomy[@xml:id='ets-witness-taxonomy']/tei:category[@xml:id='witness_editorial']">ets-witness-taxonomy doit déclarer witness_editorial.</sch:assert>
+              </sch:rule>
+            </constraint>
+          </constraintSpec>
           <constraintSpec ident="ets-racine-wit-targets-and-ids" scheme="schematron">
             <constraint>
               <sch:rule context="*">

@@ -42,6 +42,19 @@
       <assert test="not(@subtype) or @subtype = 'graphic' or @subtype = 'punctuation' or @subtype = 'mixed' or @subtype = 'case' or @subtype = 'spacing' or @subtype = 'identical'">app/@subtype must use an ETS minor-variant category.</assert>
     </rule>
 
+    <rule context="tei:witness">
+      <assert test="not(@ana) or @ana = '#witness_documentary' or @ana = '#witness_editorial'">witness/@ana must be #witness_documentary or #witness_editorial when present.</assert>
+      <assert test="not(@ana = '#witness_documentary' or @ana = '#witness_editorial') or count(/tei:TEI/tei:teiHeader/tei:encodingDesc/tei:classDecl/tei:taxonomy[@xml:id='ets-witness-taxonomy']) = 1">witness/@ana requires exactly one ets-witness-taxonomy.</assert>
+      <assert test="not(@ana = '#witness_documentary') or /tei:TEI/tei:teiHeader/tei:encodingDesc/tei:classDecl/tei:taxonomy[@xml:id='ets-witness-taxonomy']/tei:category[@xml:id='witness_documentary']">witness/@ana #witness_documentary must target a declared witness_documentary category.</assert>
+      <assert test="not(@ana = '#witness_editorial') or /tei:TEI/tei:teiHeader/tei:encodingDesc/tei:classDecl/tei:taxonomy[@xml:id='ets-witness-taxonomy']/tei:category[@xml:id='witness_editorial']">witness/@ana #witness_editorial must target a declared witness_editorial category.</assert>
+    </rule>
+
+    <rule context="tei:teiHeader">
+      <assert test="count(.//tei:taxonomy[@xml:id='ets-witness-taxonomy']) &lt;= 1">There must not be more than one ets-witness-taxonomy.</assert>
+      <assert test="not(.//tei:taxonomy[@xml:id='ets-witness-taxonomy']) or .//tei:taxonomy[@xml:id='ets-witness-taxonomy']/tei:category[@xml:id='witness_documentary']">ets-witness-taxonomy must declare witness_documentary.</assert>
+      <assert test="not(.//tei:taxonomy[@xml:id='ets-witness-taxonomy']) or .//tei:taxonomy[@xml:id='ets-witness-taxonomy']/tei:category[@xml:id='witness_editorial']">ets-witness-taxonomy must declare witness_editorial.</assert>
+    </rule>
+
     <rule context="tei:lem">
       <assert test="@wit">lem and rdg must have @wit.</assert>
       <assert test="not(@wit) or starts-with(normalize-space(@wit), '#')">lem/rdg @wit values must point to declared witness/@xml:id values; multi-token resolution is checked in Python tests.</assert>

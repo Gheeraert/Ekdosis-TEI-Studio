@@ -10,6 +10,7 @@ import pytest
 
 from ets.core import run_pipeline, run_pipeline_from_text
 from ets.domain import Character, EditionConfig, Witness
+from ets.tei.generator import with_tei_profile_references
 
 ROOT = Path(__file__).resolve().parents[1]
 SCHEMA_DIR = ROOT / "src" / "ets" / "resources" / "schemas"
@@ -18,7 +19,7 @@ SCH_PATH = SCHEMA_DIR / "ets-racine.sch"
 TEI_NS = "http://www.tei-c.org/ns/1.0"
 XML_NS = "http://www.w3.org/XML/1998/namespace"
 NS = {"tei": TEI_NS}
-LXML_NS = {"tei": TEI_NS}
+LXML_NS = {"tei": TEI_NS, "xml": XML_NS}
 SVRL_NS = {"svrl": "http://purl.oclc.org/dsdl/svrl"}
 
 
@@ -49,6 +50,26 @@ def _config() -> EditionConfig:
     )
 
 
+def _config_with_witness_kinds() -> EditionConfig:
+    return EditionConfig(
+        title="Britannicus",
+        author="Jean Racine",
+        editor="Editeur",
+        witnesses=[
+            Witness("A", "1670", "A", kind="documentary"),
+            Witness("B", "1671", "B"),
+            Witness("E", "1670-Reg.", "Regularized", kind="editorial"),
+        ],
+        reference_witness=0,
+        characters=[
+            Character(id="alpha", label="Alpha", aliases=["ALPHA"]),
+            Character(id="beta", label="Beta", aliases=["BETA"]),
+            Character(id="gamma", label="Gamma", aliases=["GAMMA"]),
+        ],
+        play_id="britannicus",
+    )
+
+
 def _block(first: str, second: str | None = None) -> list[str]:
     return [first, first if second is None else second]
 
@@ -56,6 +77,11 @@ def _block(first: str, second: str | None = None) -> list[str]:
 def _tei_from_blocks(blocks: list[list[str]]) -> str:
     text = "\n\n".join("\n".join(block) for block in blocks) + "\n"
     return run_pipeline_from_text(text, _config())
+
+
+def _tei_from_blocks_with_witness_kinds(blocks: list[list[str]]) -> str:
+    text = "\n\n".join("\n".join(block) for block in blocks) + "\n"
+    return run_pipeline_from_text(text, _config_with_witness_kinds())
 
 
 def _base_blocks() -> list[list[str]]:
@@ -66,9 +92,18 @@ def _base_blocks() -> list[list[str]]:
     ]
 
 
+def _base_blocks_3witnesses() -> list[list[str]]:
+    return [
+        ["####ACTE I####", "####ACTE I####", "####ACTE I####"],
+        ["###SCENE I###", "###SCENE I###", "###SCENE I###"],
+        ["#ALPHA#", "#ALPHA#", "#ALPHA#"],
+    ]
+
+
 def _schematron_failures(xml_text: str) -> list[str]:
     schema = isoschematron.Schematron(LET.parse(str(SCH_PATH)), store_report=True)
-    doc = LET.fromstring(xml_text.encode("utf-8"))
+    parser = LET.XMLParser(collect_ids=False)
+    doc = LET.fromstring(xml_text.encode("utf-8"), parser=parser)
     if schema.validate(doc):
         return []
     report = schema.validation_report
@@ -86,6 +121,21 @@ def _mutate(xml_text: str, mutator) -> str:
     doc = LET.fromstring(xml_text.encode("utf-8"))
     mutator(doc)
     return LET.tostring(doc, encoding="unicode")
+
+
+def _witness_taxonomy(root: ET.Element) -> ET.Element | None:
+    for taxonomy in root.findall(".//tei:teiHeader/tei:encodingDesc/tei:classDecl/tei:taxonomy", NS):
+        if _xml_id(taxonomy) == "ets-witness-taxonomy":
+            return taxonomy
+    return None
+
+
+def _taxonomy_count(root: ET.Element, taxonomy_id: str) -> int:
+    return sum(
+        1
+        for taxonomy in root.findall(".//tei:teiHeader/tei:encodingDesc/tei:classDecl/tei:taxonomy", NS)
+        if _xml_id(taxonomy) == taxonomy_id
+    )
 
 
 def _declared_witnesses(root: ET.Element) -> set[str]:
@@ -245,6 +295,16 @@ def test_rnc_allows_generated_language_shared_part_and_omissions() -> None:
     assert 'attribute type { "omission" }?' in content
 
 
+def test_rnc_documents_witness_ana_and_project_taxonomies() -> None:
+    content = RNC_PATH.read_text(encoding="utf-8")
+
+    assert 'attribute ana { "#witness_documentary" | "#witness_editorial" }?' in content
+    assert "classDecl?" in content
+    assert 'attribute xml:id { "ets-variant-taxonomy" | "ets-witness-taxonomy" }' in content
+    assert "element category" in content
+    assert "element catDesc { text }" in content
+
+
 def test_schematron_declares_critical_rules() -> None:
     content = SCH_PATH.read_text(encoding="utf-8")
     ET.parse(SCH_PATH)
@@ -261,6 +321,10 @@ def test_schematron_declares_critical_rules() -> None:
         "@xml:id",
         "witness",
         "italic",
+        "witness/@ana must be #witness_documentary or #witness_editorial",
+        "ets-witness-taxonomy",
+        "witness_documentary",
+        "witness_editorial",
     ]:
         assert token in content
 
@@ -278,6 +342,63 @@ def test_generated_ordinary_output_validates_against_schematron_profile() -> Non
     assert root.find(".//tei:app", NS) is not None
     assert root.find(".//tei:l[@n='1']", NS).get("part") is None  # type: ignore[union-attr]
     _assert_valid_schematron(xml_text)
+
+
+def test_witness_kinds_validate_against_schematron_profile() -> None:
+    xml_text = _tei_from_blocks_with_witness_kinds(
+        [
+            *_base_blocks_3witnesses(),
+            ["Je parle.", "Je parle.", "Je parle."],
+        ]
+    )
+    root = ET.fromstring(xml_text)
+    witnesses = root.findall(".//tei:listWit/tei:witness", NS)
+
+    assert witnesses[0].get("ana") == "#witness_documentary"
+    assert witnesses[1].get("ana") is None
+    assert witnesses[2].get("ana") == "#witness_editorial"
+
+    taxonomy = _witness_taxonomy(root)
+    assert taxonomy is not None
+    categories = taxonomy.findall("tei:category", NS)
+    assert [category.get(f"{{{XML_NS}}}id") for category in categories] == [
+        "witness_documentary",
+        "witness_editorial",
+    ]
+    assert [category.findtext("tei:catDesc", namespaces=NS) for category in categories] == [
+        "Témoin documentaire.",
+        "Témoin éditorial construit.",
+    ]
+    _assert_valid_schematron(xml_text)
+
+
+def test_witness_and_variant_taxonomies_coexist_and_validate() -> None:
+    xml_text = _tei_from_blocks_with_witness_kinds(
+        [
+            *_base_blocks_3witnesses(),
+            ["Fils.", "Fils.", "fils."],
+        ]
+    )
+    root = ET.fromstring(xml_text)
+
+    assert _taxonomy_count(root, "ets-witness-taxonomy") == 1
+    assert _taxonomy_count(root, "ets-variant-taxonomy") == 1
+    _assert_valid_schematron(xml_text)
+
+
+def test_witness_taxonomy_idempotent_output_validates_against_schematron_profile() -> None:
+    xml_text = _tei_from_blocks_with_witness_kinds(
+        [
+            *_base_blocks_3witnesses(),
+            ["Fils.", "Fils.", "fils."],
+        ]
+    )
+    serialized = with_tei_profile_references(with_tei_profile_references(xml_text))
+    root = ET.fromstring(serialized)
+
+    assert _taxonomy_count(root, "ets-witness-taxonomy") == 1
+    assert _taxonomy_count(root, "ets-variant-taxonomy") == 1
+    _assert_valid_schematron(serialized)
 
 
 def test_lacune_omissions_validate_against_schematron_profile() -> None:
@@ -397,6 +518,105 @@ def test_schematron_allows_lacune_marker_inside_longer_reading() -> None:
             doc.xpath(".//tei:rdg", namespaces=LXML_NS)[0],
             "text",
             "Passage marque (lacune) dans la source",
+        ),
+    )
+
+    _assert_valid_schematron(allowed)
+
+
+def test_schematron_rejects_unknown_witness_ana_value() -> None:
+    xml_text = _tei_from_blocks_with_witness_kinds([*_base_blocks_3witnesses(), ["Je parle.", "Je parle.", "Je parle."]])
+    invalid = _mutate(
+        xml_text,
+        lambda doc: doc.xpath(".//tei:witness[@xml:id='E']", namespaces=LXML_NS)[0].set("ana", "#witness_virtual"),
+    )
+
+    assert any("witness/@ana must be #witness_documentary or #witness_editorial" in failure for failure in _schematron_failures(invalid))
+
+
+def test_schematron_rejects_witness_ana_without_hash() -> None:
+    xml_text = _tei_from_blocks_with_witness_kinds([*_base_blocks_3witnesses(), ["Je parle.", "Je parle.", "Je parle."]])
+    invalid = _mutate(
+        xml_text,
+        lambda doc: doc.xpath(".//tei:witness[@xml:id='E']", namespaces=LXML_NS)[0].set("ana", "witness_editorial"),
+    )
+
+    assert any("witness/@ana must be #witness_documentary or #witness_editorial" in failure for failure in _schematron_failures(invalid))
+
+
+def test_schematron_rejects_multiple_witness_ana_values() -> None:
+    xml_text = _tei_from_blocks_with_witness_kinds([*_base_blocks_3witnesses(), ["Je parle.", "Je parle.", "Je parle."]])
+    invalid = _mutate(
+        xml_text,
+        lambda doc: doc.xpath(".//tei:witness[@xml:id='E']", namespaces=LXML_NS)[0].set(
+            "ana",
+            "#witness_documentary #witness_editorial",
+        ),
+    )
+
+    assert any("witness/@ana must be #witness_documentary or #witness_editorial" in failure for failure in _schematron_failures(invalid))
+
+
+def test_schematron_rejects_witness_ana_without_witness_taxonomy() -> None:
+    xml_text = _tei_from_blocks_with_witness_kinds([*_base_blocks_3witnesses(), ["Je parle.", "Je parle.", "Je parle."]])
+    invalid = _mutate(
+        xml_text,
+        lambda doc: doc.xpath(".//tei:taxonomy[@xml:id='ets-witness-taxonomy']", namespaces=LXML_NS)[0].getparent().remove(
+            doc.xpath(".//tei:taxonomy[@xml:id='ets-witness-taxonomy']", namespaces=LXML_NS)[0]
+        ),
+    )
+
+    assert any("requires exactly one ets-witness-taxonomy" in failure for failure in _schematron_failures(invalid))
+
+
+def test_schematron_rejects_missing_targeted_witness_category() -> None:
+    xml_text = _tei_from_blocks_with_witness_kinds([*_base_blocks_3witnesses(), ["Je parle.", "Je parle.", "Je parle."]])
+
+    def remove_editorial_category(doc: LET._Element) -> None:
+        category = doc.xpath(".//tei:taxonomy[@xml:id='ets-witness-taxonomy']/tei:category[@xml:id='witness_editorial']", namespaces=LXML_NS)[0]
+        category.getparent().remove(category)
+
+    invalid = _mutate(xml_text, remove_editorial_category)
+
+    failures = _schematron_failures(invalid)
+    assert any("witness_editorial category" in failure for failure in failures)
+    assert any("must declare witness_editorial" in failure for failure in failures)
+
+
+def test_schematron_rejects_duplicate_witness_taxonomy() -> None:
+    xml_text = _tei_from_blocks_with_witness_kinds([*_base_blocks_3witnesses(), ["Je parle.", "Je parle.", "Je parle."]])
+
+    def duplicate_taxonomy(doc: LET._Element) -> None:
+        taxonomy = doc.xpath(".//tei:taxonomy[@xml:id='ets-witness-taxonomy']", namespaces=LXML_NS)[0]
+        taxonomy.getparent().append(LET.fromstring(LET.tostring(taxonomy)))
+
+    invalid = _mutate(xml_text, duplicate_taxonomy)
+
+    assert any("more than one ets-witness-taxonomy" in failure for failure in _schematron_failures(invalid))
+
+
+def test_schematron_rejects_incomplete_witness_taxonomy_even_without_witness_ana() -> None:
+    xml_text = _tei_from_blocks_with_witness_kinds([*_base_blocks_3witnesses(), ["Je parle.", "Je parle.", "Je parle."]])
+
+    def remove_ana_and_documentary_category(doc: LET._Element) -> None:
+        for witness in doc.xpath(".//tei:witness[@ana]", namespaces=LXML_NS):
+            witness.attrib.pop("ana")
+        category = doc.xpath(".//tei:taxonomy[@xml:id='ets-witness-taxonomy']/tei:category[@xml:id='witness_documentary']", namespaces=LXML_NS)[0]
+        category.getparent().remove(category)
+
+    invalid = _mutate(xml_text, remove_ana_and_documentary_category)
+
+    assert any("must declare witness_documentary" in failure for failure in _schematron_failures(invalid))
+
+
+def test_schematron_allows_untyped_witness_text_without_heuristic_classification() -> None:
+    xml_text = _tei_from_blocks([*_base_blocks(), _block("Je parle.", "Je parle.")])
+    allowed = _mutate(
+        xml_text,
+        lambda doc: setattr(
+            doc.xpath(".//tei:witness[@xml:id='B']", namespaces=LXML_NS)[0],
+            "text",
+            "E (1670-Reg.) Premiere edition regularisee",
         ),
     )
 

@@ -62,12 +62,14 @@ listWit =
 witness =
   element witness {
     attribute xml:id { xsd:ID },
+    attribute ana { "#witness_documentary" | "#witness_editorial" }?,
     text
   }
 
 encodingDesc =
   element encodingDesc {
-    schemaRef+
+    schemaRef+,
+    classDecl?
   }
 
 schemaRef =
@@ -76,6 +78,23 @@ schemaRef =
     attribute type { "projectODD" | "validationRNC" | "validationSchematron" },
     attribute url { text },
     element desc { text }?
+  }
+
+classDecl =
+  element classDecl {
+    taxonomy+
+  }
+
+taxonomy =
+  element taxonomy {
+    attribute xml:id { "ets-variant-taxonomy" | "ets-witness-taxonomy" },
+    category+
+  }
+
+category =
+  element category {
+    attribute xml:id { text },
+    element catDesc { text }
   }
 
 text =
