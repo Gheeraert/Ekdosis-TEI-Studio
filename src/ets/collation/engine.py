@@ -173,6 +173,7 @@ def collate_parallel_verse(
     speaker_label: str | None,
     block_index: int,
     met: str | None = None,
+    part: str | None = None,
 ) -> CollatedLine:
     return TokenCollatedLine(
         number=number,
@@ -188,6 +189,7 @@ def collate_parallel_verse(
             block_index=block_index,
         ),
         met=met,
+        part=part,
     )
 
 
@@ -301,6 +303,7 @@ def collate_play(play: Play, witness_sigla: list[str], reference_witness: int) -
                                     speaker_label=speech.speaker_readings[reference_witness],
                                     block_index=verse.block_index,
                                     met=verse.met,
+                                    part=verse.part,
                                 )
                             )
                         collated_speech.elements.append(
@@ -323,6 +326,7 @@ def collate_play(play: Play, witness_sigla: list[str], reference_witness: int) -
                                 speaker_label=speech.speaker_readings[reference_witness],
                                 block_index=verse.block_index,
                                 met=verse.met,
+                                part=verse.part,
                             )
                             for verse in element.lines
                         ]
@@ -348,6 +352,7 @@ def collate_play(play: Play, witness_sigla: list[str], reference_witness: int) -
                             speaker_label=speech.speaker_readings[reference_witness],
                             block_index=element.block_index,
                             met=element.met,
+                            part=element.part,
                         )
                     )
     return collated

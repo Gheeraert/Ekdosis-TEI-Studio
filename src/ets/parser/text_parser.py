@@ -352,6 +352,7 @@ def parse_play(text: str, config: EditionConfig) -> Play:
         if shared_base is not None and split_continues:
             shared_part += 1
             number = f"{shared_base}.{shared_part}"
+            part = "M" if split_starts else "F"
             shared_carried_across_scene = False
         else:
             if shared_base is not None and not split_continues:
@@ -364,8 +365,10 @@ def parse_play(text: str, config: EditionConfig) -> Play:
                 shared_base = base
                 shared_part = 1
                 number = f"{base}.1"
+                part = "I"
             else:
                 number = str(base)
+                part = None
                 shared_base = None
                 shared_part = 0
 
@@ -379,6 +382,7 @@ def parse_play(text: str, config: EditionConfig) -> Play:
             block_index=block_index,
             whole_line_variant=whole_line_variant,
             met=met,
+            part=part,
         )
         if current_implicit_span is not None:
             current_implicit_span.lines.append(verse)

@@ -507,6 +507,8 @@ def _append_collated_line(
         attrs["xml:id"] = line_xml_id
     if getattr(line, "met", None):
         attrs["met"] = line.met
+    if getattr(line, "part", None):
+        attrs["part"] = line.part
     l_element = ET.SubElement(parent, _tei("l"), attrs)
     if isinstance(line, TokenCollatedLine):
         _append_collated_text(l_element, line.text)

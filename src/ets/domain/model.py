@@ -40,6 +40,7 @@ class VerseLine:
     block_index: int
     whole_line_variant: bool = False
     met: str | None = None
+    part: str | None = None
 
 
 @dataclass
@@ -140,6 +141,7 @@ class CollatedReading:
 class LiteralLine:
     number: str
     text: str
+    part: str | None = None
 
 
 @dataclass(frozen=True)
@@ -169,6 +171,7 @@ class TokenCollatedLine:
     number: str
     text: CollatedText
     met: str | None = None
+    part: str | None = None
 
 
 @dataclass(frozen=True)
@@ -176,6 +179,7 @@ class ApparatusLine:
     number: str
     lemma: CollatedReading
     readings: list[CollatedReading]
+    part: str | None = None
 
 
 CollatedLine = TokenCollatedLine | ApparatusLine | LiteralLine
