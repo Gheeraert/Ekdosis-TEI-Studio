@@ -46,6 +46,11 @@ _TEI_PROFILE_SCHEMA_TYPES = {
     "validationSchematron",
 }
 _VARIANT_TAXONOMY_ID = "ets-variant-taxonomy"
+_WITNESS_TAXONOMY_ID = "ets-witness-taxonomy"
+_WITNESS_ANA_CATEGORIES = {
+    "witness_documentary": "Témoin documentaire.",
+    "witness_editorial": "Témoin éditorial construit.",
+}
 
 
 def _tei(tag: str) -> str:
@@ -139,6 +144,8 @@ def add_tei_profile_header_references(root: ET.Element, *, profile_base_href: st
     )
     if _has_variant_ana(root):
         _ensure_variant_taxonomy(encoding_desc)
+    if _has_witness_ana(root):
+        _ensure_witness_taxonomy(encoding_desc)
 
 
 def _has_variant_ana(root: ET.Element) -> bool:
@@ -146,6 +153,15 @@ def _has_variant_ana(root: ET.Element) -> bool:
         element.get("ana")
         for element in root.iter(_tei("app"))
         if element.get("type") == "minor"
+    )
+
+
+def _has_witness_ana(root: ET.Element) -> bool:
+    witness_pointers = {f"#{category_id}" for category_id in _WITNESS_ANA_CATEGORIES}
+    return any(
+        token in witness_pointers
+        for witness in root.iter(_tei("witness"))
+        for token in (witness.get("ana") or "").split()
     )
 
 
@@ -164,6 +180,29 @@ def _ensure_variant_taxonomy(encoding_desc: ET.Element) -> None:
         {f"{{{XML_NS}}}id": _VARIANT_TAXONOMY_ID},
     )
     for category_id, description in sorted(VARIANT_ANA_CATEGORIES.items()):
+        category = ET.SubElement(
+            taxonomy,
+            _tei("category"),
+            {f"{{{XML_NS}}}id": category_id},
+        )
+        ET.SubElement(category, _tei("catDesc")).text = description
+
+
+def _ensure_witness_taxonomy(encoding_desc: ET.Element) -> None:
+    class_decl = encoding_desc.find(_tei("classDecl"))
+    if class_decl is None:
+        class_decl = ET.SubElement(encoding_desc, _tei("classDecl"))
+
+    for taxonomy in list(class_decl.findall(_tei("taxonomy"))):
+        if taxonomy.get(f"{{{XML_NS}}}id") == _WITNESS_TAXONOMY_ID:
+            class_decl.remove(taxonomy)
+
+    taxonomy = ET.SubElement(
+        class_decl,
+        _tei("taxonomy"),
+        {f"{{{XML_NS}}}id": _WITNESS_TAXONOMY_ID},
+    )
+    for category_id, description in _WITNESS_ANA_CATEGORIES.items():
         category = ET.SubElement(
             taxonomy,
             _tei("category"),
@@ -631,7 +670,12 @@ def generate_tei_xml(
     if config.witnesses:
         list_wit = ET.SubElement(source_desc, _tei("listWit"))
         for witness in config.witnesses:
-            wit = ET.SubElement(list_wit, _tei("witness"), {"xml:id": witness.siglum})
+            attrs = {"xml:id": witness.siglum}
+            if witness.kind == "documentary":
+                attrs["ana"] = "#witness_documentary"
+            elif witness.kind == "editorial":
+                attrs["ana"] = "#witness_editorial"
+            wit = ET.SubElement(list_wit, _tei("witness"), attrs)
             wit.text = f"{witness.siglum} ({witness.year}) {witness.description}".strip()
     else:
         ET.SubElement(source_desc, _tei("p")).text = "Generated from plain-text parallel witnesses."
