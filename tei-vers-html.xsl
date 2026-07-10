@@ -10,9 +10,14 @@
   <xsl:template name="format-witness-short">
    <xsl:param name="id"/>
    <xsl:variable name="witness-text" select="normalize-space(string(key('witness-by-id', $id)[1]))"/>
+   <xsl:variable name="before-paren" select="substring-before($witness-text, '(')"/>
+   <xsl:variable name="inside-paren" select="substring-before(substring-after($witness-text, '('), ')')"/>
    <xsl:choose>
-     <xsl:when test="$witness-text != '' and contains($witness-text, ')')">
-      <xsl:value-of select="concat(substring-before($witness-text, ')'), ')')"/>
+     <xsl:when test="$witness-text != '' and contains($witness-text, '(') and contains($witness-text, ')') and contains($inside-paren, '-')">
+      <xsl:value-of select="concat(normalize-space($before-paren), ' (', substring-before($inside-paren, '-'), ')')"/>
+     </xsl:when>
+     <xsl:when test="$witness-text != '' and contains($witness-text, '(') and contains($witness-text, ')')">
+      <xsl:value-of select="concat(normalize-space($before-paren), ' (', $inside-paren, ')')"/>
      </xsl:when>
      <xsl:when test="$witness-text != ''">
        <xsl:value-of select="$witness-text"/>
@@ -397,7 +402,9 @@
             white-space: pre-line;
             display: none;
             z-index: 1000;
-            max-width: 400px;
+            min-width: min(18rem, calc(100vw - 4rem));
+            max-width: min(42rem, calc(100vw - 4rem));
+            box-sizing: border-box;
             overflow-wrap: break-word;
           }
           .variation:hover::after,
@@ -603,21 +610,27 @@
               <option value="">Lemme de référence</option>
               <xsl:for-each select="tei:teiHeader//tei:listWit/tei:witness[@xml:id]">
                 <xsl:variable name="witness-id" select="@xml:id"/>
+                <xsl:variable name="witness-label" select="normalize-space(.)"/>
                 <option value="{$witness-id}">
-                  <xsl:value-of select="$witness-id"/>
-                  <xsl:variable name="witness-label" select="normalize-space(.)"/>
-                  <xsl:if test="$witness-label != ''">
-                    <xsl:text> - </xsl:text>
-                    <xsl:choose>
-                      <xsl:when test="string-length($witness-label) &gt; 60">
-                        <xsl:value-of select="substring($witness-label, 1, 57)"/>
-                        <xsl:text>...</xsl:text>
-                      </xsl:when>
-                      <xsl:otherwise>
-                        <xsl:value-of select="$witness-label"/>
-                      </xsl:otherwise>
-                    </xsl:choose>
-                  </xsl:if>
+                  <xsl:attribute name="data-witness-full-label">
+                    <xsl:value-of select="$witness-label"/>
+                  </xsl:attribute>
+                  <xsl:choose>
+                    <xsl:when test="$witness-label != ''">
+                      <xsl:choose>
+                        <xsl:when test="string-length($witness-label) &gt; 60">
+                          <xsl:value-of select="substring($witness-label, 1, 57)"/>
+                          <xsl:text>...</xsl:text>
+                        </xsl:when>
+                        <xsl:otherwise>
+                          <xsl:value-of select="$witness-label"/>
+                        </xsl:otherwise>
+                      </xsl:choose>
+                    </xsl:when>
+                    <xsl:otherwise>
+                      <xsl:value-of select="$witness-id"/>
+                    </xsl:otherwise>
+                  </xsl:choose>
                 </option>
               </xsl:for-each>
             </select>
@@ -667,6 +680,18 @@
             function hasWitness(reading, witness) {
               return (reading.getAttribute('data-wits') || '').split(/\s+/).filter(Boolean).indexOf(witness) !== -1;
             }
+            function compactWitnessLabel(id, fullLabel) {
+              var label = (fullLabel || '').replace(/\s+/g, ' ').trim();
+              if (!label) {
+                return id;
+              }
+              var duplicatedPrefix = id + ' - ';
+              if (label.indexOf(duplicatedPrefix) === 0) {
+                label = label.substring(duplicatedPrefix.length);
+              }
+              var match = label.match(/\((\d{4})/);
+              return match ? id + ' (' + match[1] + ')' : id;
+            }
             function witnessLabelsFromSelect(select) {
               var labels = {};
               if (!select) {
@@ -676,12 +701,7 @@
                 if (!option.value) {
                   return;
                 }
-                var label = option.textContent.replace(/\s+/g, ' ').trim();
-                var prefix = option.value + ' - ';
-                if (label.indexOf(prefix) === 0) {
-                  label = label.substring(prefix.length);
-                }
-                labels[option.value] = label || option.value;
+                labels[option.value] = compactWitnessLabel(option.value, option.dataset.witnessFullLabel || option.textContent);
               });
               return labels;
             }
@@ -733,8 +753,8 @@
                 addTooltipGroup(groups, signature, labelsForReading(reading, witnessLabels), readingTooltipText(reading));
               });
               return groups.map(function (group) {
-                var label = group.labels.join(' ');
-                return label ? label + ': ' + group.text : group.text;
+                var label = group.labels.join(', ');
+                return label ? label + ' : ' + group.text : group.text;
               }).join('\n\n');
             }
             function defaultReading(readings) {

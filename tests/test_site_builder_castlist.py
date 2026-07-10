@@ -23,7 +23,13 @@ def _write_play_xml(path: Path, *, front: str = "", body_line: str | None = None
         <p>Test</p>
       </publicationStmt>
       <sourceDesc>
-        <p>Test</p>
+        <listWit>
+          <witness xml:id="A">A (1670) Barbin, BNF cote RES YF 3208</witness>
+          <witness xml:id="B">B (1676) Collective</witness>
+          <witness xml:id="C">C (1687) Collective</witness>
+          <witness xml:id="D">D (1697) Definitive</witness>
+          <witness xml:id="E">E (1670-Reg.) Premiere edition regularisee</witness>
+        </listWit>
       </sourceDesc>
     </fileDesc>
   </teiHeader>
@@ -103,10 +109,23 @@ def test_site_builder_published_play_embeds_relative_apparatus_script(tmp_path: 
     assert readings[0].get("data-wits") == "A B E"
     assert readings[1].get("data-wits") == "D"
     assert readings[1].get("hidden") is not None
+    tooltip = variant.get("data-tooltip") or ""
+    assert "D (1697): Quoy!" in tooltip
+    assert "Definitive" not in tooltip
     assert "readingSignature" in play_html
     assert "buildRelativeTooltip" in play_html
     assert "variation-no-alternatives" in play_html
     assert "node.setAttribute('data-tooltip', tooltip)" in play_html
+    assert "compactWitnessLabel" in play_html
+    assert "data-witness-full-label" in play_html
+    assert "A - A" not in play_html
+    assert "B - B" not in play_html
+    assert "C - C" not in play_html
+    assert "D - D" not in play_html
+    assert "E - E" not in play_html
+    assert "min-width: min(18rem, calc(100vw - 4rem))" in play_html
+    assert "max-width: min(42rem, calc(100vw - 4rem))" in play_html
+    assert "box-sizing: border-box" in play_html
 
 
 def test_site_builder_renders_embedded_dramatis_personae_before_first_act(tmp_path: Path) -> None:

@@ -753,7 +753,9 @@ def _layout(
       padding: 0.55em 0.7em;
       font-size: 0.8em;
       line-height: 1.35;
-      max-width: min(50rem, calc(100vw - 4rem));
+      min-width: min(18rem, calc(100vw - 4rem));
+      max-width: min(42rem, calc(100vw - 4rem));
+      box-sizing: border-box;
       z-index: 1000;
       overflow-wrap: break-word;
       white-space: pre-line;
@@ -1342,8 +1344,9 @@ def _witness_label_for_tooltip(context_node: etree._Element, witness_ref: str) -
             continue
 
         label = _normalize_ws("".join(witness.itertext()))
-        if label and ")" in label:
-            return label.split(")", maxsplit=1)[0] + ")"
+        match = re.search(r"\((\d{4})", label)
+        if match:
+            return f"{witness_id} ({match.group(1)})"
         return label or f"#{witness_id}"
 
     return f"#{witness_id}"

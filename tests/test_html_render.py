@@ -186,6 +186,54 @@ def _empty_reading_diagnostic_tei_xml() -> str:
 """
 
 
+def _long_witness_labels_tei_xml() -> str:
+    return """<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0">
+  <teiHeader>
+    <fileDesc>
+      <titleStmt>
+        <title>Libelles temoins</title>
+        <author>Auteur</author>
+      </titleStmt>
+      <publicationStmt><p>Test</p></publicationStmt>
+      <sourceDesc>
+        <listWit>
+          <witness xml:id="A">A (1670) Barbin, BNF cote RES YF 3208</witness>
+          <witness xml:id="B">B (1676) Collective</witness>
+          <witness xml:id="C">C (1687) Collective</witness>
+          <witness xml:id="D">D (1697) Definitive</witness>
+          <witness xml:id="E">E (1670-Reg.) Premiere edition regularisee</witness>
+        </listWit>
+      </sourceDesc>
+    </fileDesc>
+  </teiHeader>
+  <text>
+    <body>
+      <div type="act" n="1">
+        <head>ACTE I</head>
+        <div type="scene" n="1">
+          <head>SCENE I</head>
+          <sp>
+            <speaker>ALBINE</speaker>
+            <l n="1"><app type="minor" subtype="mixed" ana="#case_only+punctuation_only">
+              <lem wit="#A #E">QUOY? </lem>
+              <rdg wit="#B">QUoy? </rdg>
+              <rdg wit="#C">QUoi? </rdg>
+              <rdg wit="#D">Quoy! </rdg>
+            </app>suite.</l>
+            <l n="2"><app>
+              <lem wit="#A">teste </lem>
+              <rdg wit="#E">test </rdg>
+            </app>suite.</l>
+          </sp>
+        </div>
+      </div>
+    </body>
+  </text>
+</TEI>
+"""
+
+
 def _visible_text_without_hidden(node) -> str:
     fragments: list[str] = []
     if node.get("hidden") is not None:
@@ -347,6 +395,34 @@ def test_html_export_accepts_simple_layout_options() -> None:
     assert not doc.xpath("//div[@id='header']")
     assert doc.xpath("//div[@id='footer']")
     assert "Pied de page test" in doc.text_content()
+
+
+def test_html_witness_labels_are_compact_in_tooltips_without_select_duplicates() -> None:
+    preview = render_html_preview_from_tei(_long_witness_labels_tei_xml())
+    doc = lxml_html.document_fromstring(preview)
+
+    option_texts = [
+        option.text_content().strip()
+        for option in doc.xpath("//select[@data-witness-select]/option[@value]")
+    ]
+    assert not any("A - A" in text or "B - B" in text or "C - C" in text or "D - D" in text or "E - E" in text for text in option_texts)
+    assert "A (1670) Barbin, BNF cote RES YF 3208" in option_texts
+    assert "D (1697) Definitive" in option_texts
+
+    variants = doc.xpath("//span[contains(@class, 'variation') and @data-tooltip]")
+    mixed_tooltip = variants[0].get("data-tooltip") or ""
+    e_tooltip = variants[1].get("data-tooltip") or ""
+    assert "B (1676): QUoy?" in mixed_tooltip
+    assert "C (1687): QUoi?" in mixed_tooltip
+    assert "D (1697): Quoy!" in mixed_tooltip
+    assert "E (1670): test" in e_tooltip
+    for forbidden in ("Barbin", "Collective", "Definitive", "Premiere edition regularisee", "1670-Reg."):
+        assert forbidden not in mixed_tooltip
+        assert forbidden not in e_tooltip
+
+    assert "compactWitnessLabel" in preview
+    assert "data-witness-full-label" in preview
+    assert "label.match(/\\((\\d{4})/" in preview
 
 
 def test_html_preview_uses_external_xslt_file_path() -> None:
@@ -613,5 +689,8 @@ def test_html_preview_marks_empty_active_reading_variant_anchors_without_text_po
     assert "variation-no-alternatives" in preview
     assert "node.setAttribute('data-tooltip', tooltip)" in preview
     assert "signature === activeSignature" in preview
+    assert "min-width: min(18rem, calc(100vw - 4rem))" in preview
+    assert "max-width: min(42rem, calc(100vw - 4rem))" in preview
+    assert "box-sizing: border-box" in preview
     assert "Cas A suite." in _visible_text_without_hidden(lines[0])
     assert "Cas B suite." in _visible_text_without_hidden(lines[1])
