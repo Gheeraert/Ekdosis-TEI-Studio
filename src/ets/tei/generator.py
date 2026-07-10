@@ -221,6 +221,9 @@ def _wit_attr(sigla: list[str]) -> str:
 def _append_reading(parent: ET.Element, tag: str, reading: CollatedReading) -> ET.Element:
     element = ET.SubElement(parent, _tei(tag), {"wit": _wit_attr(reading.witness_sigla)})
     reading_text = reading.text
+    if reading_text.strip() == "(lacune)":
+        element.set("type", "omission")
+        return element
     if reading_text.count("_") % 2 != 0:
         stripped = reading_text.strip()
         if stripped.startswith("_"):

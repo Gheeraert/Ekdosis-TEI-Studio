@@ -10,12 +10,14 @@ from ets.domain import (
     CollatedReading,
     CollatedScene,
     CollatedSpeech,
+    CollatedStageDirection,
     CollatedText,
     EditionConfig,
     LiteralTokenSegment,
     TokenCollatedLine,
     Witness,
 )
+from ets.html import render_html_preview_from_tei
 from ets.latex import tei_to_ekdosis
 from ets.tei.generator import generate_tei_xml
 from ets.tei.terminal_punctuation import (
@@ -61,6 +63,23 @@ def _line_multi(readings: list[str]) -> TokenCollatedLine:
     return line
 
 
+def _whole_line(readings: list[str], witness_sigla: list[str] | None = None) -> TokenCollatedLine:
+    witnesses = witness_sigla or ["A", "B"]
+    line = collate_parallel_verse(
+        readings,
+        witnesses,
+        ref_index=0,
+        number="1",
+        whole_line_variant=True,
+        act_label="1",
+        scene_label="1",
+        speaker_label="IOCASTE",
+        block_index=1,
+    )
+    assert isinstance(line, TokenCollatedLine)
+    return line
+
+
 def _xml_for_line(line: TokenCollatedLine, witness_sigla: list[str] | None = None) -> str:
     witnesses = witness_sigla or ["A", "B"]
     play = CollatedPlay(
@@ -81,6 +100,35 @@ def _xml_for_line(line: TokenCollatedLine, witness_sigla: list[str] | None = Non
         author="Auteur",
         editor="",
         witnesses=[Witness(siglum, "", "") for siglum in witnesses],
+        reference_witness=0,
+    )
+    return generate_tei_xml(play, config)
+
+
+def _xml_for_stage_text(stage_text: CollatedText) -> str:
+    play = CollatedPlay(
+        acts=[
+            CollatedAct(
+                head=CollatedText(segments=[]),
+                scenes=[
+                    CollatedScene(
+                        head=CollatedText(segments=[]),
+                        speeches=[
+                            CollatedSpeech(
+                                speaker=CollatedText(segments=[]),
+                                elements=[CollatedStageDirection(stage_text)],
+                            )
+                        ],
+                    )
+                ],
+            )
+        ]
+    )
+    config = EditionConfig(
+        title="Test",
+        author="Auteur",
+        editor="",
+        witnesses=[Witness("A", "", ""), Witness("B", "", "")],
         reference_witness=0,
     )
     return generate_tei_xml(play, config)
@@ -132,6 +180,165 @@ def _reconstruct_line_for_witness(line: ET.Element, witness: str) -> str:
 def _assert_reconstructs_witnesses(line: ET.Element, expected: dict[str, str]) -> None:
     for witness, text in expected.items():
         assert _reconstruct_line_for_witness(line, witness) == text
+
+
+def _first_app(xml: str) -> ET.Element:
+    app = ET.fromstring(xml).find(".//tei:app", NS)
+    assert app is not None
+    return app
+
+
+# ---------------------------------------------------------------------------
+# Marqueur ETS (lacune)
+# ---------------------------------------------------------------------------
+
+
+def test_lacune_marker_in_rdg_becomes_empty_omission() -> None:
+    xml = _xml_for_line(_whole_line(["Texte present.", "(lacune)"]))
+    app = _first_app(xml)
+    lemma = app.find("tei:lem", NS)
+    rdg = app.find("tei:rdg", NS)
+
+    assert lemma is not None
+    assert rdg is not None
+    assert lemma.get("wit") == "#A"
+    assert _text_of(lemma) == "Texte present."
+    assert rdg.get("wit") == "#B"
+    assert rdg.get("type") == "omission"
+    assert _text_of(rdg) == ""
+    assert "(lacune)" not in xml
+    _assert_reconstructs_witnesses(
+        _l_element(xml),
+        {"A": "Texte present.", "B": ""},
+    )
+
+
+def test_lacune_marker_in_lemma_becomes_empty_omission() -> None:
+    xml = _xml_for_line(_whole_line(["(lacune)", "Texte present."]))
+    app = _first_app(xml)
+    lemma = app.find("tei:lem", NS)
+    rdg = app.find("tei:rdg", NS)
+
+    assert lemma is not None
+    assert rdg is not None
+    assert lemma.get("wit") == "#A"
+    assert lemma.get("type") == "omission"
+    assert _text_of(lemma) == ""
+    assert rdg.get("wit") == "#B"
+    assert _text_of(rdg) == "Texte present."
+    assert "(lacune)" not in xml
+    _assert_reconstructs_witnesses(
+        _l_element(xml),
+        {"A": "", "B": "Texte present."},
+    )
+
+
+def test_lacune_marker_groups_multiple_lacunary_witnesses() -> None:
+    xml = _xml_for_line(
+        _whole_line(
+            ["(lacune)", "(lacune)", "Texte present.", "Texte present.", "(lacune)"],
+            ["A", "B", "C", "D", "E"],
+        ),
+        ["A", "B", "C", "D", "E"],
+    )
+    app = _first_app(xml)
+    lemma = app.find("tei:lem", NS)
+    rdg = app.find("tei:rdg", NS)
+
+    assert lemma is not None
+    assert rdg is not None
+    assert _wit_tokens(lemma.get("wit")) == ["A", "B", "E"]
+    assert lemma.get("type") == "omission"
+    assert _text_of(lemma) == ""
+    assert _wit_tokens(rdg.get("wit")) == ["C", "D"]
+    assert _text_of(rdg) == "Texte present."
+    assert "(lacune)" not in xml
+    _assert_reconstructs_witnesses(
+        _l_element(xml),
+        {
+            "A": "",
+            "B": "",
+            "C": "Texte present.",
+            "D": "Texte present.",
+            "E": "",
+        },
+    )
+
+
+def test_lacune_marker_with_surrounding_spaces_becomes_empty_omission() -> None:
+    xml = _xml_for_line(_whole_line(["Texte present.", "   (lacune)   "]))
+    rdg = _first_app(xml).find("tei:rdg", NS)
+
+    assert rdg is not None
+    assert rdg.get("type") == "omission"
+    assert _text_of(rdg) == ""
+    assert "(lacune)" not in xml
+    _assert_reconstructs_witnesses(
+        _l_element(xml),
+        {"A": "Texte present.", "B": ""},
+    )
+
+
+def test_lacune_marker_inside_text_stays_textual() -> None:
+    xml = _xml_for_line(
+        _whole_line(
+            [
+                "Passage marque (lacune) dans la source",
+                "Autre passage",
+            ]
+        )
+    )
+    app = _first_app(xml)
+    lemma = app.find("tei:lem", NS)
+
+    assert lemma is not None
+    assert lemma.get("type") is None
+    assert _text_of(lemma) == "Passage marque (lacune) dans la source"
+    assert "(lacune)" in xml
+    _assert_reconstructs_witnesses(
+        _l_element(xml),
+        {
+            "A": "Passage marque (lacune) dans la source",
+            "B": "Autre passage",
+        },
+    )
+
+
+def test_lacune_marker_in_stage_app_uses_common_reading_serialization() -> None:
+    xml = _xml_for_stage_text(
+        CollatedText(
+            segments=[
+                ApparatusTokenSegment(
+                    lemma=CollatedReading("(lacune)", ["A"]),
+                    readings=[CollatedReading("Il sort.", ["B"])],
+                )
+            ]
+        )
+    )
+    app = _first_app(xml)
+    stage = ET.fromstring(xml).find(".//tei:stage", NS)
+    lemma = app.find("tei:lem", NS)
+    rdg = app.find("tei:rdg", NS)
+
+    assert stage is not None
+    assert lemma is not None
+    assert rdg is not None
+    assert lemma.get("type") == "omission"
+    assert _text_of(lemma) == ""
+    assert _text_of(rdg) == "Il sort."
+    assert "(lacune)" not in xml
+
+
+def test_lacune_omission_is_consumed_by_existing_html_and_ekdosis_renderers() -> None:
+    xml = _xml_for_line(_whole_line(["Texte present.", "(lacune)"]))
+
+    html = render_html_preview_from_tei(xml)
+    tex = tei_to_ekdosis(xml)
+
+    assert "(lacune)" not in html
+    assert 'data-omission="true"' in html
+    assert "(lacune)" not in tex
+    assert "om." not in tex
 
 
 # ---------------------------------------------------------------------------
