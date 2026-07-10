@@ -9,6 +9,7 @@ from ets.parser import load_config
 
 TEI_NS = {"tei": "http://www.tei-c.org/ns/1.0"}
 XML_ID = "{http://www.w3.org/XML/1998/namespace}id"
+XML_LANG = "{http://www.w3.org/XML/1998/namespace}lang"
 
 
 def test_tei_header_keeps_config_metadata_and_clean_listwit_structure() -> None:
@@ -20,6 +21,10 @@ def test_tei_header_keeps_config_metadata_and_clean_listwit_structure() -> None:
     tei_xml = run_pipeline_from_text(input_text, config)
     xml_root = ET.fromstring(tei_xml)
 
+    assert xml_root.attrib.get(XML_LANG) == "fr"
+    text_element = xml_root.find("tei:text", namespaces=TEI_NS)
+    assert text_element is not None
+    assert text_element.attrib.get(XML_LANG) is None
     assert xml_root.findtext(".//tei:titleStmt/tei:title", namespaces=TEI_NS) == config.title
     assert xml_root.findtext(".//tei:titleStmt/tei:author", namespaces=TEI_NS) == config.author
     assert xml_root.findtext(".//tei:titleStmt/tei:editor", namespaces=TEI_NS) == config.editor

@@ -604,7 +604,7 @@ def generate_tei_xml(
     characters: list[Character] | None = None,
     profile_base_href: str = "tei-profile/",
 ) -> str:
-    tei = ET.Element(_tei("TEI"))
+    tei = ET.Element(_tei("TEI"), {f"{{{XML_NS}}}lang": "fr"})
     tei_header = ET.SubElement(tei, _tei("teiHeader"))
     file_desc = ET.SubElement(tei_header, _tei("fileDesc"))
     title_stmt = ET.SubElement(file_desc, _tei("titleStmt"))

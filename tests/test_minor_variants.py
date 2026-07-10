@@ -194,11 +194,16 @@ def test_realistic_generated_tei_uses_declared_ana_pointer_lists() -> None:
 
     apps = [app for app in root.findall(".//tei:app", NS) if app.get("ana")]
     assert apps
-    declared = {
-        category.get(f"{{http://www.w3.org/XML/1998/namespace}}id")
+    categories = {
+        category.get(f"{{http://www.w3.org/XML/1998/namespace}}id"): category.findtext("tei:catDesc", namespaces=NS)
         for category in root.findall(".//tei:taxonomy[@xml:id='ets-variant-taxonomy']/tei:category", {"tei": TEI_NS, "xml": "http://www.w3.org/XML/1998/namespace"})
     }
+    declared = set(categories)
     assert declared
+    assert categories["punctuation_only"] == "Variation limitée à la ponctuation."
+    assert categories["damerau_metathesis"] == "Métathèse graphique probable."
+    assert categories["historic_graphic_key_identity"] == "Identité après normalisation graphique historique."
+    assert {"case_only", "punctuation_only", "u_v", "y_i"} <= declared
 
     for app in apps:
         ana = app.get("ana") or ""
