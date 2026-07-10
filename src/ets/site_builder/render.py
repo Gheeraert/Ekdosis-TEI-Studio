@@ -767,6 +767,26 @@ def _layout(
       display: block;
     }}
 
+    .content-shell-play .dramatic-content .variation-no-alternatives,
+    .content-shell-play .dramatis-personae-block .variation-no-alternatives {{
+      border-bottom-color: transparent;
+      cursor: inherit;
+    }}
+
+    .content-shell-play .dramatic-content .variation-no-alternatives::after,
+    .content-shell-play .dramatis-personae-block .variation-no-alternatives::after {{
+      content: none;
+      display: none !important;
+    }}
+
+    .content-shell-play .dramatic-content .variation-no-alternatives.variation-empty,
+    .content-shell-play .dramatis-personae-block .variation-no-alternatives.variation-empty {{
+      display: inline;
+      min-width: 0;
+      width: 0;
+      min-height: 0;
+    }}
+
     .hide-minor-variants .content-shell-play .dramatic-content .variation-minor,
     .hide-minor-variants .content-shell-play .dramatis-personae-block .variation-minor,
     .hide-punctuation-variants .content-shell-play .dramatic-content .variation-punctuation-only,

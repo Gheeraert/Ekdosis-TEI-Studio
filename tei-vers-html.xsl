@@ -394,6 +394,20 @@
           .variation:focus::after {
             display: block;
           }
+          .variation-no-alternatives {
+            border-bottom-color: transparent;
+            cursor: inherit;
+          }
+          .variation-no-alternatives::after {
+            content: none;
+            display: none !important;
+          }
+          .variation-no-alternatives.variation-empty {
+            display: inline;
+            min-width: 0;
+            width: 0;
+            min-height: 0;
+          }
           .hide-minor-variants .variation-minor,
           .hide-punctuation-variants .variation-punctuation-only,
           .hide-case-variants .variation-case-only,
@@ -639,6 +653,76 @@
             function hasWitness(reading, witness) {
               return (reading.getAttribute('data-wits') || '').split(/\s+/).filter(Boolean).indexOf(witness) !== -1;
             }
+            function witnessLabelsFromSelect(select) {
+              var labels = {};
+              if (!select) {
+                return labels;
+              }
+              Array.prototype.slice.call(select.options).forEach(function (option) {
+                if (!option.value) {
+                  return;
+                }
+                var label = option.textContent.replace(/\s+/g, ' ').trim();
+                var prefix = option.value + ' - ';
+                if (label.indexOf(prefix) === 0) {
+                  label = label.substring(prefix.length);
+                }
+                labels[option.value] = label || option.value;
+              });
+              return labels;
+            }
+            function readingSignature(reading) {
+              if (!reading) {
+                return '';
+              }
+              var text = reading.textContent.replace(/\s+/g, ' ').trim();
+              if (reading.dataset.omission === 'true' || text === '') {
+                return '__OMISSION__';
+              }
+              return text;
+            }
+            function readingTooltipText(reading) {
+              var text = reading.textContent.replace(/\s+/g, ' ').trim();
+              if (reading.dataset.omission === 'true' || text === '') {
+                return 'omission';
+              }
+              return text;
+            }
+            function readingWitnesses(reading) {
+              return (reading.getAttribute('data-wits') || '').split(/\s+/).filter(Boolean);
+            }
+            function labelsForReading(reading, witnessLabels) {
+              return readingWitnesses(reading).map(function (witness) {
+                return witnessLabels[witness] || witness;
+              });
+            }
+            function addTooltipGroup(groups, signature, labels, text) {
+              for (var i = 0; i &lt; groups.length; i += 1) {
+                if (groups[i].signature === signature &amp;&amp; groups[i].text === text) {
+                  groups[i].labels = groups[i].labels.concat(labels);
+                  return;
+                }
+              }
+              groups.push({ signature: signature, labels: labels, text: text });
+            }
+            function buildRelativeTooltip(readings, activeReading, witnessLabels) {
+              var activeSignature = readingSignature(activeReading);
+              var groups = [];
+              readings.forEach(function (reading) {
+                var signature = readingSignature(reading);
+                if (reading === activeReading) {
+                  return;
+                }
+                if (signature === activeSignature) {
+                  return;
+                }
+                addTooltipGroup(groups, signature, labelsForReading(reading, witnessLabels), readingTooltipText(reading));
+              });
+              return groups.map(function (group) {
+                var label = group.labels.join(' ');
+                return label ? label + ': ' + group.text : group.text;
+              }).join('\n\n');
+            }
             function defaultReading(readings) {
               for (var i = 0; i &lt; readings.length; i += 1) {
                 if (readings[i].classList.contains('app-reading-default')) {
@@ -657,7 +741,7 @@
               }
               return defaultReading(readings);
             }
-            function updateVariationReading(node, witness) {
+            function updateVariationReading(node, witness, witnessLabels) {
               var readings = Array.prototype.slice.call(node.children).filter(function (child) {
                 return child.classList.contains('app-reading');
               });
@@ -670,17 +754,20 @@
                 reading.hidden = !isActive;
                 reading.classList.toggle('app-reading-active', isActive);
               });
+              var tooltip = buildRelativeTooltip(readings, active, witnessLabels);
+              node.setAttribute('data-tooltip', tooltip);
+              node.classList.toggle('variation-no-alternatives', tooltip === '');
               var isEmpty = !active || active.dataset.omission === 'true' || active.textContent.trim() === '';
               node.classList.toggle('variation-empty', isEmpty);
-              if (isEmpty) {
-                node.setAttribute('aria-label', 'Apparat critique: ' + (node.dataset.tooltip || node.dataset.defaultTooltip || ''));
+              if (isEmpty &amp;&amp; tooltip !== '') {
+                node.setAttribute('aria-label', 'Apparat critique: ' + tooltip);
               } else {
                 node.removeAttribute('aria-label');
               }
             }
             function updateVariationTabStops() {
               document.querySelectorAll('.variation').forEach(function (node) {
-                if (!node.classList.contains('variation-empty')) {
+                if (!node.classList.contains('variation-empty') || node.classList.contains('variation-no-alternatives')) {
                   node.removeAttribute('tabindex');
                   return;
                 }
@@ -699,8 +786,9 @@
             }
             function applyWitnessChoice() {
               var witness = witnessSelect ? witnessSelect.value : '';
+              var witnessLabels = witnessLabelsFromSelect(witnessSelect);
               document.querySelectorAll('.variation').forEach(function (node) {
-                updateVariationReading(node, witness);
+                updateVariationReading(node, witness, witnessLabels);
               });
               updateVariationTabStops();
             }

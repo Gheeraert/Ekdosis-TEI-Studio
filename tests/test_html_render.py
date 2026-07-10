@@ -153,6 +153,8 @@ def _empty_reading_diagnostic_tei_xml() -> str:
           <witness xml:id="A">A (1670) temoin A</witness>
           <witness xml:id="B">B (1671) temoin B</witness>
           <witness xml:id="C">C (1672) temoin C</witness>
+          <witness xml:id="D">D (1673) temoin D</witness>
+          <witness xml:id="E">E (1674) temoin E</witness>
         </listWit>
       </sourceDesc>
     </fileDesc>
@@ -173,6 +175,8 @@ def _empty_reading_diagnostic_tei_xml() -> str:
             <l n="6">Cas F <app type="minor" subtype="mixed" ana="#case_only+punctuation_only"><lem wit="#A">Cause,</lem><rdg wit="#B">cause</rdg></app> suite.</l>
             <l n="7">Cas G <app type="minor" subtype="case" ana="#case_only"><lem wit="#A">Fils</lem><rdg wit="#B">fils</rdg></app> suite.</l>
             <l n="8">Cas H <app type="minor" subtype="spacing" ana="#spacing_or_hyphen_only"><lem wit="#A">bien-tost</lem><rdg wit="#B">bientost</rdg></app> suite.</l>
+            <l n="9">Cas I <app type="minor" subtype="punctuation" ana="#punctuation_only"><lem wit="#A #B #E">m'importe </lem><rdg wit="#C #D">m'importe, </rdg></app> suite.</l>
+            <l n="10">Cas J<app type="minor" subtype="punctuation" ana="#punctuation_only"><lem wit="#A #B #E" type="omission"/><rdg wit="#C #D">,</rdg></app> suite.</l>
           </sp>
         </div>
       </div>
@@ -314,6 +318,10 @@ def test_html_export_generates_editorial_shell_and_credits() -> None:
     assert doc.xpath("//section[@id='contenu-editorial']//div[contains(@class, 'locuteur')]")
     assert doc.xpath("//section[@id='contenu-editorial']//div[contains(@class, 'vers-container')]")
     assert doc.xpath("//section[@id='contenu-editorial']//span[contains(@class, 'variation') and @data-tooltip]")
+    assert "readingSignature" in export
+    assert "buildRelativeTooltip" in export
+    assert "variation-no-alternatives" in export
+    assert "node.setAttribute('data-tooltip', tooltip)" in export
 
 
 def test_html_export_accepts_simple_layout_options() -> None:
@@ -464,7 +472,7 @@ def test_html_preview_marks_empty_active_reading_variant_anchors_without_text_po
     doc = lxml_html.document_fromstring(preview)
 
     lines = doc.xpath("//div[contains(@class, 'vers-container')]")
-    assert len(lines) == 8
+    assert len(lines) == 10
 
     punctuation_addition = lines[0].xpath(".//span[contains(@class, 'variation')]")[0]
     word_addition = lines[1].xpath(".//span[contains(@class, 'variation')]")[0]
@@ -474,6 +482,8 @@ def test_html_preview_marks_empty_active_reading_variant_anchors_without_text_po
     mixed_variant = lines[5].xpath(".//span[contains(@class, 'variation')]")[0]
     case_variant = lines[6].xpath(".//span[contains(@class, 'variation')]")[0]
     spacing_variant = lines[7].xpath(".//span[contains(@class, 'variation')]")[0]
+    shared_punctuation_variant = lines[8].xpath(".//span[contains(@class, 'variation')]")[0]
+    shared_omission_variant = lines[9].xpath(".//span[contains(@class, 'variation')]")[0]
 
     punctuation_readings = punctuation_addition.xpath("./span[contains(@class, 'app-reading')]")
     assert len(punctuation_readings) == 2
@@ -538,12 +548,32 @@ def test_html_preview_marks_empty_active_reading_variant_anchors_without_text_po
     assert "variation-case-only" in (case_variant.get("class") or "")
     assert "variation-spacing-or-hyphen-only" in (spacing_variant.get("class") or "")
 
+    shared_punctuation_readings = shared_punctuation_variant.xpath("./span[contains(@class, 'app-reading')]")
+    assert shared_punctuation_readings[0].get("data-wits") == "A B E"
+    assert shared_punctuation_readings[0].text_content() == "m'importe "
+    assert shared_punctuation_readings[1].get("data-wits") == "C D"
+    assert shared_punctuation_readings[1].get("hidden") is not None
+    assert shared_punctuation_readings[1].text_content() == "m'importe, "
+    assert "variation-punctuation-only" in (shared_punctuation_variant.get("class") or "")
+
+    shared_omission_readings = shared_omission_variant.xpath("./span[contains(@class, 'app-reading')]")
+    assert shared_omission_readings[0].get("data-wits") == "A B E"
+    assert shared_omission_readings[0].get("data-omission") == "true"
+    assert shared_omission_readings[0].text_content() == ""
+    assert shared_omission_readings[1].get("data-wits") == "C D"
+    assert shared_omission_readings[1].get("hidden") is not None
+    assert shared_omission_readings[1].text_content() == ","
+    assert "variation-empty" in (shared_omission_variant.get("class") or "")
+    assert "variation-punctuation-only" in (shared_omission_variant.get("class") or "")
+
     assert "apparatus-controls" in preview
     assert "Version affichée" in preview
     assert doc.xpath("//select[@data-witness-select]/option[@value='' and normalize-space(.)='Lemme de référence']")
     assert doc.xpath("//select[@data-witness-select]/option[@value='A' and contains(., 'A (1670)')]")
     assert doc.xpath("//select[@data-witness-select]/option[@value='B' and contains(., 'B (1671)')]")
     assert doc.xpath("//select[@data-witness-select]/option[@value='C' and contains(., 'C (1672)')]")
+    assert doc.xpath("//select[@data-witness-select]/option[@value='D' and contains(., 'D (1673)')]")
+    assert doc.xpath("//select[@data-witness-select]/option[@value='E' and contains(., 'E (1674)')]")
     assert "--site-header-offset" in preview
     assert "z-index: 1700" in preview
     assert "max-height:" in preview
@@ -564,5 +594,12 @@ def test_html_preview_marks_empty_active_reading_variant_anchors_without_text_po
     assert "app-reading-active" in preview
     assert "activeReadingFor" in preview
     assert "updateVariationReading" in preview
+    assert "readingSignature" in preview
+    assert "buildRelativeTooltip" in preview
+    assert "__OMISSION__" in preview
+    assert "omission" in preview
+    assert "variation-no-alternatives" in preview
+    assert "node.setAttribute('data-tooltip', tooltip)" in preview
+    assert "signature === activeSignature" in preview
     assert "Cas A suite." in _visible_text_without_hidden(lines[0])
     assert "Cas B suite." in _visible_text_without_hidden(lines[1])

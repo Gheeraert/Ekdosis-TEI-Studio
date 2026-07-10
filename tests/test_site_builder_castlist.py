@@ -8,7 +8,8 @@ from ets.site_builder.builder import build_static_site
 from ets.site_builder.config import site_config_from_dict
 
 
-def _write_play_xml(path: Path, *, front: str = "") -> None:
+def _write_play_xml(path: Path, *, front: str = "", body_line: str | None = None) -> None:
+    line = body_line or '<l><app><lem wit="#A">Je parle.</lem><rdg wit="#B">Je dis.</rdg></app></l>'
     path.write_text(
         f"""<?xml version="1.0" encoding="UTF-8"?>
 <TEI xmlns="http://www.tei-c.org/ns/1.0" xml:id="phedre">
@@ -35,7 +36,7 @@ def _write_play_xml(path: Path, *, front: str = "") -> None:
           <head>SCENE 1</head>
           <sp>
             <speaker>THESEE</speaker>
-            <l><app><lem wit="#A">Je parle.</lem><rdg wit="#B">Je dis.</rdg></app></l>
+            {line}
           </sp>
         </div>
       </div>
@@ -47,11 +48,11 @@ def _write_play_xml(path: Path, *, front: str = "") -> None:
     )
 
 
-def _build_site(tmp_path: Path, *, front: str = "") -> str:
+def _build_site(tmp_path: Path, *, front: str = "", body_line: str | None = None) -> str:
     dramatic_dir = tmp_path / "dramatic"
     output_dir = tmp_path / "site"
     dramatic_dir.mkdir()
-    _write_play_xml(dramatic_dir / "phedre.xml", front=front)
+    _write_play_xml(dramatic_dir / "phedre.xml", front=front, body_line=body_line)
 
     config = site_config_from_dict(
         {
@@ -84,6 +85,28 @@ def test_site_builder_without_dramatis_personae_keeps_old_behavior(tmp_path: Pat
     assert not doc.xpath("//section[@id='dramatis-personae']")
     assert not doc.xpath("//main/nav//a[contains(@href, '#dramatis-personae')]")
     assert "Dramatis personae" not in play_html
+
+
+def test_site_builder_published_play_embeds_relative_apparatus_script(tmp_path: Path) -> None:
+    body_line = """
+            <l><app type="minor" subtype="mixed" ana="#case_only+punctuation_only">
+              <lem wit="#A #B #E">QUOY? </lem>
+              <rdg wit="#D">Quoy! </rdg>
+            </app> suite.</l>
+    """
+
+    play_html = _build_site(tmp_path, body_line=body_line)
+    doc = lxml_html.document_fromstring(play_html)
+    variant = doc.xpath("//section[contains(@class, 'dramatic-content')]//span[contains(@class, 'variation')]")[0]
+    readings = variant.xpath("./span[contains(@class, 'app-reading')]")
+
+    assert readings[0].get("data-wits") == "A B E"
+    assert readings[1].get("data-wits") == "D"
+    assert readings[1].get("hidden") is not None
+    assert "readingSignature" in play_html
+    assert "buildRelativeTooltip" in play_html
+    assert "variation-no-alternatives" in play_html
+    assert "node.setAttribute('data-tooltip', tooltip)" in play_html
 
 
 def test_site_builder_renders_embedded_dramatis_personae_before_first_act(tmp_path: Path) -> None:
@@ -272,6 +295,7 @@ def test_structured_dramatis_python_renderer_keeps_empty_lemma_empty(tmp_path: P
     assert "max-height:" in play_html
     assert "overflow: auto" in play_html
     assert ".app-reading[hidden]" in play_html
+    assert "variation-no-alternatives" in play_html
     assert "data-wits" in play_html
     assert "app-reading-active" in play_html
     assert "Variantes de ponctuation" in play_html
