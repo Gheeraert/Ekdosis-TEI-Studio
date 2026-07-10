@@ -6,6 +6,7 @@ start = TEI
 
 TEI =
   element TEI {
+    attribute xml:lang { "fr" }?,
     teiHeader,
     text
   }
@@ -154,6 +155,7 @@ l =
     attribute n { text },
     attribute xml:id { xsd:ID },
     attribute met { text }?,
+    attribute part { "I" | "M" | "F" }?,
     mixed { inline* }
   }
 

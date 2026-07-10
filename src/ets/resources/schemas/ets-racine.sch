@@ -28,6 +28,9 @@
     <rule context="tei:l">
       <assert test="@n">l must have @n.</assert>
       <assert test="@xml:id">l must have @xml:id.</assert>
+      <assert test="not(@part) or @part = 'I' or @part = 'M' or @part = 'F'">l/@part must be I, M or F.</assert>
+      <assert test="not(contains(@n, '.')) or @part">decimal shared-verse l/@n values must have @part.</assert>
+      <assert test="not(@part) or contains(@n, '.')">l/@part is only allowed on decimal shared-verse numbers.</assert>
     </rule>
 
     <rule context="tei:app">
@@ -42,11 +45,15 @@
     <rule context="tei:lem">
       <assert test="@wit">lem and rdg must have @wit.</assert>
       <assert test="not(@wit) or starts-with(normalize-space(@wit), '#')">lem/rdg @wit values must point to declared witness/@xml:id values; multi-token resolution is checked in Python tests.</assert>
+      <assert test="not(@type = 'omission') or normalize-space(.) = ''">lem type="omission" must be textually empty.</assert>
+      <assert test="normalize-space(.) != '(lacune)'">Literal ETS lacuna marker must not be kept as a complete lem reading.</assert>
     </rule>
 
     <rule context="tei:rdg">
       <assert test="@wit">lem and rdg must have @wit.</assert>
       <assert test="not(@wit) or starts-with(normalize-space(@wit), '#')">lem/rdg @wit values must point to declared witness/@xml:id values; multi-token resolution is checked in Python tests.</assert>
+      <assert test="not(@type = 'omission') or normalize-space(.) = ''">rdg type="omission" must be textually empty.</assert>
+      <assert test="normalize-space(.) != '(lacune)'">Literal ETS lacuna marker must not be kept as a complete rdg reading.</assert>
     </rule>
 
     <rule context="tei:hi">

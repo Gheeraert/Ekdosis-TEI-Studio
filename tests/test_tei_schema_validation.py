@@ -4,7 +4,12 @@ import re
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
+from lxml import etree as LET
+from lxml import isoschematron
 import pytest
+
+from ets.core import run_pipeline, run_pipeline_from_text
+from ets.domain import Character, EditionConfig, Witness
 
 ROOT = Path(__file__).resolve().parents[1]
 SCHEMA_DIR = ROOT / "src" / "ets" / "resources" / "schemas"
@@ -13,6 +18,8 @@ SCH_PATH = SCHEMA_DIR / "ets-racine.sch"
 TEI_NS = "http://www.tei-c.org/ns/1.0"
 XML_NS = "http://www.w3.org/XML/1998/namespace"
 NS = {"tei": TEI_NS}
+LXML_NS = {"tei": TEI_NS}
+SVRL_NS = {"svrl": "http://purl.oclc.org/dsdl/svrl"}
 
 
 def _xml_id(element: ET.Element) -> str | None:
@@ -21,6 +28,64 @@ def _xml_id(element: ET.Element) -> str | None:
 
 def _parse(path: Path) -> ET.Element:
     return ET.parse(path).getroot()
+
+
+def _config() -> EditionConfig:
+    return EditionConfig(
+        title="Britannicus",
+        author="Jean Racine",
+        editor="Editeur",
+        witnesses=[
+            Witness("A", "1670", "A"),
+            Witness("B", "1671", "B"),
+        ],
+        reference_witness=0,
+        characters=[
+            Character(id="alpha", label="Alpha", aliases=["ALPHA"]),
+            Character(id="beta", label="Beta", aliases=["BETA"]),
+            Character(id="gamma", label="Gamma", aliases=["GAMMA"]),
+        ],
+        play_id="britannicus",
+    )
+
+
+def _block(first: str, second: str | None = None) -> list[str]:
+    return [first, first if second is None else second]
+
+
+def _tei_from_blocks(blocks: list[list[str]]) -> str:
+    text = "\n\n".join("\n".join(block) for block in blocks) + "\n"
+    return run_pipeline_from_text(text, _config())
+
+
+def _base_blocks() -> list[list[str]]:
+    return [
+        _block("####ACTE I####"),
+        _block("###SCENE I###"),
+        _block("#ALPHA#"),
+    ]
+
+
+def _schematron_failures(xml_text: str) -> list[str]:
+    schema = isoschematron.Schematron(LET.parse(str(SCH_PATH)), store_report=True)
+    doc = LET.fromstring(xml_text.encode("utf-8"))
+    if schema.validate(doc):
+        return []
+    report = schema.validation_report
+    return [
+        " ".join(assertion.itertext()).strip()
+        for assertion in report.xpath("//svrl:failed-assert", namespaces=SVRL_NS)
+    ]
+
+
+def _assert_valid_schematron(xml_text: str) -> None:
+    assert _schematron_failures(xml_text) == []
+
+
+def _mutate(xml_text: str, mutator) -> str:
+    doc = LET.fromstring(xml_text.encode("utf-8"))
+    mutator(doc)
+    return LET.tostring(doc, encoding="unicode")
 
 
 def _declared_witnesses(root: ET.Element) -> set[str]:
@@ -172,6 +237,14 @@ def test_rnc_declares_dramatic_structural_elements() -> None:
         assert re.search(rf"\b{re.escape(token)}\b", content)
 
 
+def test_rnc_allows_generated_language_shared_part_and_omissions() -> None:
+    content = RNC_PATH.read_text(encoding="utf-8")
+
+    assert 'attribute xml:lang { "fr" }?' in content
+    assert 'attribute part { "I" | "M" | "F" }?' in content
+    assert 'attribute type { "omission" }?' in content
+
+
 def test_schematron_declares_critical_rules() -> None:
     content = SCH_PATH.read_text(encoding="utf-8")
     ET.parse(SCH_PATH)
@@ -179,12 +252,155 @@ def test_schematron_declares_critical_rules() -> None:
         "stage type=\"DI\"",
         "lg",
         "app type=\"minor\"",
+        "l/@part must be I, M or F",
+        "decimal shared-verse l/@n values must have @part",
+        "l/@part is only allowed on decimal shared-verse numbers",
+        "type=\"omission\" must be textually empty",
+        "Literal ETS lacuna marker",
         "@wit",
         "@xml:id",
         "witness",
         "italic",
     ]:
         assert token in content
+
+
+def test_generated_ordinary_output_validates_against_schematron_profile() -> None:
+    xml_text = _tei_from_blocks(
+        [
+            *_base_blocks(),
+            _block("Texte present.", "Texte absent."),
+        ]
+    )
+    root = ET.fromstring(xml_text)
+
+    assert root.get(f"{{{XML_NS}}}lang") == "fr"
+    assert root.find(".//tei:app", NS) is not None
+    assert root.find(".//tei:l[@n='1']", NS).get("part") is None  # type: ignore[union-attr]
+    _assert_valid_schematron(xml_text)
+
+
+def test_lacune_omissions_validate_against_schematron_profile() -> None:
+    lacune_in_lemma = _tei_from_blocks(
+        [
+            *_base_blocks(),
+            _block("#####(lacune)", "#####Texte present."),
+        ]
+    )
+    lacune_in_rdg = _tei_from_blocks(
+        [
+            *_base_blocks(),
+            _block("#####Texte present.", "#####(lacune)"),
+        ]
+    )
+
+    for xml_text in [lacune_in_lemma, lacune_in_rdg]:
+        root = ET.fromstring(xml_text)
+        omission = root.find(".//tei:*[@type='omission']", NS)
+        assert omission is not None
+        assert "".join(omission.itertext()) == ""
+        assert "(lacune)" not in xml_text
+        _assert_valid_schematron(xml_text)
+
+
+def test_shared_verse_parts_validate_against_schematron_profile() -> None:
+    two_fragments = _tei_from_blocks(
+        [
+            *_base_blocks(),
+            _block("debut***"),
+            _block("#BETA#"),
+            _block("***fin."),
+        ]
+    )
+    three_fragments = _tei_from_blocks(
+        [
+            *_base_blocks(),
+            _block("debut***"),
+            _block("#BETA#"),
+            _block("***milieu***"),
+            _block("#GAMMA#"),
+            _block("***fin."),
+        ]
+    )
+
+    two_root = ET.fromstring(two_fragments)
+    three_root = ET.fromstring(three_fragments)
+    assert [line.get("part") for line in two_root.findall(".//tei:l", NS)] == ["I", "F"]
+    assert [line.get("part") for line in three_root.findall(".//tei:l", NS)] == ["I", "M", "F"]
+    _assert_valid_schematron(two_fragments)
+    _assert_valid_schematron(three_fragments)
+
+
+def test_realistic_pipeline_output_validates_against_schematron_profile() -> None:
+    fixture_dir = ROOT / "fixtures" / "shared_verse" / "thebaide_2_2"
+    xml_text = run_pipeline(input_path=fixture_dir / "input.txt", config_path=fixture_dir / "config.json")
+
+    assert ET.fromstring(xml_text).find(".//tei:l[@part='M']", NS) is not None
+    _assert_valid_schematron(xml_text)
+
+
+def test_schematron_rejects_invalid_shared_part_value() -> None:
+    xml_text = _tei_from_blocks([*_base_blocks(), _block("debut***"), _block("#BETA#"), _block("***fin.")])
+    invalid = _mutate(
+        xml_text,
+        lambda doc: doc.xpath(".//tei:l[@n='1.1']", namespaces=LXML_NS)[0].set("part", "X"),
+    )
+
+    assert any("l/@part must be I, M or F" in failure for failure in _schematron_failures(invalid))
+
+
+def test_schematron_rejects_decimal_line_without_part() -> None:
+    xml_text = _tei_from_blocks([*_base_blocks(), _block("debut***"), _block("#BETA#"), _block("***fin.")])
+    invalid = _mutate(
+        xml_text,
+        lambda doc: doc.xpath(".//tei:l[@n='1.1']", namespaces=LXML_NS)[0].attrib.pop("part"),
+    )
+
+    assert any("decimal shared-verse" in failure for failure in _schematron_failures(invalid))
+
+
+def test_schematron_rejects_part_on_ordinary_line_number() -> None:
+    xml_text = _tei_from_blocks([*_base_blocks(), _block("Vers ordinaire.")])
+    invalid = _mutate(
+        xml_text,
+        lambda doc: doc.xpath(".//tei:l[@n='1']", namespaces=LXML_NS)[0].set("part", "I"),
+    )
+
+    assert any("only allowed on decimal" in failure for failure in _schematron_failures(invalid))
+
+
+def test_schematron_rejects_non_empty_omission_reading() -> None:
+    xml_text = _tei_from_blocks([*_base_blocks(), _block("#####Texte present.", "#####(lacune)")])
+    invalid = _mutate(
+        xml_text,
+        lambda doc: setattr(doc.xpath(".//tei:rdg[@type='omission']", namespaces=LXML_NS)[0], "text", "texte"),
+    )
+
+    assert any("type=\"omission\" must be textually empty" in failure for failure in _schematron_failures(invalid))
+
+
+def test_schematron_rejects_exact_literal_lacune_marker() -> None:
+    xml_text = _tei_from_blocks([*_base_blocks(), _block("Texte present.", "Texte absent.")])
+    invalid = _mutate(
+        xml_text,
+        lambda doc: setattr(doc.xpath(".//tei:rdg", namespaces=LXML_NS)[0], "text", "(lacune)"),
+    )
+
+    assert any("Literal ETS lacuna marker" in failure for failure in _schematron_failures(invalid))
+
+
+def test_schematron_allows_lacune_marker_inside_longer_reading() -> None:
+    xml_text = _tei_from_blocks([*_base_blocks(), _block("Texte present.", "Texte absent.")])
+    allowed = _mutate(
+        xml_text,
+        lambda doc: setattr(
+            doc.xpath(".//tei:rdg", namespaces=LXML_NS)[0],
+            "text",
+            "Passage marque (lacune) dans la source",
+        ),
+    )
+
+    _assert_valid_schematron(allowed)
 
 
 def test_britannicus_fixture_matches_pragmatic_tei_profile() -> None:

@@ -63,7 +63,7 @@
         <moduleRef key="tagdocs"/>
 
         <elementSpec ident="TEI" mode="change">
-          <desc>Racine du document TEI produit par ETS-Racine. Elle contient un en-tête éditorial minimal et un texte dramatique.</desc>
+          <desc>Racine du document TEI produit par ETS-Racine. Elle porte <att>xml:lang</att>=<val>fr</val>, contient un en-tête éditorial minimal et un texte dramatique.</desc>
         </elementSpec>
 
         <elementSpec ident="teiHeader" mode="change">
@@ -178,7 +178,7 @@
         </elementSpec>
 
         <elementSpec ident="l" mode="change">
-          <desc>Vers dramatique. Il porte toujours <att>n</att> et <att>xml:id</att>. Dans une strophe, il peut porter <att>met</att>.</desc>
+          <desc>Vers dramatique. Il porte toujours <att>n</att> et <att>xml:id</att>. Dans une strophe, il peut porter <att>met</att>. Les fragments de vers partagés conservent leur numérotation décimale dans <att>n</att> et portent obligatoirement <att>part</att> : <val>I</val> pour le fragment initial, <val>M</val> pour un fragment médian et <val>F</val> pour le fragment final. Les vers ordinaires ne portent pas <att>part</att>.</desc>
           <attList>
             <attDef ident="n" usage="req">
               <desc>Numéro de vers.</desc>
@@ -189,12 +189,29 @@
             <attDef ident="met" usage="opt">
               <desc>Mètre explicite uniquement pour les vers métrés de strophe.</desc>
             </attDef>
+            <attDef ident="part" usage="opt">
+              <desc>Position d'un fragment de vers partagé : initial, médian ou final.</desc>
+              <valList type="closed">
+                <valItem ident="I">
+                  <desc>Fragment initial.</desc>
+                </valItem>
+                <valItem ident="M">
+                  <desc>Fragment médian.</desc>
+                </valItem>
+                <valItem ident="F">
+                  <desc>Fragment final.</desc>
+                </valItem>
+              </valList>
+            </attDef>
           </attList>
           <constraintSpec ident="ets-racine-line" scheme="schematron">
             <constraint>
               <sch:rule context="tei:l">
                 <sch:assert test="@n">Chaque l doit avoir @n.</sch:assert>
                 <sch:assert test="@xml:id">Chaque l doit avoir @xml:id.</sch:assert>
+                <sch:assert test="not(@part) or @part = 'I' or @part = 'M' or @part = 'F'">l/@part doit valoir I, M ou F.</sch:assert>
+                <sch:assert test="not(contains(@n, '.')) or @part">Un l dont @n est décimal doit porter @part.</sch:assert>
+                <sch:assert test="not(@part) or contains(@n, '.')">l/@part est réservé aux numéros décimaux de vers partagés.</sch:assert>
               </sch:rule>
             </constraint>
           </constraintSpec>
@@ -253,7 +270,7 @@
         </elementSpec>
 
         <elementSpec ident="lem" mode="change">
-          <desc>Lecture de référence d'un apparat. <att>wit</att> est obligatoire et pointe vers un ou plusieurs <gi>witness</gi> déclarés. <att>type</att>=<val>omission</val> est possible pour certains cas de ponctuation. Le contenu peut contenir <gi>hi</gi>, mais pas d'apparat imbriqué.</desc>
+          <desc>Lecture de référence d'un apparat. <att>wit</att> est obligatoire et pointe vers un ou plusieurs <gi>witness</gi> déclarés. Une absence de lecture, qu'elle soit signalée dans la transcription ETS par le marqueur <mentioned>(lacune)</mentioned> ou qu'elle corresponde à une omission de ponctuation, est encodée par un élément vide portant <att>type</att>=<val>omission</val>. Le marqueur de transcription <mentioned>(lacune)</mentioned> n'est pas conservé littéralement lorsqu'il constitue toute la lecture. Le contenu peut contenir <gi>hi</gi>, mais pas d'apparat imbriqué.</desc>
           <attList>
             <attDef ident="wit" usage="req">
               <desc>Témoins portant la lecture.</desc>
@@ -268,13 +285,15 @@
                 <sch:assert test="@wit">lem doit avoir @wit.</sch:assert>
                 <sch:assert test="not(@wit) or starts-with(normalize-space(@wit), '#')">lem/@wit doit pointer vers des witness/@xml:id déclarés.</sch:assert>
                 <sch:assert test="not(tei:app)">lem ne doit pas contenir app.</sch:assert>
+                <sch:assert test="not(@type = 'omission') or normalize-space(.) = ''">lem type="omission" doit être textuellement vide.</sch:assert>
+                <sch:assert test="normalize-space(.) != '(lacune)'">Le marqueur ETS de lacune ne doit pas être conservé comme lecture lem complète.</sch:assert>
               </sch:rule>
             </constraint>
           </constraintSpec>
         </elementSpec>
 
         <elementSpec ident="rdg" mode="change">
-          <desc>Lecture variante d'un apparat. <att>wit</att> est obligatoire et pointe vers un ou plusieurs <gi>witness</gi> déclarés. <att>type</att>=<val>omission</val> est possible pour certains cas de ponctuation. Le contenu peut contenir <gi>hi</gi>, mais pas d'apparat imbriqué.</desc>
+          <desc>Lecture variante d'un apparat. <att>wit</att> est obligatoire et pointe vers un ou plusieurs <gi>witness</gi> déclarés. Une absence de lecture, qu'elle soit signalée dans la transcription ETS par le marqueur <mentioned>(lacune)</mentioned> ou qu'elle corresponde à une omission de ponctuation, est encodée par un élément vide portant <att>type</att>=<val>omission</val>. Le marqueur de transcription <mentioned>(lacune)</mentioned> n'est pas conservé littéralement lorsqu'il constitue toute la lecture. Le contenu peut contenir <gi>hi</gi>, mais pas d'apparat imbriqué.</desc>
           <attList>
             <attDef ident="wit" usage="req">
               <desc>Témoins portant la lecture.</desc>
@@ -289,6 +308,8 @@
                 <sch:assert test="@wit">rdg doit avoir @wit.</sch:assert>
                 <sch:assert test="not(@wit) or starts-with(normalize-space(@wit), '#')">rdg/@wit doit pointer vers des witness/@xml:id déclarés.</sch:assert>
                 <sch:assert test="not(tei:app)">rdg ne doit pas contenir app.</sch:assert>
+                <sch:assert test="not(@type = 'omission') or normalize-space(.) = ''">rdg type="omission" doit être textuellement vide.</sch:assert>
+                <sch:assert test="normalize-space(.) != '(lacune)'">Le marqueur ETS de lacune ne doit pas être conservé comme lecture rdg complète.</sch:assert>
               </sch:rule>
             </constraint>
           </constraintSpec>

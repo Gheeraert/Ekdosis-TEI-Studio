@@ -100,6 +100,9 @@ def test_odd_contains_schematron_constraints_for_critical_rules() -> None:
     for token in [
         "stage[@type='DI']",
         "app[@type='minor']",
+        "l/@part",
+        'type="omission"',
+        "(lacune)",
         "lem",
         "rdg",
         "@wit",
@@ -116,3 +119,23 @@ def test_odd_references_operational_schemas() -> None:
     content = _text_content(_parse_odd())
     assert "ets-racine.rnc" in content
     assert "ets-racine.sch" in content
+
+
+def test_odd_documents_language_omissions_and_shared_verse_parts() -> None:
+    content = _text_content(_parse_odd())
+
+    for token in [
+        "xml:lang",
+        "fr",
+        "part",
+        "I",
+        "M",
+        "F",
+        "Fragment initial",
+        "Fragment médian",
+        "Fragment final",
+        "type",
+        "omission",
+        "(lacune)",
+    ]:
+        assert token in content
