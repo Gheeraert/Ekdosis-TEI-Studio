@@ -567,6 +567,18 @@ def test_html_preview_marks_empty_active_reading_variant_anchors_without_text_po
     assert "variation-punctuation-only" in (shared_omission_variant.get("class") or "")
 
     assert "apparatus-controls" in preview
+    assert "data-minor-master" in preview
+    assert "data-minor-child" in preview
+    assert doc.xpath("//input[@data-minor-master]")
+    assert len(doc.xpath("//div[contains(@class, 'apparatus-minor-children')]//input[@data-minor-child]")) == 3
+    assert "apparatus-master-option" in preview
+    assert "apparatus-minor-children" in preview
+    assert "margin-left: 1.35rem" in preview
+    assert "padding-left: 0.15rem" in preview
+    assert "indeterminate" in preview
+    assert "syncMinorMasterState" in preview
+    assert "setMinorChildrenChecked" in preview
+    assert "applyApparatusToggle" in preview
     assert "Version affichée" in preview
     assert doc.xpath("//select[@data-witness-select]/option[@value='' and normalize-space(.)='Lemme de référence']")
     assert doc.xpath("//select[@data-witness-select]/option[@value='A' and contains(., 'A (1670)')]")

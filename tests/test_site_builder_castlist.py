@@ -290,6 +290,12 @@ def test_structured_dramatis_python_renderer_keeps_empty_lemma_empty(tmp_path: P
     assert "variation-spacing-or-hyphen-only" in (spacing_variant.get("class") or "")
 
     assert "apparatus-controls" in play_html
+    assert "data-minor-master" in play_html
+    assert "data-minor-child" in play_html
+    assert "apparatus-minor-children" in play_html
+    assert "margin-left: 1.35rem" in play_html
+    assert "indeterminate" in play_html
+    assert "syncMinorMasterState" in play_html
     assert "--site-header-offset" in play_html
     assert "z-index: 1700" in play_html
     assert "max-height:" in play_html

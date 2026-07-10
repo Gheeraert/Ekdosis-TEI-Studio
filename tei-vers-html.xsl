@@ -368,6 +368,16 @@
             margin-top: 0.25rem;
             cursor: pointer;
           }
+          .apparatus-master-option {
+            margin-top: 0.3rem;
+          }
+          .apparatus-minor-children {
+            margin-left: 1.35rem;
+            padding-left: 0.15rem;
+          }
+          .apparatus-minor-children label {
+            margin-top: 0.18rem;
+          }
           .apparatus-controls select {
             display: block;
             width: 100%;
@@ -614,22 +624,24 @@
           </label>
           <fieldset>
             <legend>Variantes mineures</legend>
-            <label>
-              <input class="apparatus-toggle" data-hide-class="hide-minor-variants" type="checkbox" checked="checked"/>
+            <label class="apparatus-master-option">
+              <input class="apparatus-toggle" data-minor-master="data-minor-master" type="checkbox" checked="checked"/>
               <span>Variantes mineures</span>
             </label>
-            <label>
-              <input id="toggle-punctuation-variants" class="apparatus-toggle" data-hide-class="hide-punctuation-variants" type="checkbox" checked="checked"/>
-              <span>Variantes de ponctuation</span>
-            </label>
-            <label>
-              <input class="apparatus-toggle" data-hide-class="hide-case-variants" type="checkbox" checked="checked"/>
-              <span>Variantes de majuscules/minuscules</span>
-            </label>
-            <label>
-              <input class="apparatus-toggle" data-hide-class="hide-spacing-variants" type="checkbox" checked="checked"/>
-              <span>Variantes d'espacement / traits d'union</span>
-            </label>
+            <div class="apparatus-minor-children">
+              <label>
+                <input id="toggle-punctuation-variants" class="apparatus-toggle" data-minor-child="data-minor-child" data-hide-class="hide-punctuation-variants" type="checkbox" checked="checked"/>
+                <span>Variantes de ponctuation</span>
+              </label>
+              <label>
+                <input class="apparatus-toggle" data-minor-child="data-minor-child" data-hide-class="hide-case-variants" type="checkbox" checked="checked"/>
+                <span>Variantes de majuscules/minuscules</span>
+              </label>
+              <label>
+                <input class="apparatus-toggle" data-minor-child="data-minor-child" data-hide-class="hide-spacing-variants" type="checkbox" checked="checked"/>
+                <span>Variantes d'espacement / traits d'union</span>
+              </label>
+            </div>
           </fieldset>
         </div>
         <xsl:if test=".//tei:stage[@type='DI']">
@@ -639,6 +651,8 @@
         <script>
           (function () {
             var toggles = Array.prototype.slice.call(document.querySelectorAll('.apparatus-toggle[data-hide-class]'));
+            var minorMaster = document.querySelector('[data-minor-master]');
+            var minorChildren = Array.prototype.slice.call(document.querySelectorAll('[data-minor-child][data-hide-class]'));
             var witnessSelect = document.querySelector('[data-witness-select]');
             var storageKey = 'ets-witness-display';
             function isHiddenEmptyVariation(node) {
@@ -778,10 +792,42 @@
                 }
               });
             }
-            function updateApparatusVisibility() {
-              toggles.forEach(function (toggle) {
-                document.documentElement.classList.toggle(toggle.dataset.hideClass, !toggle.checked);
+            function applyApparatusToggle(input) {
+              if (input.dataset.hideClass) {
+                document.documentElement.classList.toggle(input.dataset.hideClass, !input.checked);
+              }
+            }
+            function syncMinorMasterState() {
+              if (!minorMaster || !minorChildren.length) {
+                return;
+              }
+              var checkedCount = minorChildren.filter(function (child) {
+                return child.checked;
+              }).length;
+              if (checkedCount === minorChildren.length) {
+                minorMaster.checked = true;
+                minorMaster.indeterminate = false;
+                document.documentElement.classList.remove('hide-minor-variants');
+              } else if (checkedCount === 0) {
+                minorMaster.checked = false;
+                minorMaster.indeterminate = false;
+                document.documentElement.classList.add('hide-minor-variants');
+              } else {
+                minorMaster.checked = false;
+                minorMaster.indeterminate = true;
+                document.documentElement.classList.remove('hide-minor-variants');
+              }
+            }
+            function setMinorChildrenChecked(checked) {
+              minorChildren.forEach(function (child) {
+                child.checked = checked;
+                applyApparatusToggle(child);
               });
+              document.documentElement.classList.toggle('hide-minor-variants', !checked);
+            }
+            function updateApparatusVisibility() {
+              toggles.forEach(applyApparatusToggle);
+              syncMinorMasterState();
               updateVariationTabStops();
             }
             function applyWitnessChoice() {
@@ -798,8 +844,20 @@
               });
             }
             toggles.forEach(function (toggle) {
-              toggle.addEventListener('change', updateApparatusVisibility);
+              toggle.addEventListener('change', function () {
+                applyApparatusToggle(toggle);
+                syncMinorMasterState();
+                updateVariationTabStops();
+              });
             });
+            if (minorMaster) {
+              minorMaster.addEventListener('change', function () {
+                minorMaster.indeterminate = false;
+                setMinorChildrenChecked(minorMaster.checked);
+                syncMinorMasterState();
+                updateVariationTabStops();
+              });
+            }
             if (witnessSelect) {
               try {
                 var saved = window.localStorage.getItem(storageKey);
