@@ -74,7 +74,7 @@ def test_prologue_is_a_special_division_before_act_one() -> None:
         "La Piété, seule",
     ]
     assert prologue.find("tei:div[@type='scene']", NS) is None
-    assert prologue.find("tei:sp", NS).get("who") == "#piete"  # type: ignore[union-attr]
+    assert prologue.find("tei:sp", NS).get("who") == "#char-piete"  # type: ignore[union-attr]
     lines = prologue.findall(".//tei:l", NS)
     assert [line.get(f"{{{XML_NS}}}id") for line in lines] == [
         "esther-prologue-L1",

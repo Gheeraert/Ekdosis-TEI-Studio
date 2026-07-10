@@ -45,7 +45,24 @@ def _line(reading_a: str, reading_b: str) -> TokenCollatedLine:
     return line
 
 
-def _xml_for_line(line: TokenCollatedLine) -> str:
+def _line_multi(readings: list[str]) -> TokenCollatedLine:
+    line = collate_parallel_verse(
+        readings,
+        ["A", "B", "C", "D", "E"],
+        ref_index=0,
+        number="1",
+        whole_line_variant=False,
+        act_label="1",
+        scene_label="1",
+        speaker_label="IOCASTE",
+        block_index=1,
+    )
+    assert isinstance(line, TokenCollatedLine)
+    return line
+
+
+def _xml_for_line(line: TokenCollatedLine, witness_sigla: list[str] | None = None) -> str:
+    witnesses = witness_sigla or ["A", "B"]
     play = CollatedPlay(
         acts=[
             CollatedAct(
@@ -63,7 +80,7 @@ def _xml_for_line(line: TokenCollatedLine) -> str:
         title="Test",
         author="Auteur",
         editor="",
-        witnesses=[Witness("A", "", ""), Witness("B", "", "")],
+        witnesses=[Witness(siglum, "", "") for siglum in witnesses],
         reference_witness=0,
     )
     return generate_tei_xml(play, config)
@@ -77,6 +94,44 @@ def _l_element(xml: str) -> ET.Element:
 
 def _text_of(element: ET.Element) -> str:
     return "".join(element.itertext())
+
+
+def _content_text(value: str | None) -> str:
+    if value is None:
+        return ""
+    return "" if value.strip() == "" else value
+
+
+def _wit_tokens(value: str | None) -> list[str]:
+    return [token.lstrip("#") for token in (value or "").split()]
+
+
+def _reading_for_witness(app: ET.Element, witness: str) -> ET.Element:
+    lemma = app.find("tei:lem", NS)
+    assert lemma is not None
+    if witness in _wit_tokens(lemma.get("wit")):
+        return lemma
+    for rdg in app.findall("tei:rdg", NS):
+        if witness in _wit_tokens(rdg.get("wit")):
+            return rdg
+    return lemma
+
+
+def _reconstruct_line_for_witness(line: ET.Element, witness: str) -> str:
+    parts = [_content_text(line.text)]
+    for child in list(line):
+        if child.tag == f"{{{TEI_NS}}}app":
+            reading = _reading_for_witness(child, witness)
+            parts.append(_text_of(reading))
+        else:
+            parts.append(_text_of(child))
+        parts.append(_content_text(child.tail))
+    return "".join(parts)
+
+
+def _assert_reconstructs_witnesses(line: ET.Element, expected: dict[str, str]) -> None:
+    for witness, text in expected.items():
+        assert _reconstruct_line_for_witness(line, witness) == text
 
 
 # ---------------------------------------------------------------------------
@@ -241,6 +296,128 @@ def test_punctuation_only_nbsp_exclamation_creates_punctuation_app() -> None:
     assert _text_of(app.find("tei:lem", NS)) == f"{NBSP}!"
     assert app.find("tei:rdg", NS).get("type") == "omission"
     assert "~" not in xml
+
+
+def test_multiwitness_punctuation_addition_isolates_comma_and_reconstructs_all_witnesses() -> None:
+    word = "m\u2019importe"
+    readings = [word, word, f"{word},", f"{word},", word]
+    xml = _xml_for_line(_line_multi(readings), ["A", "B", "C", "D", "E"])
+    l_element = _l_element(xml)
+    app = l_element.find("tei:app", NS)
+
+    assert app is not None
+    assert l_element.text == word
+    assert app.get("type") == "minor"
+    assert app.get("subtype") == "punctuation"
+    assert app.get("ana") == "#punctuation_only"
+    assert "+" not in app.get("ana", "")
+
+    lem = app.find("tei:lem", NS)
+    rdg = app.find("tei:rdg", NS)
+    assert lem is not None and rdg is not None
+    assert _wit_tokens(lem.get("wit")) == ["A", "B", "E"]
+    assert _wit_tokens(rdg.get("wit")) == ["C", "D"]
+    assert _text_of(lem) == ""
+    assert lem.get("type") == "omission"
+    assert _text_of(rdg) == ","
+    assert rdg.get("type") is None
+    assert not any(ch.isalpha() for ch in _text_of(lem))
+    assert not any(ch.isalpha() for ch in _text_of(rdg))
+    _assert_reconstructs_witnesses(
+        l_element,
+        {
+            "A": word,
+            "B": word,
+            "C": f"{word},",
+            "D": f"{word},",
+            "E": word,
+        },
+    )
+
+
+def test_multiwitness_punctuation_substitution_isolates_signs_and_reconstructs_all_witnesses() -> None:
+    readings = ["mot,", "mot,", "mot.", "mot.", "mot,"]
+    xml = _xml_for_line(_line_multi(readings), ["A", "B", "C", "D", "E"])
+    l_element = _l_element(xml)
+    app = l_element.find("tei:app", NS)
+
+    assert app is not None
+    assert l_element.text == "mot"
+    assert app.get("type") == "minor"
+    assert app.get("subtype") == "punctuation"
+    assert app.get("ana") == "#punctuation_only"
+    assert "+" not in app.get("ana", "")
+
+    lem = app.find("tei:lem", NS)
+    rdg = app.find("tei:rdg", NS)
+    assert lem is not None and rdg is not None
+    assert _wit_tokens(lem.get("wit")) == ["A", "B", "E"]
+    assert _wit_tokens(rdg.get("wit")) == ["C", "D"]
+    assert _text_of(lem) == ","
+    assert _text_of(rdg) == "."
+    assert lem.get("type") is None
+    assert rdg.get("type") is None
+    assert not any(ch.isalpha() for ch in _text_of(lem))
+    assert not any(ch.isalpha() for ch in _text_of(rdg))
+    _assert_reconstructs_witnesses(
+        l_element,
+        {
+            "A": "mot,",
+            "B": "mot,",
+            "C": "mot.",
+            "D": "mot.",
+            "E": "mot,",
+        },
+    )
+
+
+def test_mixed_case_and_punctuation_variant_is_not_isolated_as_punctuation_only() -> None:
+    xml = _xml_for_line(_line("Paix,", "paix"))
+    l_element = _l_element(xml)
+    app = l_element.find("tei:app", NS)
+
+    assert app is not None
+    assert app.get("type") == "minor"
+    assert app.get("subtype") == "mixed"
+    assert app.get("ana") == "#case_only #punctuation_only"
+    assert "+" not in app.get("ana", "")
+    assert (l_element.text or "").strip() == ""
+    assert _text_of(app.find("tei:lem", NS)) == "Paix,"
+    assert _text_of(app.find("tei:rdg", NS)) == "paix"
+
+
+def test_multiwitness_mixed_case_and_punctuation_is_not_isolated_and_reconstructs_all_witnesses() -> None:
+    readings = ["Paix,", "paix", "paix", "paix", "Paix,"]
+    xml = _xml_for_line(_line_multi(readings), ["A", "B", "C", "D", "E"])
+    l_element = _l_element(xml)
+    app = l_element.find("tei:app", NS)
+
+    assert app is not None
+    assert app.get("type") == "minor"
+    assert app.get("subtype") == "mixed"
+    assert app.get("ana") == "#case_only #punctuation_only"
+    assert "+" not in app.get("ana", "")
+    assert (l_element.text or "").strip() == ""
+
+    lem = app.find("tei:lem", NS)
+    rdg = app.find("tei:rdg", NS)
+    assert lem is not None and rdg is not None
+    assert _wit_tokens(lem.get("wit")) == ["A", "E"]
+    assert _wit_tokens(rdg.get("wit")) == ["B", "C", "D"]
+    assert _text_of(lem) == "Paix,"
+    assert _text_of(rdg) == "paix"
+    assert any(ch.isalpha() for ch in _text_of(lem))
+    assert any(ch.isalpha() for ch in _text_of(rdg))
+    _assert_reconstructs_witnesses(
+        l_element,
+        {
+            "A": "Paix,",
+            "B": "paix",
+            "C": "paix",
+            "D": "paix",
+            "E": "Paix,",
+        },
+    )
 
 
 # ---------------------------------------------------------------------------

@@ -3,6 +3,7 @@ from __future__ import annotations
 import re
 import unicodedata
 from dataclasses import dataclass
+from itertools import combinations
 from typing import Sequence
 
 try:  # pragma: no cover - dependency error is clearer at import time
@@ -23,6 +24,30 @@ HIDE_SAFE_CLASSES = {
     "minor_spacing",
     "minor_case",
     "minor_graphic_safe",
+}
+
+VARIANT_ANA_CATEGORIES: dict[str, str] = {
+    "accent": "Variation d'accentuation.",
+    "accent_only": "Variation limitee a l'accentuation.",
+    "apostrophe": "Variation d'apostrophe.",
+    "case_only": "Variation limitee aux majuscules et minuscules.",
+    "damerau_metathesis": "Metathese graphique probable.",
+    "double_consonant": "Variation de consonne double.",
+    "final_t_before_s": "Variation de t etymologique avant s final.",
+    "final_zx_s": "Variation graphique finale z/x/s.",
+    "historic_graphic_key_identity": "Identite apres normalisation graphique historique.",
+    "historic_spelling": "Variation de graphie historique.",
+    "i_j": "Variation graphique entre i et j.",
+    "levenshtein_alert": "Proximite graphique probable.",
+    "ligature_or_long_s": "Variation de ligature ou de s long.",
+    "literal_identity": "Identite litterale.",
+    "punctuation_only": "Variation limitee a la ponctuation.",
+    "punctuation_removed_for_graphic_key": "Ponctuation neutralisee pour la comparaison graphique.",
+    "spacing_or_hyphen": "Variation d'espace ou de trait d'union.",
+    "spacing_or_hyphen_only": "Variation limitee aux espaces ou aux traits d'union.",
+    "u_v": "Variation graphique entre u et v.",
+    "whole_line_variant": "Variante de vers entier.",
+    "y_i": "Variation graphique entre y et i.",
 }
 
 INSPECT_CLASSES = {
@@ -75,6 +100,30 @@ def subtype_for_candidate_class(candidate_class: str) -> str:
     return SUBTYPE_BY_CLASS.get(candidate_class, candidate_class.replace("_", "-"))
 
 
+def ana_tokens_from_rule_code(rule_code: str) -> tuple[str, ...]:
+    tokens: list[str] = []
+    for raw_token in rule_code.replace("+", " ").split():
+        token = raw_token.strip()
+        if not token:
+            continue
+        tokens.append(token[1:] if token.startswith("#") else token)
+    return tuple(dict.fromkeys(tokens))
+
+
+def format_ana_tokens(tokens: Sequence[str]) -> str:
+    normalized: list[str] = []
+    for raw_token in tokens:
+        token = raw_token.strip()
+        if not token:
+            continue
+        normalized.append(token if token.startswith("#") else f"#{token}")
+    return " ".join(dict.fromkeys(normalized))
+
+
+def format_ana_rule_code(rule_code: str) -> str:
+    return format_ana_tokens(ana_tokens_from_rule_code(rule_code))
+
+
 def normalize_unicode(text: str) -> str:
     text = unicodedata.normalize("NFKC", text)
     for char in APOSTROPHES:
@@ -118,6 +167,66 @@ def punctuation_signature(text: str) -> str:
 
 def has_punctuation_difference(left: str, right: str) -> bool:
     return punctuation_signature(left) != punctuation_signature(right)
+
+
+def remove_punctuation(text: str) -> str:
+    text = normalize_unicode(text)
+    chars: list[str] = []
+    for index, ch in enumerate(text):
+        previous_char = text[index - 1] if index > 0 else ""
+        next_char = text[index + 1] if index + 1 < len(text) else ""
+        if is_punctuation(ch) and ch not in HYPHENS:
+            continue
+        if (is_space_like(ch) or ch in SPACE_MARKERS) and (
+            (previous_char and is_punctuation(previous_char) and previous_char not in HYPHENS)
+            or (next_char and is_punctuation(next_char) and next_char not in HYPHENS)
+        ):
+            continue
+        chars.append(ch)
+    return "".join(chars)
+
+
+def _minor_feature_key(text: str, features: frozenset[str]) -> str:
+    current = normalize_unicode(text)
+    if "punctuation_only" in features:
+        current = remove_punctuation(current)
+    if "spacing_or_hyphen_only" in features:
+        current = "".join(ch for ch in current if not is_space_like(ch) and ch not in HYPHENS)
+    if "accent" in features:
+        current = strip_accents(current)
+    if "case_only" in features:
+        current = current.lower()
+    return current
+
+
+_SIMPLE_MINOR_FEATURES = (
+    "case_only",
+    "spacing_or_hyphen_only",
+    "punctuation_only",
+    "accent",
+)
+
+
+def classify_simple_minor_features(left: str, right: str) -> VariantClassification | None:
+    for size in range(1, len(_SIMPLE_MINOR_FEATURES) + 1):
+        for feature_group in combinations(_SIMPLE_MINOR_FEATURES, size):
+            features = frozenset(feature_group)
+            if _minor_feature_key(left, features) != _minor_feature_key(right, features):
+                continue
+            if size == 1:
+                feature = feature_group[0]
+                if feature == "case_only":
+                    return VariantClassification("minor_case", "hide_safe", feature, feature)
+                if feature == "spacing_or_hyphen_only":
+                    return VariantClassification("minor_spacing", "hide_safe", feature, feature)
+                if feature == "punctuation_only" and has_punctuation_difference(left, right):
+                    return VariantClassification("minor_punctuation", "hide_safe", feature, feature)
+                if feature == "accent":
+                    return VariantClassification("minor_graphic_safe", "hide_safe", "accent", "accent_only")
+                continue
+            rule_code = "+".join(feature_group)
+            return VariantClassification("minor_mixed", "hide_safe", rule_code, rule_code)
+    return None
 
 
 def apply_historic_graphic_rules(token: str) -> tuple[str, tuple[str, ...]]:
@@ -273,23 +382,9 @@ def classify_pair(
     if left_norm == right_norm:
         return VariantClassification("identical", "hide_safe", "literal_identity", "literal_identity")
 
-    # Casse seule: Fils/fils, Dieux/dieux.
-    if left_norm.lower() == right_norm.lower():
-        return VariantClassification("minor_case", "hide_safe", "case_only", "case_only")
-
-    if remove_spaces_and_hyphens(left_norm) == remove_spaces_and_hyphens(right_norm):
-        return VariantClassification(
-            "minor_spacing", "hide_safe", "spacing_or_hyphen_only", "spacing_or_hyphen_only"
-        )
-
-    if letters_and_numbers(left_norm) == letters_and_numbers(right_norm) and has_punctuation_difference(left_norm, right_norm):
-        return VariantClassification("minor_punctuation", "hide_safe", "punctuation_only", "punctuation_only")
-
-    if (
-        letters_and_numbers_unaccented(left_norm) == letters_and_numbers_unaccented(right_norm)
-        and letters_and_numbers(left_norm) != letters_and_numbers(right_norm)
-    ):
-        return VariantClassification("minor_graphic_safe", "hide_safe", "accent", "accent_only")
+    simple_classification = classify_simple_minor_features(left_norm, right_norm)
+    if simple_classification is not None:
+        return simple_classification
 
     left_graphic, left_rules = apply_historic_graphic_rules(left_norm)
     right_graphic, right_rules = apply_historic_graphic_rules(right_norm)
@@ -339,7 +434,8 @@ def aggregate_pair_classifications(classifications: Sequence[VariantClassificati
     reason = ";".join(reasons) if reasons else "literal_identity"
     rule_code = "+".join(rules) if rules else "literal_identity"
 
-    if classes <= HIDE_SAFE_CLASSES:
+    non_identical = [item for item in classifications if item.candidate_class != "identical"]
+    if non_identical and all(item.visibility_policy == "hide_safe" for item in non_identical):
         if len(classes) == 1:
             candidate_class = next(iter(classes))
         else:

@@ -5,7 +5,11 @@ import unicodedata
 import xml.etree.ElementTree as ET
 
 from ets.characters import resolve_speaker_block
-from ets.collation.minor_variants import subtype_for_candidate_class
+from ets.collation.minor_variants import (
+    VARIANT_ANA_CATEGORIES,
+    format_ana_rule_code,
+    subtype_for_candidate_class,
+)
 from ets.tei.terminal_punctuation import normalize_terminal_punctuation_segments
 from ets.domain import (
     ApparatusLine,
@@ -41,6 +45,7 @@ _TEI_PROFILE_SCHEMA_TYPES = {
     "validationRNC",
     "validationSchematron",
 }
+_VARIANT_TAXONOMY_ID = "ets-variant-taxonomy"
 
 
 def _tei(tag: str) -> str:
@@ -132,6 +137,39 @@ def add_tei_profile_header_references(root: ET.Element, *, profile_base_href: st
             "url": _tei_profile_href(profile_base_href, _TEI_PROFILE_SCH),
         },
     )
+    if _has_variant_ana(root):
+        _ensure_variant_taxonomy(encoding_desc)
+
+
+def _has_variant_ana(root: ET.Element) -> bool:
+    return any(
+        element.get("ana")
+        for element in root.iter(_tei("app"))
+        if element.get("type") == "minor"
+    )
+
+
+def _ensure_variant_taxonomy(encoding_desc: ET.Element) -> None:
+    class_decl = encoding_desc.find(_tei("classDecl"))
+    if class_decl is None:
+        class_decl = ET.SubElement(encoding_desc, _tei("classDecl"))
+
+    for taxonomy in list(class_decl.findall(_tei("taxonomy"))):
+        if taxonomy.get(f"{{{XML_NS}}}id") == _VARIANT_TAXONOMY_ID:
+            class_decl.remove(taxonomy)
+
+    taxonomy = ET.SubElement(
+        class_decl,
+        _tei("taxonomy"),
+        {f"{{{XML_NS}}}id": _VARIANT_TAXONOMY_ID},
+    )
+    for category_id, description in sorted(VARIANT_ANA_CATEGORIES.items()):
+        category = ET.SubElement(
+            taxonomy,
+            _tei("category"),
+            {f"{{{XML_NS}}}id": category_id},
+        )
+        ET.SubElement(category, _tei("catDesc")).text = description
 
 
 def serialize_tei_with_profile_references(root: ET.Element, *, profile_base_href: str = "tei-profile/") -> str:
@@ -422,7 +460,7 @@ def _append_collated_text(parent: ET.Element, text: CollatedText) -> None:
                 app_attrs["subtype"] = subtype
                 rule_code = getattr(segment, "rule_code", "")
                 if rule_code:
-                    app_attrs["ana"] = f"#{rule_code}"
+                    app_attrs["ana"] = format_ana_rule_code(rule_code)
                 if getattr(segment, "visibility_policy", "visible") == "inspect":
                     app_attrs["cert"] = "low"
             app = ET.SubElement(app_parent, _tei("app"), app_attrs)

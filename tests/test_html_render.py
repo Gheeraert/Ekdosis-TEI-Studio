@@ -172,7 +172,7 @@ def _empty_reading_diagnostic_tei_xml() -> str:
             <l n="3">Cas C <app><lem wit="#A">vraiment </lem><rdg wit="#B" type="omission"/></app>suite.</l>
             <l n="4">Cas D <app><lem wit="#A">cause</lem><rdg wit="#B">donne</rdg></app> suite.</l>
             <l n="5">Cas E<app type="minor" subtype="punctuation" ana="#punctuation_only"><lem wit="#C">,</lem><rdg wit="#A #B" type="omission"/></app> suite.</l>
-            <l n="6">Cas F <app type="minor" subtype="mixed" ana="#case_only+punctuation_only"><lem wit="#A">Cause,</lem><rdg wit="#B">cause</rdg></app> suite.</l>
+            <l n="6">Cas F <app type="minor" subtype="mixed" ana="#case_only #punctuation_only"><lem wit="#A">Cause,</lem><rdg wit="#B">cause</rdg></app> suite.</l>
             <l n="7">Cas G <app type="minor" subtype="case" ana="#case_only"><lem wit="#A">Fils</lem><rdg wit="#B">fils</rdg></app> suite.</l>
             <l n="8">Cas H <app type="minor" subtype="spacing" ana="#spacing_or_hyphen_only"><lem wit="#A">bien-tost</lem><rdg wit="#B">bientost</rdg></app> suite.</l>
             <l n="9">Cas I <app type="minor" subtype="punctuation" ana="#punctuation_only"><lem wit="#A #B #E">m'importe </lem><rdg wit="#C #D">m'importe, </rdg></app> suite.</l>
@@ -215,7 +215,7 @@ def _long_witness_labels_tei_xml() -> str:
           <head>SCENE I</head>
           <sp>
             <speaker>ALBINE</speaker>
-            <l n="1"><app type="minor" subtype="mixed" ana="#case_only+punctuation_only">
+            <l n="1"><app type="minor" subtype="mixed" ana="#case_only #punctuation_only">
               <lem wit="#A #E">QUOY? </lem>
               <rdg wit="#B">QUoy? </rdg>
               <rdg wit="#C">QUoi? </rdg>
@@ -694,3 +694,18 @@ def test_html_preview_marks_empty_active_reading_variant_anchors_without_text_po
     assert "box-sizing: border-box" in preview
     assert "Cas A suite." in _visible_text_without_hidden(lines[0])
     assert "Cas B suite." in _visible_text_without_hidden(lines[1])
+
+
+def test_html_preview_understands_legacy_plus_separated_ana() -> None:
+    legacy_xml = _empty_reading_diagnostic_tei_xml().replace(
+        'ana="#case_only #punctuation_only"',
+        'ana="#case_only+punctuation_only"',
+        1,
+    )
+
+    preview = render_html_preview_from_tei(legacy_xml)
+    doc = lxml_html.document_fromstring(preview)
+    mixed_variant = doc.xpath("//div[contains(@class, 'vers-container')][6]//span[contains(@class, 'variation')]")[0]
+
+    assert "variation-mixed" in (mixed_variant.get("class") or "")
+    assert "variation-punctuation-only" not in (mixed_variant.get("class") or "")

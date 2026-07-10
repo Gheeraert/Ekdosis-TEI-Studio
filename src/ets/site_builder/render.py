@@ -1388,16 +1388,17 @@ def _app_variation_class(app_node: etree._Element, active_text: str) -> str:
     if not active_text.strip():
         class_name += " variation-empty"
     ana = (app_node.get("ana") or "").strip()
+    ana_tokens = ana.replace("+", " ").split()
     subtype = (app_node.get("subtype") or "").strip()
     if (app_node.get("type") or "").strip() == "minor":
         class_name += " variation-minor"
-    if ana == "#punctuation_only" or (not ana and subtype == "punctuation"):
+    if ana_tokens == ["#punctuation_only"] or (not ana and subtype == "punctuation"):
         class_name += " variation-punctuation-only"
-    if ana == "#case_only":
+    if ana_tokens == ["#case_only"]:
         class_name += " variation-case-only"
-    if ana == "#spacing_or_hyphen_only":
+    if ana_tokens == ["#spacing_or_hyphen_only"]:
         class_name += " variation-spacing-or-hyphen-only"
-    if subtype == "mixed" or "+" in ana:
+    if subtype == "mixed" or len(ana_tokens) > 1:
         class_name += " variation-mixed"
     return class_name
 

@@ -79,6 +79,7 @@
 </xsl:template>
 
 <xsl:template name="app-variation-classes">
+  <xsl:variable name="ana-tokens" select="normalize-space(translate(@ana, '+', ' '))"/>
   <xsl:text>variation</xsl:text>
   <xsl:if test="normalize-space(tei:lem) = ''">
     <xsl:text> variation-empty</xsl:text>
@@ -86,16 +87,16 @@
   <xsl:if test="@type = 'minor'">
     <xsl:text> variation-minor</xsl:text>
   </xsl:if>
-  <xsl:if test="normalize-space(@ana) = '#punctuation_only' or (not(@ana) and @subtype = 'punctuation')">
+  <xsl:if test="$ana-tokens = '#punctuation_only' or (not(@ana) and @subtype = 'punctuation')">
     <xsl:text> variation-punctuation-only</xsl:text>
   </xsl:if>
-  <xsl:if test="normalize-space(@ana) = '#case_only'">
+  <xsl:if test="$ana-tokens = '#case_only'">
     <xsl:text> variation-case-only</xsl:text>
   </xsl:if>
-  <xsl:if test="normalize-space(@ana) = '#spacing_or_hyphen_only'">
+  <xsl:if test="$ana-tokens = '#spacing_or_hyphen_only'">
     <xsl:text> variation-spacing-or-hyphen-only</xsl:text>
   </xsl:if>
-  <xsl:if test="@subtype = 'mixed' or contains(normalize-space(@ana), '+')">
+  <xsl:if test="@subtype = 'mixed' or contains($ana-tokens, ' ')">
     <xsl:text> variation-mixed</xsl:text>
   </xsl:if>
 </xsl:template>

@@ -130,7 +130,7 @@ def test_pipeline_with_valid_castlist_inserts_front_before_body() -> None:
     assert cast_div is not None
     cast_item = cast_div.find(".//tei:castItem", NS)
     assert cast_item is not None
-    assert cast_item.attrib[XML_ID] == "thesee"
+    assert cast_item.attrib[XML_ID] == "char-thesee"
     assert cast_item.findtext("tei:role", namespaces=NS) == "Thésée"
     assert cast_item.findtext("tei:roleDesc", namespaces=NS) == "roi d’Athènes"
     assert cast_div.find("tei:stage[@type='setting']", NS) is not None

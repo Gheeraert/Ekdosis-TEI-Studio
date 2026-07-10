@@ -95,7 +95,7 @@ def test_site_builder_without_dramatis_personae_keeps_old_behavior(tmp_path: Pat
 
 def test_site_builder_published_play_embeds_relative_apparatus_script(tmp_path: Path) -> None:
     body_line = """
-            <l><app type="minor" subtype="mixed" ana="#case_only+punctuation_only">
+            <l><app type="minor" subtype="mixed" ana="#case_only #punctuation_only">
               <lem wit="#A #B #E">QUOY? </lem>
               <rdg wit="#D">Quoy! </rdg>
             </app> suite.</l>
@@ -223,7 +223,7 @@ def test_structured_dramatis_python_renderer_keeps_empty_lemma_empty(tmp_path: P
           </castItem>
           <castItem xml:id="mixte">
             <note type="semi-diplomatic">
-              <app type="minor" subtype="mixed" ana="#case_only+punctuation_only">
+              <app type="minor" subtype="mixed" ana="#case_only #punctuation_only">
                 <lem wit="#A">Cause,</lem>
                 <rdg wit="#B">cause</rdg>
               </app>

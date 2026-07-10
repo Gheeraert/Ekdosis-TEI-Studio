@@ -2918,7 +2918,7 @@ def test_generate_tei_uses_config_directory_for_castlist_path(monkeypatch: pytes
 
         cast_item = dramatis.find(".//tei:castItem", ns)
         assert cast_item is not None
-        assert cast_item.get("{http://www.w3.org/XML/1998/namespace}id") == "thesee"
+        assert cast_item.get("{http://www.w3.org/XML/1998/namespace}id") == "char-thesee"
     finally:
         root.destroy()
 
