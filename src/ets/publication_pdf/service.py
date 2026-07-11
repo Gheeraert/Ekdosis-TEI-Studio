@@ -69,6 +69,8 @@ def build_and_compile_publication_pdf_from_prepared_config(
     warnings: tuple[str, ...] = (),
     engine: str = "lualatex",
     runs: int = 3,
+    max_runs: int | None = 12,
+    stability_confirmations: int = 2,
     timeout_seconds: int = 120,
 ) -> PublicationPdfBuildResult:
     master_result = build_publication_pdf_master_from_prepared_config(
@@ -80,6 +82,8 @@ def build_and_compile_publication_pdf_from_prepared_config(
         master_result.master_path,
         engine=engine,
         runs=runs,
+        max_runs=max_runs,
+        stability_confirmations=stability_confirmations,
         timeout_seconds=timeout_seconds,
     )
     return PublicationPdfBuildResult(
@@ -98,6 +102,8 @@ def build_and_compile_publication_pdf_from_dialog_config(
     editorial_import_service: EditorialPublicationConfigPreparer | None = None,
     engine: str = "lualatex",
     runs: int = 3,
+    max_runs: int | None = 12,
+    stability_confirmations: int = 2,
     timeout_seconds: int = 120,
 ) -> PublicationPdfBuildResult:
     service = editorial_import_service or EditorialNoticeImportService()
@@ -108,5 +114,7 @@ def build_and_compile_publication_pdf_from_dialog_config(
         warnings=prepared.warnings,
         engine=engine,
         runs=runs,
+        max_runs=max_runs,
+        stability_confirmations=stability_confirmations,
         timeout_seconds=timeout_seconds,
     )

@@ -178,11 +178,11 @@ def test_build_and_compile_from_prepared_config_succeeds(
     monkeypatch,
 ) -> None:
     prepared_config = _prepared_xml_config(tmp_path)
-    calls: list[tuple[Path, str, int, int]] = []
+    calls: list[tuple[Path, str, int, int | None, int, int]] = []
 
-    def _fake_compile(master_path, *, engine, runs, timeout_seconds):
+    def _fake_compile(master_path, *, engine, runs, max_runs, stability_confirmations, timeout_seconds):
         resolved = Path(master_path).resolve()
-        calls.append((resolved, engine, runs, timeout_seconds))
+        calls.append((resolved, engine, runs, max_runs, stability_confirmations, timeout_seconds))
         pdf_path = resolved.with_suffix(".pdf")
         pdf_path.write_text("pdf", encoding="utf-8")
         return _compile_result(master_path=resolved, ok=True, pdf_path=pdf_path, engine=engine)
@@ -195,6 +195,8 @@ def test_build_and_compile_from_prepared_config_succeeds(
         warnings=("Warning transmis.",),
         engine="lualatex",
         runs=3,
+        max_runs=12,
+        stability_confirmations=2,
         timeout_seconds=30,
     )
 
@@ -204,7 +206,7 @@ def test_build_and_compile_from_prepared_config_succeeds(
     assert result.pdf_path == (tmp_path / "compiled-build" / "master.pdf").resolve()
     assert result.compile_result.pdf_path == result.pdf_path
     assert result.warnings == ("Warning transmis.",)
-    assert calls == [(result.master_result.master_path, "lualatex", 3, 30)]
+    assert calls == [(result.master_result.master_path, "lualatex", 3, 12, 2, 30)]
     assert not (prepared_config.output_dir or Path()).exists()
 
 
@@ -213,10 +215,10 @@ def test_build_and_compile_from_prepared_config_preserves_failed_compile(
     monkeypatch,
 ) -> None:
     prepared_config = _prepared_xml_config(tmp_path)
-    calls: list[tuple[str, int]] = []
+    calls: list[tuple[str, int, int | None, int]] = []
 
-    def _fake_compile(master_path, *, engine, runs, timeout_seconds):
-        calls.append((engine, runs))
+    def _fake_compile(master_path, *, engine, runs, max_runs, stability_confirmations, timeout_seconds):
+        calls.append((engine, runs, max_runs, stability_confirmations))
         return _compile_result(
             master_path=Path(master_path).resolve(),
             ok=False,
@@ -229,7 +231,7 @@ def test_build_and_compile_from_prepared_config_preserves_failed_compile(
 
     result = build_and_compile_publication_pdf_from_prepared_config(prepared_config, tmp_path / "failed-build")
 
-    assert calls == [("lualatex", 3)]
+    assert calls == [("lualatex", 3, 12, 2)]
     assert result.ok is False
     assert result.pdf_path is None
     assert result.master_result.master_path.exists()
@@ -245,11 +247,11 @@ def test_build_and_compile_from_dialog_config_prepares_once(
     fake_service = _FakeEditorialImportService(
         PreparedPublicationConfig(config=prepared_config, warnings=("Warning prepare.",))
     )
-    calls: list[tuple[str, int]] = []
+    calls: list[tuple[str, int, int | None, int]] = []
 
-    def _fake_compile(master_path, *, engine, runs, timeout_seconds):
+    def _fake_compile(master_path, *, engine, runs, max_runs, stability_confirmations, timeout_seconds):
         resolved = Path(master_path).resolve()
-        calls.append((engine, runs))
+        calls.append((engine, runs, max_runs, stability_confirmations))
         pdf_path = resolved.with_suffix(".pdf")
         pdf_path.write_text("pdf", encoding="utf-8")
         return _compile_result(master_path=resolved, ok=True, pdf_path=pdf_path, engine=engine)
@@ -267,4 +269,52 @@ def test_build_and_compile_from_dialog_config_prepares_once(
     assert result.ok is True
     assert result.master_result.prepared_config == prepared_config
     assert result.warnings == ("Warning prepare.",)
-    assert calls == [("pdflatex", 3)]
+    assert calls == [("pdflatex", 3, 12, 2)]
+
+
+def test_build_and_compile_from_prepared_config_can_request_fixed_runs(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    prepared_config = _prepared_xml_config(tmp_path)
+    calls: list[tuple[int, int | None, int]] = []
+
+    def _fake_compile(master_path, *, engine, runs, max_runs, stability_confirmations, timeout_seconds):
+        resolved = Path(master_path).resolve()
+        calls.append((runs, max_runs, stability_confirmations))
+        pdf_path = resolved.with_suffix(".pdf")
+        pdf_path.write_text("pdf", encoding="utf-8")
+        return _compile_result(master_path=resolved, ok=True, pdf_path=pdf_path, engine=engine)
+
+    monkeypatch.setattr("ets.publication_pdf.service.compile_publication_pdf", _fake_compile)
+
+    result = build_and_compile_publication_pdf_from_prepared_config(
+        prepared_config,
+        tmp_path / "fixed-build",
+        runs=4,
+        max_runs=None,
+    )
+
+    assert result.ok is True
+    assert calls == [(4, None, 2)]
+
+
+def test_build_and_compile_from_prepared_config_does_not_publish_unstable_pdf(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    prepared_config = _prepared_xml_config(tmp_path)
+
+    def _fake_compile(master_path, *, engine, runs, max_runs, stability_confirmations, timeout_seconds):
+        resolved = Path(master_path).resolve()
+        pdf_path = resolved.with_suffix(".pdf")
+        pdf_path.write_text("diagnostic pdf", encoding="utf-8")
+        return _compile_result(master_path=resolved, ok=False, pdf_path=pdf_path, engine=engine)
+
+    monkeypatch.setattr("ets.publication_pdf.service.compile_publication_pdf", _fake_compile)
+
+    result = build_and_compile_publication_pdf_from_prepared_config(prepared_config, tmp_path / "unstable-build")
+
+    assert result.ok is False
+    assert result.pdf_path is None
+    assert result.compile_result.pdf_path == (tmp_path / "unstable-build" / "master.pdf").resolve()
