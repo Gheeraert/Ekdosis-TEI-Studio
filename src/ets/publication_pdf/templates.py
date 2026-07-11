@@ -1,16 +1,15 @@
 from __future__ import annotations
 
 from pathlib import Path
-import re
 
 from lxml import etree
 
 from ets.application.site_publication_config import SitePublicationDialogConfig
 from ets.latex.castlist_from_tei import tei_castlist_to_latex
-from ets.latex.ekdosis_from_tei import render_ekdosis_witness_declarations, tei_to_ekdosis
 from ets.latex.escaping import escape_latex_text
+from ets.latex.reledmac_from_tei import tei_to_reledmac
+from ets.latex.reledmac_templates import render_reledmac_support_preamble
 from ets.latex.standard_from_tei import tei_peritext_to_latex
-from ets.latex.templates import render_ekdosis_support_preamble
 
 
 def render_publication_pdf_master(config: SitePublicationDialogConfig) -> str:
@@ -137,7 +136,6 @@ def render_publication_pdf_master(config: SitePublicationDialogConfig) -> str:
 
 def render_purh_publication_preamble(config: SitePublicationDialogConfig) -> str:
     running_title = _latex_text(config.corpus_title or "Publication")
-    witness_declarations = _publication_witness_declarations(config)
     return "\n".join(
         [
             r"\documentclass[12pt,titlepage]{book}",
@@ -233,13 +231,13 @@ def render_purh_publication_preamble(config: SitePublicationDialogConfig) -> str
             r"  \fancyhf{}%",
             r"  \renewcommand{\headrulewidth}{0pt}%",
             r"}",
-            render_ekdosis_support_preamble().rstrip(),
-            _render_publication_ekdosis_overrides(),
-            witness_declarations,
+            "% Publication PDF critical backend: Reledmac.",
+            render_reledmac_support_preamble().rstrip(),
+            _render_publication_reledmac_overrides(),
         ]
     )
 
-def _render_publication_ekdosis_overrides() -> str:
+def _render_publication_reledmac_overrides() -> str:
     return "\n".join(
         [
             r"% Publication PDF overrides for dramatic typography.",
@@ -259,73 +257,11 @@ def _render_publication_ekdosis_overrides() -> str:
             r"  {\centering\normalfont\small\itshape #1\par}%",
             r"  \addvspace{0.2\baselineskip}%",
             r"}",
-            r"\newcommand{\PURHSharedVerseIndentTwo}{\hspace*{5em}}",
-            r"\newcommand{\PURHSharedVerseIndentThree}{\hspace*{7em}}",
-            r"\ExplSyntaxOn",
-            r"\cs_set_protected:Npn \ets_vnum:nn #1#2",
-            r"  {",
-            r"    \group_begin:",
-            r"      \seq_set_split:Nnn \l_ets_verse_number_parts_seq {.} {#1}",
-            r"      \tl_set:Nx \l_tmpa_tl { \seq_item:Nn \l_ets_verse_number_parts_seq {1} }",
-            r"      \tl_set:Nx \l_tmpb_tl { \seq_item:Nn \l_ets_verse_number_parts_seq {2} }",
-            r"      \bool_set_false:N \l_ets_print_verse_number_bool",
-            r"      \int_compare:nNnT { \l_tmpa_tl } > { 0 }",
-            r"        {",
-            r"          \int_compare:nNnT { \int_mod:nn { \l_tmpa_tl } { 5 } } = { 0 }",
-            r"            {",
-            r"              \bool_set_true:N \l_ets_print_verse_number_bool",
-            r"              \tl_if_blank:VF \l_tmpb_tl",
-            r"                {",
-            r"                  \str_if_eq:VnF \l_tmpb_tl {1}",
-            r"                    { \bool_set_false:N \l_ets_print_verse_number_bool }",
-            r"                }",
-            r"            }",
-            r"        }",
-            r"      \bool_if:NT \l_ets_print_verse_number_bool",
-            r"        { \makebox[0pt][r]{\scriptsize \l_tmpa_tl\quad} }",
-            r"      \tl_if_blank:VF \l_tmpb_tl",
-            r"        {",
-            r"          \str_case:Vn \l_tmpb_tl",
-            r"            {",
-            r"              {2}{\PURHSharedVerseIndentTwo}",
-            r"              {3}{\PURHSharedVerseIndentThree}",
-            r"            }",
-            r"        }",
-            r"      #2\par",
-            r"    \group_end:",
-            r"  }",
-            r"\ExplSyntaxOff",
         ]
     )
 
 def _latex_text(value: str) -> str:
     return escape_latex_text(value.strip())
-
-
-def _publication_witness_declarations(config: SitePublicationDialogConfig) -> str:
-    declarations_by_id: dict[str, str] = {}
-    ordered_ids: list[str] = []
-    for play in config.plays:
-        declarations = render_ekdosis_witness_declarations(play.dramatic_xml_path)
-        for declaration in declarations.splitlines():
-            if not declaration.strip():
-                continue
-            witness_id = _witness_id_from_declaration(declaration)
-            previous = declarations_by_id.get(witness_id)
-            if previous is not None:
-                if previous != declaration:
-                    raise ValueError(f"Declaration Ekdosis contradictoire pour le temoin '{witness_id}'.")
-                continue
-            declarations_by_id[witness_id] = declaration
-            ordered_ids.append(witness_id)
-    return "\n".join(declarations_by_id[witness_id] for witness_id in ordered_ids)
-
-
-def _witness_id_from_declaration(declaration: str) -> str:
-    match = re.match(r"^\\DeclareWitness\{([^{}]+)\}", declaration)
-    if match is None:
-        raise ValueError(f"Declaration Ekdosis invalide: {declaration}")
-    return match.group(1)
 
 
 def _play_title_from_tei(path: Path) -> str:
@@ -360,7 +296,7 @@ def _has_dramatis_content(fragment: str) -> bool:
 
 def _dramatic_fragment(dramatic_xml_path: Path, *, hide_minor_variants: bool = False) -> str:
     apparatus_policy = "hide_minor" if hide_minor_variants else "full"
-    fragment = tei_to_ekdosis(
+    fragment = tei_to_reledmac(
         dramatic_xml_path,
         standalone=False,
         apparatus_policy=apparatus_policy,
@@ -370,17 +306,15 @@ def _dramatic_fragment(dramatic_xml_path: Path, *, hide_minor_variants: bool = F
         return "\n".join(
             [
                 r"\begin{PURHDramaticText}",
-                r"\begin{ekdosis}",
-                r"\end{ekdosis}",
+                r"\beginnumbering",
+                r"\endnumbering",
                 r"\end{PURHDramaticText}",
             ]
         )
     return "\n".join(
         [
             r"\begin{PURHDramaticText}",
-            r"\begin{ekdosis}",
             fragment,
-            r"\end{ekdosis}",
             r"\end{PURHDramaticText}",
         ]
     )

@@ -273,10 +273,9 @@ def test_realistic_prepared_config_generates_per_play_publication_master(tmp_pat
     assert "Tony Gheeraert" in master_text
     assert "Transcription :" not in master_text
     assert "acte-fusionne" not in master_text
-    assert r"\DeclareWitness{A}{1669}{Britannicus, Paris, Claude Barbin.}" in master_text
-    assert r"\DeclareWitness{B}{1676}{Oeuvres de Racine, tome premier.}" in master_text
-    assert master_text.index(r"\DeclareWitness{A}{1669}") < master_text.index(r"\begin{document}")
-    assert master_text.index(r"\DeclareWitness{B}{1676}") < master_text.index(r"\begin{document}")
+    assert r"\DeclareWitness" not in master_text
+    assert "% Publication PDF critical backend: Reledmac." in master_text
+    assert r"]{reledmac}" in master_text
 
     assert "% GENERAL INTRO intentionally omitted from per-play PDF." in master_text
     assert "% GENERAL INTRO source:" in master_text
@@ -297,21 +296,18 @@ def test_realistic_prepared_config_generates_per_play_publication_master(tmp_pat
 
     assert r"\dramatictextsection{Britannicus}" in master_text
     assert "{Texte dramatique}" not in master_text
-    assert r"\begin{ekdosis}" in master_text
     assert r"\begin{PURHDramaticText}" in master_text
-    assert r"\stage{ACTE I}" in master_text
-    assert r"\stage{SCENE I}" in master_text
-    assert r"\stage{SCENE II}" in master_text
+    assert r"\PURHAct{ACTE I}" in master_text
+    assert r"\PURHScene{SCENE I}" in master_text
+    assert r"\PURHScene{SCENE II}" in master_text
     assert r"\speaker{ANDROMAQUE}" in master_text
     assert r"\speaker{PYRRHUS}" in master_text
-    assert r"\app{" in master_text
-    assert r"\lem[wit={A}" in master_text
-    assert r"\rdg[wit={B}]" in master_text
-    assert r"\vnum{1}{Je ne viens point ici pour \app{\lem[wit={A},nonum,alt={\textbf{1}~augmenter}]{augmenter}\rdg[wit={B}]{redoubler}} vos peines.\\}" in master_text
-    assert r"\vnum{3}{Seigneur, tant de grandeurs ne nous touchent plus guere.\\}" in master_text
-    assert r"\end{ekdosis}" in master_text
+    assert r"\edtext{" in master_text
+    assert r"\Afootnote[nonum]" in master_text
+    assert r"\PURHVerse{1}{Je ne viens point ici pour \edtext{augmenter}{\lemma{\textbf{1}~augmenter}\Afootnote[nonum]{A ; B redoubler}} vos peines.}&" in master_text
+    assert r"\PURHVerse{3}{Seigneur, tant de grandeurs ne nous touchent plus guere.}&" in master_text
     assert r"\end{PURHDramaticText}" in master_text
-    assert "\\begin{ekdosis}\n\\end{ekdosis}" not in master_text
+    assert r"\begin{ekdosis}" not in master_text
     assert r"\chapter" not in master_text
     assert "Chapitre 1" not in master_text
     assert "CHAPITRE" not in master_text
@@ -411,19 +407,26 @@ def test_master_uses_editorial_play_title_and_running_marks(tmp_path: Path) -> N
     assert "CHAPITRE" not in master_text
 
 
-def test_master_contains_ekdosis_support_preamble(tmp_path: Path) -> None:
+def test_master_contains_reledmac_support_preamble(tmp_path: Path) -> None:
     master_text = build_publication_pdf_master(_config(tmp_path), tmp_path / "build").read_text(encoding="utf-8")
 
-    assert master_text.count(r"\usepackage[teiexport, divs=ekdosis, poetry=verse]{ekdosis}") == 1
-    assert r"\usepackage[teiexport, divs=ekdosis, poetry=verse]{ekdosis}" in master_text
-    assert r"\SetLineation{" in master_text
-    assert "lineation=none" in master_text
-    assert "modulo" in master_text
-    assert "vmodulo=0" in master_text
+    assert "% Publication PDF critical backend: Reledmac." in master_text
+    assert r"\usepackage[" in master_text
+    assert r"]{reledmac}" in master_text
+    assert r"series={A}" in master_text
+    assert r"\Xarrangement[A]{paragraph}" in master_text
+    assert r"\newcommand{\PURHApparatusSize}" in master_text
+    assert r"\fontsize{7.4}{8.4}\selectfont" in master_text
+    assert r"\Xnotefontsize[A]{\PURHApparatusSize}" in master_text
+    assert r"\AtBeginDocument{%" in master_text
+    assert r"\Xmaxhnotes[A]{0.8\textheight}%" in master_text
+    assert r"\setstanzaindents{0,0}" in master_text
     assert r"\newcommand{\stage}" in master_text
     assert r"\newenvironment{speech}" in master_text
     assert r"\newcommand{\speaker}" in master_text
-    assert r"\cs_new_protected:Npn \vnum" in master_text
+    assert r"\cs_new_protected:Npn \PURHVerse" in master_text
+    assert r"\usepackage[teiexport, divs=ekdosis, poetry=verse]{ekdosis}" not in master_text
+    assert r"\DeclareWitness" not in master_text
 
 
 def test_master_excludes_home_page_and_omits_general_intro_body_for_per_play_pdf(tmp_path: Path) -> None:
@@ -509,10 +512,12 @@ def test_master_inserts_dramatic_ekdosis_fragment_and_removes_placeholder(tmp_pa
     master_text = build_publication_pdf_master(_config(tmp_path), tmp_path / "build").read_text(encoding="utf-8")
 
     assert "% DRAMATIC TEXT:" in master_text
-    assert r"\begin{ekdosis}" in master_text
-    assert r"\end{ekdosis}" in master_text
+    assert r"\begin{ekdosis}" not in master_text
+    assert r"\end{ekdosis}" not in master_text
+    assert r"\beginnumbering" in master_text
+    assert r"\endnumbering" in master_text
     assert r"\speaker{ORESTE}" in master_text
-    assert r"\vnum{1}{Je parle pour Andromaque.\\}" in master_text
+    assert r"\PURHVerse{1}{Je parle pour Andromaque.}\&" in master_text
     assert "Placeholder: conversion TEI dramatique vers LaTeX-Ekdosis a venir." not in master_text
 
 
@@ -587,8 +592,8 @@ def test_publication_pdf_master_can_hide_minor_variants(tmp_path: Path) -> None:
 
     master_text = build_publication_pdf_master(config, tmp_path / "build").read_text(encoding="utf-8")
 
-    assert r"\app{\lem[wit={A}]{viens,}" not in master_text
-    assert r"\app{\lem[wit={A},nonum,alt={\textbf{1}~partir}]{partir}" in master_text
+    assert r"B viens" not in master_text
+    assert r"\edtext{partir}{\lemma{\textbf{1}~partir}\Afootnote[nonum]{A ; B mourir}}" in master_text
 
 
 def test_publication_pdf_master_keeps_minor_variants_by_default(tmp_path: Path) -> None:
@@ -609,4 +614,4 @@ def test_publication_pdf_master_keeps_minor_variants_by_default(tmp_path: Path) 
 
     master_text = build_publication_pdf_master(config, tmp_path / "build").read_text(encoding="utf-8")
 
-    assert r"\app{\lem[wit={A},nonum,alt={\textbf{1}~Seigneur,}]{Seigneur,}" in master_text
+    assert r"\edtext{Seigneur,}{\lemma{\textbf{1}~Seigneur,}\Afootnote[nonum]{A ; B Seigneur}}" in master_text
