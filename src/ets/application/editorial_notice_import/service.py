@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+import shutil
+import tempfile
 from dataclasses import dataclass, replace
 from pathlib import Path
-from uuid import uuid4
+from typing import Callable
 import xml.etree.ElementTree as ET
 
 from ..site_publication_config import SitePublicationDialogConfig, SitePublicationDialogPlayConfig
@@ -20,10 +22,30 @@ from .tei_builder import NoticeTeiBuilder
 from .validator import NoticeImportValidator
 
 
+_TEMP_ROOT_PREFIX = "ets_notice_import_"
+
+
+def cleanup_editorial_import_temp_root(temp_root: Path | None) -> None:
+    """Supprime un répertoire temporaire créé pour la conversion DOCX -> TEI.
+
+    Refuse par prudence tout répertoire qui ne porte pas le préfixe attendu.
+    """
+    if temp_root is None:
+        return
+    if not temp_root.name.startswith(_TEMP_ROOT_PREFIX):
+        return
+    shutil.rmtree(temp_root, ignore_errors=True)
+
+
 @dataclass(frozen=True)
 class PreparedPublicationConfig:
     config: SitePublicationDialogConfig
     warnings: tuple[str, ...] = ()
+    temp_root: Path | None = None
+
+    def cleanup(self) -> None:
+        """Supprime les fichiers TEI temporaires une fois la publication terminée."""
+        cleanup_editorial_import_temp_root(self.temp_root)
 
 
 class EditorialNoticeImportService:
@@ -119,45 +141,58 @@ class EditorialNoticeImportService:
             return EditorialImportResult(source_path=source_path.resolve(), source_kind=source_kind, report=report)
 
     def prepare_dialog_config_for_publication(self, config: SitePublicationDialogConfig) -> PreparedPublicationConfig:
-        temp_root = _create_temp_root(config)
+        # Le répertoire temporaire n'est créé que si une conversion DOCX -> TEI
+        # a effectivement lieu. Il appartient ensuite à l'appelant, via
+        # PreparedPublicationConfig.cleanup(), une fois la publication terminée.
+        temp_root: Path | None = None
+
+        def ensure_temp_root() -> Path:
+            nonlocal temp_root
+            if temp_root is None:
+                temp_root = Path(tempfile.mkdtemp(prefix=_TEMP_ROOT_PREFIX)).resolve()
+            return temp_root
+
         warnings: list[str] = []
-
-        home_page_tei = self._prepare_single_source(
-            config.home_page_tei,
-            source_kind=EditorialSourceKind.HOME_PAGE,
-            temp_root=temp_root,
-            warnings=warnings,
-        )
-        general_intro_tei = self._prepare_single_source(
-            config.general_intro_tei,
-            source_kind=EditorialSourceKind.GENERAL_INTRO,
-            temp_root=temp_root,
-            warnings=warnings,
-        )
-
-        plays: list[SitePublicationDialogPlayConfig] = []
-        for play in config.plays:
-            notice_xml_path = self._prepare_single_source(
-                play.notice_xml_path,
-                source_kind=EditorialSourceKind.PLAY_NOTICE,
-                temp_root=temp_root,
+        try:
+            home_page_tei = self._prepare_single_source(
+                config.home_page_tei,
+                source_kind=EditorialSourceKind.HOME_PAGE,
+                ensure_temp_root=ensure_temp_root,
                 warnings=warnings,
             )
-            preface_xml_path = self._prepare_single_source(
-                play.preface_xml_path,
-                source_kind=EditorialSourceKind.PLAY_PREFACE,
-                temp_root=temp_root,
+            general_intro_tei = self._prepare_single_source(
+                config.general_intro_tei,
+                source_kind=EditorialSourceKind.GENERAL_INTRO,
+                ensure_temp_root=ensure_temp_root,
                 warnings=warnings,
             )
-            plays.append(
-                SitePublicationDialogPlayConfig(
-                    play_slug=play.play_slug,
-                    dramatic_xml_path=play.dramatic_xml_path,
-                    notice_xml_path=notice_xml_path,
-                    preface_xml_path=preface_xml_path,
-                    dramatis_xml_path=play.dramatis_xml_path,
+
+            plays: list[SitePublicationDialogPlayConfig] = []
+            for play in config.plays:
+                notice_xml_path = self._prepare_single_source(
+                    play.notice_xml_path,
+                    source_kind=EditorialSourceKind.PLAY_NOTICE,
+                    ensure_temp_root=ensure_temp_root,
+                    warnings=warnings,
                 )
-            )
+                preface_xml_path = self._prepare_single_source(
+                    play.preface_xml_path,
+                    source_kind=EditorialSourceKind.PLAY_PREFACE,
+                    ensure_temp_root=ensure_temp_root,
+                    warnings=warnings,
+                )
+                plays.append(
+                    SitePublicationDialogPlayConfig(
+                        play_slug=play.play_slug,
+                        dramatic_xml_path=play.dramatic_xml_path,
+                        notice_xml_path=notice_xml_path,
+                        preface_xml_path=preface_xml_path,
+                        dramatis_xml_path=play.dramatis_xml_path,
+                    )
+                )
+        except Exception:
+            cleanup_editorial_import_temp_root(temp_root)
+            raise
 
         prepared = replace(
             config,
@@ -165,14 +200,14 @@ class EditorialNoticeImportService:
             general_intro_tei=general_intro_tei,
             plays=tuple(plays),
         )
-        return PreparedPublicationConfig(config=prepared, warnings=tuple(warnings))
+        return PreparedPublicationConfig(config=prepared, warnings=tuple(warnings), temp_root=temp_root)
 
     def _prepare_single_source(
         self,
         source_path: Path | None,
         *,
         source_kind: EditorialSourceKind,
-        temp_root: Path,
+        ensure_temp_root: Callable[[], Path],
         warnings: list[str],
     ) -> Path | None:
         if source_path is None:
@@ -198,7 +233,9 @@ class EditorialNoticeImportService:
             raise ValueError(
                 f"Conversion DOCX -> TEI impossible pour '{source_path}'. Aucune sortie XML generee."
             )
-        target = _write_temp_tei_file(temp_root, source_path=source_path, source_kind=source_kind, tei_xml=result.tei_xml)
+        target = _write_temp_tei_file(
+            ensure_temp_root(), source_path=source_path, source_kind=source_kind, tei_xml=result.tei_xml
+        )
         return target
 
     def _validate_xml(self, source_path: Path) -> ValidationReport:
@@ -253,14 +290,3 @@ def _write_temp_tei_file(
         suffix += 1
     target.write_text(tei_xml, encoding="utf-8")
     return target.resolve()
-
-
-def _create_temp_root(config: SitePublicationDialogConfig) -> Path:
-    if config.output_dir is not None:
-        base = config.output_dir.resolve().parent
-    else:
-        base = Path.cwd().resolve()
-    base.mkdir(parents=True, exist_ok=True)
-    target = (base / f"ets_notice_import_{uuid4().hex}").resolve()
-    target.mkdir(parents=True, exist_ok=False)
-    return target

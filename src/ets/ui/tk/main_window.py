@@ -37,6 +37,7 @@ from ets.application import (
     validate_text,
 )
 from ets.domain import EditionConfig
+from ets.application.editorial_notice_import import cleanup_editorial_import_temp_root
 from ets.infrastructure import AutosavePayload, AutosaveStore, LocalPreviewServer
 from ets.parser import parse_play
 from ets.validation import validate_tei_xml
@@ -1784,10 +1785,12 @@ class MainWindow(ttk.Frame):
             action = dialog_result.action
             request = dialog_result.site_request
             ftp_config = dialog_result.ftp_config
+            editorial_temp_root = dialog_result.editorial_temp_root
         else:
             action = "build"
             request = dialog_result
             ftp_config = None
+            editorial_temp_root = None
 
         try:
             result = build_site_from_publication_request(request)
@@ -1798,6 +1801,10 @@ class MainWindow(ttk.Frame):
                 parent=self.master,
             )
             return
+        finally:
+            # Les TEI temporaires issus des DOCX ne servent plus après la
+            # génération du site (le PDF éventuel est déjà construit).
+            cleanup_editorial_import_temp_root(editorial_temp_root)
         if not result.ok:
             detail = result.error_detail or "Erreur inconnue."
             messagebox.showerror(

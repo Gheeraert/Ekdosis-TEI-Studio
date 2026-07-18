@@ -385,6 +385,56 @@ def test_publish_static_pipeline_calls_all_services_and_returns_zip(
         assert "index.html" in zf.namelist()
 
 
+def test_publish_static_cleans_up_editorial_temp_root(client, monkeypatch, tmp_path) -> None:
+    temp_root = tmp_path / "ets_notice_import_test"
+
+    class _FakeService:
+        def prepare_dialog_config_for_publication(self, config):
+            from ets.application.editorial_notice_import.service import PreparedPublicationConfig
+            temp_root.mkdir()
+            (temp_root / "notice_converti.xml").write_text("<TEI/>", encoding="utf-8")
+            return PreparedPublicationConfig(config=config, temp_root=temp_root)
+
+    site_dir = tmp_path / "site_output"
+
+    def _fake_request_from_config(config):
+        from unittest.mock import MagicMock
+        req = MagicMock()
+        req.output_dir = site_dir
+        return req
+
+    def _fake_build(pub_request):
+        from ets.application import SiteBuildServiceResult
+        assert temp_root.exists(), "les TEI temporaires doivent survivre jusqu'à la génération"
+        site_dir.mkdir(exist_ok=True)
+        (site_dir / "index.html").write_text("<html>site généré</html>", encoding="utf-8")
+        return SiteBuildServiceResult(ok=True, output_dir=site_dir, message="ok")
+
+    monkeypatch.setattr("ets.web.publication_routes.EditorialNoticeImportService", _FakeService)
+    monkeypatch.setattr(
+        "ets.web.publication_routes.site_publication_request_from_dialog_config",
+        _fake_request_from_config,
+    )
+    monkeypatch.setattr(
+        "ets.web.publication_routes.build_site_from_publication_request",
+        _fake_build,
+    )
+
+    cfg = _pub_config()
+    zip_bytes = _make_zip({
+        "publication_config.json": json.dumps(cfg),
+        "dramatic/britannicus.xml": _DUMMY_XML,
+    })
+    rv = client.post(
+        "/publish/static",
+        data={"source_zip": (io.BytesIO(zip_bytes), "source.zip")},
+        content_type="multipart/form-data",
+    )
+
+    assert rv.status_code == 200
+    assert not temp_root.exists()
+
+
 # ── Isolation — pas de Tkinter ────────────────────────────────────────────────
 
 def test_publication_blueprint_does_not_import_tkinter() -> None:

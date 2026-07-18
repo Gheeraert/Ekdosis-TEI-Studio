@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import shutil
 import subprocess
+import tempfile
 from pathlib import Path
 from uuid import uuid4
 import xml.etree.ElementTree as ET
@@ -16,6 +17,7 @@ from ets.application import (
     SitePublicationDialogConfig,
     SitePublicationDialogPlayConfig,
 )
+from ets.application.editorial_notice_import import cleanup_editorial_import_temp_root
 from ets.application.editorial_notice_import.pandoc_bridge import PandocExecutionError, PandocNotFoundError
 from ets.application.editorial_notice_import.models import ValidationStatus
 
@@ -524,3 +526,135 @@ def test_prepare_dialog_config_converts_docx_sources_but_keeps_xml_sources() -> 
     assert output_config.plays[0].preface_xml_path.suffix == ".xml"
     assert output_config.plays[0].notice_xml_path != notice_docx.resolve()
     assert output_config.plays[0].preface_xml_path != preface_docx.resolve()
+    prepared.cleanup()
+
+
+def test_prepare_dialog_config_without_docx_creates_no_temp_root() -> None:
+    runtime = _runtime_dir("app_editorial_notice_import_no_temp_root")
+    dramatic = runtime / "dramatic.xml"
+    home_xml = runtime / "home.xml"
+    dramatic.write_text("<xml/>", encoding="utf-8")
+    home_xml.write_text(
+        "<?xml version='1.0' encoding='utf-8'?><TEI xmlns='http://www.tei-c.org/ns/1.0'/>",
+        encoding="utf-8",
+    )
+    service = EditorialNoticeImportService()
+
+    config = SitePublicationDialogConfig(
+        corpus_title="Corpus test",
+        output_dir=(runtime / "site").resolve(),
+        home_page_tei=home_xml.resolve(),
+        plays=(
+            SitePublicationDialogPlayConfig(
+                play_slug="piece",
+                dramatic_xml_path=dramatic.resolve(),
+            ),
+        ),
+    )
+
+    prepared = service.prepare_dialog_config_for_publication(config)
+
+    assert prepared.temp_root is None
+    prepared.cleanup()  # doit rester sans effet
+
+
+def test_prepare_dialog_config_temp_root_is_in_system_temp_and_cleanup_removes_it() -> None:
+    runtime = _runtime_dir("app_editorial_notice_import_temp_root")
+    dramatic = runtime / "dramatic.xml"
+    dramatic.write_text("<xml/>", encoding="utf-8")
+    notice_docx = runtime / "notice.docx"
+    notice_docx.write_text("placeholder", encoding="utf-8")
+
+    bridge = _StubBridge({notice_docx.name: _load_ast("notice_ok_minimal.json")})
+    service = EditorialNoticeImportService(pandoc_bridge=bridge)
+
+    config = SitePublicationDialogConfig(
+        corpus_title="Corpus test",
+        output_dir=(runtime / "site").resolve(),
+        plays=(
+            SitePublicationDialogPlayConfig(
+                play_slug="piece",
+                dramatic_xml_path=dramatic.resolve(),
+                notice_xml_path=notice_docx.resolve(),
+            ),
+        ),
+    )
+
+    prepared = service.prepare_dialog_config_for_publication(config)
+
+    assert prepared.temp_root is not None
+    assert prepared.temp_root.name.startswith("ets_notice_import_")
+    system_temp = Path(tempfile.gettempdir()).resolve()
+    assert prepared.temp_root.parent == system_temp
+    assert prepared.temp_root != ROOT
+    converted_notice = prepared.config.plays[0].notice_xml_path
+    assert converted_notice is not None
+    assert converted_notice.exists()
+    assert prepared.temp_root in converted_notice.parents
+
+    prepared.cleanup()
+
+    assert not prepared.temp_root.exists()
+    assert not converted_notice.exists()
+
+
+def test_prepare_dialog_config_failure_removes_partial_temp_root(monkeypatch: pytest.MonkeyPatch) -> None:
+    runtime = _runtime_dir("app_editorial_notice_import_failure_cleanup")
+    dramatic = runtime / "dramatic.xml"
+    dramatic.write_text("<xml/>", encoding="utf-8")
+    notice_docx = runtime / "notice.docx"
+    preface_docx = runtime / "preface.docx"
+    for path in (notice_docx, preface_docx):
+        path.write_text("placeholder", encoding="utf-8")
+
+    bridge = _StubBridge(
+        {
+            notice_docx.name: _load_ast("notice_ok_minimal.json"),
+            preface_docx.name: _load_ast("notice_bad_unknown_style.json"),
+        }
+    )
+    service = EditorialNoticeImportService(pandoc_bridge=bridge)
+
+    created_roots: list[Path] = []
+    real_mkdtemp = tempfile.mkdtemp
+
+    def _recording_mkdtemp(*args: object, **kwargs: object) -> str:
+        target = real_mkdtemp(*args, **kwargs)  # type: ignore[arg-type]
+        created_roots.append(Path(target))
+        return target
+
+    monkeypatch.setattr(
+        "ets.application.editorial_notice_import.service.tempfile.mkdtemp",
+        _recording_mkdtemp,
+    )
+
+    config = SitePublicationDialogConfig(
+        corpus_title="Corpus test",
+        output_dir=(runtime / "site").resolve(),
+        plays=(
+            SitePublicationDialogPlayConfig(
+                play_slug="piece",
+                dramatic_xml_path=dramatic.resolve(),
+                notice_xml_path=notice_docx.resolve(),
+                preface_xml_path=preface_docx.resolve(),
+            ),
+        ),
+    )
+
+    with pytest.raises(ValueError):
+        service.prepare_dialog_config_for_publication(config)
+
+    assert len(created_roots) == 1
+    assert not created_roots[0].exists()
+
+
+def test_cleanup_refuses_directory_without_expected_prefix() -> None:
+    runtime = _runtime_dir("app_editorial_notice_import_cleanup_guard")
+    target = runtime / "donnees_importantes"
+    target.mkdir()
+    (target / "fichier.txt").write_text("contenu", encoding="utf-8")
+
+    cleanup_editorial_import_temp_root(target)
+
+    assert target.exists()
+    assert (target / "fichier.txt").exists()
