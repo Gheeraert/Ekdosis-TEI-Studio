@@ -110,6 +110,30 @@ def test_service_prepares_dialog_config_then_builds_master(tmp_path: Path) -> No
     assert "Config brute" not in master_text
 
 
+def test_master_build_from_dialog_config_cleans_up_prepared_temp_root(tmp_path: Path) -> None:
+    raw_config = SitePublicationDialogConfig(
+        corpus_title="Config brute",
+        output_dir=tmp_path / "site",
+        plays=(),
+    )
+    prepared_config = _prepared_xml_config(tmp_path)
+    temp_root = tmp_path / "ets_notice_import_test"
+    temp_root.mkdir()
+    (temp_root / "notice_converti.xml").write_text("<TEI/>", encoding="utf-8")
+    fake_service = _FakeEditorialImportService(
+        PreparedPublicationConfig(config=prepared_config, temp_root=temp_root)
+    )
+
+    result = build_publication_pdf_master_from_dialog_config(
+        raw_config,
+        tmp_path / "build",
+        editorial_import_service=fake_service,
+    )
+
+    assert result.master_path.exists()
+    assert not temp_root.exists()
+
+
 def test_service_accepts_xml_config_without_real_pandoc(tmp_path: Path) -> None:
     config = _prepared_xml_config(tmp_path)
 

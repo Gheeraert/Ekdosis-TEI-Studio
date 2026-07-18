@@ -40,7 +40,12 @@ def build_publication_pdf_master_from_dialog_config(
 ) -> PublicationPdfMasterBuildResult:
     service = editorial_import_service or EditorialNoticeImportService()
     prepared = service.prepare_dialog_config_for_publication(config)
-    master_path = build_publication_pdf_master(prepared.config, build_dir)
+    try:
+        # Le master LaTeX incorpore le contenu des péritextes : les TEI
+        # temporaires issus des DOCX peuvent être supprimés ensuite.
+        master_path = build_publication_pdf_master(prepared.config, build_dir)
+    finally:
+        prepared.cleanup()
     return PublicationPdfMasterBuildResult(
         master_path=master_path,
         prepared_config=prepared.config,
@@ -108,13 +113,16 @@ def build_and_compile_publication_pdf_from_dialog_config(
 ) -> PublicationPdfBuildResult:
     service = editorial_import_service or EditorialNoticeImportService()
     prepared = service.prepare_dialog_config_for_publication(config)
-    return build_and_compile_publication_pdf_from_prepared_config(
-        prepared.config,
-        build_dir,
-        warnings=prepared.warnings,
-        engine=engine,
-        runs=runs,
-        max_runs=max_runs,
-        stability_confirmations=stability_confirmations,
-        timeout_seconds=timeout_seconds,
-    )
+    try:
+        return build_and_compile_publication_pdf_from_prepared_config(
+            prepared.config,
+            build_dir,
+            warnings=prepared.warnings,
+            engine=engine,
+            runs=runs,
+            max_runs=max_runs,
+            stability_confirmations=stability_confirmations,
+            timeout_seconds=timeout_seconds,
+        )
+    finally:
+        prepared.cleanup()

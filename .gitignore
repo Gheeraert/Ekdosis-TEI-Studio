@@ -7,6 +7,7 @@ __pycache__/
 dist/
 build/
 out/
+*.egg-info/
 tests/_runtime/
 ftp_config*.json
 *.ftp.json

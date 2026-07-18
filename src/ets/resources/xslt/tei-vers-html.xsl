@@ -210,9 +210,10 @@
             <xsl:otherwise>Édition TEI</xsl:otherwise>
           </xsl:choose>
         </title>
-        <link href="https://fonts.googleapis.com/css2?family=IM+Fell+DW+Pica&amp;display=swap" rel="stylesheet"/>
-        <link href="https://fonts.googleapis.com/css2?family=EB+Garamond&amp;display=swap" rel="stylesheet"/>
-        <link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro&amp;display=swap" rel="stylesheet"/>
+        <!-- Les polices (IM Fell DW Pica, EB Garamond, Source Sans Pro) sont
+             fournies localement par la chaîne Python : en data-URI pour
+             l'aperçu autoporteur, en fichiers WOFF2 copiés dans les assets
+             pour le site statique. Aucun appel à un service externe. -->
         <style>
           html {
             scroll-behavior: smooth;

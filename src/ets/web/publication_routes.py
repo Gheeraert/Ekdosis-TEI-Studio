@@ -238,14 +238,17 @@ def publish_static_post():
             )
 
         try:
-            pub_request = site_publication_request_from_dialog_config(prepared.config)
-        except ValueError as exc:
-            return render_template(
-                "publish_static.html",
-                error=f"Configuration de publication incomplète : {exc}",
-            )
+            try:
+                pub_request = site_publication_request_from_dialog_config(prepared.config)
+            except ValueError as exc:
+                return render_template(
+                    "publish_static.html",
+                    error=f"Configuration de publication incomplète : {exc}",
+                )
 
-        result = build_site_from_publication_request(pub_request)
+            result = build_site_from_publication_request(pub_request)
+        finally:
+            prepared.cleanup()
 
         if not result.ok:
             detail = result.error_detail or result.message or "Erreur inconnue."
@@ -328,11 +331,15 @@ def _run_builder_pipeline(
         return None, f"Échec de la préparation des sources éditoriales : {msg}"
 
     try:
-        pub_request = site_publication_request_from_dialog_config(prepared.config)
-    except ValueError as exc:
-        return None, f"Configuration de publication incomplète : {exc}"
+        try:
+            pub_request = site_publication_request_from_dialog_config(prepared.config)
+        except ValueError as exc:
+            return None, f"Configuration de publication incomplète : {exc}"
 
-    result = build_site_from_publication_request(pub_request)
+        result = build_site_from_publication_request(pub_request)
+    finally:
+        prepared.cleanup()
+
     if not result.ok:
         detail = result.error_detail or result.message or "Erreur inconnue."
         return None, f"Échec de la génération du site statique : {detail}"

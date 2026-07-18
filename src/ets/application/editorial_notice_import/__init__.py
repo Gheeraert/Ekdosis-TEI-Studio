@@ -8,7 +8,11 @@ from .models import (
 )
 from .pandoc_bridge import PandocBridge, PandocBridgeError, PandocExecutionError, PandocNotFoundError
 from .reporting import format_validation_report
-from .service import EditorialNoticeImportService, PreparedPublicationConfig
+from .service import (
+    EditorialNoticeImportService,
+    PreparedPublicationConfig,
+    cleanup_editorial_import_temp_root,
+)
 
 __all__ = [
     "EditorialImportResult",
@@ -24,5 +28,6 @@ __all__ = [
     "format_validation_report",
     "EditorialNoticeImportService",
     "PreparedPublicationConfig",
+    "cleanup_editorial_import_temp_root",
 ]
 

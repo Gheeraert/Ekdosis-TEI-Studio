@@ -9,6 +9,7 @@ from uuid import uuid4
 
 from lxml import etree
 
+from ets.application.editorial_notice_import import cleanup_editorial_import_temp_root
 from ets.application import (
     EditorialNoticeImportService,
     EditorialSourceKind,
@@ -67,6 +68,9 @@ class PublicationDialogResult:
     ftp_config: FTPPublicationConfig | None = None
     pdf_master_result: PublicationPdfMasterBuildResult | None = None
     pdf_build_result: PublicationPdfBuildResult | None = None
+    # Répertoire des TEI temporaires issus des DOCX ; à supprimer par
+    # l'appelant une fois le site généré (cleanup_editorial_import_temp_root).
+    editorial_temp_root: Path | None = None
 
 
 class PublicationDialog(tk.Toplevel):
@@ -104,6 +108,7 @@ class PublicationDialog(tk.Toplevel):
         self._config_path: Path | None = None
         self._editorial_import_service = EditorialNoticeImportService()
         self._last_prepare_warnings: tuple[str, ...] = ()
+        self._last_editorial_temp_root: Path | None = None
         self._last_pdf_master_result: PublicationPdfMasterBuildResult | None = None
         self._last_pdf_build_result: PublicationPdfBuildResult | None = None
         self._ftp_config: FTPPublicationConfig | None = None
@@ -788,12 +793,18 @@ class PublicationDialog(tk.Toplevel):
     def _build_request(self) -> SitePublicationRequest:
         config = self._collect_dialog_config()
         prepared = self._editorial_import_service.prepare_dialog_config_for_publication(config)
+        self._last_editorial_temp_root = prepared.temp_root
         warnings = list(prepared.warnings)
 
         self._last_pdf_master_result = None
         self._last_pdf_build_result = None
 
-        request = site_publication_request_from_dialog_config(prepared.config)
+        try:
+            request = site_publication_request_from_dialog_config(prepared.config)
+        except Exception:
+            prepared.cleanup()
+            self._last_editorial_temp_root = None
+            raise
 
         if prepared.config.build_latex_pdf:
             updated_plays = list(request.plays)
@@ -904,6 +915,7 @@ class PublicationDialog(tk.Toplevel):
             site_request=request,
             pdf_master_result=self._last_pdf_master_result,
             pdf_build_result=self._last_pdf_build_result,
+            editorial_temp_root=self._last_editorial_temp_root,
         )
         self.destroy()
 
@@ -924,6 +936,8 @@ class PublicationDialog(tk.Toplevel):
 
         ftp_config = open_ftp_publication_dialog(self, initial_config=self._ftp_config)
         if ftp_config is None:
+            cleanup_editorial_import_temp_root(self._last_editorial_temp_root)
+            self._last_editorial_temp_root = None
             return
 
         self._ftp_config = ftp_config
@@ -933,6 +947,7 @@ class PublicationDialog(tk.Toplevel):
             ftp_config=ftp_config,
             pdf_master_result=self._last_pdf_master_result,
             pdf_build_result=self._last_pdf_build_result,
+            editorial_temp_root=self._last_editorial_temp_root,
         )
         self.destroy()
 

@@ -390,11 +390,35 @@ pip install -r requirements.txt
 pip install -r requirements-dev.txt
 ```
 
+Installation du paquet en mode éditable :
+
+```bash
+pip install -e .
+```
+
+Le dépôt n'ayant plus de shim `ets/` à la racine, cette installation est
+nécessaire pour :
+
+- exécuter les tests depuis n'importe quel contexte ;
+- utiliser `python -m ets...` ;
+- rendre les ressources du paquet (schémas, ODD, XSLT, polices) accessibles
+  comme celles d'une installation normale.
+
+`python launch_ets.py` et `python run_web.py` restent en revanche utilisables
+directement depuis un clone, sans installation : ces scripts ajoutent
+eux-mêmes `src` au chemin Python.
+
 Lancement des tests :
 
 ```bash
 python -m pytest
 ```
+
+Organisation des fixtures :
+
+- `fixtures/stable/` : cas de référence fonctionnels (baseline de non-régression) ;
+- `fixtures/known_issues/` : cas limites documentés ;
+- `fixtures/archive/` : fixtures retirées du circuit actif, conservées pour mémoire — aucun test ne doit en dépendre (voir `fixtures/archive/README.md`).
 
 Sous Windows, si `python` n’est pas disponible :
 
