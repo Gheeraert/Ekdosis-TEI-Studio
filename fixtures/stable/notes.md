@@ -1,6 +1,8 @@
 # Fixture – Cas standard fonctionnel
 ## Andromaque, Acte I, Scène 1
 
+Dernière mise à jour : 18 juillet 2026.
+
 ## Objectif
 
 Ce fixture documente un cas **entièrement fonctionnel**, servant de référence stable pour :
@@ -17,11 +19,16 @@ Le moteur doit produire un XML TEI correct **sans intervention manuelle**, et ce
 
 ---
 
-## Entrées
+## Fichiers du cas stable
 
-### 1. Texte source (multi-témoins)
-Voir fichier :
-→ :contentReference[oaicite:0]{index=0}
+- `input.txt` — transcription source multi-témoins (entrée utilisateur)
+- `config.json` — métadonnées de la scène (témoins, personnages, numérotation)
+- `expected.xml` — sortie XML-TEI de référence
+
+Tests associés : `tests/test_pipeline_stable.py`, `tests/test_parser_stable.py`,
+`tests/test_application_services.py`.
+
+### 1. Texte source (`input.txt`)
 
 Caractéristiques :
 
@@ -32,15 +39,11 @@ Caractéristiques :
   - `##PERSONNAGES##`
   - `#LOCUTEUR#`
 - variantes régulières (orthographe, ponctuation)
+- variantes de ligne entière (`#####…`)
 - vers partagés simples (***), correctement gérés
 - pas de cas pathologique
 
----
-
-### 2. Métadonnées
-
-Voir fichier :
-→ :contentReference[oaicite:1]{index=1}
+### 2. Métadonnées (`config.json`)
 
 Points importants :
 
@@ -49,14 +52,28 @@ Points importants :
 - personnages explicitement fournis
 - informations éditoriales complètes
 
+### 3. Sortie attendue (`expected.xml`)
+
+XML-TEI de référence produit par le moteur pour cette entrée.
+
 ---
 
-## Sortie attendue
+## Autre fichier du dossier : `britannicus_I.txt`
 
-### XML TEI produit
+Transcription de *Britannicus*, Acte I, alignée sur **5 témoins**.
 
-Voir fichier :
-→ :contentReference[oaicite:2]{index=2}
+Ce fichier ne fait pas partie du cas stable Andromaque. Il est utilisé
+**délibérément comme entrée invalide** par les tests de chemins d'erreur :
+combiné à une configuration dont le nombre de témoins ne correspond pas
+(`fixtures/known_issues/britannicus_scene_2_acte_2/config.json`, 6 témoins),
+il doit déclencher des diagnostics `E_BLOCK_SIZE` avec contexte (acte, scène,
+numéro de bloc).
+
+Tests associés : `tests/test_input_validator.py`,
+`tests/test_application_services.py`.
+
+Ne pas « corriger » ce fichier pour le faire passer avec cette configuration :
+l'écart est voulu.
 
 ---
 
@@ -103,7 +120,7 @@ Voir fichier :
 
 - titres correctement encodés :
   - `<head>`
-- variantes possibles sur les titres d’acte gérées via `<app>`
+- variantes possibles sur les titres d'acte gérées via `<app>`
 
 ### HTML (post-XSLT)
 
@@ -123,40 +140,17 @@ Ce cas sert de :
 - référence pour comparaison
 - garde-fou lors des refactorings
 
-Toute modification du moteur doit :
+Toute modification du moteur (validation, parsing, collation, génération TEI)
+doit :
 
-✔ conserver un output strictement identique (ou équivalent structurellement)  
-✔ ne pas introduire de régression  
+✔ conserver un output strictement identique (ou équivalent structurellement)
+✔ ne pas introduire de régression
 
----
+## Remarques
 
-## Points de vigilance déjà validés
-
-- alignement des variantes stable
-- gestion des locuteurs correcte
-- continuité des vers OK
-- intégration TEI propre
-- compatibilité XSLT validée
-
----
-
-## À utiliser pour
-
-- tests de non-régression
-- comparaison avec cas difficiles
-- validation après modification de :
-  - `comparer_etats`
-  - `aligner_variantes_par_mot`
-
----
-
-## Fichiers associés
-
-- `input.txt` Transcription entrée dans l'interface utilisateur
-- `expected.xml` sortie XML-TEI
-- `config.json` Fichier de métadonnées associées à la scène (configuration de la scène)
-
-## Remarque
-
-Ce fixture représente un cas **idéal**.  
+Ce fixture représente un cas **idéal**.
 Tout écart observé sur ce cas après modification doit être considéré comme une régression.
+
+Une révision antérieure de ce même cas, utilisant l'ancien marqueur `######`
+(syntaxe désormais rejetée par le validateur), est conservée dans
+`fixtures/archive/andromaque_1_1/`.
