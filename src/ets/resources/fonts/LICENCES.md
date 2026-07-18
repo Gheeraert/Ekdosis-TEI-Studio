@@ -3,6 +3,8 @@
 Les fichiers WOFF2 de ce dossier sont distribués sous la
 SIL Open Font License 1.1 (OFL), qui autorise l'inclusion et la
 redistribution avec le logiciel : https://openfontlicense.org
+Le texte intégral de la licence est fourni dans `OFL.txt`, à côté de ce
+fichier.
 
 | Famille | Fichiers | Copyright / source |
 |---|---|---|

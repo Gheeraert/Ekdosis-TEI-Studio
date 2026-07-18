@@ -390,12 +390,23 @@ pip install -r requirements.txt
 pip install -r requirements-dev.txt
 ```
 
-Installation recommandée pour le développement (paquet en mode éditable,
-rend `ets` importable depuis n'importe quel répertoire, ressources incluses) :
+Installation du paquet en mode éditable :
 
 ```bash
 pip install -e .
 ```
+
+Le dépôt n'ayant plus de shim `ets/` à la racine, cette installation est
+nécessaire pour :
+
+- exécuter les tests depuis n'importe quel contexte ;
+- utiliser `python -m ets...` ;
+- rendre les ressources du paquet (schémas, ODD, XSLT, polices) accessibles
+  comme celles d'une installation normale.
+
+`python launch_ets.py` et `python run_web.py` restent en revanche utilisables
+directement depuis un clone, sans installation : ces scripts ajoutent
+eux-mêmes `src` au chemin Python.
 
 Lancement des tests :
 

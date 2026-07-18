@@ -47,3 +47,27 @@ jobs:
 
       - name: Lancer la suite de tests
         run: python -m pytest -ra
+
+  wheel:
+    name: wheel (installation isolée)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Construire la wheel
+        run: |
+          python -m pip install --upgrade build
+          python -m build
+
+      - name: Installer la wheel dans un environnement vierge
+        run: |
+          python -m venv "$RUNNER_TEMP/wheel-venv"
+          "$RUNNER_TEMP/wheel-venv/bin/python" -m pip install dist/*.whl
+
+      - name: Contrôler la wheel depuis un répertoire hors du dépôt
+        working-directory: ${{ runner.temp }}
+        run: '"$RUNNER_TEMP/wheel-venv/bin/python" "$GITHUB_WORKSPACE/tools/check_wheel_install.py"'

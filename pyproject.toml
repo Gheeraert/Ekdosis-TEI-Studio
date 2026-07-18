@@ -18,6 +18,7 @@ where = ["src"]
 [tool.setuptools.package-data]
 "ets.resources" = [
     "fonts/*.md",
+    "fonts/*.txt",
     "fonts/*.woff2",
     "odd/*.odd",
     "schemas/*.rnc",

@@ -30,3 +30,6 @@ def test_embedded_fonts_are_packaged() -> None:
         assert resource.is_file()
         assert resource.read_bytes()[:4] == b"wOF2"
     assert root.joinpath("fonts", "LICENCES.md").is_file()
+    ofl = root.joinpath("fonts", "OFL.txt")
+    assert ofl.is_file()
+    assert "SIL OPEN FONT LICENSE" in ofl.read_text(encoding="utf-8")
