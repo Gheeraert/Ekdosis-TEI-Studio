@@ -69,6 +69,47 @@ def test_builder_generates_index_and_secondary_pages() -> None:
     assert len(result.generated_pages) >= 4
 
 
+def test_builder_ships_local_fonts_and_pages_avoid_external_font_services() -> None:
+    base_dir = _runtime_dir("site_builder_fonts")
+    output_dir = base_dir / "site_fonts"
+    config = site_config_from_dict(
+        {
+            "site_title": "ETS Demo",
+            "dramatic_xml_dir": str(FIXTURE_ROOT / "dramatic"),
+            "output_dir": str(output_dir),
+        }
+    )
+
+    build_static_site(config)
+
+    fonts_dir = output_dir / "assets" / "fonts"
+    for filename in (
+        "fonts.css",
+        "eb-garamond-latin.woff2",
+        "eb-garamond-latin-ext.woff2",
+        "im-fell-dw-pica-latin.woff2",
+        "source-sans-pro-latin.woff2",
+        "source-sans-pro-latin-ext.woff2",
+    ):
+        asset = fonts_dir / filename
+        assert asset.exists(), filename
+        assert asset.stat().st_size > 0
+
+    fonts_css = (fonts_dir / "fonts.css").read_text(encoding="utf-8")
+    assert "@font-face" in fonts_css
+    for family in ("IM Fell DW Pica", "EB Garamond", "Source Sans Pro"):
+        assert f"font-family: '{family}'" in fonts_css
+
+    play_html = (output_dir / "plays" / "andromaque.html").read_text(encoding="utf-8")
+    assert '<link rel="stylesheet" href="../assets/fonts/fonts.css">' in play_html
+
+    for page in output_dir.rglob("*.html"):
+        content = page.read_text(encoding="utf-8")
+        assert "fonts.googleapis.com" not in content, page.name
+        assert "fonts.gstatic.com" not in content, page.name
+        assert "data:font/woff2;base64," not in content, page.name
+
+
 def test_builder_published_play_xml_points_to_copied_tei_profile_without_touching_notices() -> None:
     base_dir = _runtime_dir("site_builder_tei_profile_xml")
     output_dir = base_dir / "site_profile_xml"

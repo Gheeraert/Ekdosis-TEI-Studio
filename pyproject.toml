@@ -1,3 +1,7 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "ekdosis-tei-studio-v2"
 version = "0.1.0"
@@ -8,12 +12,32 @@ dependencies = [
     "flask>=3.0",
 ]
 
-[tool.pytest.ini_options]
-testpaths = ["tests"]
+[tool.setuptools.packages.find]
+where = ["src"]
 
 [tool.setuptools.package-data]
 "ets.resources" = [
+    "fonts/*.md",
+    "fonts/*.woff2",
     "odd/*.odd",
     "schemas/*.rnc",
+    "schemas/*.rng",
     "schemas/*.sch",
+    "xslt/*.xsl",
+]
+"ets.web" = [
+    "templates/*.html",
+    "static/*",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+norecursedirs = [
+    ".git",
+    ".venv",
+    "__pycache__",
+    "tests/_runtime",
+    "tests/_pytest_tmp_site_builder",
+    "_runtime",
+    "_pytest_tmp_site_builder",
 ]

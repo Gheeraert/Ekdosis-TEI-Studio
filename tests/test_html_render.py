@@ -260,6 +260,32 @@ def test_html_preview_transforms_stable_tei_fixture() -> None:
     assert not doc.xpath("//sup[contains(@class, 'note-call')]")
 
 
+def test_html_preview_embeds_fonts_without_external_requests() -> None:
+    preview = render_html_preview_from_tei(_stable_tei_xml())
+
+    assert "fonts.googleapis.com" not in preview
+    assert "fonts.gstatic.com" not in preview
+    assert "@font-face" in preview
+    assert "data:font/woff2;base64," in preview
+    for family in ("IM Fell DW Pica", "EB Garamond", "Source Sans Pro"):
+        assert f"font-family: '{family}'" in preview
+
+
+def test_html_preview_can_skip_font_embedding() -> None:
+    preview = render_html_preview_from_tei(_stable_tei_xml(), embed_fonts=False)
+
+    assert "fonts.googleapis.com" not in preview
+    assert "data:font/woff2;base64," not in preview
+
+
+def test_html_export_has_no_external_font_requests_nor_inline_fonts() -> None:
+    export = render_html_export_from_tei(_stable_tei_xml())
+
+    assert "fonts.googleapis.com" not in export
+    assert "fonts.gstatic.com" not in export
+    assert "data:font/woff2;base64," not in export
+
+
 def test_html_preview_renders_dramatis_personae_front_structurally() -> None:
     tei_xml = """<?xml version="1.0" encoding="UTF-8"?>
 <TEI xmlns="http://www.tei-c.org/ns/1.0">

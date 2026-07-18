@@ -390,11 +390,24 @@ pip install -r requirements.txt
 pip install -r requirements-dev.txt
 ```
 
+Installation recommandée pour le développement (paquet en mode éditable,
+rend `ets` importable depuis n'importe quel répertoire, ressources incluses) :
+
+```bash
+pip install -e .
+```
+
 Lancement des tests :
 
 ```bash
 python -m pytest
 ```
+
+Organisation des fixtures :
+
+- `fixtures/stable/` : cas de référence fonctionnels (baseline de non-régression) ;
+- `fixtures/known_issues/` : cas limites documentés ;
+- `fixtures/archive/` : fixtures retirées du circuit actif, conservées pour mémoire — aucun test ne doit en dépendre (voir `fixtures/archive/README.md`).
 
 Sous Windows, si `python` n’est pas disponible :
 

@@ -8,6 +8,7 @@ import time
 from pathlib import Path
 
 from ets.dts import export_dts_static
+from ets.html.fonts import font_files, render_font_face_css
 from ets.search import export_static_search_index
 from ets.tei.generator import with_tei_profile_references
 
@@ -205,6 +206,19 @@ def _copy_tei_profile_resources(output_root: Path) -> None:
         source = resource_root / resource_dir / filename
         with resources.as_file(source) as source_path:
             shutil.copy2(source_path, profile_dir / filename)
+
+
+def _copy_font_assets(output_root: Path) -> None:
+    """Copie les polices embarquées et leur feuille @font-face dans le site.
+
+    Les pages de lecture dramatique référencent ``assets/fonts/fonts.css`` ;
+    le site généré ne doit émettre aucune requête vers un service externe.
+    """
+    fonts_dir = output_root / "assets" / "fonts"
+    fonts_dir.mkdir(parents=True, exist_ok=True)
+    for source_path in font_files():
+        shutil.copy2(source_path, fonts_dir / source_path.name)
+    (fonts_dir / "fonts.css").write_text(render_font_face_css(), encoding="utf-8")
 
 
 def _export_dts_static(output_root: Path, manifest: SiteManifest, warnings: list[str]) -> None:
@@ -405,6 +419,7 @@ def build_static_site(config: SiteConfig) -> BuildResult:
     copied_assets = _copy_assets(normalized_config, output_root, warnings)
     _copy_xml_sources(output_root=output_root, plays=manifest.plays, notices=manifest.notices)
     _copy_tei_profile_resources(output_root)
+    _copy_font_assets(output_root)
     if normalized_config.enable_dts:
         _export_dts_static(output_root, manifest, warnings)
     if normalized_config.enable_search_index:

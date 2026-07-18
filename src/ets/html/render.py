@@ -201,7 +201,9 @@ def render_html_export_from_tei(
 ) -> str:
     """Render a publication-ready HTML base from TEI XML."""
     selected = options or HtmlExportOptions()
-    preview_html = render_html_preview_from_tei(tei_xml)
+    # Pas de polices inline ici : le site statique sert les WOFF2 depuis
+    # assets/fonts/ pour ne pas dupliquer ~240 Ko de data-URI par page.
+    preview_html = render_html_preview_from_tei(tei_xml, embed_fonts=False)
     preview_doc = lxml_html.document_fromstring(preview_html)
     tei_doc = etree.fromstring(tei_xml.encode("utf-8"))
 

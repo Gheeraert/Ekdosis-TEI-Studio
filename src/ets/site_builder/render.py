@@ -1906,7 +1906,9 @@ def render_play_page(manifest: SiteManifest, play: PlayEntry) -> str:
     lines.append(_render_dramatis_personae(play_navigation, play))
     dramatic_html, dramatic_assets = _play_reading_html(play, play_navigation)
     lines.append(dramatic_html)
-    head_extras = f"{dramatic_assets}{_play_nav_hash_sync_script()}"
+    fonts_href = f"{_asset_prefix(f'plays/{play.slug}.html')}assets/fonts/fonts.css"
+    fonts_link = f'<link rel="stylesheet" href="{html.escape(fonts_href, quote=True)}">'
+    head_extras = f"{fonts_link}{dramatic_assets}{_play_nav_hash_sync_script()}"
 
     return _layout(
         manifest,
