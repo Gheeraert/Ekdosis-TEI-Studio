@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import ftplib
+import os
 from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
 from typing import Callable, Protocol
@@ -76,7 +77,9 @@ class FTPPublishService:
                 ensured_directories=ensured_directories,
             )
 
-            for root, dirs, files in source_dir.walk(top_down=True):
+            # Path.walk() n'existe qu'a partir de Python 3.12 ; os.walk() couvre 3.10+.
+            for root_value, dirs, files in os.walk(source_dir, topdown=True):
+                root = Path(root_value)
                 dirs.sort()
                 files.sort()
                 relative_dir = root.relative_to(source_dir)

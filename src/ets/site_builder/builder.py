@@ -4,6 +4,7 @@ from dataclasses import replace
 from importlib import resources
 import os
 import shutil
+import sys
 import time
 from pathlib import Path
 
@@ -83,7 +84,11 @@ def _prepare_output_dir(output_root: Path) -> None:
             if last_error is not None:
                 raise last_error
 
-        shutil.rmtree(resolved, onexc=_on_remove_error)
+        # onexc n'existe qu'a partir de Python 3.12 ; onerror reste requis en 3.10-3.11.
+        if sys.version_info >= (3, 12):
+            shutil.rmtree(resolved, onexc=_on_remove_error)
+        else:
+            shutil.rmtree(resolved, onerror=_on_remove_error)
     resolved.mkdir(parents=True, exist_ok=True)
 
 
