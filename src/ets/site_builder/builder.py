@@ -11,6 +11,7 @@ from pathlib import Path
 from ets.dts import export_dts_static
 from ets.html.fonts import font_files, render_font_face_css
 from ets.search import export_static_search_index
+from ets.seo import build_sitemap_xml
 from ets.tei.generator import with_tei_profile_references
 
 from .config import load_site_config
@@ -239,6 +240,18 @@ def _export_dts_static(output_root: Path, manifest: SiteManifest, warnings: list
         warnings.append(f"DTS export skipped: {exc}")
 
 
+def _export_sitemap(output_root: Path, manifest: SiteManifest, warnings: list[str]) -> None:
+    base_url = manifest.config.site_base_url
+    if not base_url:
+        return
+    try:
+        relpaths = [page.output_relpath for page in manifest.pages]
+        xml_text = build_sitemap_xml(base_url, relpaths)
+        (output_root / "sitemap.xml").write_text(xml_text, encoding="utf-8")
+    except Exception as exc:
+        warnings.append(f"Sitemap export skipped: {exc}")
+
+
 def _export_search_index(output_root: Path, manifest: SiteManifest, warnings: list[str]) -> None:
     try:
         warnings.extend(
@@ -429,6 +442,7 @@ def build_static_site(config: SiteConfig) -> BuildResult:
         _export_dts_static(output_root, manifest, warnings)
     if normalized_config.enable_search_index:
         _export_search_index(output_root, manifest, warnings)
+    _export_sitemap(output_root, manifest, warnings)
 
     return BuildResult(
         output_dir=output_root,
