@@ -371,6 +371,7 @@ def test_builder_post_valid_input_returns_zip_with_index(client, monkeypatch, tm
     def _fake_request_from_config(config):
         calls.append("request_from_config")
         assert config.enable_search_index is True
+        assert config.site_base_url == "https://edition.example.org"
         from unittest.mock import MagicMock
         req = MagicMock()
         req.output_dir = site_dir
@@ -409,6 +410,8 @@ def test_builder_post_valid_input_returns_zip_with_index(client, monkeypatch, tm
             "resolve_notice_xincludes": "1",
             "enable_dts": "1",
             "enable_search_index": "1",
+            "enable_seo": "1",
+            "site_base_url": "https://edition.example.org",
         },
         content_type="multipart/form-data",
     )
@@ -421,6 +424,57 @@ def test_builder_post_valid_input_returns_zip_with_index(client, monkeypatch, tm
 
     with zipfile.ZipFile(io.BytesIO(rv.data)) as zf:
         assert "index.html" in zf.namelist()
+
+
+def test_builder_post_ignores_site_base_url_when_seo_checkbox_unchecked(
+    client, monkeypatch, tmp_path
+) -> None:
+    seen_site_base_url: list[str | None] = []
+
+    class _FakeService:
+        def prepare_dialog_config_for_publication(self, config):
+            from ets.application.editorial_notice_import.service import PreparedPublicationConfig
+            return PreparedPublicationConfig(config=config)
+
+    site_dir = tmp_path / "site_output_no_seo"
+
+    def _fake_request_from_config(config):
+        seen_site_base_url.append(config.site_base_url)
+        from unittest.mock import MagicMock
+        req = MagicMock()
+        req.output_dir = site_dir
+        return req
+
+    def _fake_build(pub_request):
+        from ets.application import SiteBuildServiceResult
+        site_dir.mkdir(exist_ok=True)
+        (site_dir / "index.html").write_text("<html>site</html>", encoding="utf-8")
+        return SiteBuildServiceResult(ok=True, output_dir=site_dir, message="ok")
+
+    monkeypatch.setattr("ets.web.publication_routes.EditorialNoticeImportService", _FakeService)
+    monkeypatch.setattr(
+        "ets.web.publication_routes.site_publication_request_from_dialog_config",
+        _fake_request_from_config,
+    )
+    monkeypatch.setattr(
+        "ets.web.publication_routes.build_site_from_publication_request",
+        _fake_build,
+    )
+
+    rv = client.post(
+        "/publish/builder",
+        data={
+            "corpus_title": "Tragédies complètes",
+            "home_page_file": (io.BytesIO(_HOME_XML), "accueil.xml"),
+            "play_0_xml": (io.BytesIO(_PLAY_XML), "britannicus.xml"),
+            # enable_seo intentionally omitted: a typed URL must be ignored.
+            "site_base_url": "https://edition.example.org",
+        },
+        content_type="multipart/form-data",
+    )
+
+    assert rv.status_code == 200
+    assert seen_site_base_url == [""]
 
 
 # ── Isolation — pas de Tkinter dans le code web ───────────────────────────────
@@ -490,6 +544,8 @@ def test_builder_config_json_contains_metadata_and_options(client) -> None:
             "resolve_notice_xincludes": "1",
             "enable_dts": "1",
             "enable_search_index": "1",
+            "enable_seo": "1",
+            "site_base_url": "https://edition.example.org",
         },
         content_type="multipart/form-data",
     )
@@ -511,6 +567,23 @@ def test_builder_config_json_contains_metadata_and_options(client) -> None:
     assert data["options"]["hide_minor_variants_in_pdf"] is False
     assert data["options"]["enable_dts"] is True
     assert data["options"]["enable_search_index"] is True
+    assert data["options"]["site_base_url"] == "https://edition.example.org"
+
+
+def test_builder_config_json_ignores_site_base_url_when_seo_unchecked(client) -> None:
+    rv = client.post(
+        "/publish/builder/config",
+        data={
+            "corpus_title": "Tragédies complètes",
+            "play_0_xml": (io.BytesIO(_PLAY_XML), "Britannicus.xml"),
+            # enable_seo intentionally omitted: a typed URL must not survive.
+            "site_base_url": "https://edition.example.org",
+        },
+        content_type="multipart/form-data",
+    )
+    assert rv.status_code == 200
+    data = json.loads(rv.data)
+    assert data["options"]["site_base_url"] == ""
 
 
 def test_builder_config_export_two_plays(client) -> None:
@@ -560,6 +633,23 @@ def test_builder_source_package_zip_contains_config(client) -> None:
     )
     with zipfile.ZipFile(io.BytesIO(rv.data)) as zf:
         assert "publication_config.json" in zf.namelist()
+
+
+def test_builder_source_package_config_contains_site_base_url(client) -> None:
+    rv = client.post(
+        "/publish/builder/source-package",
+        data={
+            "corpus_title": "Tragédies",
+            "home_page_file": (io.BytesIO(_HOME_XML), "accueil.xml"),
+            "play_0_xml": (io.BytesIO(_PLAY_XML), "britannicus.xml"),
+            "enable_seo": "1",
+            "site_base_url": "https://edition.example.org",
+        },
+        content_type="multipart/form-data",
+    )
+    with zipfile.ZipFile(io.BytesIO(rv.data)) as zf:
+        config_data = json.loads(zf.read("publication_config.json").decode("utf-8"))
+    assert config_data["options"]["site_base_url"] == "https://edition.example.org"
 
 
 def test_builder_source_package_zip_contains_sources(client) -> None:
@@ -914,6 +1004,36 @@ def test_builder_import_source_valid_zip_shows_source_paths(client) -> None:
     )
     assert rv.status_code == 200
     assert "sources/britannicus.xml" in rv.data.decode()
+
+
+def test_builder_import_source_zip_carries_site_base_url(client) -> None:
+    config_with_seo = json.loads(_VALID_SOURCE_CONFIG)
+    config_with_seo["options"]["site_base_url"] = "https://edition.example.org"
+    zip_data = _make_source_zip(config_json=json.dumps(config_with_seo))
+
+    rv = client.post(
+        "/publish/builder/import-source-package",
+        data={"source_package_file": (io.BytesIO(zip_data), "source.zip")},
+        content_type="multipart/form-data",
+    )
+
+    assert rv.status_code == 200
+    html = rv.data.decode()
+    assert "https://edition.example.org" in html
+
+
+def test_builder_import_source_zip_without_site_base_url_defaults_to_empty(client) -> None:
+    zip_data = _make_source_zip(config_json=_VALID_SOURCE_CONFIG)
+
+    rv = client.post(
+        "/publish/builder/import-source-package",
+        data={"source_package_file": (io.BytesIO(zip_data), "source.zip")},
+        content_type="multipart/form-data",
+    )
+
+    assert rv.status_code == 200
+    html = rv.data.decode()
+    assert '"site_base_url": ""' in html
 
 
 def test_builder_import_json_config_still_works(client) -> None:

@@ -147,6 +147,8 @@
             setCheck('resolve_notice_xincludes', data.options.resolve_notice_xincludes);
             setCheck('enable_dts', data.options.enable_dts);
             setCheck('enable_search_index', data.options.enable_search_index);
+            setField('site_base_url', data.options.site_base_url);
+            setCheck('enable_seo', !!data.options.site_base_url);
           }
           if (Array.isArray(data.plays) && data.plays.length > 0) {
             var existingPublicationBlocks = Array.from(container.querySelectorAll('.play-block'));
@@ -198,6 +200,8 @@
           setCheck('resolve_notice_xincludes', data.options.resolve_notice_xincludes);
           setCheck('enable_dts', data.options.enable_dts);
           setCheck('enable_search_index', data.options.enable_search_index);
+          setField('site_base_url', data.options.site_base_url);
+          setCheck('enable_seo', !!data.options.site_base_url);
         }
 
         // Restore play blocks
@@ -265,6 +269,8 @@
         _siSetCheck('resolve_notice_xincludes', si.options.resolve_notice_xincludes);
         _siSetCheck('enable_dts', si.options.enable_dts);
         _siSetCheck('enable_search_index', si.options.enable_search_index);
+        _siSetField('site_base_url', si.options.site_base_url);
+        _siSetCheck('enable_seo', !!si.options.site_base_url);
       }
 
       if (Array.isArray(si.plays) && si.plays.length > 0) {
@@ -299,5 +305,27 @@
         });
       }
     }
+  }
+
+  // SEO layer: warn when the checkbox is on but no public URL was given —
+  // without it, sitemap.xml, robots.txt, canonical, Open Graph and
+  // structured data are all silently skipped by the site builder.
+  var seoCheckbox = document.querySelector('[name="enable_seo"]');
+  var seoUrlField = document.querySelector('[name="site_base_url"]');
+  var seoWarning = document.getElementById('seo_warning');
+  if (seoCheckbox && seoUrlField && seoWarning) {
+    var updateSeoWarning = function () {
+      if (seoCheckbox.checked && !seoUrlField.value.trim()) {
+        seoWarning.textContent = (
+          'Sans URL publique, la couche SEO sera dégradée : ni sitemap.xml, ni robots.txt, ' +
+          'ni lien canonique, ni Open Graph, ni données structurées ne seront générés.'
+        );
+      } else {
+        seoWarning.textContent = '';
+      }
+    };
+    seoCheckbox.addEventListener('change', updateSeoWarning);
+    seoUrlField.addEventListener('input', updateSeoWarning);
+    updateSeoWarning();
   }
 })();

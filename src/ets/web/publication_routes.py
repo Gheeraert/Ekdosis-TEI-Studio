@@ -380,6 +380,8 @@ def builder_config_download():
     resolve_xincludes = "resolve_notice_xincludes" in form
     enable_dts = "enable_dts" in form
     enable_search_index = "enable_search_index" in form
+    enable_seo = "enable_seo" in form
+    site_base_url = form.get("site_base_url", "").strip() if enable_seo else ""
 
     author_name = " ".join(p for p in (author_first, author_last) if p)
     scientific_editor = " ".join(p for p in (editor_first, editor_last) if p)
@@ -465,6 +467,7 @@ def builder_config_download():
         resolve_notice_xincludes=resolve_xincludes,
         enable_dts=enable_dts,
         enable_search_index=enable_search_index,
+        site_base_url=site_base_url,
     )
 
     config_data = site_publication_dialog_config_to_dict(config, relative_to=relative_base)
@@ -505,6 +508,8 @@ def builder_source_package():
     resolve_xincludes = "resolve_notice_xincludes" in form
     enable_dts = "enable_dts" in form
     enable_search_index = "enable_search_index" in form
+    enable_seo = "enable_seo" in form
+    site_base_url = form.get("site_base_url", "").strip() if enable_seo else ""
 
     with tempfile.TemporaryDirectory() as tmp_str:
         tmp = Path(tmp_str)
@@ -597,6 +602,7 @@ def builder_source_package():
             resolve_notice_xincludes=resolve_xincludes,
             enable_dts=enable_dts,
             enable_search_index=enable_search_index,
+            site_base_url=site_base_url,
         )
 
         config_dict = site_publication_dialog_config_to_dict(config, relative_to=tmp)
@@ -729,6 +735,7 @@ def builder_import_source_package():
             "resolve_notice_xincludes": bool(options_raw.get("resolve_notice_xincludes", True)) if isinstance(options_raw, dict) else True,
             "enable_dts": bool(options_raw.get("enable_dts", False)) if isinstance(options_raw, dict) else False,
             "enable_search_index": bool(options_raw.get("enable_search_index", False)) if isinstance(options_raw, dict) else False,
+            "site_base_url": str(options_raw.get("site_base_url", "")) if isinstance(options_raw, dict) else "",
         },
         "plays": [
             {
@@ -880,6 +887,8 @@ def builder_post():
         resolve_xincludes = "resolve_notice_xincludes" in form
         enable_dts = "enable_dts" in form
         enable_search_index = "enable_search_index" in form
+        enable_seo = "enable_seo" in form
+        site_base_url = form.get("site_base_url", "").strip() if enable_seo else ""
 
         # ── Construction de SitePublicationDialogConfig ───────────────────────
         config = SitePublicationDialogConfig(
@@ -902,6 +911,7 @@ def builder_post():
             resolve_notice_xincludes=resolve_xincludes,
             enable_dts=enable_dts,
             enable_search_index=enable_search_index,
+            site_base_url=site_base_url,
         )
 
         # ── Pipeline de génération ────────────────────────────────────────────

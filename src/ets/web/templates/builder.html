@@ -243,6 +243,22 @@
       </label>
       <small>Produit <code>search/index.json</code> pour préparer une recherche locale dans le site publié.</small>
     </div>
+
+    <div class="field">
+      <label>
+        <input type="checkbox" name="enable_seo" id="enable_seo" value="1"
+               {{ 'checked' if form and form.site_base_url else '' }}>
+        Publier une couche SEO (sitemap, robots.txt, meta description, Open Graph, données structurées)
+      </label>
+    </div>
+    <div class="field">
+      <label>URL publique du site</label>
+      <input type="url" name="site_base_url" id="site_base_url" size="50"
+             placeholder="https://edition.example.org"
+             value="{{ form.site_base_url if form else '' }}">
+      <small id="seo_warning" style="color:#8a4a00;"></small>
+      <small>Exemple : https://edition.example.org — utilisée pour le sitemap, robots.txt, le lien canonique, Open Graph et les données structurées.</small>
+    </div>
   </fieldset>
 
   <fieldset>
