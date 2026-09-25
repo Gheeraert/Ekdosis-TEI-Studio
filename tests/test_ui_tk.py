@@ -1145,6 +1145,97 @@ def test_publication_dialog_builds_rich_request_object(monkeypatch: pytest.Monke
         root.destroy()
 
 
+def test_publication_dialog_seo_checkbox_sends_stripped_base_url(monkeypatch: pytest.MonkeyPatch) -> None:
+    root = _make_root()
+    try:
+        runtime = RUNTIME_DIR / f"publication_dialog_seo_{uuid4().hex}"
+        runtime.mkdir(parents=True, exist_ok=True)
+        dramatic = runtime / "andromaque.xml"
+        output_dir = runtime / "site_out"
+        dramatic.write_text("<xml/>", encoding="utf-8")
+
+        dialog = PublicationDialog(root)
+        monkeypatch.setattr("tkinter.messagebox.showerror", lambda *args, **kwargs: None)
+        dialog.vars.author_name.set("Jean Racine")
+        dialog.vars.corpus_title.set("Theatre complet")
+        dialog.vars.output_dir.set(str(output_dir))
+        dialog._append_play_from_path(dramatic)
+        dialog._sync_play_order_from_entries()
+
+        dialog.vars.enable_seo.set(True)
+        dialog.vars.site_base_url.set("  https://edition.example.org/  ")
+
+        dialog._on_validate()
+
+        dialog_result = dialog.result
+        assert dialog_result is not None
+        request = dialog_result.site_request
+        assert request.site_base_url == "https://edition.example.org/"
+    finally:
+        root.destroy()
+
+
+def test_publication_dialog_seo_degrades_when_checked_without_url(monkeypatch: pytest.MonkeyPatch) -> None:
+    root = _make_root()
+    try:
+        runtime = RUNTIME_DIR / f"publication_dialog_seo_degraded_{uuid4().hex}"
+        runtime.mkdir(parents=True, exist_ok=True)
+        dramatic = runtime / "andromaque.xml"
+        output_dir = runtime / "site_out"
+        dramatic.write_text("<xml/>", encoding="utf-8")
+
+        dialog = PublicationDialog(root)
+        monkeypatch.setattr("tkinter.messagebox.showerror", lambda *args, **kwargs: None)
+        dialog.vars.author_name.set("Jean Racine")
+        dialog.vars.corpus_title.set("Theatre complet")
+        dialog.vars.output_dir.set(str(output_dir))
+        dialog._append_play_from_path(dramatic)
+        dialog._sync_play_order_from_entries()
+
+        dialog.vars.enable_seo.set(True)
+        # site_base_url left empty: the dialog must warn, not silently pretend SEO is on.
+        assert dialog._seo_warning_label.cget("text") != ""
+
+        dialog._on_validate()
+
+        dialog_result = dialog.result
+        assert dialog_result is not None
+        request = dialog_result.site_request
+        assert request.site_base_url is None
+    finally:
+        root.destroy()
+
+
+def test_publication_dialog_seo_unchecked_ignores_typed_url(monkeypatch: pytest.MonkeyPatch) -> None:
+    root = _make_root()
+    try:
+        runtime = RUNTIME_DIR / f"publication_dialog_seo_unchecked_{uuid4().hex}"
+        runtime.mkdir(parents=True, exist_ok=True)
+        dramatic = runtime / "andromaque.xml"
+        output_dir = runtime / "site_out"
+        dramatic.write_text("<xml/>", encoding="utf-8")
+
+        dialog = PublicationDialog(root)
+        monkeypatch.setattr("tkinter.messagebox.showerror", lambda *args, **kwargs: None)
+        dialog.vars.author_name.set("Jean Racine")
+        dialog.vars.corpus_title.set("Theatre complet")
+        dialog.vars.output_dir.set(str(output_dir))
+        dialog._append_play_from_path(dramatic)
+        dialog._sync_play_order_from_entries()
+
+        dialog.vars.site_base_url.set("https://edition.example.org")
+        assert dialog.vars.enable_seo.get() is False
+
+        dialog._on_validate()
+
+        dialog_result = dialog.result
+        assert dialog_result is not None
+        request = dialog_result.site_request
+        assert request.site_base_url is None
+    finally:
+        root.destroy()
+
+
 def test_publication_dialog_compiles_pdf_from_prepared_config_once(monkeypatch: pytest.MonkeyPatch) -> None:
     root = _make_root()
     try:

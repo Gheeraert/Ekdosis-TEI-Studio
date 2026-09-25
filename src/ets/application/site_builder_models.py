@@ -79,6 +79,7 @@ class SitePublicationRequest:
     pdf_download_source_path: Path | None = None
     latex_download_source_path: Path | None = None
     pdf_download_relpath: str = "downloads/edition-complete.pdf"
+    site_base_url: str | None = None
 
 
 @dataclass(frozen=True)

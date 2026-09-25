@@ -51,6 +51,8 @@ class _PublicationVars:
     resolve_notice_xincludes: tk.BooleanVar
     enable_dts: tk.BooleanVar
     enable_search_index: tk.BooleanVar
+    enable_seo: tk.BooleanVar
+    site_base_url: tk.StringVar
 
 @dataclass
 class _PlayEntry:
@@ -101,6 +103,8 @@ class PublicationDialog(tk.Toplevel):
             resolve_notice_xincludes=tk.BooleanVar(value=True),
             enable_dts=tk.BooleanVar(value=False),
             enable_search_index=tk.BooleanVar(value=False),
+            enable_seo=tk.BooleanVar(value=False),
+            site_base_url=tk.StringVar(value=""),
         )
 
         self._play_entries: list[_PlayEntry] = []
@@ -254,6 +258,34 @@ class PublicationDialog(tk.Toplevel):
             text="Produit search/index.json pour préparer une recherche locale dans le site publié.",
             wraplength=860,
         ).grid(row=5, column=0, columnspan=3, sticky="w", pady=(0, 2))
+        ttk.Checkbutton(
+            options,
+            text="Publier une couche SEO (sitemap, robots.txt, meta description, Open Graph, données structurées)",
+            variable=self.vars.enable_seo,
+        ).grid(row=6, column=0, columnspan=3, sticky="w", pady=(6, 0))
+        seo_url_row = ttk.Frame(options)
+        seo_url_row.grid(row=7, column=0, columnspan=3, sticky="ew")
+        seo_url_row.columnconfigure(1, weight=1)
+        ttk.Label(seo_url_row, text="URL publique du site").grid(row=0, column=0, sticky="w", padx=(0, 6))
+        ttk.Entry(seo_url_row, textvariable=self.vars.site_base_url).grid(row=0, column=1, sticky="ew")
+        self._seo_warning_label = ttk.Label(
+            options,
+            text="",
+            wraplength=860,
+            foreground="#8a4a00",
+        )
+        self._seo_warning_label.grid(row=8, column=0, columnspan=3, sticky="w", pady=(2, 2))
+        ttk.Label(
+            options,
+            text=(
+                "Exemple : https://edition.example.org — utilisée pour le sitemap, robots.txt, "
+                "le lien canonique, Open Graph et les données structurées."
+            ),
+            wraplength=860,
+        ).grid(row=9, column=0, columnspan=3, sticky="w", pady=(0, 2))
+        self.vars.enable_seo.trace_add("write", self._update_seo_warning)
+        self.vars.site_base_url.trace_add("write", self._update_seo_warning)
+        self._update_seo_warning()
 
     def _build_intro_section(self, parent: ttk.Frame, *, row: int) -> None:
         box = ttk.LabelFrame(parent, text="Introduction generale")
@@ -331,6 +363,17 @@ class PublicationDialog(tk.Toplevel):
 
     def _on_corpus_identity_changed(self, *_args: str) -> None:
         self._refresh_corpus_slug()
+
+    def _update_seo_warning(self, *_args: str) -> None:
+        if self.vars.enable_seo.get() and not self.vars.site_base_url.get().strip():
+            self._seo_warning_label.configure(
+                text=(
+                    "Sans URL publique, la couche SEO sera dégradée : ni sitemap.xml, ni robots.txt, "
+                    "ni lien canonique, ni Open Graph, ni données structurées ne seront générés."
+                )
+            )
+        else:
+            self._seo_warning_label.configure(text="")
 
     def _refresh_corpus_slug(self) -> None:
         self.vars.corpus_slug.set(derive_corpus_slug(self.vars.author_name.get(), self.vars.corpus_title.get()))
@@ -697,6 +740,9 @@ class PublicationDialog(tk.Toplevel):
             resolve_notice_xincludes=bool(self.vars.resolve_notice_xincludes.get()),
             enable_dts=bool(self.vars.enable_dts.get()),
             enable_search_index=bool(self.vars.enable_search_index.get()),
+            site_base_url=(
+                self.vars.site_base_url.get().strip() if self.vars.enable_seo.get() else ""
+            ),
         )
 
     def _apply_dialog_config(self, config: SitePublicationDialogConfig) -> None:
@@ -743,6 +789,8 @@ class PublicationDialog(tk.Toplevel):
         self.vars.resolve_notice_xincludes.set(config.resolve_notice_xincludes)
         self.vars.enable_dts.set(config.enable_dts)
         self.vars.enable_search_index.set(config.enable_search_index)
+        self.vars.site_base_url.set(config.site_base_url)
+        self.vars.enable_seo.set(bool(config.site_base_url.strip()))
         self._refresh_corpus_slug()
 
     def _on_save_config(self) -> None:

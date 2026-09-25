@@ -412,6 +412,7 @@ def _normalize_publication_request(
             for play in request.plays
             if play.latex_download_source_path is not None
         },
+        "site_base_url": request.site_base_url,
     }
     return payload, tuple(warnings)
 

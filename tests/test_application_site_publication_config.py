@@ -377,3 +377,58 @@ def test_site_publication_request_handles_notice_and_preface_independently(
 
 def test_derive_corpus_slug_uses_author_and_two_title_words() -> None:
     assert derive_corpus_slug("Jean Racine", "Théâtre complet et fragments") == "jean-racine-theatre-complet"
+
+
+def test_site_publication_dialog_config_round_trip_preserves_site_base_url() -> None:
+    runtime = _runtime_dir("app_site_publication_config_seo_roundtrip")
+    config_path = runtime / "publication_dialog.json"
+
+    config = SitePublicationDialogConfig(
+        author_name="Jean Racine",
+        corpus_title="Théâtre complet",
+        output_dir=(runtime / "site").resolve(),
+        plays=(
+            SitePublicationDialogPlayConfig(
+                play_slug="andromaque",
+                dramatic_xml_path=(ROOT / "fixtures" / "site_builder" / "minimal" / "dramatic" / "andromaque.xml"),
+            ),
+        ),
+        site_base_url="https://edition.example.org",
+    )
+
+    written = save_site_publication_dialog_config(config, config_path)
+    loaded = load_site_publication_dialog_config(written)
+
+    assert loaded.site_base_url == "https://edition.example.org"
+    payload = json.loads(config_path.read_text(encoding="utf-8"))
+    assert payload["options"]["site_base_url"] == "https://edition.example.org"
+
+
+@pytest.mark.parametrize(
+    "raw_site_base_url, expected",
+    [
+        ("", None),
+        ("   ", None),
+        ("  https://edition.example.org  ", "https://edition.example.org"),
+    ],
+)
+def test_site_publication_request_mapping_normalizes_site_base_url(
+    raw_site_base_url: str, expected: str | None
+) -> None:
+    runtime = _runtime_dir("app_site_publication_config_seo_mapping")
+    config = SitePublicationDialogConfig(
+        author_name="Jean Racine",
+        corpus_title="Théâtre complet",
+        output_dir=(runtime / "site").resolve(),
+        plays=(
+            SitePublicationDialogPlayConfig(
+                play_slug="andromaque",
+                dramatic_xml_path=(ROOT / "fixtures" / "site_builder" / "minimal" / "dramatic" / "andromaque.xml"),
+            ),
+        ),
+        site_base_url=raw_site_base_url,
+    )
+
+    request = site_publication_request_from_dialog_config(config)
+
+    assert request.site_base_url == expected

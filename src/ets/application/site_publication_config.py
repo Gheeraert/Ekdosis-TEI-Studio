@@ -53,6 +53,7 @@ class SitePublicationDialogConfig:
     resolve_notice_xincludes: bool = True
     enable_dts: bool = False
     enable_search_index: bool = False
+    site_base_url: str = ""
 
 
 def _expect_object(value: Any, *, field_name: str) -> dict[str, Any]:
@@ -272,6 +273,7 @@ def site_publication_dialog_config_to_dict(
             "resolve_notice_xincludes": config.resolve_notice_xincludes,
             "enable_dts": config.enable_dts,
             "enable_search_index": config.enable_search_index,
+            "site_base_url": config.site_base_url,
         },
     }
 
@@ -394,6 +396,10 @@ def site_publication_dialog_config_from_dict(
             options.get("enable_search_index"),
             field_name="options.enable_search_index",
             default=False,
+        ),
+        site_base_url=_expect_text(
+            options.get("site_base_url", ""),
+            field_name="options.site_base_url",
         ),
     )
 
@@ -547,6 +553,7 @@ def site_publication_request_from_dialog_config(config: SitePublicationDialogCon
         home_page_notice_slug=home_page_notice_slug,
         pdf_download_source_path=None,
         latex_download_source_path=None,
+        site_base_url=config.site_base_url.strip() or None,
     )
 
 
