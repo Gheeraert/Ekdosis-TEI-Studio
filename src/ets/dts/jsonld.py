@@ -10,8 +10,18 @@ DTS_VERSION = "1.0"
 
 # Mirrors ets.seo.schema_reference.ODD_RELPATH (the published site-root path
 # of the TEI ODD schema). Duplicated as a literal rather than imported to
-# keep the DTS static export independent from the SEO layer.
-_ODD_RELPATH_FROM_DTS_ROOT = "../../tei-profile/ets-racine.odd"
+# keep the DTS static export independent from the SEO layer. The ODD
+# describes the TEI *documents*, not the DTS service itself, so it is
+# attached to each Resource's dublinCore.conformsTo rather than to the
+# top-level EntryPoint.
+_ODD_RELPATH_SEGMENT = "tei-profile/ets-racine.odd"
+
+
+def _odd_conforms_to(prefix: str) -> str:
+    # `prefix` is _resource_links' own "distance to api/dts/" (e.g. "../"
+    # from api/dts/collection/<slug>.json); api/dts/ itself is two levels
+    # below the site root, so two more "../" reach it from there.
+    return f"{prefix}../../{_ODD_RELPATH_SEGMENT}"
 
 
 def _citation_trees() -> list[dict[str, object]]:
@@ -49,13 +59,14 @@ def entry_point() -> dict[str, object]:
         "collection": "collection/index.json",
         "navigation": "navigation/{resource}/index.json",
         "document": "document/{resource}/full.xml",
-        "conformsTo": _ODD_RELPATH_FROM_DTS_ROOT,
     }
 
 
-def _resource_links(index: DTSTeiIndex, *, prefix: str) -> dict[str, object]:
+def _resource_links(
+    index: DTSTeiIndex, *, prefix: str, include_odd_reference: bool = False
+) -> dict[str, object]:
     slug = index.resource.slug
-    return {
+    data: dict[str, object] = {
         "@id": slug,
         "@type": "Resource",
         "title": index.resource.title,
@@ -68,27 +79,32 @@ def _resource_links(index: DTSTeiIndex, *, prefix: str) -> dict[str, object]:
         "mediaTypes": ["application/tei+xml", "application/xml"],
         "citationTrees": _citation_trees(),
     }
-
-
-def resource(index: DTSTeiIndex) -> dict[str, object]:
-    data = {
-        "@context": DTS_CONTEXT,
-        "dtsVersion": DTS_VERSION,
-        **_resource_links(index, prefix="../"),
-    }
+    dublin_core: dict[str, object] = {}
     if index.resource.author:
-        data["dublinCore"] = {"creator": [index.resource.author]}
+        dublin_core["creator"] = [index.resource.author]
+    if include_odd_reference:
+        dublin_core["conformsTo"] = [_odd_conforms_to(prefix)]
+    if dublin_core:
+        data["dublinCore"] = dublin_core
     return data
 
 
-def root_collection(indexes: Iterable[DTSTeiIndex], *, title: str) -> dict[str, object]:
+def resource(index: DTSTeiIndex, *, include_odd_reference: bool = False) -> dict[str, object]:
+    return {
+        "@context": DTS_CONTEXT,
+        "dtsVersion": DTS_VERSION,
+        **_resource_links(index, prefix="../", include_odd_reference=include_odd_reference),
+    }
+
+
+def root_collection(
+    indexes: Iterable[DTSTeiIndex], *, title: str, include_odd_reference: bool = False
+) -> dict[str, object]:
     ordered = sorted(indexes, key=lambda item: item.resource.slug)
-    members = []
-    for index in ordered:
-        member = _resource_links(index, prefix="../")
-        if index.resource.author:
-            member["dublinCore"] = {"creator": [index.resource.author]}
-        members.append(member)
+    members = [
+        _resource_links(index, prefix="../", include_odd_reference=include_odd_reference)
+        for index in ordered
+    ]
     return {
         "@context": DTS_CONTEXT,
         "dtsVersion": DTS_VERSION,
@@ -129,7 +145,9 @@ def _citable_unit(node: DTSNavNode, *, slug: str) -> dict[str, object]:
     }
 
 
-def navigation(index: DTSTeiIndex, *, ref: str | None = None) -> dict[str, object]:
+def navigation(
+    index: DTSTeiIndex, *, ref: str | None = None, include_odd_reference: bool = False
+) -> dict[str, object]:
     all_nodes = _flatten(index.navigation)
     selected_nodes = all_nodes
     selected_ref: DTSNavNode | None = None
@@ -145,7 +163,9 @@ def navigation(index: DTSTeiIndex, *, ref: str | None = None) -> dict[str, objec
         "dtsVersion": DTS_VERSION,
         "@id": f"{encoded_reference(ref)}.json" if ref else "index.json",
         "@type": "Navigation",
-        "resource": _resource_links(index, prefix="../../"),
+        "resource": _resource_links(
+            index, prefix="../../", include_odd_reference=include_odd_reference
+        ),
         "member": [_citable_unit(node, slug=slug) for node in selected_nodes],
     }
     if selected_ref is not None:

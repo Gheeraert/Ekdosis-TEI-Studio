@@ -31,19 +31,29 @@ def _write_json(output_root: Path, relative_path: Path, payload: dict[str, objec
     target.write_text(f"{serialized}\n", encoding="utf-8")
 
 
-def _export_resource(output_root: Path, index: DTSTeiIndex) -> tuple[str, ...]:
+def _export_resource(
+    output_root: Path, index: DTSTeiIndex, *, include_odd_reference: bool
+) -> tuple[str, ...]:
     slug = index.resource.slug
     if not _SAFE_SLUG.fullmatch(slug):
         raise ValueError("slug is not a safe static path segment")
 
     dts_root = Path("api") / "dts"
-    _write_json(output_root, dts_root / "collection" / f"{slug}.json", resource(index))
-    _write_json(output_root, dts_root / "navigation" / slug / "index.json", navigation(index))
+    _write_json(
+        output_root,
+        dts_root / "collection" / f"{slug}.json",
+        resource(index, include_odd_reference=include_odd_reference),
+    )
+    _write_json(
+        output_root,
+        dts_root / "navigation" / slug / "index.json",
+        navigation(index, include_odd_reference=include_odd_reference),
+    )
     for node in _flatten(index):
         _write_json(
             output_root,
             dts_root / "navigation" / slug / f"{encoded_reference(node.identifier)}.json",
-            navigation(index, ref=node.identifier),
+            navigation(index, ref=node.identifier, include_odd_reference=include_odd_reference),
         )
 
     document_target = _safe_target(output_root, dts_root / "document" / slug / "full.xml")
@@ -65,7 +75,17 @@ def export_dts_static(
     plays: tuple[object, ...],
     *,
     collection_title: str,
+    include_odd_reference: bool = False,
 ) -> tuple[str, ...]:
+    """Export the DTS static layer.
+
+    ``include_odd_reference`` adds a ``dublinCore.conformsTo`` pointer to the
+    published TEI ODD schema on every Resource. It defaults to ``False``
+    because this function does not itself publish the ODD file (only the
+    site builder's ``_copy_tei_profile_resources`` does, before calling this
+    function) — a caller using this module directly without also publishing
+    the ODD must not advertise a reference to a file that does not exist.
+    """
     resolved_root = output_root.resolve()
     warnings: list[str] = []
     indexes: list[DTSTeiIndex] = []
@@ -79,7 +99,9 @@ def export_dts_static(
                 title=str(getattr(play, "title", "") or ""),
                 author=getattr(play, "author", None),
             )
-            warnings.extend(_export_resource(resolved_root, index))
+            warnings.extend(
+                _export_resource(resolved_root, index, include_odd_reference=include_odd_reference)
+            )
             indexes.append(index)
         except Exception as exc:
             warnings.append(f"DTS export skipped for {slug}: {exc}")
@@ -89,7 +111,7 @@ def export_dts_static(
     _write_json(
         resolved_root,
         dts_root / "collection" / "index.json",
-        root_collection(indexes, title=collection_title),
+        root_collection(indexes, title=collection_title, include_odd_reference=include_odd_reference),
     )
     demo_page_target = _safe_target(resolved_root, Path("api-dts.html"))
     demo_page_target.write_text(

@@ -5,6 +5,7 @@ from pathlib import Path
 
 from lxml import etree
 
+from ets.dts.jsonld import entry_point
 from ets.dts.static_export import export_dts_static
 from ets.site_builder.builder import build_static_site
 from ets.site_builder.models import PlayEntry, SiteConfig
@@ -219,25 +220,54 @@ def test_static_export_creates_entry_collection_resource_navigation_and_document
     assert line_navigation["ref"]["document"] == "../../document/britannicus/A1S1L1.xml"  # type: ignore[index]
 
 
-def test_entry_point_conforms_to_relative_odd_schema_path(tmp_path: Path) -> None:
+def test_entry_point_never_advertises_an_odd_reference() -> None:
+    # The ODD describes the TEI documents, not the DTS service itself, so it
+    # must never be attached to the top-level EntryPoint (see the per-
+    # Resource dublinCore.conformsTo tests below).
+    assert "conformsTo" not in entry_point()
+
+
+def test_bare_export_dts_static_does_not_advertise_an_odd_reference(tmp_path: Path) -> None:
+    # export_dts_static() does not itself publish the ODD file (only the
+    # site builder's _copy_tei_profile_resources does, before calling this
+    # function), so by default it must not reference one that may not exist.
     source = tmp_path / "sources" / "piece.xml"
     output = tmp_path / "site"
     _write_tei(source)
 
     export_dts_static(output, (_play(source),), collection_title="Théâtre complet")
 
-    entry_path = output / "api" / "dts" / "index.json"
-    entry_payload = json.loads(entry_path.read_text(encoding="utf-8"))
+    resource_payload = json.loads(
+        (output / "api" / "dts" / "collection" / "britannicus.json").read_text(encoding="utf-8")
+    )
+    dublin_core = resource_payload.get("dublinCore", {})
+    assert "conformsTo" not in dublin_core
+    assert dublin_core.get("creator") == ["Jean Racine"]
 
-    conforms_to = entry_payload["conformsTo"]
+
+def test_export_dts_static_with_include_odd_reference_uses_relative_dublin_core_conforms_to(
+    tmp_path: Path,
+) -> None:
+    source = tmp_path / "sources" / "piece.xml"
+    output = tmp_path / "site"
+    _write_tei(source)
+
+    export_dts_static(
+        output, (_play(source),), collection_title="Théâtre complet", include_odd_reference=True
+    )
+
+    resource_path = output / "api" / "dts" / "collection" / "britannicus.json"
+    resource_payload = json.loads(resource_path.read_text(encoding="utf-8"))
+    conforms_to = resource_payload["dublinCore"]["conformsTo"][0]
+
     assert not conforms_to.startswith("http://")
     assert not conforms_to.startswith("https://")
 
-    resolved_odd_path = (entry_path.parent / conforms_to).resolve()
+    resolved_odd_path = (resource_path.parent / conforms_to).resolve()
     assert resolved_odd_path == (output / "tei-profile" / "ets-racine.odd").resolve()
 
 
-def test_entry_point_conforms_to_points_to_an_odd_actually_published_by_the_builder(
+def test_builder_odd_reference_points_to_an_odd_actually_published_on_disk(
     tmp_path: Path,
 ) -> None:
     dramatic_dir = tmp_path / "dramatic"
@@ -254,11 +284,25 @@ def test_entry_point_conforms_to_points_to_an_odd_actually_published_by_the_buil
         )
     )
 
-    entry_path = output_dir / "api" / "dts" / "index.json"
-    entry_payload = json.loads(entry_path.read_text(encoding="utf-8"))
-    resolved_odd_path = (entry_path.parent / entry_payload["conformsTo"]).resolve()
+    resource_path = output_dir / "api" / "dts" / "collection" / "britannicus.json"
+    resource_payload = json.loads(resource_path.read_text(encoding="utf-8"))
+    conforms_to = resource_payload["dublinCore"]["conformsTo"][0]
+    resolved_odd_path = (resource_path.parent / conforms_to).resolve()
 
     assert resolved_odd_path.exists()
+
+    # The same reference must also resolve correctly from the navigation and
+    # root-collection views of the same Resource (different file depths).
+    navigation_path = output_dir / "api" / "dts" / "navigation" / "britannicus" / "index.json"
+    navigation_payload = json.loads(navigation_path.read_text(encoding="utf-8"))
+    nav_conforms_to = navigation_payload["resource"]["dublinCore"]["conformsTo"][0]
+    assert (navigation_path.parent / nav_conforms_to).resolve() == resolved_odd_path
+
+    collection_path = output_dir / "api" / "dts" / "collection" / "index.json"
+    collection_payload = json.loads(collection_path.read_text(encoding="utf-8"))
+    member = collection_payload["member"][0]
+    member_conforms_to = member["dublinCore"]["conformsTo"][0]
+    assert (collection_path.parent / member_conforms_to).resolve() == resolved_odd_path
 
 
 def test_static_export_builds_logical_identifiers_when_xml_ids_are_missing(tmp_path: Path) -> None:

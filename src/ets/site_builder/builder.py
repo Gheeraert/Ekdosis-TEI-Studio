@@ -234,6 +234,10 @@ def _export_dts_static(output_root: Path, manifest: SiteManifest, warnings: list
                 output_root,
                 manifest.plays,
                 collection_title=manifest.config.site_title,
+                # Safe here specifically because _copy_tei_profile_resources
+                # always runs before this call and unconditionally publishes
+                # the ODD, unlike a bare export_dts_static() call.
+                include_odd_reference=True,
             )
         )
     except Exception as exc:
