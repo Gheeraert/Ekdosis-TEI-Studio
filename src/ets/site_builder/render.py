@@ -7,6 +7,7 @@ from lxml import etree, html as lxml_html
 
 from ets.dts.tei_index import index_tei
 from ets.html import HtmlExportOptions, render_html_export_from_tei
+from ets.seo import absolute_url
 from ets.search.static_page import (
     render_static_search_content,
     render_static_search_head_assets,
@@ -245,6 +246,28 @@ def _site_footer_html(current_href: str) -> str:
     )
 
 
+_DESCRIPTION_MAX_LENGTH = 160
+
+
+def _truncate_description(text: str, *, max_length: int = _DESCRIPTION_MAX_LENGTH) -> str:
+    normalized = " ".join(text.split())
+    if len(normalized) <= max_length:
+        return normalized
+    truncated = normalized[:max_length].rsplit(" ", 1)[0].rstrip(",;:.")
+    return f"{truncated}…"
+
+
+def _seo_head_tags_html(manifest: SiteManifest, *, current_href: str, description: str) -> str:
+    tags: list[str] = []
+    if description:
+        escaped_description = html.escape(_truncate_description(description), quote=True)
+        tags.append(f'<meta name="description" content="{escaped_description}">')
+    canonical_url = absolute_url(manifest.config.site_base_url, current_href)
+    if canonical_url:
+        tags.append(f'<link rel="canonical" href="{html.escape(canonical_url, quote=True)}">')
+    return "".join(tags)
+
+
 def _layout(
     manifest: SiteManifest,
     *,
@@ -253,13 +276,16 @@ def _layout(
     content_html: str,
     head_extra_html: str = "",
     section_class: str = "content-shell",
+    description: str = "",
 ) -> str:
+    seo_tags = _seo_head_tags_html(manifest, current_href=current_href, description=description)
     return f"""<!doctype html>
 <html lang=\"fr\">
 <head>
   <meta charset=\"utf-8\">
   <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">
   <title>{html.escape(page_title)}</title>
+  {seo_tags}
   {head_extra_html}
   <script>
     (() => {{
@@ -1880,7 +1906,18 @@ def render_home_page(manifest: SiteManifest) -> str:
             _render_home_play_list(manifest),
         ]
     content = "".join(blocks)
-    return _layout(manifest, page_title=manifest.config.site_title, current_href="index.html", content_html=content)
+    description = manifest.config.homepage_intro or (
+        f"{manifest.config.site_title} — édition critique numérique."
+        if not manifest.config.site_subtitle
+        else f"{manifest.config.site_title} — {manifest.config.site_subtitle}."
+    )
+    return _layout(
+        manifest,
+        page_title=manifest.config.site_title,
+        current_href="index.html",
+        content_html=content,
+        description=description,
+    )
 
 
 def render_play_page(manifest: SiteManifest, play: PlayEntry) -> str:
@@ -1909,6 +1946,11 @@ def render_play_page(manifest: SiteManifest, play: PlayEntry) -> str:
     fonts_href = f"{_asset_prefix(f'plays/{play.slug}.html')}assets/fonts/fonts.css"
     fonts_link = f'<link rel="stylesheet" href="{html.escape(fonts_href, quote=True)}">'
     head_extras = f"{fonts_link}{dramatic_assets}{_play_nav_hash_sync_script()}"
+    description = (
+        f"{play.title}, {play.author} — édition critique numérique, {manifest.config.site_title}."
+        if play.author
+        else f"{play.title} — édition critique numérique, {manifest.config.site_title}."
+    )
 
     return _layout(
         manifest,
@@ -1917,6 +1959,7 @@ def render_play_page(manifest: SiteManifest, play: PlayEntry) -> str:
         content_html="".join(lines),
         head_extra_html=head_extras,
         section_class="content-shell content-shell-play",
+        description=description,
     )
 
 
@@ -1928,6 +1971,7 @@ def render_search_page(manifest: SiteManifest) -> str:
         content_html=render_static_search_content() + render_static_search_script(),
         head_extra_html=render_static_search_head_assets(),
         section_class="content-shell content-shell-play content-shell-search",
+        description=f"Recherche dans l'édition — {manifest.config.site_title}.",
     )
 
 
@@ -2157,5 +2201,6 @@ def render_notice_page(manifest: SiteManifest, notice: NoticeEntry) -> str:
         page_title=notice.title,
         current_href=f"notices/{notice.slug}.html",
         content_html=content,
+        description=f"{notice.title} — notice, {manifest.config.site_title}.",
     )
 
