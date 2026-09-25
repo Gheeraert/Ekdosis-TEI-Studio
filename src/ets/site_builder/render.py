@@ -7,7 +7,7 @@ from lxml import etree, html as lxml_html
 
 from ets.dts.tei_index import index_tei
 from ets.html import HtmlExportOptions, render_html_export_from_tei
-from ets.seo import absolute_url
+from ets.seo import absolute_url, open_graph_head_html
 from ets.search.static_page import (
     render_static_search_content,
     render_static_search_head_assets,
@@ -257,14 +257,33 @@ def _truncate_description(text: str, *, max_length: int = _DESCRIPTION_MAX_LENGT
     return f"{truncated}…"
 
 
-def _seo_head_tags_html(manifest: SiteManifest, *, current_href: str, description: str) -> str:
+def _og_image_url(manifest: SiteManifest) -> str | None:
+    logos = manifest.config.assets.logo_files
+    if not logos:
+        return None
+    return absolute_url(manifest.config.site_base_url, f"assets/logos/{logos[0].name}")
+
+
+def _seo_head_tags_html(
+    manifest: SiteManifest, *, page_title: str, current_href: str, description: str
+) -> str:
+    truncated_description = _truncate_description(description) if description else ""
     tags: list[str] = []
-    if description:
-        escaped_description = html.escape(_truncate_description(description), quote=True)
+    if truncated_description:
+        escaped_description = html.escape(truncated_description, quote=True)
         tags.append(f'<meta name="description" content="{escaped_description}">')
     canonical_url = absolute_url(manifest.config.site_base_url, current_href)
     if canonical_url:
         tags.append(f'<link rel="canonical" href="{html.escape(canonical_url, quote=True)}">')
+    tags.append(
+        open_graph_head_html(
+            title=page_title,
+            description=truncated_description,
+            url=canonical_url,
+            site_name=manifest.config.site_title,
+            image_url=_og_image_url(manifest),
+        )
+    )
     return "".join(tags)
 
 
@@ -278,7 +297,9 @@ def _layout(
     section_class: str = "content-shell",
     description: str = "",
 ) -> str:
-    seo_tags = _seo_head_tags_html(manifest, current_href=current_href, description=description)
+    seo_tags = _seo_head_tags_html(
+        manifest, page_title=page_title, current_href=current_href, description=description
+    )
     return f"""<!doctype html>
 <html lang=\"fr\">
 <head>

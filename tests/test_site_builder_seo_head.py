@@ -126,6 +126,56 @@ def test_search_page_has_generic_description() -> None:
     assert description == "Recherche dans l'édition — ETS Demo."
 
 
+def test_open_graph_tags_absent_without_site_base_url() -> None:
+    config = _config()
+    manifest = SiteManifest(config=config)
+
+    html_page = render_home_page(manifest)
+
+    assert 'property="og:' not in html_page
+    assert 'name="twitter:' not in html_page
+
+
+def test_open_graph_tags_present_with_site_base_url() -> None:
+    config = _config(site_base_url="https://edition.example.org")
+    manifest = SiteManifest(config=config)
+
+    html_page = render_home_page(manifest)
+    doc = lxml_html.document_fromstring(html_page)
+
+    def og(prop: str) -> str:
+        return doc.xpath(f'string(//meta[@property="{prop}"]/@content)')
+
+    assert og("og:type") == "website"
+    assert og("og:title") == "ETS Demo"
+    assert og("og:url") == "https://edition.example.org/index.html"
+    assert og("og:site_name") == "ETS Demo"
+    assert doc.xpath('string(//meta[@name="twitter:card"]/@content)') == "summary"
+
+
+def test_open_graph_image_uses_first_configured_logo() -> None:
+    logo_path = DRAMATIC_DIR / "andromaque.xml"
+    config = site_config_from_dict(
+        {
+            "site_title": "ETS Demo",
+            "dramatic_xml_dir": str(DRAMATIC_DIR),
+            "output_dir": str(ROOT / "tests" / "_runtime" / "site_builder_seo_head"),
+            "site_base_url": "https://edition.example.org",
+            "assets": {"logos": [str(logo_path)]},
+        }
+    )
+    manifest = SiteManifest(config=config)
+
+    html_page = render_home_page(manifest)
+    doc = lxml_html.document_fromstring(html_page)
+
+    assert (
+        doc.xpath('string(//meta[@property="og:image"]/@content)')
+        == "https://edition.example.org/assets/logos/andromaque.xml"
+    )
+    assert doc.xpath('string(//meta[@name="twitter:card"]/@content)') == "summary_large_image"
+
+
 def test_long_homepage_intro_is_truncated_for_description() -> None:
     long_intro = "Une édition critique numérique du théâtre classique français. " * 5
     config = _config(homepage_intro=long_intro)
