@@ -11,7 +11,7 @@ from pathlib import Path
 from ets.dts import export_dts_static
 from ets.html.fonts import font_files, render_font_face_css
 from ets.search import export_static_search_index
-from ets.seo import build_robots_txt, build_sitemap_xml
+from ets.seo import build_robots_txt, build_sitemap_xml, robots_txt_url_path
 from ets.tei.generator import with_tei_profile_references
 
 from .config import load_site_config
@@ -259,6 +259,14 @@ def _export_robots_txt(output_root: Path, manifest: SiteManifest, warnings: list
     try:
         robots_text = build_robots_txt(base_url)
         (output_root / "robots.txt").write_text(robots_text, encoding="utf-8")
+        if robots_txt_url_path(base_url):
+            warnings.append(
+                f"robots.txt: site_base_url ({base_url}) has a subdirectory path. "
+                "Crawlers only read robots.txt from the domain root "
+                "(https://your-domain/robots.txt), never from inside a published "
+                "subdirectory; install this file there manually if you need it "
+                "to be honored."
+            )
     except Exception as exc:
         warnings.append(f"robots.txt export skipped: {exc}")
 

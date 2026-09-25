@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from typing import Any
-from urllib.parse import urlsplit
+from urllib.parse import urlsplit, urlunsplit
 
 _ALLOWED_SCHEMES = ("http", "https")
 
@@ -13,6 +13,14 @@ def normalize_base_url(value: Any) -> str | None:
     gracefully (no sitemap, no canonical/OpenGraph tags) instead of emitting
     invalid absolute URLs. Never used by the DTS static export, which must
     keep its own paths relative regardless of this setting.
+
+    Rejects anything that is not a plain "scheme://host[:port][/path]" value:
+    a query string or fragment would end up concatenated into every
+    canonical/OpenGraph/sitemap URL and silently point at the wrong page (or
+    leak a tracking parameter into every published page); embedded user
+    credentials would be published the same way. The URL is rebuilt from its
+    validated components rather than kept as raw text, so nothing beyond
+    scheme/host/port/path can slip through.
     """
     if value is None:
         return None
@@ -21,11 +29,32 @@ def normalize_base_url(value: Any) -> str | None:
         return None
 
     parsed = urlsplit(text)
-    if parsed.scheme not in _ALLOWED_SCHEMES or not parsed.netloc:
+    if parsed.scheme not in _ALLOWED_SCHEMES:
         raise ValueError(
-            "Invalid site configuration: 'site_base_url' must be an absolute http(s) URL."
+            "Invalid site configuration: 'site_base_url' must use http or https."
         )
-    return text.rstrip("/")
+    if not parsed.hostname:
+        raise ValueError(
+            "Invalid site configuration: 'site_base_url' must include a host name."
+        )
+    if parsed.username or parsed.password:
+        raise ValueError(
+            "Invalid site configuration: 'site_base_url' must not include user credentials."
+        )
+    if parsed.query:
+        raise ValueError(
+            "Invalid site configuration: 'site_base_url' must not include a query string."
+        )
+    if parsed.fragment:
+        raise ValueError(
+            "Invalid site configuration: 'site_base_url' must not include a fragment."
+        )
+
+    netloc = parsed.hostname
+    if parsed.port is not None:
+        netloc = f"{netloc}:{parsed.port}"
+    path = parsed.path.rstrip("/")
+    return urlunsplit((parsed.scheme, netloc, path, "", ""))
 
 
 def absolute_url(base_url: str | None, relpath: str) -> str | None:

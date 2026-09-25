@@ -24,6 +24,39 @@ def test_normalize_base_url_rejects_non_http_values() -> None:
         normalize_base_url("ftp://example.org")
 
 
+def test_normalize_base_url_rejects_query_string() -> None:
+    with pytest.raises(ValueError, match="query string"):
+        normalize_base_url("https://example.org/edition?preview=1")
+
+
+def test_normalize_base_url_rejects_fragment() -> None:
+    with pytest.raises(ValueError, match="fragment"):
+        normalize_base_url("https://example.org/edition#section")
+
+
+def test_normalize_base_url_rejects_user_credentials() -> None:
+    with pytest.raises(ValueError, match="credentials"):
+        normalize_base_url("https://user:secret@example.org/edition")
+
+
+def test_normalize_base_url_rejects_missing_host() -> None:
+    with pytest.raises(ValueError, match="host"):
+        normalize_base_url("https:///edition")
+
+
+def test_normalize_base_url_lowercases_host_and_keeps_port() -> None:
+    assert normalize_base_url("https://Example.ORG:8080/edition/") == (
+        "https://example.org:8080/edition"
+    )
+
+
+def test_normalize_base_url_rebuilds_from_components_not_raw_text() -> None:
+    # A malicious-looking suffix that urlsplit would still parse as query or
+    # fragment must never survive into the normalized, reconstructed URL.
+    with pytest.raises(ValueError):
+        normalize_base_url("https://example.org/edition?x=<script>alert(1)</script>")
+
+
 def test_absolute_url_returns_none_without_base_url() -> None:
     assert absolute_url(None, "pieces/andromaque.html") is None
 

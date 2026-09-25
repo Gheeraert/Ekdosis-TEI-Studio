@@ -81,3 +81,27 @@ def test_builder_writes_robots_txt_when_site_base_url_is_configured(tmp_path: Pa
     assert "Disallow: /xml/" in robots_text
     assert "Disallow: /api/dts/" in robots_text
     assert result.warnings == ()
+
+
+def test_builder_prefixes_robots_txt_and_warns_when_published_under_a_subdirectory(
+    tmp_path: Path,
+) -> None:
+    dramatic_dir = tmp_path / "dramatic"
+    output_dir = tmp_path / "site"
+    _write_tei(dramatic_dir / "britannicus.xml")
+
+    result = build_static_site(
+        SiteConfig(
+            site_title="ETS avec SEO sous-repertoire",
+            dramatic_xml_dir=dramatic_dir,
+            output_dir=output_dir,
+            publish_notices=False,
+            publish_prefaces=False,
+            site_base_url="https://example.org/corpus",
+        )
+    )
+
+    robots_text = (output_dir / "robots.txt").read_text(encoding="utf-8")
+    assert "Disallow: /corpus/xml/" in robots_text
+    assert "Sitemap: https://example.org/corpus/sitemap.xml" in robots_text
+    assert any("domain root" in warning for warning in result.warnings)

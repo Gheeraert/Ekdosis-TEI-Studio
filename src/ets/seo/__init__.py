@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from .opengraph import open_graph_head_html
-from .robots import DEFAULT_DISALLOWED_PATHS, build_robots_txt
+from .robots import DEFAULT_DISALLOWED_PATHS, build_robots_txt, robots_txt_url_path
 from .schema_reference import ODD_RELPATH, describedby_link_html
 from .sitemap import build_sitemap_xml
 from .structured_data import book_json_ld_html
@@ -17,4 +17,5 @@ __all__ = [
     "build_sitemap_xml",
     "build_robots_txt",
     "DEFAULT_DISALLOWED_PATHS",
+    "robots_txt_url_path",
 ]
