@@ -48,6 +48,7 @@ class SiteConfig:
     pdf_download_relpath: str | None = None
     play_pdf_source_map: tuple[tuple[str, Path], ...] = ()
     play_latex_source_map: tuple[tuple[str, Path], ...] = ()
+    site_base_url: str | None = None
 
 
 @dataclass(frozen=True)

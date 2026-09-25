@@ -6,6 +6,8 @@ import unicodedata
 from pathlib import Path
 from typing import Any
 
+from ets.seo import normalize_base_url
+
 from .models import AssetConfig, HomePageSection, SiteConfig
 
 
@@ -267,6 +269,7 @@ def site_config_from_dict(payload: dict[str, Any], *, base_dir: Path | None = No
         ),
         play_pdf_source_map=_coerce_play_path_map(payload.get("play_pdf_source_map"), base_dir=base_dir),
         play_latex_source_map=_coerce_play_path_map(payload.get("play_latex_source_map"), base_dir=base_dir),
+        site_base_url=normalize_base_url(payload.get("site_base_url")),
     )
     return config
 

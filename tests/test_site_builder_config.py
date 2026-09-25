@@ -51,6 +51,7 @@ def test_site_config_from_dict_normalizes_paths_and_defaults() -> None:
     assert config.pdf_download_source_path is None
     assert config.latex_download_source_path is None
     assert config.pdf_download_relpath is None
+    assert config.site_base_url is None
 
 
 def test_site_config_loads_from_json_and_resolves_relative_paths() -> None:
@@ -145,6 +146,31 @@ def test_site_config_rejects_invalid_publication_pdf_relpath() -> None:
                 "dramatic_xml_dir": ".",
                 "output_dir": "out/site",
                 "pdf_download_relpath": str((ROOT / "escape.pdf").resolve()),
+            }
+        )
+
+
+def test_site_config_reads_explicit_site_base_url() -> None:
+    config = site_config_from_dict(
+        {
+            "site_title": "ETS SEO",
+            "dramatic_xml_dir": ".",
+            "output_dir": "out/site",
+            "site_base_url": "https://edition.example.org/andromaque/",
+        }
+    )
+
+    assert config.site_base_url == "https://edition.example.org/andromaque"
+
+
+def test_site_config_rejects_invalid_site_base_url() -> None:
+    with pytest.raises(ValueError, match="site_base_url"):
+        site_config_from_dict(
+            {
+                "site_title": "ETS SEO",
+                "dramatic_xml_dir": ".",
+                "output_dir": "out/site",
+                "site_base_url": "edition.example.org",
             }
         )
 
