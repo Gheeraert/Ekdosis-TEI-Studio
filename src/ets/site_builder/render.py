@@ -7,7 +7,7 @@ from lxml import etree, html as lxml_html
 
 from ets.dts.tei_index import index_tei
 from ets.html import HtmlExportOptions, render_html_export_from_tei
-from ets.seo import absolute_url, open_graph_head_html
+from ets.seo import absolute_url, book_json_ld_html, describedby_link_html, open_graph_head_html
 from ets.search.static_page import (
     render_static_search_content,
     render_static_search_head_assets,
@@ -1954,7 +1954,8 @@ def render_play_page(manifest: SiteManifest, play: PlayEntry) -> str:
             lines.append(f'<p class="meta">Éditeur scientifique&nbsp;: {html.escape(play.scientific_editor)}</p>')
         if play.transcriber:
             lines.append(f'<p class="meta">Transcripteur&nbsp;: {html.escape(play.transcriber)}</p>')
-    download_buttons = _play_download_buttons_html(manifest, play, current_href=f"plays/{play.slug}.html")
+    play_href = f"plays/{play.slug}.html"
+    download_buttons = _play_download_buttons_html(manifest, play, current_href=play_href)
     if download_buttons:
         lines.append(download_buttons)
     if manifest.config.credits:
@@ -1964,19 +1965,29 @@ def render_play_page(manifest: SiteManifest, play: PlayEntry) -> str:
     lines.append(_render_dramatis_personae(play_navigation, play))
     dramatic_html, dramatic_assets = _play_reading_html(play, play_navigation)
     lines.append(dramatic_html)
-    fonts_href = f"{_asset_prefix(f'plays/{play.slug}.html')}assets/fonts/fonts.css"
+    fonts_href = f"{_asset_prefix(play_href)}assets/fonts/fonts.css"
     fonts_link = f'<link rel="stylesheet" href="{html.escape(fonts_href, quote=True)}">'
-    head_extras = f"{fonts_link}{dramatic_assets}{_play_nav_hash_sync_script()}"
+    describedby_link = describedby_link_html(_asset_prefix(play_href))
     description = (
         f"{play.title}, {play.author} — édition critique numérique, {manifest.config.site_title}."
         if play.author
         else f"{play.title} — édition critique numérique, {manifest.config.site_title}."
     )
+    book_json_ld = book_json_ld_html(
+        title=play.title,
+        author=play.author,
+        url=absolute_url(manifest.config.site_base_url, play_href),
+        description=_truncate_description(description),
+        site_name=manifest.config.site_title,
+    )
+    head_extras = (
+        f"{fonts_link}{describedby_link}{book_json_ld}{dramatic_assets}{_play_nav_hash_sync_script()}"
+    )
 
     return _layout(
         manifest,
         page_title=play.title,
-        current_href=f"plays/{play.slug}.html",
+        current_href=play_href,
         content_html="".join(lines),
         head_extra_html=head_extras,
         section_class="content-shell content-shell-play",

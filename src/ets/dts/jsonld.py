@@ -8,6 +8,11 @@ from .models import DTSNavNode, DTSTeiIndex
 DTS_CONTEXT = "https://dtsapi.org/context/v1.0.json"
 DTS_VERSION = "1.0"
 
+# Mirrors ets.seo.schema_reference.ODD_RELPATH (the published site-root path
+# of the TEI ODD schema). Duplicated as a literal rather than imported to
+# keep the DTS static export independent from the SEO layer.
+_ODD_RELPATH_FROM_DTS_ROOT = "../../tei-profile/ets-racine.odd"
+
 
 def _citation_trees() -> list[dict[str, object]]:
     return [
@@ -44,6 +49,7 @@ def entry_point() -> dict[str, object]:
         "collection": "collection/index.json",
         "navigation": "navigation/{resource}/index.json",
         "document": "document/{resource}/full.xml",
+        "conformsTo": _ODD_RELPATH_FROM_DTS_ROOT,
     }
 
 

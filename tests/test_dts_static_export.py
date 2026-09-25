@@ -219,6 +219,48 @@ def test_static_export_creates_entry_collection_resource_navigation_and_document
     assert line_navigation["ref"]["document"] == "../../document/britannicus/A1S1L1.xml"  # type: ignore[index]
 
 
+def test_entry_point_conforms_to_relative_odd_schema_path(tmp_path: Path) -> None:
+    source = tmp_path / "sources" / "piece.xml"
+    output = tmp_path / "site"
+    _write_tei(source)
+
+    export_dts_static(output, (_play(source),), collection_title="Théâtre complet")
+
+    entry_path = output / "api" / "dts" / "index.json"
+    entry_payload = json.loads(entry_path.read_text(encoding="utf-8"))
+
+    conforms_to = entry_payload["conformsTo"]
+    assert not conforms_to.startswith("http://")
+    assert not conforms_to.startswith("https://")
+
+    resolved_odd_path = (entry_path.parent / conforms_to).resolve()
+    assert resolved_odd_path == (output / "tei-profile" / "ets-racine.odd").resolve()
+
+
+def test_entry_point_conforms_to_points_to_an_odd_actually_published_by_the_builder(
+    tmp_path: Path,
+) -> None:
+    dramatic_dir = tmp_path / "dramatic"
+    output_dir = tmp_path / "site"
+    _write_tei(dramatic_dir / "britannicus.xml")
+
+    build_static_site(
+        SiteConfig(
+            site_title="ETS avec DTS",
+            dramatic_xml_dir=dramatic_dir,
+            output_dir=output_dir,
+            publish_notices=False,
+            enable_dts=True,
+        )
+    )
+
+    entry_path = output_dir / "api" / "dts" / "index.json"
+    entry_payload = json.loads(entry_path.read_text(encoding="utf-8"))
+    resolved_odd_path = (entry_path.parent / entry_payload["conformsTo"]).resolve()
+
+    assert resolved_odd_path.exists()
+
+
 def test_static_export_builds_logical_identifiers_when_xml_ids_are_missing(tmp_path: Path) -> None:
     source = tmp_path / "sources" / "without-xml-ids.xml"
     output = tmp_path / "site"

@@ -176,6 +176,49 @@ def test_open_graph_image_uses_first_configured_logo() -> None:
     assert doc.xpath('string(//meta[@name="twitter:card"]/@content)') == "summary_large_image"
 
 
+def test_play_page_describedby_link_is_always_relative() -> None:
+    config = _config()
+    play = _play()
+    manifest = SiteManifest(config=config, plays=(play,))
+
+    html_page = render_play_page(manifest, play)
+    doc = lxml_html.document_fromstring(html_page)
+
+    href = doc.xpath('string(//link[@rel="describedby"]/@href)')
+    assert href == "../tei-profile/ets-racine.odd"
+
+
+def test_play_page_has_no_book_json_ld_without_site_base_url() -> None:
+    config = _config()
+    play = _play()
+    manifest = SiteManifest(config=config, plays=(play,))
+
+    html_page = render_play_page(manifest, play)
+
+    assert 'application/ld+json' not in html_page
+    # the describedby link must still be present, independent of site_base_url
+    assert 'rel="describedby"' in html_page
+
+
+def test_play_page_book_json_ld_with_site_base_url() -> None:
+    config = _config(site_base_url="https://edition.example.org")
+    play = _play()
+    manifest = SiteManifest(config=config, plays=(play,))
+
+    html_page = render_play_page(manifest, play)
+    doc = lxml_html.document_fromstring(html_page)
+
+    script_nodes = doc.xpath('//script[@type="application/ld+json"]')
+    assert len(script_nodes) == 1
+
+    import json
+
+    data = json.loads(script_nodes[0].text)
+    assert data["@type"] == "Book"
+    assert data["name"] == play.title
+    assert data["url"] == f"https://edition.example.org/plays/{play.slug}.html"
+
+
 def test_long_homepage_intro_is_truncated_for_description() -> None:
     long_intro = "Une édition critique numérique du théâtre classique français. " * 5
     config = _config(homepage_intro=long_intro)
