@@ -24,7 +24,7 @@ LOGO_FILENAME = "logo_CEEN_nagscreen.png"
 LOGO_MAX_WIDTH = 260
 LOGO_MAX_HEIGHT = 120
 
-VERTICAL_OFFSET = 60
+TOP_MARGIN = 60
 
 PURH_URL = "https://purh.univ-rouen.fr"
 CEEN_URL = "https://ceen.hypotheses.org"
@@ -258,25 +258,20 @@ class WelcomeDialog(tk.Toplevel):
         self.after(200, lambda: self.attributes("-topmost", False))
 
     def _center_on_parent(self, parent: tk.Misc) -> None:
+        # Le parent (fenetre principale) reste cache tant que ce nagscreen
+        # n'a pas ete referme (voir app.py) : sa geometrie n'est alors pas
+        # fiable pour s'y centrer. On se positionne donc toujours par
+        # rapport a l'ecran : centre horizontalement, proche du haut.
+        del parent
         self.update_idletasks()
 
         width = self.winfo_width()
         height = self.winfo_height()
+        screen_width = self.winfo_screenwidth()
+        screen_height = self.winfo_screenheight()
 
-        try:
-            parent.update_idletasks()
-            parent_x = parent.winfo_rootx()
-            parent_y = parent.winfo_rooty()
-            parent_width = parent.winfo_width()
-            parent_height = parent.winfo_height()
-
-            x = parent_x + max((parent_width - width) // 2, 0)
-            y = parent_y + max((parent_height - height) // 2 - VERTICAL_OFFSET, 0)
-        except tk.TclError:
-            screen_width = self.winfo_screenwidth()
-            screen_height = self.winfo_screenheight()
-            x = max((screen_width - width) // 2, 0)
-            y = max((screen_height - height) // 2 - VERTICAL_OFFSET, 0)
+        x = max((screen_width - width) // 2, 0)
+        y = min(TOP_MARGIN, max((screen_height - height) // 2, 0))
 
         self.geometry(f"{width}x{height}+{x}+{y}")
 
