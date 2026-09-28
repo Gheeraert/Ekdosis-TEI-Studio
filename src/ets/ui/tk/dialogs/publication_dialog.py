@@ -30,6 +30,7 @@ from ets.publication_pdf import (
     build_and_compile_publication_pdf_from_prepared_config,
 )
 from ets.ui.tk.dialog_geometry import fit_dialog_to_screen
+from ets.ui.tk.tooltip import add_tooltip
 
 from .ftp_publication_dialog import open_ftp_publication_dialog
 
@@ -224,46 +225,90 @@ class PublicationDialog(tk.Toplevel):
         # ttk.Checkbutton(options, text="Activer les telechargements XML", variable=self.vars.show_xml_download).grid(
         #    row=0, column=2, sticky="w", padx=(12, 0)
         # )
-        ttk.Checkbutton(options, text="Générer LaTeX-Ekdosis et PDF", variable=self.vars.build_latex_pdf).grid(
-            row=0, column=2, sticky="w", padx=(12, 0)
-        )
-        ttk.Checkbutton(options, text="PDF lisible : masquer les variantes mineures", variable=self.vars.hide_minor_variants_in_pdf).grid(
-            row=1, column=0, sticky="w"
-        )
-        ttk.Checkbutton(options, text="Inclure les metadonnees", variable=self.vars.include_metadata).grid(
-            row=1, column=1, sticky="w", padx=(12, 0)
-        )
-        ttk.Checkbutton(options, text="Resoudre les xi:include locaux", variable=self.vars.resolve_notice_xincludes).grid(
-            row=1, column=2, sticky="w", padx=(12, 0)
-        )
-        ttk.Checkbutton(
+        self._add_option_checkbutton(
             options,
+            row=0,
+            column=2,
+            text="Générer LaTeX-Ekdosis et PDF",
+            variable=self.vars.build_latex_pdf,
+            tooltip=(
+                "Produit une édition imprimable à partir de la TEI, via LaTeX et le "
+                "package Ekdosis. La génération du PDF nécessite une installation "
+                "LaTeX compatible."
+            ),
+            padx=(12, 0),
+        )
+        self._add_option_checkbutton(
+            options,
+            row=1,
+            column=0,
+            text="PDF lisible : masquer les variantes mineures",
+            variable=self.vars.hide_minor_variants_in_pdf,
+            tooltip=(
+                "Dans le PDF, masque les variantes purement graphiques ou "
+                "typographiques afin d’alléger l’apparat. La TEI n’est pas modifiée."
+            ),
+        )
+        self._add_option_checkbutton(
+            options,
+            row=1,
+            column=1,
+            text="Inclure les metadonnees",
+            variable=self.vars.include_metadata,
+            tooltip=(
+                "Affiche l’éditeur scientifique et le transcripteur de chaque pièce "
+                "sur sa page dans le site publié."
+            ),
+            padx=(12, 0),
+        )
+        self._add_option_checkbutton(
+            options,
+            row=1,
+            column=2,
+            text="Resoudre les xi:include locaux",
+            variable=self.vars.resolve_notice_xincludes,
+            tooltip=(
+                "Remplace les inclusions XML locales (xi:include) par leur contenu "
+                "lors de la publication afin de produire des fichiers autonomes."
+            ),
+            padx=(12, 0),
+        )
+        self._add_option_checkbutton(
+            options,
+            row=2,
+            column=0,
+            columnspan=3,
             text="Exporter une couche DTS statique expérimentale",
             variable=self.vars.enable_dts,
-        ).grid(row=2, column=0, columnspan=3, sticky="w")
-        ttk.Checkbutton(
+            tooltip=(
+                "Génère une couche DTS statique (api/dts/) exposant la collection, "
+                "la navigation et des fragments TEI selon le standard Distributed "
+                "Text Services. Fonction expérimentale."
+            ),
+        )
+        self._add_option_checkbutton(
             options,
+            row=3,
+            column=0,
+            columnspan=3,
             text="Générer un index de recherche statique",
             variable=self.vars.enable_search_index,
-        ).grid(row=3, column=0, columnspan=3, sticky="w")
-        ttk.Label(
+            tooltip="Génère search/index.json, utilisé par le moteur de recherche local du site publié.",
+        )
+        self._add_option_checkbutton(
             options,
-            text=(
-                "Génère api/dts/ et api-dts.html : collection, navigation et fragments TEI "
-                "pour l’interopérabilité."
-            ),
-            wraplength=860,
-        ).grid(row=4, column=0, columnspan=3, sticky="w", pady=(0, 2))
-        ttk.Label(
-            options,
-            text="Produit search/index.json pour préparer une recherche locale dans le site publié.",
-            wraplength=860,
-        ).grid(row=5, column=0, columnspan=3, sticky="w", pady=(0, 2))
-        ttk.Checkbutton(
-            options,
+            row=6,
+            column=0,
+            columnspan=3,
             text="Publier une couche SEO (sitemap, robots.txt, meta description, Open Graph, données structurées)",
             variable=self.vars.enable_seo,
-        ).grid(row=6, column=0, columnspan=3, sticky="w", pady=(6, 0))
+            tooltip=(
+                "Génère les fichiers et métadonnées utiles aux moteurs de recherche "
+                "et au partage sur le Web : sitemap, robots.txt, meta description, "
+                "Open Graph et données structurées."
+            ),
+            pady=(6, 0),
+        )
         seo_url_row = ttk.Frame(options)
         seo_url_row.grid(row=7, column=0, columnspan=3, sticky="ew")
         seo_url_row.columnconfigure(1, weight=1)
@@ -361,6 +406,30 @@ class PublicationDialog(tk.Toplevel):
     def _add_entry(parent: ttk.Frame, row: int, label: str, variable: tk.StringVar) -> None:
         ttk.Label(parent, text=label).grid(row=row, column=0, sticky="w", padx=(0, 6), pady=2)
         ttk.Entry(parent, textvariable=variable).grid(row=row, column=1, sticky="ew", pady=2)
+
+    @staticmethod
+    def _add_option_checkbutton(
+        parent: ttk.Frame,
+        *,
+        row: int,
+        column: int,
+        text: str,
+        variable: tk.BooleanVar,
+        tooltip: str | None = None,
+        columnspan: int = 1,
+        padx: tuple[int, int] = (0, 0),
+        pady: tuple[int, int] = (0, 0),
+    ) -> None:
+        # Un Checkbutton et, le cas echeant, un symbole d'aide discret sont
+        # regroupes dans une cellule dediee afin de ne pas modifier la case
+        # a cocher elle-meme ni l'alignement de la grille "Options".
+        cell = ttk.Frame(parent)
+        cell.grid(row=row, column=column, columnspan=columnspan, sticky="w", padx=padx, pady=pady)
+        ttk.Checkbutton(cell, text=text, variable=variable).pack(side="left")
+        if tooltip:
+            help_label = ttk.Label(cell, text=" ⓘ", foreground="#6f4e00", cursor="question_arrow")
+            help_label.pack(side="left")
+            add_tooltip(help_label, tooltip)
 
     def _on_corpus_identity_changed(self, *_args: str) -> None:
         self._refresh_corpus_slug()
