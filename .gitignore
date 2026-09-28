@@ -26,3 +26,8 @@ baseline_main.txt
 after_minor_variants.txt
 /tests/_runtime/
 /tests/_pytest_tmp_site_builder/
+
+# Local MCP/tool bridges (machine-specific, e.g. PyCharm MCP port)
+.mcp.json
+.codex/
+.claude/settings.local.json
