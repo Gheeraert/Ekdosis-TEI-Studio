@@ -11,7 +11,10 @@
     </rule>
 
     <rule context="tei:body">
-      <assert test="not(*[not(self::tei:div[@type='act'])])">body must contain only div type="act".</assert>
+      <assert test="not(*[not(self::tei:div[@type='act' or @type='prologue'])])">body must contain only div type="act" or div type="prologue".</assert>
+      <assert test="count(tei:div[@type='prologue']) &lt;= 1">body must not contain more than one div type="prologue".</assert>
+      <assert test="not(tei:div[@type='prologue']) or *[1][self::tei:div[@type='prologue']]">div type="prologue" must be the first child of body.</assert>
+      <assert test="tei:div[@type='act']">body must contain at least one div type="act".</assert>
     </rule>
 
     <rule context="tei:div">
@@ -23,7 +26,10 @@
       <assert test="not(@type='scene') or @xml:id">div type="scene" must have @xml:id.</assert>
       <assert test="not(@type='scene') or tei:head">div type="scene" must have a head.</assert>
       <assert test="not(@type='scene') or tei:sp">div type="scene" must contain at least one sp.</assert>
-      <assert test="not(@type='act' or @type='scene') or not(ancestor::tei:text/@xml:id) or starts-with(@xml:id, concat(ancestor::tei:text/@xml:id, '-'))">Structural xml:id values for acts, scenes, lines, explicit stages, and stage type="DI" should start with the play id followed by "-".</assert>
+      <assert test="not(@type='prologue') or @xml:id">div type="prologue" must have @xml:id.</assert>
+      <assert test="not(@type='prologue') or tei:head">div type="prologue" must have a head.</assert>
+      <assert test="not(@type='prologue') or tei:sp">div type="prologue" must contain at least one sp.</assert>
+      <assert test="not(@type='act' or @type='scene' or @type='prologue') or not(ancestor::tei:text/@xml:id) or starts-with(@xml:id, concat(ancestor::tei:text/@xml:id, '-'))">Structural xml:id values for acts, scenes, lines, explicit stages, and stage type="DI" should start with the play id followed by "-".</assert>
     </rule>
 
     <rule context="tei:l">
@@ -81,7 +87,7 @@
       <assert test="not(@type='DI') or @ana">stage type="DI" must have @ana.</assert>
       <assert test="not(@type='DI') or tei:l">stage type="DI" must contain at least one l.</assert>
       <assert test="not(@type='DI') or @ana = '#SPC' or @ana = '#ASP' or @ana = '#TMP' or @ana = '#EVT' or @ana = '#SET' or @ana = '#PROX' or @ana = '#ATT' or @ana = '#VOI'">stage type="DI"/@ana must use an ETS implicit-stage category.</assert>
-      <assert test="@type='personnages' or not(ancestor::tei:text/@xml:id) or starts-with(@xml:id, concat(ancestor::tei:text/@xml:id, '-'))">Structural xml:id values for acts, scenes, lines, explicit stages, and stage type="DI" should start with the play id followed by "-".</assert>
+      <assert test="not(ancestor::tei:body) or @type='personnages' or not(ancestor::tei:text/@xml:id) or starts-with(@xml:id, concat(ancestor::tei:text/@xml:id, '-'))">Structural xml:id values for acts, scenes, lines, explicit stages, and stage type="DI" should start with the play id followed by "-".</assert>
     </rule>
 
     <rule context="tei:lg">

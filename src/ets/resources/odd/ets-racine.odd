@@ -25,8 +25,8 @@
       <div type="scope">
         <head>Périmètre</head>
         <p>Le profil ETS-Racine est une personnalisation TEI destinée à documenter le XML produit automatiquement par Ekdosis-TEI Studio pour le corps dramatique des pièces de Racine. Il décrit une TEI de sortie, générée par le pipeline ETS, et non une saisie manuelle libre.</p>
-        <p>Il ne couvre pas les paratextes, le front matter, les notices, les introductions, les notes critiques ni les bibliographies. Il ne constitue pas une recommandation générale pour l'encodage TEI du théâtre : il décrit un contrat de sortie homogène, contrôlé et validable.</p>
-        <p>Le profil documente la structure dramatique produite sous <gi>text</gi>/<gi>body</gi> : actes, scènes, listes de personnages sur scène, répliques, vers, strophes, didascalies explicites, didascalies implicites, italiques et apparats.</p>
+        <p>Il couvre également le <gi>front</gi> technique spécifique produit par ETS pour le dramatis personae (<gi>castList</gi>, <gi>castItem</gi>, <gi>role</gi>, <gi>roleDesc</gi>, <gi>note</gi>, décor de scène) lorsqu'un fichier castlist est associé à la pièce. Il ne couvre pas pour autant le front matter TEI général : il ne couvre pas les autres paratextes éditoriaux, notices, introductions, notes critiques ni bibliographies. Il ne constitue pas une recommandation générale pour l'encodage TEI du théâtre : il décrit un contrat de sortie homogène, contrôlé et validable.</p>
+        <p>Le profil documente la structure dramatique produite sous <gi>text</gi>/<gi>body</gi> : actes, scènes, prologue, listes de personnages sur scène, répliques, vers, strophes, didascalies explicites, didascalies implicites, italiques et apparats.</p>
       </div>
 
       <div type="principles">
@@ -95,7 +95,7 @@
         </elementSpec>
 
         <elementSpec ident="text" mode="change">
-          <desc>Conteneur du texte dramatique de sortie. L'attribut <att>xml:id</att> identifie la pièce et sert de préfixe cible pour les identifiants structurels.</desc>
+          <desc>Conteneur du texte dramatique de sortie. L'attribut <att>xml:id</att> identifie la pièce et sert de préfixe cible pour les identifiants structurels. Il contient un <gi>front</gi> optionnel (dramatis personae technique) suivi obligatoirement d'un <gi>body</gi>.</desc>
           <attList>
             <attDef ident="xml:id" usage="req">
               <desc>Identifiant obligatoire de la pièce générée.</desc>
@@ -111,18 +111,21 @@
         </elementSpec>
 
         <elementSpec ident="body" mode="change">
-          <desc>Corps dramatique généré. Il ne contient que des divisions d'acte, représentées par <gi>div</gi> avec <att>type</att> égal à <val>act</val>.</desc>
+          <desc>Corps dramatique généré. Il ne contient que des divisions d'acte (<gi>div</gi> <att>type</att>=<val>act</val>) et, au plus une fois et en tête, une division de prologue (<gi>div</gi> <att>type</att>=<val>prologue</val>). Au moins un acte est toujours présent.</desc>
           <constraintSpec ident="ets-racine-body-acts-only" scheme="schematron">
             <constraint>
               <sch:rule context="tei:body">
-                <sch:assert test="not(*[not(self::tei:div[@type='act'])])">body ne doit contenir que des div type="act".</sch:assert>
+                <sch:assert test="not(*[not(self::tei:div[@type='act' or @type='prologue'])])">body ne doit contenir que des div type="act" ou type="prologue".</sch:assert>
+                <sch:assert test="count(tei:div[@type='prologue']) &lt;= 1">body ne doit pas contenir plus d'un div type="prologue".</sch:assert>
+                <sch:assert test="not(tei:div[@type='prologue']) or *[1][self::tei:div[@type='prologue']]">div type="prologue" doit être le premier enfant de body.</sch:assert>
+                <sch:assert test="tei:div[@type='act']">body doit contenir au moins un div type="act".</sch:assert>
               </sch:rule>
             </constraint>
           </constraintSpec>
         </elementSpec>
 
         <elementSpec ident="div" mode="change">
-          <desc>Division structurelle limitée aux actes et scènes. Un acte est <gi>div</gi> <att>type</att>=<val>act</val> avec <att>n</att>, <att>xml:id</att>, un <gi>head</gi> et au moins une scène. Une scène est <gi>div</gi> <att>type</att>=<val>scene</val> avec <att>n</att>, <att>xml:id</att>, un <gi>head</gi> et au moins une réplique <gi>sp</gi>.</desc>
+          <desc>Division structurelle limitée aux actes, aux scènes, au prologue et au bloc technique de dramatis personae. Un acte est <gi>div</gi> <att>type</att>=<val>act</val> avec <att>n</att>, <att>xml:id</att>, un <gi>head</gi> et au moins une scène. Une scène est <gi>div</gi> <att>type</att>=<val>scene</val> avec <att>n</att>, <att>xml:id</att>, un <gi>head</gi> et au moins une réplique <gi>sp</gi>. Un prologue est <gi>div</gi> <att>type</att>=<val>prologue</val> avec <att>xml:id</att> mais sans <att>n</att> ; il ne contient pas de scène imbriquée, seulement un <gi>head</gi>, une éventuelle liste de personnages sur scène, des didascalies explicites et au moins une réplique <gi>sp</gi>, directement. Le bloc de dramatis personae est <gi>div</gi> <att>type</att>=<val>dramatis-personae</val>, sans <att>xml:id</att>, contenu dans <gi>front</gi> : voir l'élément <gi>front</gi>.</desc>
           <attList>
             <attDef ident="type" usage="req">
               <desc>Valeur attendue : <val>act</val> pour les actes ou <val>scene</val> pour les scènes.</desc>
@@ -145,20 +148,57 @@
                 <sch:assert test="not(@type='scene') or @xml:id">Chaque scène doit avoir @xml:id.</sch:assert>
                 <sch:assert test="not(@type='scene') or tei:head">Chaque scène doit avoir un head.</sch:assert>
                 <sch:assert test="not(@type='scene') or tei:sp">Chaque scène doit contenir au moins une réplique sp.</sch:assert>
+                <sch:assert test="not(@type='prologue') or @xml:id">Chaque prologue doit avoir @xml:id.</sch:assert>
+                <sch:assert test="not(@type='prologue') or tei:head">Chaque prologue doit avoir un head.</sch:assert>
+                <sch:assert test="not(@type='prologue') or tei:sp">Chaque prologue doit contenir au moins une réplique sp.</sch:assert>
               </sch:rule>
             </constraint>
           </constraintSpec>
         </elementSpec>
 
+        <elementSpec ident="front" mode="change">
+          <desc>Bloc technique optionnel précédant <gi>body</gi>, produit uniquement lorsqu'un fichier castlist est associé à la pièce. Il ne couvre pas le front matter TEI général : il contient exactement le <gi>div</gi> <att>type</att>=<val>dramatis-personae</val> produit par build_castlist_tei_element(). Aucun autre paratexte (notice, introduction, bibliographie) n'y est produit par ETS.</desc>
+        </elementSpec>
+
+        <elementSpec ident="castList" mode="change">
+          <desc>Liste de personnages du dramatis personae, dans <gi>front</gi>. Elle contient au moins un <gi>castItem</gi>.</desc>
+        </elementSpec>
+
+        <elementSpec ident="castItem" mode="change">
+          <desc>Entrée de personnage du dramatis personae. Elle porte un <att>xml:id</att> obligatoire (préfixe <val>char-</val>, voir tei_character_xml_id), un <gi>role</gi>, un <gi>roleDesc</gi> optionnel et un <gi>note</gi> <att>type</att>=<val>semi-diplomatic</val> obligatoire.</desc>
+          <attList>
+            <attDef ident="xml:id" usage="req">
+              <desc>Identifiant de personnage, cible des <att>who</att> de <gi>sp</gi>.</desc>
+            </attDef>
+          </attList>
+        </elementSpec>
+
+        <elementSpec ident="role" mode="change">
+          <desc>Nom du personnage dans une entrée <gi>castItem</gi>. Contenu textuel simple, sans apparat ni italique.</desc>
+        </elementSpec>
+
+        <elementSpec ident="roleDesc" mode="change">
+          <desc>Description optionnelle du rôle dans une entrée <gi>castItem</gi>. Contenu textuel simple, sans apparat ni italique.</desc>
+        </elementSpec>
+
+        <elementSpec ident="note" mode="change">
+          <desc>Lecture semi-diplomatique collationnée d'une entrée de dramatis personae. Porte toujours <att>type</att>=<val>semi-diplomatic</val> et accepte le même contenu mixte que les autres lectures collationnées : texte, italiques <gi>hi</gi>, apparats <gi>app</gi>.</desc>
+          <attList>
+            <attDef ident="type" usage="req">
+              <desc>Valeur attendue : <val>semi-diplomatic</val>.</desc>
+            </attDef>
+          </attList>
+        </elementSpec>
+
         <elementSpec ident="head" mode="change">
-          <desc>Titre d'acte ou de scène. Il accepte du contenu textuel mixte, des italiques <gi>hi</gi> et des apparats <gi>app</gi> produits par la collation.</desc>
+          <desc>Titre d'acte, de scène ou de prologue. Il accepte du contenu textuel mixte, des italiques <gi>hi</gi> et des apparats <gi>app</gi> produits par la collation. Le même modèle est réutilisé pour l'en-tête optionnel du bloc de dramatis personae.</desc>
         </elementSpec>
 
         <elementSpec ident="stage" mode="change">
-          <desc>Didascalie ou liste de personnages sur scène. <gi>stage</gi> <att>type</att>=<val>personnages</val> représente la liste des personnages présents et ne porte pas <att>xml:id</att>. Les didascalies explicites portent <att>xml:id</att>. Les didascalies implicites portent <att>type</att>=<val>DI</val>, <att>xml:id</att>, <att>ana</att> et contiennent au moins un vers <gi>l</gi>.</desc>
+          <desc>Didascalie, liste de personnages sur scène, ou décor de dramatis personae. <gi>stage</gi> <att>type</att>=<val>personnages</val> représente la liste des personnages présents et ne porte pas <att>xml:id</att>. Les didascalies explicites, dans le corps dramatique, portent <att>xml:id</att>. Les didascalies implicites portent <att>type</att>=<val>DI</val>, <att>xml:id</att>, <att>ana</att> et contiennent au moins un vers <gi>l</gi>. <gi>stage</gi> <att>type</att>=<val>setting</val> décrit le décor dans le bloc de dramatis personae sous <gi>front</gi> ; il ne porte pas <att>xml:id</att> et n'est pas soumis à la convention de préfixe d'identifiant du corps dramatique.</desc>
           <attList>
             <attDef ident="type" usage="opt">
-              <desc>Valeurs générées : <val>personnages</val> ou <val>DI</val>.</desc>
+              <desc>Valeurs générées : <val>personnages</val>, <val>DI</val> ou <val>setting</val>.</desc>
             </attDef>
             <attDef ident="xml:id" usage="opt">
               <desc>Obligatoire pour les didascalies explicites et implicites, interdit pour <val>personnages</val>.</desc>
@@ -385,10 +425,10 @@
                 <sch:assert test="not(ancestor::tei:text/@xml:id) or starts-with(@xml:id, concat(ancestor::tei:text/@xml:id, '-'))">Les préfixes play_id-... sont la cible pour les xml:id de vers.</sch:assert>
               </sch:rule>
               <sch:rule context="tei:div">
-                <sch:assert test="not(@type='act' or @type='scene') or not(ancestor::tei:text/@xml:id) or starts-with(@xml:id, concat(ancestor::tei:text/@xml:id, '-'))">Les préfixes play_id-... sont la cible pour les xml:id d'actes et de scènes.</sch:assert>
+                <sch:assert test="not(@type='act' or @type='scene' or @type='prologue') or not(ancestor::tei:text/@xml:id) or starts-with(@xml:id, concat(ancestor::tei:text/@xml:id, '-'))">Les préfixes play_id-... sont la cible pour les xml:id d'actes, de scènes et de prologue.</sch:assert>
               </sch:rule>
               <sch:rule context="tei:stage">
-                <sch:assert test="@type='personnages' or not(ancestor::tei:text/@xml:id) or starts-with(@xml:id, concat(ancestor::tei:text/@xml:id, '-'))">Les préfixes play_id-... sont la cible pour les xml:id de didascalies explicites et implicites.</sch:assert>
+                <sch:assert test="not(ancestor::tei:body) or @type='personnages' or not(ancestor::tei:text/@xml:id) or starts-with(@xml:id, concat(ancestor::tei:text/@xml:id, '-'))">Les préfixes play_id-... sont la cible pour les xml:id de didascalies explicites et implicites du corps dramatique ; le stage type="setting" du front n'est pas concerné.</sch:assert>
               </sch:rule>
             </constraint>
           </constraintSpec>

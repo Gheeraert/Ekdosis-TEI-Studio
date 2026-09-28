@@ -100,22 +100,83 @@ category =
 playText =
   element text {
     attribute xml:id { xsd:ID },
+    front?,
     body
+  }
+
+# <front> ne couvre pas le front matter TEI general (notices, introduction,
+# bibliographie) : il ne couvre que le bloc technique de dramatis personae
+# produit par build_castlist_tei_element().
+front =
+  element front {
+    dramatisPersonaeDiv
+  }
+
+dramatisPersonaeDiv =
+  element div {
+    attribute type { "dramatis-personae" },
+    head?,
+    castList,
+    settingStage?
+  }
+
+castList =
+  element castList {
+    castItem+
+  }
+
+castItem =
+  element castItem {
+    attribute xml:id { xsd:ID },
+    element role { text },
+    element roleDesc { text }?,
+    note
+  }
+
+note =
+  element note {
+    attribute type { "semi-diplomatic" },
+    mixed { inline* }
+  }
+
+settingStage =
+  element stage {
+    attribute type { "setting" },
+    mixed { inline* }
   }
 
 body =
   element body {
-    actDiv+
+    bodyDiv+
   }
 
-actDiv =
+# actDiv et prologueDiv doivent rester une seule et meme definition
+# "element div { A | B }" : deux regles nommees separement, combinees par un
+# choix au niveau de body, ne sont pas deterministes pour la plupart des
+# moteurs RelaxNG (dont libxml2), qui echouent alors a valider le second
+# <div> rencontre. L'ordre reel (prologue avant les actes, au plus un
+# prologue) est verifie par ets-racine.sch, pas par cette grammaire.
+bodyDiv =
   element div {
-    attribute type { "act" },
-    attribute n { text },
-    attribute xml:id { xsd:ID },
-    head,
-    sceneDiv+
+    actContent | prologueContent
   }
+
+actContent =
+  attribute type { "act" },
+  attribute n { text },
+  attribute xml:id { xsd:ID },
+  head,
+  sceneDiv+
+
+# Un prologue est une division de tete de piece : pas de scene imbriquee,
+# pas d'attribut @n (voir generator.py, is_prologue=True).
+prologueContent =
+  attribute type { "prologue" },
+  attribute xml:id { xsd:ID },
+  head,
+  personnagesStage?,
+  explicitStage*,
+  sp+
 
 sceneDiv =
   element div {
