@@ -51,6 +51,11 @@ def normalize_base_url(value: Any) -> str | None:
         )
 
     netloc = parsed.hostname
+    if ":" in netloc:
+        # parsed.hostname strips the brackets from an IPv6 literal; put them
+        # back so the rebuilt authority stays valid (and unambiguous with a
+        # trailing :port).
+        netloc = f"[{netloc}]"
     if parsed.port is not None:
         netloc = f"{netloc}:{parsed.port}"
     path = parsed.path.rstrip("/")

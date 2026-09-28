@@ -50,6 +50,18 @@ def test_normalize_base_url_lowercases_host_and_keeps_port() -> None:
     )
 
 
+def test_normalize_base_url_keeps_ipv6_brackets_with_port() -> None:
+    assert normalize_base_url("https://[2001:db8::1]:8443/edition") == (
+        "https://[2001:db8::1]:8443/edition"
+    )
+
+
+def test_normalize_base_url_keeps_ipv6_brackets_without_port() -> None:
+    assert normalize_base_url("https://[2001:db8::1]/edition") == (
+        "https://[2001:db8::1]/edition"
+    )
+
+
 def test_normalize_base_url_rebuilds_from_components_not_raw_text() -> None:
     # A malicious-looking suffix that urlsplit would still parse as query or
     # fragment must never survive into the normalized, reconstructed URL.
