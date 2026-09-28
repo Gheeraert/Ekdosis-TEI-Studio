@@ -23,6 +23,7 @@
       <assert test="not(@type='scene') or @xml:id">div type="scene" must have @xml:id.</assert>
       <assert test="not(@type='scene') or tei:head">div type="scene" must have a head.</assert>
       <assert test="not(@type='scene') or tei:sp">div type="scene" must contain at least one sp.</assert>
+      <assert test="not(@type='act' or @type='scene') or not(ancestor::tei:text/@xml:id) or starts-with(@xml:id, concat(ancestor::tei:text/@xml:id, '-'))">Structural xml:id values for acts, scenes, lines, explicit stages, and stage type="DI" should start with the play id followed by "-".</assert>
     </rule>
 
     <rule context="tei:l">
@@ -31,6 +32,7 @@
       <assert test="not(@part) or @part = 'I' or @part = 'M' or @part = 'F'">l/@part must be I, M or F.</assert>
       <assert test="not(contains(@n, '.')) or @part">decimal shared-verse l/@n values must have @part.</assert>
       <assert test="not(@part) or contains(@n, '.')">l/@part is only allowed on decimal shared-verse numbers.</assert>
+      <assert test="not(ancestor::tei:text/@xml:id) or starts-with(@xml:id, concat(ancestor::tei:text/@xml:id, '-'))">Structural xml:id values for acts, scenes, lines, explicit stages, and stage type="DI" should start with the play id followed by "-".</assert>
     </rule>
 
     <rule context="tei:app">
@@ -79,6 +81,7 @@
       <assert test="not(@type='DI') or @ana">stage type="DI" must have @ana.</assert>
       <assert test="not(@type='DI') or tei:l">stage type="DI" must contain at least one l.</assert>
       <assert test="not(@type='DI') or @ana = '#SPC' or @ana = '#ASP' or @ana = '#TMP' or @ana = '#EVT' or @ana = '#SET' or @ana = '#PROX' or @ana = '#ATT' or @ana = '#VOI'">stage type="DI"/@ana must use an ETS implicit-stage category.</assert>
+      <assert test="@type='personnages' or not(ancestor::tei:text/@xml:id) or starts-with(@xml:id, concat(ancestor::tei:text/@xml:id, '-'))">Structural xml:id values for acts, scenes, lines, explicit stages, and stage type="DI" should start with the play id followed by "-".</assert>
     </rule>
 
     <rule context="tei:lg">
@@ -88,18 +91,6 @@
 
     <rule context="*">
       <assert test="not(@xml:id) or count(//*[@xml:id = current()/@xml:id]) = 1">Structural xml:id values must be unique.</assert>
-    </rule>
-
-    <rule context="tei:l">
-      <assert test="not(ancestor::tei:text/@xml:id) or starts-with(@xml:id, concat(ancestor::tei:text/@xml:id, '-'))">Structural xml:id values for acts, scenes, lines, explicit stages, and stage type="DI" should start with the play id followed by "-".</assert>
-    </rule>
-
-    <rule context="tei:div">
-      <assert test="not(@type='act' or @type='scene') or not(ancestor::tei:text/@xml:id) or starts-with(@xml:id, concat(ancestor::tei:text/@xml:id, '-'))">Structural xml:id values for acts, scenes, lines, explicit stages, and stage type="DI" should start with the play id followed by "-".</assert>
-    </rule>
-
-    <rule context="tei:stage">
-      <assert test="@type='personnages' or not(ancestor::tei:text/@xml:id) or starts-with(@xml:id, concat(ancestor::tei:text/@xml:id, '-'))">Structural xml:id values for acts, scenes, lines, explicit stages, and stage type="DI" should start with the play id followed by "-".</assert>
     </rule>
   </pattern>
 </schema>

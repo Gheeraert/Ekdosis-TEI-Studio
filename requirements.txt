@@ -1,5 +1,6 @@
 flask>=3.0
 lxml>=5.0.0
 rapidfuzz>=3.0.0
+rnc2rng>=2.7.0
 Flask
 gunicorn

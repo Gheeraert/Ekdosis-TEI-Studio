@@ -10,6 +10,7 @@ dependencies = [
     "lxml>=5.0.0",
     "rapidfuzz>=3.0.0",
     "flask>=3.0",
+    "rnc2rng>=2.7.0",
 ]
 
 [tool.setuptools.packages.find]
