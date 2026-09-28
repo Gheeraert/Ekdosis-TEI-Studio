@@ -183,9 +183,7 @@ class MainWindow(ttk.Frame):
         self.editor_tabs.add(self.references_panel, text="Références")
         self.editor_tabs.bind("<<NotebookTabChanged>>", self._on_editor_tab_changed, add="+")
 
-        self.bottom = ttk.Frame(self.vertical_pane)
-        self.bottom.columnconfigure(0, weight=1)
-        self.bottom.rowconfigure(0, weight=1)
+        self.bottom = ttk.Panedwindow(self.vertical_pane, orient=tk.VERTICAL)
 
         self.outputs = OutputNotebook(
             self.bottom,
@@ -195,12 +193,13 @@ class MainWindow(ttk.Frame):
             on_annotation_delete=self.action_delete_annotation,
             on_annotation_select=self._on_annotation_selected,
         )
-        self.outputs.grid(row=0, column=0, sticky="nsew")
         self.outputs.set_annotations(self.state.annotations)
         self.outputs.set_annotations_file_path(None)
 
         self.diagnostics = DiagnosticsPanel(self.bottom, on_navigate=self.editor.go_to_line)
-        self.diagnostics.grid(row=1, column=0, sticky="nsew", pady=(6, 0))
+
+        self.bottom.add(self.outputs, weight=3)
+        self.bottom.add(self.diagnostics, weight=1)
 
         self.vertical_pane.add(self.top, weight=3)
         self.vertical_pane.add(self.bottom, weight=2)
