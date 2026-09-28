@@ -144,6 +144,16 @@ class MainWindow(ttk.Frame):
         self.rowconfigure(0, weight=1)
         self.rowconfigure(1, weight=0)
 
+        # Le theme ttk par defaut (p.ex. "vista" sous Windows) dessine une
+        # barre de separation de PanedWindow tres fine : entre l'editeur
+        # (zone du haut, un simple Frame) et le bas (lui-meme un
+        # PanedWindow imbrique), cette barre est quasi invisible et donc
+        # tres difficile a attraper a la souris, ce qui donne l'impression
+        # que cette separation n'est pas redimensionnable alors qu'elle
+        # l'est techniquement. On l'epaissit et on ajoute une poignee
+        # visible, pour toutes les separations de l'application.
+        ttk.Style(self).configure("Sash", sashthickness=8, gripcount=14)
+
         self.vertical_pane = ttk.Panedwindow(self, orient=tk.VERTICAL)
         self.vertical_pane.grid(row=0, column=0, sticky="nsew")
 
