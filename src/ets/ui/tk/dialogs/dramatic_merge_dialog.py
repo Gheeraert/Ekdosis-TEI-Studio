@@ -6,6 +6,7 @@ import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
 
 from ets.application import DramaticTeiMergeRequest
+from ets.ui.tk.dialog_geometry import fit_dialog_to_screen
 
 
 @dataclass
@@ -20,7 +21,7 @@ class DramaticMergeDialog(tk.Toplevel):
         self.transient(parent.winfo_toplevel())
         self.grab_set()
         self.resizable(True, True)
-        self.geometry("840x420")
+        fit_dialog_to_screen(self, 840, 420)
         self.minsize(700, 360)
         self.result: DramaticTeiMergeRequest | None = None
 

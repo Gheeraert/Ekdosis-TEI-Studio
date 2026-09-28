@@ -11,6 +11,7 @@ from ets.ftp_publish import (
     save_ftp_publication_config,
     validate_ftp_publication_config,
 )
+from ets.ui.tk.dialog_geometry import fit_dialog_to_screen
 
 
 @dataclass
@@ -32,7 +33,7 @@ class FTPPublicationDialog(tk.Toplevel):
         self.transient(parent.winfo_toplevel())
         self.grab_set()
         self.resizable(True, True)
-        self.geometry("760x520")
+        fit_dialog_to_screen(self, 760, 520)
         self.minsize(700, 460)
         self.result: FTPPublicationConfig | None = None
         self._config_path: Path | None = None

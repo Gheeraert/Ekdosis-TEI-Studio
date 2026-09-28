@@ -6,6 +6,7 @@ import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
 
 from ets.application import TextTranscriptionMergeRequest
+from ets.ui.tk.dialog_geometry import fit_dialog_to_screen
 
 
 SEPARATOR_NONE = "Aucun separateur"
@@ -28,7 +29,7 @@ class TextTranscriptionMergeDialog(tk.Toplevel):
         self.transient(parent.winfo_toplevel())
         self.grab_set()
         self.resizable(True, True)
-        self.geometry("860x480")
+        fit_dialog_to_screen(self, 860, 480)
         self.minsize(720, 380)
         self.result: TextTranscriptionMergeRequest | None = None
 

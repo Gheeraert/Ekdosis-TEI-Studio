@@ -29,6 +29,7 @@ from ets.publication_pdf import (
     PublicationPdfMasterBuildResult,
     build_and_compile_publication_pdf_from_prepared_config,
 )
+from ets.ui.tk.dialog_geometry import fit_dialog_to_screen
 
 from .ftp_publication_dialog import open_ftp_publication_dialog
 
@@ -82,7 +83,7 @@ class PublicationDialog(tk.Toplevel):
         self.transient(parent)
         self.grab_set()
         self.resizable(True, True)
-        self.geometry("1020x760")
+        fit_dialog_to_screen(self, 1020, 760)
         self.minsize(900, 620)
         self.result: PublicationDialogResult | None = None
 
