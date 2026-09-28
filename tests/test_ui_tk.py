@@ -170,6 +170,10 @@ def _make_root() -> tk.Tk:
 @pytest.fixture(autouse=True)
 def _disable_welcome_dialog(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr("ets.ui.tk.main_window.show_welcome_dialog", lambda *_args, **_kwargs: None)
+    # Evite aussi l'effet de bord deiconify() : le root de test doit rester
+    # cache (voir _make_root), meme si un update_idletasks() declenche le
+    # callback after_idle programme dans MainWindow.__init__.
+    monkeypatch.setattr("ets.ui.tk.main_window.MainWindow._show_welcome_dialog_and_route", lambda self: None)
     monkeypatch.setattr("ets.ui.tk.main_window.MainWindow._schedule_autosave", lambda self: None)
 
 def _annotations_fixture_dir() -> Path:

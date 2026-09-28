@@ -48,7 +48,14 @@ def _resolve_logo_path() -> Path:
 
 
 class WelcomeDialog(tk.Toplevel):
-    """Nagscreen d'ouverture de TEI Studio."""
+    """Nagscreen d'ouverture d'Ekdosis TEI Studio.
+
+    Deux modules utilisateurs distincts sont accessibles depuis cet écran :
+    l'édition d'une pièce (fenêtre principale existante) et la génération
+    d'un site (fenêtre existante, ouverte séparément). Ce nagscreen ne fait
+    que choisir lequel démarrer ; il ne contient aucune logique des deux
+    modules eux-mêmes.
+    """
 
     def __init__(self, master: tk.Misc) -> None:
         super().__init__(master)
@@ -58,11 +65,16 @@ class WelcomeDialog(tk.Toplevel):
         self.resizable(False, False)
 
         self._logo_image: tk.PhotoImage | None = None
+        self.result: str = "edit"
 
         self._build_widgets()
         self._bind_shortcuts()
         self._make_modal()
         self._center_on_parent(master)
+
+    def _choose(self, result: str) -> None:
+        self.result = result
+        self.destroy()
 
     def _load_logo_image(self, path: Path) -> tk.PhotoImage:
         """Charge le logo et le réduit si sa taille native est excessive."""
@@ -190,21 +202,39 @@ class WelcomeDialog(tk.Toplevel):
         )
         codex_credit.pack()
 
-        button = tk.Button(
-            container,
-            text="Commencer",
-            command=self.destroy,
+        buttons_row = tk.Frame(container, background=BACKGROUND)
+        buttons_row.pack(pady=(16, 0))
+
+        edit_button = tk.Button(
+            buttons_row,
+            text="Éditer une pièce",
+            command=lambda: self._choose("edit"),
             font=("Georgia", 11, "bold"),
             foreground="black",
             background=BUTTON_BACKGROUND,
             activebackground=TITLE_BACKGROUND,
             relief="ridge",
             borderwidth=2,
-            width=26,
+            width=17,
             default="active",
         )
-        button.pack(pady=(16, 0))
-        button.focus_set()
+        edit_button.pack(side="left", padx=(0, 8))
+
+        build_site_button = tk.Button(
+            buttons_row,
+            text="Générer un site",
+            command=lambda: self._choose("build_site"),
+            font=("Georgia", 11, "bold"),
+            foreground="black",
+            background=BUTTON_BACKGROUND,
+            activebackground=TITLE_BACKGROUND,
+            relief="ridge",
+            borderwidth=2,
+            width=17,
+        )
+        build_site_button.pack(side="left")
+
+        edit_button.focus_set()
 
     def _bind_shortcuts(self) -> None:
         self.bind("<Return>", lambda _event: self.destroy())
@@ -213,9 +243,17 @@ class WelcomeDialog(tk.Toplevel):
         self.protocol("WM_DELETE_WINDOW", self.destroy)
 
     def _make_modal(self) -> None:
-        self.transient(self.master)
-        self.grab_set()
+        # transient() ne s'applique que si le maitre est deja visible : sur
+        # Windows, une fenetre transient() d'un maitre cache (voir app.py,
+        # qui masque la fenetre principale tant que ce nagscreen n'a pas ete
+        # referme) reste elle-meme invisible malgre deiconify()/lift(), quel
+        # que soit l'ordre des appels.
+        if self.master.winfo_viewable():
+            self.transient(self.master)
         self.lift()
+        self.update_idletasks()
+        self.deiconify()
+        self.grab_set()
         self.attributes("-topmost", True)
         self.after(200, lambda: self.attributes("-topmost", False))
 
@@ -243,7 +281,14 @@ class WelcomeDialog(tk.Toplevel):
         self.geometry(f"{width}x{height}+{x}+{y}")
 
 
-def show_welcome_dialog(parent: tk.Misc) -> None:
-    """Affiche la fenêtre d'accueil et attend sa fermeture."""
+def show_welcome_dialog(parent: tk.Misc) -> str:
+    """Affiche la fenêtre d'accueil, attend sa fermeture et retourne le choix.
+
+    Retourne ``"edit"`` (module d'édition, par défaut : Entrée/Échap/croix
+    ou bouton "Éditer une pièce") ou ``"build_site"`` (bouton "Générer un
+    site"). Le nagscreen ne fait que choisir le module à ouvrir ensuite ;
+    l'ouverture elle-même reste à la charge de l'appelant.
+    """
     dialog = WelcomeDialog(parent)
     parent.wait_window(dialog)
+    return dialog.result

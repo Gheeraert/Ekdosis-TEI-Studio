@@ -233,9 +233,20 @@ class MainWindow(ttk.Frame):
         self._install_shortcuts()
         self.markdown_editor.reset_split_view()
 
-        self.after_idle(lambda: show_welcome_dialog(self.winfo_toplevel()))
+        self.after_idle(self._show_welcome_dialog_and_route)
 
         self._refresh_validate_button_label()
+
+    def _show_welcome_dialog_and_route(self) -> None:
+        # Le nagscreen ne fait que choisir le module a ouvrir ; l'edition
+        # (cette fenetre, deja construite) et la generation de site
+        # (action_build_publication_site, deja existante) restent inchangees.
+        # self.master reste cache (voir app.py) jusqu'a ce choix, pour
+        # qu'aucune fenetre n'apparaisse avant la decision de l'utilisateur.
+        choice = show_welcome_dialog(self.winfo_toplevel())
+        self.master.deiconify()
+        if choice == "build_site":
+            self.action_build_publication_site()
 
     def _on_editor_tab_changed(self, _event: tk.Event[tk.Misc]) -> None:
         if self._is_markdown_mode():
