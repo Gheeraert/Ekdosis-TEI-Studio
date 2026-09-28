@@ -128,13 +128,13 @@
           <desc>Division structurelle limitée aux actes, aux scènes, au prologue et au bloc technique de dramatis personae. Un acte est <gi>div</gi> <att>type</att>=<val>act</val> avec <att>n</att>, <att>xml:id</att>, un <gi>head</gi> et au moins une scène. Une scène est <gi>div</gi> <att>type</att>=<val>scene</val> avec <att>n</att>, <att>xml:id</att>, un <gi>head</gi> et au moins une réplique <gi>sp</gi>. Un prologue est <gi>div</gi> <att>type</att>=<val>prologue</val> avec <att>xml:id</att> mais sans <att>n</att> ; il ne contient pas de scène imbriquée, seulement un <gi>head</gi>, une éventuelle liste de personnages sur scène, des didascalies explicites et au moins une réplique <gi>sp</gi>, directement. Le bloc de dramatis personae est <gi>div</gi> <att>type</att>=<val>dramatis-personae</val>, sans <att>xml:id</att>, contenu dans <gi>front</gi> : voir l'élément <gi>front</gi>.</desc>
           <attList>
             <attDef ident="type" usage="req">
-              <desc>Valeur attendue : <val>act</val> pour les actes ou <val>scene</val> pour les scènes.</desc>
+              <desc>Valeur attendue : <val>act</val> pour les actes, <val>scene</val> pour les scènes, <val>prologue</val> pour le prologue ou <val>dramatis-personae</val> pour le bloc de personnages du <gi>front</gi>.</desc>
             </attDef>
-            <attDef ident="n" usage="req">
-              <desc>Numéro d'acte ou de scène.</desc>
+            <attDef ident="n" usage="opt">
+              <desc>Numéro d'acte ou de scène. Obligatoire pour <val>act</val> et <val>scene</val> ; absent pour <val>prologue</val> et <val>dramatis-personae</val>.</desc>
             </attDef>
-            <attDef ident="xml:id" usage="req">
-              <desc>Identifiant structurel obligatoire.</desc>
+            <attDef ident="xml:id" usage="opt">
+              <desc>Identifiant structurel. Obligatoire pour <val>act</val>, <val>scene</val> et <val>prologue</val> ; absent pour <val>dramatis-personae</val>.</desc>
             </attDef>
           </attList>
           <constraintSpec ident="ets-racine-div-structure" scheme="schematron">
