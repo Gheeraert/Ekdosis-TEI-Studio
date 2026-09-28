@@ -21,8 +21,10 @@ BUTTON_BACKGROUND = "#f1e7bd"
 LINK_FOREGROUND = "#6f4e00"
 
 LOGO_FILENAME = "logo_CEEN_nagscreen.png"
-LOGO_MAX_WIDTH = 350
-LOGO_MAX_HEIGHT = 160
+LOGO_MAX_WIDTH = 260
+LOGO_MAX_HEIGHT = 120
+
+VERTICAL_OFFSET = 60
 
 PURH_URL = "https://purh.univ-rouen.fr"
 CEEN_URL = "https://ceen.hypotheses.org"
@@ -51,7 +53,7 @@ class WelcomeDialog(tk.Toplevel):
     def __init__(self, master: tk.Misc) -> None:
         super().__init__(master)
 
-        self.title("Bienvenue dans TEI Studio")
+        self.title("Bienvenue dans Ekdosis TEI Studio")
         self.configure(background=BACKGROUND)
         self.resizable(False, False)
 
@@ -94,28 +96,28 @@ class WelcomeDialog(tk.Toplevel):
         link.bind("<Button-1>", lambda _event: webbrowser.open_new_tab(url))
 
     def _build_widgets(self) -> None:
-        container = tk.Frame(self, background=BACKGROUND, padx=46, pady=38)
+        container = tk.Frame(self, background=BACKGROUND, padx=34, pady=24)
         container.pack(fill="both", expand=True)
 
         title = tk.Label(
             container,
-            text="TEI Studio",
-            font=("Georgia", 30, "bold"),
+            text="Ekdosis TEI Studio",
+            font=("Georgia", 22, "bold"),
             foreground=INK,
             background=TITLE_BACKGROUND,
-            padx=28,
-            pady=14,
+            padx=20,
+            pady=10,
         )
         title.pack(fill="x")
 
         version = tk.Label(
             container,
             text="V. 2.0",
-            font=("Georgia", 13, "bold"),
+            font=("Georgia", 12, "bold"),
             foreground=INK,
             background=BACKGROUND,
         )
-        version.pack(pady=(14, 0))
+        version.pack(pady=(10, 0))
 
         logo_path = _resolve_logo_path()
         if logo_path.exists():
@@ -127,21 +129,21 @@ class WelcomeDialog(tk.Toplevel):
                     background=BACKGROUND,
                     borderwidth=0,
                 )
-                logo_label.pack(pady=(22, 14))
+                logo_label.pack(pady=(14, 10))
             except tk.TclError:
                 self._logo_image = None
         else:
-            spacer = tk.Frame(container, background=BACKGROUND, height=18)
+            spacer = tk.Frame(container, background=BACKGROUND, height=12)
             spacer.pack()
 
         subtitle = tk.Label(
             container,
             text="Plate-forme d'édition critique de textes de théâtre",
-            font=("Georgia", 12),
+            font=("Georgia", 11),
             foreground="black",
             background=BACKGROUND,
         )
-        subtitle.pack(pady=(0, 16))
+        subtitle.pack(pady=(0, 10))
 
         credits = tk.Frame(container, background=BACKGROUND)
         credits.pack()
@@ -201,7 +203,7 @@ class WelcomeDialog(tk.Toplevel):
             width=26,
             default="active",
         )
-        button.pack(pady=(24, 0))
+        button.pack(pady=(16, 0))
         button.focus_set()
 
     def _bind_shortcuts(self) -> None:
@@ -231,12 +233,12 @@ class WelcomeDialog(tk.Toplevel):
             parent_height = parent.winfo_height()
 
             x = parent_x + max((parent_width - width) // 2, 0)
-            y = parent_y + max((parent_height - height) // 2, 0)
+            y = parent_y + max((parent_height - height) // 2 - VERTICAL_OFFSET, 0)
         except tk.TclError:
             screen_width = self.winfo_screenwidth()
             screen_height = self.winfo_screenheight()
             x = max((screen_width - width) // 2, 0)
-            y = max((screen_height - height) // 2, 0)
+            y = max((screen_height - height) // 2 - VERTICAL_OFFSET, 0)
 
         self.geometry(f"{width}x{height}+{x}+{y}")
 
