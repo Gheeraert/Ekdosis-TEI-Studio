@@ -9,6 +9,7 @@ import webbrowser
 
 from lxml import etree
 
+from ets.ui.tk.dialog_geometry import fit_dialog_to_screen
 from ets.ui.tk.welcome_dialog import show_welcome_dialog
 from ets.annotations import Annotation, AnnotationCollection, AnnotationValidationError
 from ets.markdown_editor import MarkdownEditorWidget
@@ -134,7 +135,6 @@ class MainWindow(ttk.Frame):
         self._menu_bar: tk.Menu | None = None
 
         self.master.title("Ekdosis TEI Studio v2")
-        self.master.geometry("1200x850")
         self.master.minsize(900, 650)
 
         self.grid(sticky="nsew")
@@ -227,6 +227,10 @@ class MainWindow(ttk.Frame):
 
         self._refresh_config_ui()
         self._install_menus()
+        # Appele apres l'installation du menu natif : la mesure de la
+        # decoration de fenetre (barre de titre + bordures + barre de menu)
+        # depend de la presence effective du menu sur la fenetre.
+        fit_dialog_to_screen(self.master, 1200, 850)
         self._install_shortcuts()
         self.markdown_editor.reset_split_view()
 
